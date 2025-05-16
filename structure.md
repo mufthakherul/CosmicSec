@@ -90,3 +90,10 @@ hacker_ai/
     ├── multithreading.py
     ├── async_tools.py
     └── logger.py
+```/outputs/
+    /nmap/
+        /json/
+        /txt/
+        /csv/
+    /sqlmap/
+        ...

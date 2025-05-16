@@ -96,6 +96,10 @@ def get_config():
     cli_override = load_cli_overrides()
     config.update(cli_override)
 
+    # config.py
+    DEFAULT_OUTPUT_FORMATS = ["json", "txt", "csv"]
+
+
     return config
 
 # Load the final config when imported

@@ -5,6 +5,7 @@ import os
 import json
 import xmltodict
 from utils.logger import logger
+from utils.output import save_output
 
 NMAP_PATH = os.getenv("NMAP_PATH", "/usr/bin/nmap")
 
@@ -48,6 +49,10 @@ def save_nmap_output(tool_name, target, data, format="json"):
     os.makedirs(dir_path, exist_ok=True)
     filename = f"{dir_path}{target.replace('.', '_')}.{format}"
 
+# After `data` is collected
+    for fmt in ["json", "txt"]:
+        save_output("nmap", target, data, fmt)
+
     try:
         with open(filename, "w", encoding="utf-8") as f:
             if format == "json":
@@ -64,4 +69,5 @@ def save_nmap_output(tool_name, target, data, format="json"):
     except Exception as e:
         logger.error(f"[{tool_name.upper()}] Failed to save output: {str(e)}")
         return None
+
 
