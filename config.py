@@ -66,6 +66,19 @@ def get_config():
             "shodan": os.getenv("SHODAN_API_KEY", ""),
             "openai": os.getenv("OPENAI_API_KEY", ""),
         },
+        "services": {
+            "censys": os.getenv("CENSYS_API_KEY", ""),
+            "securitytrails": os.getenv("SECURITYTRAILS_API_KEY", ""),
+            "haveibeenpwned": os.getenv("HIBP_API_KEY", ""),
+        },
+
+        "rgld": {
+            "GITHUB_API_TOKEN": os.getenv("GITHUB_API_TOKEN", "your_github_token"),
+            "TELEGRAM_BOT_TOKEN": os.getenv("TELEGRAM_BOT_TOKEN", "your_bot_token"),
+            "TELEGRAM_CHAT_ID": os.getenv("TELEGRAM_CHAT_ID", "your_chat_id"),
+            "DISCORD_WEBHOOK_URL": os.getenv("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/...."),
+            "USE_TOR_PROXY": True  # enable .onion routing
+        },
 
         "urls": {
             "cve": os.getenv("CVE_API_URL", "https://cve.circl.lu/api/cve/")
@@ -87,6 +100,8 @@ def get_config():
             "port": int(os.getenv("WEB_UI_PORT", 5050)),
         }
     }
+
+    
 
     # Step 3: Optional GPG merge
     gpg_config = load_gpg_config()
