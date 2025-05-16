@@ -86,14 +86,14 @@ hacker_ai/
 │   ├── dashboard.py                ← 📊 Risk + Scan visual dashboard
 │   └── web_ui.py                   ← 🌍 Web (Flask/React) interface
 │
-└── utils/
-    ├── multithreading.py
-    ├── async_tools.py
-    └── logger.py
-```/outputs/
-    /nmap/
-        /json/
-        /txt/
-        /csv/
-    /sqlmap/
+├── utils/
+│   ├── multithreading.py
+│   ├── async_tools.py
+│   └── logger.py
+├── outputs/
+    ├── nmap/
+        ├──json/
+        ├──txt/
+        └──csv/
+    ├──/sqlmap/
         ...

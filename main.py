@@ -43,8 +43,9 @@ def load_modules():
 # 🧬 Main launcher
 def main():
     setup_logger()
-    print("🧠 HACKER-AI v1.0 [MODULAR CYBER ASSISTANT]")
-    print("============================================")
+    print("🧠 THE ULTIMTE HACKER-AI v1.0 - A EVIL jARVIS")
+    print("[MODULAR CYBER ASSISTANT WITH WORMGPT CHAT-]")
+    print("==============================================")
 
     modules = load_modules()
 
