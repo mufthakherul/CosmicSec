@@ -3,7 +3,7 @@ import subprocess
 import json
 import time
 from datetime import datetime
-from utils.logger import log
+from utils.logger import logger as log
 from utils.output import save_output
 from config import settings
 
