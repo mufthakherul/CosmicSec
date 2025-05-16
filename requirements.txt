@@ -2,6 +2,5 @@ python-dotenv
 gnupg
 xmltodict
 requests
-
-
-
+whois
+ipwhois
