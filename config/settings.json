@@ -1,0 +1,7 @@
+{
+  "RECON_ONION_URL": "http://recon5xz.onion",
+  "PHOBOS_MIRRORS": [
+    "http://phobosmarketmirror.onion",
+    "http://darkmarketxyz.onion"
+  ]
+}
