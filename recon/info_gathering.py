@@ -7,13 +7,14 @@ import json
 import subprocess
 from ipwhois import IPWhois
 from datetime import datetime
-from utils.logger import log
+from utils.logger import logger as log
+from config import settings
 from utils.output import save_output
 
 # Optional 3rd-party APIs (add your API keys)
-SHODAN_API_KEY = ""
-HUNTER_API_KEY = ""
-HIBP_API_KEY = ""
+SHODAN_API_KEY = settings.get("SHODAN_API_KEY", "")
+HUNTER_API_KEY = settings.get("HUNTER_API_KEY", "")
+HIBP_API_KEY = settings.get("HIBP_API_KEY", "")
 
 
 def get_whois(domain):
