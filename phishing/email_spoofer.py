@@ -16,7 +16,10 @@ def spoof_email(
     headers=None,
     smtp_server="localhost",
     smtp_port=25,
-    use_tls=False
+    use_tls=False,
+    smtp_user=None,
+    smtp_password=None,
+    is_html=False
 ):
     """
     Sends a spoofed email using custom From/Reply-To headers.
@@ -33,20 +36,25 @@ def spoof_email(
             for k, v in headers.items():
                 msg[k] = v
 
-        msg.set_content(body)
+        if is_html:
+            msg.set_content(body, subtype='html')
+        else:
+            msg.set_content(body)
 
-        logger.info(f"📤 Spoofing email to {to_email} from {from_email}")
+        logger.info(f"\ud83d\udce4 Spoofing email to {to_email} from {from_email}")
 
         with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
             if use_tls:
                 server.starttls()
+            if smtp_user and smtp_password:
+                server.login(smtp_user, smtp_password)
             server.send_message(msg)
 
-        logger.success(f"✅ Email sent successfully to {to_email}")
+        logger.success(f"\u2705 Email sent successfully to {to_email}")
         return True
 
     except Exception as e:
-        logger.error(f"❌ Failed to spoof email: {e}")
+        logger.error(f"\u274c Failed to spoof email: {e}")
         return False
 
 def generate_random_spoof_headers():
@@ -68,8 +76,9 @@ def simulate_phishing_email(target_email, fake_link):
         "Confirm recent payment activity"
     ]
     body_template = (
-        "Dear user,\n\nWe noticed unusual activity in your account.\n"
-        "Please verify at the following secure link:\n\n{link}\n\nThank you."
+        "<html><body><p>Dear user,</p><p>We noticed unusual activity in your account." +
+        " Please verify at the following secure link:</p>" +
+        "<p><a href='{link}'>{link}</a></p><p>Thank you.</p></body></html>"
     )
     spoof_email(
         from_name=random.choice(from_names),
@@ -77,5 +86,6 @@ def simulate_phishing_email(target_email, fake_link):
         to_email=target_email,
         subject=random.choice(subjects),
         body=body_template.format(link=fake_link),
-        headers=generate_random_spoof_headers()
+        headers=generate_random_spoof_headers(),
+        is_html=True
     )
