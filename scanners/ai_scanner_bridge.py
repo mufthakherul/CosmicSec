@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 from llm.offline_chat import query_local_llm
 from llm.model_loader import query_cloud_llm  # OpenAI/Grok wrapper
-from utils.logger import log
+from utils.logger import logger as log
 from tools import nmap_runner, sqlmap_runner, dirsearch_tool
 from scanners.cve_scanner import suggest_cves
 from scanners.live_exploit_generator import generate_live_exploit

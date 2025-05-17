@@ -6,7 +6,7 @@ import time
 import os
 import sqlite3
 import csv
-from utils.logger import log
+from utils.logger import logger as log
 from llm.offline_chat import get_ai_summary
 from scanners.live_exploit_generator import generate_exploit_from_cve
 from datetime import datetime
