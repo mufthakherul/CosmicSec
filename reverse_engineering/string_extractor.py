@@ -1,77 +1,89 @@
-import os
+"""
+reverse_engineering/string_extractor.py
+
+Extracts readable strings, potential secrets, IPs, URLs, and keywords from binaries
+or raw data files. Designed to support red and blue team reverse engineering efforts.
+"""
+
 import re
+import os
 import subprocess
-import json
-import tempfile
 from utils.logger import logger
-from llm.offline_chat import analyze_with_ai
-from utils.multithreading import run_in_threads
+from llm.offline_chat import get_ai_summary
 
-class StringExtractor:
-    def __init__(self, entropy_threshold=4.5):
-        self.entropy_threshold = entropy_threshold
-        self.secret_patterns = {
-            "AWS Access Key": r'AKIA[0-9A-Z]{16}',
-            "Private Key": r'-----BEGIN(.*?)PRIVATE KEY-----',
-            "Password": r'(?i)(password|pwd|pass)\s*[:=]\s*[\'"]?[^\'"\s]+[\'"]?',
-            "Token": r'([A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,})',
-        }
 
-    def calculate_entropy(self, s):
-        import math
-        prob = [float(s.count(c)) / len(s) for c in set(s)]
-        entropy = -sum([p * math.log(p) / math.log(2.0) for p in prob])
-        return entropy
+def extract_strings(file_path, min_length=4):
+    """Extract printable strings from binary using built-in tools or Python fallback."""
+    if not os.path.exists(file_path):
+        logger.error(f"File not found: {file_path}")
+        return []
 
-    def extract_strings(self, filepath, min_length=4):
-        logger.info(f"[🧵] Extracting strings from: {filepath}")
-        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
-            try:
-                subprocess.run(['strings', '-n', str(min_length), filepath], stdout=tmpfile, stderr=subprocess.PIPE)
-                tmpfile.flush()
-                tmpfile.seek(0)
-                strings = tmpfile.read().decode(errors="ignore").splitlines()
-            finally:
-                os.unlink(tmpfile.name)
-        return list(set(strings))
+    try:
+        output = subprocess.check_output(["strings", "-n", str(min_length), file_path], text=True)
+        strings = output.splitlines()
+        logger.info(f"Extracted {len(strings)} strings using system 'strings'.")
+        return strings
+    except Exception as e:
+        logger.warning(f"Falling back to Python strings extraction due to: {e}")
+        with open(file_path, 'rb') as f:
+            data = f.read()
+        return re.findall(rb"[\x20-\x7E]{%d,}" % min_length, data)
 
-    def detect_secrets(self, strings):
-        findings = []
-        for s in strings:
-            entropy = self.calculate_entropy(s)
-            if entropy > self.entropy_threshold:
-                findings.append({"string": s, "type": "High Entropy", "score": entropy})
-            for label, pattern in self.secret_patterns.items():
-                if re.search(pattern, s):
-                    findings.append({"string": s, "type": label, "score": entropy})
-        return findings
 
-    def classify_with_ai(self, strings):
-        logger.info("[🤖] Running AI analysis on strings...")
-        prompt = f"Classify and analyze the following strings from a binary for potential secrets, credentials, or indicators of compromise:\n\n{json.dumps(strings, indent=2)}"
-        result = analyze_with_ai(prompt)
-        return result
+def detect_keywords(strings):
+    """Detect IPs, URLs, emails, API keys, secrets, and flags."""
+    findings = {
+        'ips': [],
+        'urls': [],
+        'emails': [],
+        'api_keys': [],
+        'flags': [],
+        'tokens': [],
+        'passwords': []
+    }
 
-    def extract_and_analyze(self, filepath):
-        all_strings = self.extract_strings(filepath)
-        secrets = self.detect_secrets(all_strings)
-        ai_summary = self.classify_with_ai(secrets)
-        return {
-            "extracted": all_strings,
-            "secrets": secrets,
-            "ai_analysis": ai_summary
-        }
+    for s in strings:
+        if isinstance(s, bytes):
+            s = s.decode('utf-8', errors='ignore')
 
-def batch_extract(file_list):
-    extractor = StringExtractor()
-    results = run_in_threads(lambda f: extractor.extract_and_analyze(f), file_list)
-    return results
+        if re.match(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", s):
+            findings['ips'].append(s)
+        if re.match(r"https?://[\w./?=&-]+", s):
+            findings['urls'].append(s)
+        if re.match(r"[\w._%+-]+@[\w.-]+\.[a-zA-Z]{2,}", s):
+            findings['emails'].append(s)
+        if re.search(r'(?i)(api[_-]?key|secret|token|auth)["\':=\s]+[A-Za-z0-9-_]+', s):
+            findings['api_keys'].append(s)
+        if re.search(r"CTF\{.*?\}|flag\{.*?\}", s, re.IGNORECASE):
+            findings['flags'].append(s)
+        if re.search(r'(?i)password["\':=\s]+\S+', s):
+            findings['passwords'].append(s)
+
+    return findings
+
+
+def analyze_strings(file_path):
+    logger.info(f"Analyzing strings in: {file_path}")
+    strings = extract_strings(file_path)
+    results = detect_keywords(strings)
+
+    summary = get_ai_summary("\n".join(strings[:500]))
+    return {
+        "file": file_path,
+        "summary": summary,
+        "keywords": results,
+        "total_strings": len(strings)
+    }
+
 
 if __name__ == "__main__":
-    test_file = "samples/binary_test_file.bin"
-    if not os.path.exists(test_file):
-        logger.error(f"Test file not found: {test_file}")
-    else:
-        extractor = StringExtractor()
-        result = extractor.extract_and_analyze(test_file)
-        logger.info(json.dumps(result, indent=2))
+    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python string_extractor.py <binary_file>")
+        exit(1)
+
+    result = analyze_strings(sys.argv[1])
+    print("\n--- AI Summary ---\n", result['summary'])
+    print("\n--- Findings ---")
+    for k, v in result['keywords'].items():
+        print(f"{k}: {v}")
