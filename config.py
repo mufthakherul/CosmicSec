@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 CONFIG = {}
+ENABLE_TTS = True
 
 def load_env_vars():
     env_path = Path(__file__).parent / '.env'
