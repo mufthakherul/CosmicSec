@@ -28,7 +28,12 @@ hacker_ai/
 │   └── live_exploit_generator.py   ← 🧬 NEW: CVE → PoC Generator (AI)
 │
 ├── phishing/
-│   ├── ai_phishing_simulator.py
+│   ├── ai_phishing_simulator.py   ✅ CURRENT MODULE
+│   ├── email_spoofer.py           🔜 NEXT
+│   ├── credential_harvester.py    🔜
+│   ├── html_generator.py          🔜
+│   ├── phish_detection_bypass.py  🔜
+│   ├── phishing_payloads.py       🔜
 │   └── phishing_kit_builder.py
 │
 ├── reverse_engineering/
