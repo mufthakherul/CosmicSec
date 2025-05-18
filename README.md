@@ -4,7 +4,7 @@
 
 ---
 
-![HACKER_AI](https://mufthakherul.github.io/images/projects/p1.jpg)
+![HACKER_AI](https://mufthakherul.github.io/images/projects/hacker_ai.png)
 
 ## ✨ Highlights
 
