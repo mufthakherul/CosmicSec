@@ -4,7 +4,7 @@
 
 ---
 
-![HACKER_AI](https://your-banner-image-link-if-any)
+![HACKER_AI](https://chatgpt.com/s/m_6829e490d03081918c36a5457fd0310f)
 
 ## ✨ Highlights
 
