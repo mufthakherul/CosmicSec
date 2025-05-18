@@ -137,7 +137,7 @@ hacker_ai/
 │
 ├── social_eng/
 │   ├── social_mapper.py
-│   ├── sms_spoofer.py
+│   ├── sms_bomber.py
 │   ├── fake_caller_id.py
 │   ├── social_scenario_generator.py
 │   ├── socmint_toolkit.py
