@@ -22,7 +22,7 @@
 ## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/yourusername/hacker_ai.git
+git clone https://github.com/mufthakherul/hacker_ai.git
 cd hacker_ai
 pip install -r requirements.txt
 python hacker_ai/launcher.py
@@ -39,7 +39,7 @@ Welcome to the future of hacking. 🎩
 | 🔍 Recon     | `recon_osint.py`, `whois_lookup.py` |
 | 🛡️ Scanner   | `vulnerability_scanner.py`, `nmap_gui.py` |
 | 🎣 Phishing  | `ai_phishing_simulator.py`, `payload_generator.py` |
-| 🧠 AI Tools  | `ai_helper.py`, `chat_with_ai.py` |
+| 🧠 AI Tools  | `ai_helper.py`, `worm_gpt.py`, `fraud_gpt.py` |
 | 🧰 Utilities | `file_converter.py`, `hash_cracker.py` |
 | 🕸️ Web Shell | `custom_webshell.py` |
 | 📊 Reporting | `report_generator.py`, `logbook.md` |
