@@ -1,96 +1,172 @@
-# hacker_ai/main.py
-
 import os
-import importlib
 import json
-import logging
-from config import CONFIG
-from utils.logger import setup_logger
+import subprocess
+import importlib.util
+import time
+from pathlib import Path
+from datetime import datetime
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich.prompt import Prompt
+from rich.markdown import Markdown
+from collections import defaultdict
 
-# Optional: Voice and Web UI starter (stubs)
-def start_voice_mode():
-    print("[🗣️] Voice interface loading...")
-    # Placeholder: actual voice command loop in voice/voice_commands.py
+console = Console()
 
-def start_web_ui():
-    print("[🌍] Launching Web UI...")
-    os.system("python3 ui/web_ui.py")  # Runs Flask interface
+# Paths and settings
+USER_PROFILES = "user_profiles.json"
+LOGBOOK = "logbook.md"
+USAGE_STATS = "usage_stats.json"
+ASCII_LOGO = """
+██╗  ██╗ █████╗  ██████╗██╗  ██╗███████╗██████╗     █████╗ ██╗
+██║  ██║██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗   ██╔══██╗██║
+███████║███████║██║     █████╔╝ █████╗  ██████╔╝   ███████║██║
+██╔══██║██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗   ██╔══██║██║
+██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║██╗██║  ██║██║
+╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝
+"""
 
-# 🧠 Offline AI Chat stub (llm/offline_chat.py)
-def start_llm_chat():
-    from llm.offline_chat import chat_with_model
-    chat_with_model()
+MODULE_CATEGORIES = {
+    "🛠 Tools": "tools",
+    "🧠 Scanners": "scanners",
+    "🔍 Recon": "recon",
+    "🎣 Phishing": "phishing",
+    "🌐 Web Shell": "web_shell",
+    "🔬 Reverse Engineering": "reverse_engineering",
+    "🤖 LLM": "llm",
+    "🗣 Voice": "voice",
+    "📊 Reporting": "reporting",
+    "🚨 Alerts": "alerts",
+    "⚙️ Automation": "automation",
+    "🛰 Remote Control": "remote_control",
+    "🎭 Social Engineering": "social_eng",
+    "🛡 Security": "security",
+    "📜 Legal": "legal",
+    "📚 Learning": "learning",
+    "🖥 UI": "ui"
+}
 
-# 🔌 Load all available tools dynamically
-def load_modules():
-    modules = {}
-    base_dirs = ["tools", "recon", "scanners", "phishing", "reporting",
-                 "web_shell", "alerts", "automation", "remote_control", 
-                 "social_eng", "security", "reverse_engineering", "llm", "legal"]
-    
-    for base in base_dirs:
-        path = os.path.join(os.path.dirname(__file__), base)
-        for file in os.listdir(path):
-            if file.endswith(".py") and not file.startswith("__"):
-                mod_name = f"{base}.{file[:-3]}"
-                try:
-                    mod = importlib.import_module(mod_name)
-                    modules[mod_name] = mod
-                except Exception as e:
-                    logging.warning(f"[!] Failed to load {mod_name}: {e}")
-    return modules
 
-# 🧬 Main launcher
+def get_user_role():
+    try:
+        with open(USER_PROFILES) as f:
+            profiles = json.load(f)
+            current_user = os.getenv("USER") or "default"
+            return profiles.get(current_user, {}).get("role", "guest")
+    except:
+        return "guest"
+
+
+def list_modules(directory):
+    try:
+        return [f for f in os.listdir(directory) if f.endswith(".py") and not f.startswith("__")]
+    except:
+        return []
+
+
+def read_description(path):
+    try:
+        with open(path) as f:
+            for line in f:
+                if line.strip().startswith('"""') or line.strip().startswith("''"):
+                    return line.strip().strip('""').strip("''")[:100] + "..."
+        return "No description found."
+    except:
+        return "Could not read file."
+
+
+def log_usage(module_path):
+    with open(LOGBOOK, "a") as f:
+        f.write(f"- {datetime.now()} - Launched `{module_path}`\n")
+
+    stats = defaultdict(int)
+    if os.path.exists(USAGE_STATS):
+        with open(USAGE_STATS) as f:
+            stats.update(json.load(f))
+    stats[module_path] += 1
+    with open(USAGE_STATS, "w") as f:
+        json.dump(stats, f, indent=2)
+
+
+def get_suggestions():
+    if not os.path.exists(USAGE_STATS):
+        return []
+    with open(USAGE_STATS) as f:
+        stats = json.load(f)
+    return sorted(stats.items(), key=lambda x: x[1], reverse=True)[:3]
+
+
+def launch_module(module_path):
+    log_usage(module_path)
+    subprocess.run(["python3", module_path])
+
+
+def display_category_menu():
+    console.clear()
+    console.print(Panel.fit(ASCII_LOGO, title="[bold red]HACKER_AI LAUNCHER[/bold red]"))
+    console.print("\n[bold cyan]Most Used Modules:[/bold cyan]")
+    for name, count in get_suggestions():
+        console.print(f"[green]✔[/green] {name} ({count}x)")
+
+    table = Table(title="Module Categories", show_lines=True)
+    table.add_column("ID", justify="center")
+    table.add_column("Category", justify="left")
+
+    for i, category in enumerate(MODULE_CATEGORIES, 1):
+        table.add_row(str(i), category)
+    console.print(table)
+    return Prompt.ask("Enter category number (or 0 to quit)", default="0")
+
+
+def display_module_menu(category_name, folder):
+    module_files = list_modules(folder)
+    if not module_files:
+        console.print("[red]No modules found in this category.[/red]")
+        return
+
+    table = Table(title=f"Modules in {category_name}", show_lines=True)
+    table.add_column("ID")
+    table.add_column("Filename")
+    table.add_column("Description")
+
+    for i, mod in enumerate(module_files, 1):
+        desc = read_description(f"{folder}/{mod}")
+        table.add_row(str(i), mod, desc)
+
+    console.print(table)
+    return Prompt.ask("Select module to launch (or 0 to go back)", default="0")
+
+
 def main():
-    setup_logger()
-    print("🧠 THE ULTIMTE HACKER-AI v1.0 - A EVIL jARVIS")
-    print("[MODULAR CYBER ASSISTANT WITH WORMGPT CHAT-]")
-    print("==============================================")
-
-    modules = load_modules()
-
+    role = get_user_role()
     while True:
-        print("\n[🧭] Select mode:")
-        print("1. CLI Module Runner")
-        print("2. Offline AI Chat")
-        print("3. Web Dashboard")
-        print("4. Voice Assistant")
-        print("5. Exit")
-
-        choice = input("> ").strip()
-
-        if choice == "1":
-            print("\n[🧰] Available modules loaded:")
-            for i, m in enumerate(modules.keys()):
-                print(f"{i+1}. {m}")
-            idx = input("[📌] Enter module number to run or 'b' to go back: ")
-            if idx.lower() == "b":
-                continue
-            try:
-                mod_name = list(modules.keys())[int(idx) - 1]
-                print(f"\n[⚙️] Running: {mod_name}")
-                if hasattr(modules[mod_name], "main"):
-                    modules[mod_name].main()
-                else:
-                    print("[!] This module doesn't have a main() function.")
-            except:
-                print("[!] Invalid selection.")
-        
-        elif choice == "2":
-            start_llm_chat()
-
-        elif choice == "3":
-            start_web_ui()
-
-        elif choice == "4":
-            start_voice_mode()
-
-        elif choice == "5":
-            print("[👋] Exiting Hacker-AI.")
+        choice = display_category_menu()
+        if choice == "0":
+            console.print("[bold red]\nGoodbye![/bold red]")
             break
 
-        else:
-            print("[!] Invalid choice.")
+        try:
+            index = int(choice) - 1
+            category_name = list(MODULE_CATEGORIES.keys())[index]
+            folder = MODULE_CATEGORIES[category_name]
+        except:
+            console.print("[red]Invalid selection.[/red]")
+            continue
+
+        module_choice = display_module_menu(category_name, folder)
+        if module_choice == "0":
+            continue
+
+        try:
+            mod_index = int(module_choice) - 1
+            module_files = list_modules(folder)
+            selected_module = module_files[mod_index]
+            full_path = f"{folder}/{selected_module}"
+            launch_module(full_path)
+        except:
+            console.print("[red]Failed to launch selected module.[/red]")
+
 
 if __name__ == "__main__":
     main()
