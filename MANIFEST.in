@@ -1,0 +1,13 @@
+include README.md
+include LICENSE
+include requirements.txt
+recursive-include hacker_ai/data *
+recursive-include hacker_ai/assets *
+recursive-include hacker_ai/config *
+recursive-include hacker_ai/modules *
+recursive-include hacker_ai/phishing *
+recursive-include hacker_ai/scanners *
+recursive-include hacker_ai/tools *
+recursive-include hacker_ai/ui *
+global-exclude *.pyc
+global-exclude __pycache__/
