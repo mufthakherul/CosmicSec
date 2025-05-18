@@ -12,7 +12,7 @@ TECH_HEADERS = {
 
 FINGERPRINTS = {
     'wordpress': ['wp-content', 'wp-includes'],
-    'joomla': ['Joomla!', 'index.php?option='],
+    'joomla': ['joomla!', 'index.php?option='],
     'drupal': ['sites/all/', 'drupal']
 }
 
@@ -30,7 +30,7 @@ def detect_tech(url):
 
         for cms, patterns in FINGERPRINTS.items():
             for pattern in patterns:
-                if pattern in body:
+                if pattern.lower() in body:
                     logger.info(f"[TechDetector] Detected CMS: {cms}")
                     tech.add(cms)
 
