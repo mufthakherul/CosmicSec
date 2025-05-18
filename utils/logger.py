@@ -3,6 +3,12 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+import datetime
+
+def log_module_run(module_name):
+    with open("logbook.md", "a") as f:
+        f.write(f"- {datetime.datetime.now()} - Ran `{module_name}`\n")
+
 
 LOG_FILE = "logs/hacker_ai.log"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
