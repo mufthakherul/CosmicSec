@@ -1,0 +1,17 @@
+PRIVATE MODULE LICENSE AGREEMENT  
+Version 1.0.0 — 2025  
+Applies To: Closed-source, sensitive, or red-team-only modules
+
+This file covers all modules marked "PRIVATE", "RESTRICTED", or otherwise hidden in the repository.
+
+The following conditions apply:
+
+- These modules are NOT open source and NOT to be copied, published, or executed without written approval.
+- Limited functionality may be visible to public users, but full execution requires authenticated access.
+- Any reverse engineering, static analysis, or tampering is strictly prohibited.
+- These tools may contain advanced AI logic, payload generators, or automated penetration testing utilities, and must only be used in **authorized scopes** (CTFs, labs, enterprise engagements).
+
+Misuse will result in revocation, reporting, and permanent ban from all related projects and updates.
+
+Accessing or modifying this file implies agreement to ethical cybersecurity standards and legal boundaries.
+

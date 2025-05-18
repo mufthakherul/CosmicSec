@@ -1,0 +1,64 @@
+MIT License with Ethical & Controlled Use Modifications  
+Version 1.0.0 — 2025  
+Author: Mufthakherul Islam Miraz (https://mufthakherul.github.io)
+
+Copyright (c) 2025 Mufthakherul Islam Miraz
+
+Permission is hereby granted, free of charge, to any individual or organization
+obtaining a copy of this software and associated documentation files (the “Software”),
+to use, copy, modify, merge, publish, and distribute copies of the Software, subject
+to the following conditions:
+
+---
+## 🔐 ETHICAL USAGE & RESTRICTIONS
+
+This Software is provided for **ethical cybersecurity research, education, and authorized red team use** only.
+
+You may NOT use the Software for any of the following purposes:
+
+- 🚫 Unethical, harmful, or unlawful activity (e.g., unauthorized access, surveillance, exploitation)
+- 🚫 Offensive cybersecurity actions without written client or asset owner consent
+- 🚫 Deployment or training of AI for malicious purposes (e.g., phishing bots, automated malware delivery)
+- 🚫 Use in political, military, or government surveillance operations without prior written permission
+- 🚫 Commercial redistribution, monetization, or repackaging without explicit approval
+
+Modules flagged as **"PRIVATE"**, **"RESTRICTED"**, or **"ENTERPRISE ONLY"** are subject to additional controls:
+
+- 🔐 These modules may only be executed with valid authentication credentials
+- 🛑 Unauthorized execution will result in limited functionality or complete disablement
+- 📡 Some modules may communicate with a licensing or validation server to enforce access control
+
+---
+## 🤖 AI MODULES CLAUSE
+
+- AI-powered tools embedded in this Software may **not be used** to train, deploy, or operate malicious autonomous systems or decision-making models.
+- AI suggestions, payload generators, and automation must be used strictly within **ethical pentesting scopes**, **lab simulations**, or **blue team training**.
+- AI modules that connect to external APIs (e.g., LLMs) should not be used to impersonate individuals, generate targeted threats, or bypass security mechanisms.
+
+---
+## ✅ ALLOWED USES
+
+You MAY:
+
+- Use this Software for **educational purposes**, ethical hacking labs, academic research, or authorized penetration testing engagements.
+- Fork and adapt the open modules for **non-commercial, ethical use** with proper attribution.
+- Report vulnerabilities or improve the codebase under responsible disclosure guidelines.
+
+---
+## 📝 ATTRIBUTION & COMPLIANCE
+
+- This notice must be included in all copies or substantial portions of the Software.
+- Users are responsible for complying with local, national, and international laws related to cybersecurity, data handling, and AI usage.
+
+---
+## 🚫 DISCLAIMER
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND.  
+THE AUTHOR IS NOT LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM UNETHICAL OR UNAUTHORIZED USE OF THIS SOFTWARE.
+
+---
+
+Contact: mufthakherul_cybersec@s6742.me  
+Project Homepage: https://mufthakherul.github.io  
+License Type: Custom MIT + Ethical Use & AI Restriction Clauses  
+License Version: 1.0.0 (Effective May 2025)
