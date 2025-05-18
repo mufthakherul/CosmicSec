@@ -124,7 +124,7 @@ Use only in **legal environments** with proper authorization.
 
 ## 📜 License
 
-[MIT License with Ethical & Controlled Use Modifications.](LICENSE.md)
+[MIT License with Ethical & Controlled Use Modifications.](LICENSE)
 
 ---
 
