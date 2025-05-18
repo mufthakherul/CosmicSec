@@ -150,7 +150,9 @@ hacker_ai/
 │   ├── ban_handler.py
 │   ├── log_scrubber.py
 │   ├── stealth_mode.py
-│   └── security_layer.py
+│   ├── security_layer.py
+│   ├── vpn_switcher.py
+│   └── encryption_tools.py
 │
 ├── legal/
 │   ├── license_manager.py
@@ -167,4 +169,5 @@ hacker_ai/
 ├── ui/
 │   ├── dashboard.py
 │   ├── cli_ui.py
+│   ├── web_ui.py
 │   └── mobile_interface.py
