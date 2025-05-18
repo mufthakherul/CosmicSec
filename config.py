@@ -1,122 +1,146 @@
-# hacker_ai/config.py
-
 import os
 import json
-import argparse
+import yaml
+import hashlib
 from dotenv import load_dotenv
-from pathlib import Path
+from threading import Timer
 
-CONFIG = {}
-ENABLE_TTS = True
+# Load environment variables
+load_dotenv()
 
-def load_env_vars():
-    env_path = Path(__file__).parent / '.env'
-    if env_path.exists():
-        load_dotenv(dotenv_path=env_path)
-        print("[ENV] Loaded .env variables.")
-    else:
-        print("[ENV] .env not found.")
+# === Paths ===
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(ROOT_DIR, "data")
+LOG_DIR = os.path.join(DATA_DIR, "logs")
+CACHE_DIR = os.path.join(DATA_DIR, "cache")
+CONFIG_DIR = os.path.join(ROOT_DIR, "config")
+TOOLS_DIR = os.path.join(ROOT_DIR, "tools")
 
-def load_gpg_config(file_path="config_secure.json.gpg"):
+# === Persistent Files ===
+MEMORY_FILE = os.path.join(ROOT_DIR, "ai_memory.json")
+USER_PROFILE_FILE = os.path.join(ROOT_DIR, "user_profiles.json")
+USAGE_STATS_FILE = os.path.join(DATA_DIR, "usage_stats.json")
+BANLIST_FILE = os.path.join(DATA_DIR, "banlist.txt")
+
+# === Logging ===
+LOGBOOK_FILE = os.path.join(ROOT_DIR, "logbook.md")
+ERROR_LOG_FILE = os.path.join(LOG_DIR, "error.log")
+
+# === YAML config fallback ===
+YAML_CONFIG_FILE = os.path.join(CONFIG_DIR, "settings.yaml")
+
+# === Feature Flags ===
+LIVE_CONFIG_EDIT = True
+REALTIME_RELOAD = True
+ENABLE_YAML = True
+ENABLE_HASHING = True
+
+# === Role Definitions ===
+ROLE_PERMISSIONS = {
+    "admin": {"access_all": True},
+    "analyst": {"allow_modules": ["recon", "scanners", "reporting"]},
+    "pentester": {"allow_modules": ["phishing", "web_shell", "tools", "reverse_engineering"]},
+    "guest": {"deny_modules": ["web_shell", "social_eng", "remote_control", "security"]}
+}
+
+# === UI Behavior ===
+ASCII_LOGO = True
+COLOR_OUTPUT = True
+USE_VISUAL_TUI = True
+SHOW_DOCSTRINGS = True
+SHOW_README_PREVIEWS = True
+
+# === Launcher Enhancements ===
+DEFAULT_LAUNCH_MODE = "interactive"
+ENABLE_MODULE_BOOKMARKS = True
+ENABLE_FUZZY_SEARCH = True
+ENABLE_RUNTIME_LOGGING = True
+ENABLE_ROLE_LOCKS = True
+AUTO_SUGGEST_MODULES = True
+TRACK_HEATMAP = True
+ENABLE_PLUGIN_MANAGER = True
+CHECK_AUTO_UPDATE = True
+
+# === API Keys ===
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+
+# === Defaults ===
+DEFAULT_USER_ROLE = "guest"
+DEFAULT_THEME = "dark"
+DEFAULT_LLM_PROVIDER = "openai"
+
+# === Runtime Cache ===
+__CONFIG_HASH = None
+
+
+# === Functions ===
+
+def get_user_permissions(role):
+    return ROLE_PERMISSIONS.get(role, ROLE_PERMISSIONS["guest"])
+
+def is_module_allowed(role, module_folder):
+    perms = get_user_permissions(role)
+    if perms.get("access_all"):
+        return True
+    elif "allow_modules" in perms:
+        return module_folder in perms["allow_modules"]
+    elif "deny_modules" in perms:
+        return module_folder not in perms["deny_modules"]
+    return False
+
+def load_user_settings(user_id):
     try:
-        import gnupg
-        gpg = gnupg.GPG()
-        with open(file_path, "rb") as f:
-            decrypted_data = gpg.decrypt_file(f)
-            if decrypted_data.ok:
-                print("[🔐] Decrypted GPG config successfully.")
-                return json.loads(str(decrypted_data))
-            else:
-                print("[🔐] GPG Decryption failed:", decrypted_data.stderr)
+        with open(USER_PROFILE_FILE, 'r') as f:
+            users = json.load(f)
+        return users.get(user_id, {})
     except Exception as e:
-        print("[GPG ERROR]", e)
-    return {}
+        print(f"[CONFIG ERROR] Failed to load user profile: {e}")
+        return {}
 
-def load_cli_overrides():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", help="JSON string to override config")
-    args, _ = parser.parse_known_args()
-    if args.config:
+def load_yaml_config():
+    if not ENABLE_YAML or not os.path.exists(YAML_CONFIG_FILE):
+        return {}
+    with open(YAML_CONFIG_FILE, 'r') as f:
         try:
-            return json.loads(args.config)
-        except json.JSONDecodeError:
-            print("[ERROR] Invalid JSON in CLI config override")
-    return {}
+            return yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            print(f"[YAML ERROR] {e}")
+            return {}
 
-def get_config():
-    # Step 1: Load ENV
-    load_env_vars()
-
-    # Step 2: Base config
-    config = {
-        "project_name": "Hacker-AI",
-        "version": "1.0",
-        "log_level": os.getenv("LOG_LEVEL", "DEBUG"),
-        "use_offline_llm": True,
-
-        "tools": {
-            "nmap": os.getenv("NMAP_PATH", "/usr/bin/nmap"),
-            "sqlmap": os.getenv("SQLMAP_PATH", "/usr/share/sqlmap/sqlmap.py"),
-            "wpscan": os.getenv("WPSCAN_PATH", "/usr/bin/wpscan"),
-            "nikto": os.getenv("NIKTO_PATH", "/usr/bin/nikto"),
-            "dirsearch": os.getenv("DIRSEARCH_PATH", "/opt/dirsearch/dirsearch.py"),
-            "burpsuite": os.getenv("BURP_PATH", "/opt/BurpSuite/BurpSuite.jar"),
-        },
-
-        "api_keys": {
-            "shodan": os.getenv("SHODAN_API_KEY", ""),
-            "openai": os.getenv("OPENAI_API_KEY", ""),
-        },
-        "services": {
-            "censys": os.getenv("CENSYS_API_KEY", ""),
-            "securitytrails": os.getenv("SECURITYTRAILS_API_KEY", ""),
-            "haveibeenpwned": os.getenv("HIBP_API_KEY", ""),
-        },
-
-        "rgld": {
-            "GITHUB_API_TOKEN": os.getenv("GITHUB_API_TOKEN", "your_github_token"),
-            "TELEGRAM_BOT_TOKEN": os.getenv("TELEGRAM_BOT_TOKEN", "your_bot_token"),
-            "TELEGRAM_CHAT_ID": os.getenv("TELEGRAM_CHAT_ID", "your_chat_id"),
-            "DISCORD_WEBHOOK_URL": os.getenv("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/...."),
-            "USE_TOR_PROXY": True  # enable .onion routing
-        },
-
-        "urls": {
-            "cve": os.getenv("CVE_API_URL", "https://cve.circl.lu/api/cve/")
-        },
-
-        "remote": {
-            "telegram": os.getenv("TELEGRAM_TOKEN", ""),
-            "discord": os.getenv("DISCORD_HOOK", ""),
-            "tailscale_enabled": os.getenv("TAILSCALE_ENABLED", "false").lower() == "true",
-            "onionshare_path": os.getenv("ONIONSHARE_PATH", "/usr/bin/onionshare"),
-        },
-
-        "security": {
-            "enable_biometrics": os.getenv("ENABLE_BIOMETRICS", "false").lower() == "true"
-        },
-
-        "web_ui": {
-            "host": os.getenv("WEB_UI_HOST", "127.0.0.1"),
-            "port": int(os.getenv("WEB_UI_PORT", 5050)),
-        }
+def config_to_dict():
+    return {
+        "ascii_logo": ASCII_LOGO,
+        "color_output": COLOR_OUTPUT,
+        "default_theme": DEFAULT_THEME,
+        "default_provider": DEFAULT_LLM_PROVIDER,
+        "enable_plugin_manager": ENABLE_PLUGIN_MANAGER,
+        "role_permissions": ROLE_PERMISSIONS,
     }
 
-    
+def get_config_hash():
+    global __CONFIG_HASH
+    config_str = json.dumps(config_to_dict(), sort_keys=True)
+    __CONFIG_HASH = hashlib.sha256(config_str.encode()).hexdigest()
+    return __CONFIG_HASH
 
-    # Step 3: Optional GPG merge
-    gpg_config = load_gpg_config()
-    config.update(gpg_config)
+def detect_config_change():
+    global __CONFIG_HASH
+    current_hash = get_config_hash()
+    if __CONFIG_HASH and __CONFIG_HASH != current_hash:
+        print("[⚠️ WARNING] Config file has been modified!")
+    __CONFIG_HASH = current_hash
+    if REALTIME_RELOAD:
+        Timer(10.0, detect_config_change).start()
 
-    # Step 4: CLI override
-    cli_override = load_cli_overrides()
-    config.update(cli_override)
+def save_config_to_file(path=os.path.join(CONFIG_DIR, "runtime_config.json")):
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(path, 'w') as f:
+        json.dump(config_to_dict(), f, indent=2)
+    print("[✔] Config saved to runtime_config.json")
 
-    # config.py
-    DEFAULT_OUTPUT_FORMATS = ["json", "txt", "csv"]
+# === Init Runtime Check ===
+if ENABLE_HASHING:
+    detect_config_change()
 
-
-    return config
-
-# Load the final config when imported
-CONFIG = get_config()
