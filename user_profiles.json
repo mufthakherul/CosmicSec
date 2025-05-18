@@ -1,0 +1,51 @@
+{
+  "miraz": {
+    "role": "admin",
+    "verified": true,
+    "email": "mufthakherul_cybersec@s6742.me",
+    "preferred_language": "en",
+    "voice_enabled": true,
+    "red_team_mode": true,
+    "default_modules": ["ai_writer", "nmap_runner", "offline_chat"],
+    "blocked_modules": [],
+    "last_login": "2025-05-18T14:30:00",
+    "usage_history": [
+      {
+        "module": "reverse_engineering/decompiler_interface.py",
+        "time": "2025-05-17T21:50:00"
+      },
+      {
+        "module": "phishing/ai_phishing_simulator.py",
+        "time": "2025-05-17T21:10:00"
+      }
+    ]
+  },
+
+  "guest": {
+    "role": "guest",
+    "verified": false,
+    "voice_enabled": false,
+    "red_team_mode": false,
+    "default_modules": ["report_generator", "vulnerability_scanner"],
+    "blocked_modules": ["web_shell", "phishing", "reverse_engineering"],
+    "last_login": "2025-05-18T10:10:00",
+    "usage_history": []
+  },
+
+  "cyber_ops_student": {
+    "role": "analyst",
+    "verified": true,
+    "preferred_language": "en",
+    "voice_enabled": false,
+    "red_team_mode": false,
+    "default_modules": ["scanners/cve_scanner.py"],
+    "blocked_modules": ["phishing/html_generator.py", "web_shell"],
+    "last_login": "2025-05-18T12:45:00",
+    "usage_history": [
+      {
+        "module": "scanners/cve_scanner.py",
+        "time": "2025-05-18T12:30:00"
+      }
+    ]
+  }
+}

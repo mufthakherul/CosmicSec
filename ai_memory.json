@@ -1,0 +1,67 @@
+{
+  "global_context": {
+    "project_purpose": "AI-powered modular hacking assistant for ethical cybersecurity, red team, and blue team operations.",
+    "default_mode": "cybersecurity",
+    "preferred_llm": "gguf/llama-3",
+    "voice_response_enabled": true,
+    "access_restrictions": {
+      "require_admin_for_restricted_modules": true
+    }
+  },
+
+  "usage_patterns": {
+    "tools/sqlmap_runner.py": {
+      "used_by": ["miraz", "admin"],
+      "times_used": 12,
+      "last_used": "2025-05-18T14:20:00"
+    },
+    "scanners/vulnerability_scanner.py": {
+      "used_by": ["guest", "miraz"],
+      "times_used": 24,
+      "last_used": "2025-05-17T21:04:00"
+    }
+  },
+
+  "user_personalities": {
+    "miraz": {
+      "preferred_modules": ["nmap_runner", "ai_writer", "reverse_engineering"],
+      "default_language": "en",
+      "ai_tone": "technical and friendly",
+      "safety_mode": false,
+      "red_team_enabled": true
+    },
+    "guest": {
+      "preferred_modules": ["reporting", "scanners"],
+      "red_team_enabled": false,
+      "safe_mode": true,
+      "ai_tone": "neutral"
+    }
+  },
+
+  "learned_responses": {
+    "common_issues": {
+      "sql_injection": "Suggest running sqlmap_runner.py with risk level 3",
+      "broken_auth": "Run vulnerability_scanner then report_generator"
+    },
+    "auto_suggestions": {
+      "phishing_payloads": ["phish_detection_bypass.py", "html_generator.py"],
+      "ai_code_reviewer": ["summarizer.py", "reverse_engineering/binary_patcher.py"]
+    }
+  },
+
+  "conversation_snippets": [
+    {
+      "user": "miraz",
+      "timestamp": "2025-05-17T17:00:00",
+      "prompt": "Generate CVE PoC for CVE-2024-12345",
+      "response_summary": "Generated RCE PoC in Python, marked as successful.",
+      "modules_triggered": ["live_exploit_generator.py", "ai_writer.py"]
+    },
+    {
+      "user": "admin",
+      "prompt": "Scan wordpress site",
+      "response_summary": "Suggested: wpscan_launcher.py",
+      "modules_triggered": ["wpscan_launcher.py"]
+    }
+  ]
+}
