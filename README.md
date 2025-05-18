@@ -4,7 +4,7 @@
 
 ---
 
-![HACKER_AI](https://chatgpt.com/s/m_6829e490d03081918c36a5457fd0310f)
+![HACKER_AI](mufthakherul.github.io/images/projects/hacker_ai.png)
 
 ## ✨ Highlights
 
@@ -124,7 +124,7 @@ Use only in **legal environments** with proper authorization.
 
 ## 📜 License
 
-[MIT License with Ethical & Controlled Use Modifications.](LICENSE)
+This project is licensed under the MIT License with Ethical & Controlled Use Modifications. - see the [LICENSE](LICENSE) file for details.
 
 ---
 
