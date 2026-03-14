@@ -144,3 +144,11 @@ def save_config_to_file(path=os.path.join(CONFIG_DIR, "runtime_config.json")):
 if ENABLE_HASHING:
     detect_config_change()
 
+# Create a settings object for backward compatibility
+class Settings:
+    def __init__(self):
+        for key, value in config_to_dict().items():
+            setattr(self, key, value)
+
+settings = Settings()
+
