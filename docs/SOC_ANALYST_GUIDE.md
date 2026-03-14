@@ -1,8 +1,8 @@
-# 📊 SOC Analyst's Guide to HACKER_AI
+# 📊 SOC Analyst's Guide to CosmicSec
 
 ## Introduction
 
-HACKER_AI provides a comprehensive Security Operations Center (SOC) platform with real-time alert management, incident response, threat hunting, and SOAR capabilities. This guide will help you maximize your SOC efficiency and reduce MTTD (Mean Time To Detect) and MTTR (Mean Time To Respond).
+CosmicSec provides a comprehensive Security Operations Center (SOC) platform with real-time alert management, incident response, threat hunting, and SOAR capabilities through the **GuardAxisSphere** interface. Powered by **Helix AI** for intelligent alert correlation and automated threat analysis, this guide will help you maximize your SOC efficiency and reduce MTTD (Mean Time To Detect) and MTTR (Mean Time To Respond).
 
 ---
 
@@ -13,20 +13,20 @@ HACKER_AI provides a comprehensive Security Operations Center (SOC) platform wit
 **Multi-Source Alert Aggregation**:
 ```bash
 # Start the SOC dashboard
-hacker_ai soc dashboard
+cosmicsec soc dashboard
 
 # Configure alert sources
-hacker_ai soc add-source \
+cosmicsec soc add-source \
   --type splunk \
   --endpoint https://splunk.company.com \
   --token $SPLUNK_TOKEN
 
-hacker_ai soc add-source \
+cosmicsec soc add-source \
   --type sentinel \
   --workspace-id $AZURE_WORKSPACE_ID \
   --api-key $AZURE_API_KEY
 
-hacker_ai soc add-source \
+cosmicsec soc add-source \
   --type crowdstrike \
   --client-id $CS_CLIENT_ID \
   --client-secret $CS_SECRET
@@ -35,13 +35,13 @@ hacker_ai soc add-source \
 **Alert Prioritization**:
 ```bash
 # Configure ML-powered prioritization
-hacker_ai soc configure-ml \
+cosmicsec soc configure-ml \
   --model alert-priority \
   --features severity,asset-criticality,threat-intel,historical-fp \
   --auto-retrain weekly
 
 # View prioritized alerts
-hacker_ai soc alerts \
+cosmicsec soc alerts \
   --filter priority:critical,high \
   --sort-by ml-score \
   --limit 50
@@ -52,7 +52,7 @@ hacker_ai soc alerts \
 **Create Investigation**:
 ```bash
 # Create new incident
-hacker_ai soc incident create \
+cosmicsec soc incident create \
   --title "Suspicious PowerShell Execution on DC01" \
   --severity critical \
   --type malware \
@@ -60,7 +60,7 @@ hacker_ai soc incident create \
   --playbook ransomware-response
 
 # Add alerts to incident
-hacker_ai soc incident add-alerts \
+cosmicsec soc incident add-alerts \
   --incident-id INC-2024-001 \
   --alert-ids ALERT-123,ALERT-456,ALERT-789
 ```
@@ -68,14 +68,14 @@ hacker_ai soc incident add-alerts \
 **Evidence Collection**:
 ```bash
 # Collect evidence
-hacker_ai soc evidence collect \
+cosmicsec soc evidence collect \
   --incident-id INC-2024-001 \
   --type process-dump,memory-dump,network-pcap \
   --host DC01 \
   --preserve-chain-of-custody
 
 # Timeline reconstruction
-hacker_ai soc timeline \
+cosmicsec soc timeline \
   --incident-id INC-2024-001 \
   --sources logs,netflow,edr \
   --time-range "2024-01-15 14:00" "2024-01-15 16:00" \
@@ -85,13 +85,13 @@ hacker_ai soc timeline \
 **Case Management**:
 ```bash
 # Update incident status
-hacker_ai soc incident update \
+cosmicsec soc incident update \
   --incident-id INC-2024-001 \
   --status investigating \
   --add-note "Initial triage complete. Malware confirmed. Initiating containment."
 
 # Escalate incident
-hacker_ai soc incident escalate \
+cosmicsec soc incident escalate \
   --incident-id INC-2024-001 \
   --to incident-response-team \
   --reason "Ransomware detected on critical server" \
@@ -103,14 +103,14 @@ hacker_ai soc incident escalate \
 **Hypothesis-Driven Hunting**:
 ```bash
 # Create hunting hypothesis
-hacker_ai soc hunt create \
+cosmicsec soc hunt create \
   --hypothesis "Adversaries are using LOLBins for lateral movement" \
   --scope domain-controllers,file-servers \
   --techniques T1021,T1570 \
   --data-sources windows-events,sysmon,edr
 
 # Execute hunt
-hacker_ai soc hunt execute \
+cosmicsec soc hunt execute \
   --hunt-id HUNT-001 \
   --query-language KQL \
   --query @queries/lolbins-lateral-movement.kql \
@@ -120,7 +120,7 @@ hacker_ai soc hunt execute \
 **IOC Search**:
 ```bash
 # Search for Indicators of Compromise
-hacker_ai soc hunt ioc \
+cosmicsec soc hunt ioc \
   --ioc-type ip,domain,hash \
   --ioc-file iocs/apt28.txt \
   --sources splunk,sentinel,qradar \
@@ -128,7 +128,7 @@ hacker_ai soc hunt ioc \
   --output-format json
 
 # Retroactive hunting
-hacker_ai soc hunt retroactive \
+cosmicsec soc hunt retroactive \
   --new-ioc-feed threat-intel/latest.stix \
   --search-historical 90d \
   --alert-on-match \
@@ -138,7 +138,7 @@ hacker_ai soc hunt retroactive \
 **Behavioral Analytics**:
 ```bash
 # Detect anomalous behavior
-hacker_ai soc hunt behavioral \
+cosmicsec soc hunt behavioral \
   --entity-type user,device,application \
   --baseline-period 30d \
   --detection-algorithms \
@@ -202,14 +202,14 @@ steps:
 **Execute Playbook**:
 ```bash
 # Run playbook
-hacker_ai soc playbook run \
+cosmicsec soc playbook run \
   --playbook phishing-response \
   --alert-id ALERT-789 \
   --auto-approve-low-risk \
   --notify-on-completion
 
 # Create custom playbook
-hacker_ai soc playbook create \
+cosmicsec soc playbook create \
   --name ransomware-containment \
   --steps isolate-host,disable-user,block-iocs,notify-team \
   --approval-required true
@@ -218,7 +218,7 @@ hacker_ai soc playbook create \
 **Containment Actions**:
 ```bash
 # Automated containment
-hacker_ai soc contain \
+cosmicsec soc contain \
   --type network-isolation \
   --targets HOST-123,HOST-456 \
   --reason "Malware infection" \
@@ -226,7 +226,7 @@ hacker_ai soc contain \
   --approval-required
 
 # Block IOCs at firewall
-hacker_ai soc contain \
+cosmicsec soc contain \
   --type firewall-block \
   --iocs badactor.com,192.168.1.100 \
   --firewall palo-alto \
@@ -238,7 +238,7 @@ hacker_ai soc contain \
 **Multi-Event Correlation**:
 ```bash
 # Configure correlation rules
-hacker_ai soc correlation create \
+cosmicsec soc correlation create \
   --rule-name "brute-force-then-lateral-movement" \
   --events \
     "failed_login[count>10,window:5m]" \
@@ -248,7 +248,7 @@ hacker_ai soc correlation create \
   --create-incident true
 
 # View correlated alerts
-hacker_ai soc correlation view \
+cosmicsec soc correlation view \
   --time-range 24h \
   --min-events 3 \
   --output correlation-graph.html
@@ -259,7 +259,7 @@ hacker_ai soc correlation view \
 **Handoff Notes**:
 ```bash
 # Create shift handoff
-hacker_ai soc shift handoff \
+cosmicsec soc shift handoff \
   --summary "3 critical incidents, 12 high-priority alerts" \
   --open-incidents INC-2024-001,INC-2024-003 \
   --pending-tasks TASK-45,TASK-67 \
@@ -267,10 +267,10 @@ hacker_ai soc shift handoff \
   --next-shift night-team
 
 # View current shift status
-hacker_ai soc shift status
+cosmicsec soc shift status
 
 # Schedule rotation
-hacker_ai soc shift schedule \
+cosmicsec soc shift schedule \
   --team-members alice,bob,charlie,david \
   --rotation weekly \
   --hours 24x7 \
@@ -282,7 +282,7 @@ hacker_ai soc shift schedule \
 **SOC Performance Dashboard**:
 ```bash
 # View SOC metrics
-hacker_ai soc metrics \
+cosmicsec soc metrics \
   --period last-30-days \
   --include \
     mttd \
@@ -293,7 +293,7 @@ hacker_ai soc metrics \
     analyst-efficiency
 
 # Generate management report
-hacker_ai soc report \
+cosmicsec soc report \
   --type executive \
   --period monthly \
   --include-trends \
@@ -331,7 +331,7 @@ hacker_ai soc report \
 
 ```bash
 # Configure auto-triage
-hacker_ai soc auto-triage configure \
+cosmicsec soc auto-triage configure \
   --ml-model alert-classifier \
   --actions \
     true-positive:create-incident \
@@ -340,7 +340,7 @@ hacker_ai soc auto-triage configure \
   --confidence-threshold 0.85
 
 # Monitor triage performance
-hacker_ai soc auto-triage metrics \
+cosmicsec soc auto-triage metrics \
   --show-accuracy \
   --show-time-saved \
   --export metrics.csv
@@ -351,7 +351,7 @@ hacker_ai soc auto-triage metrics \
 **Feed Management**:
 ```bash
 # Add threat intel feeds
-hacker_ai soc threat-intel add-feed \
+cosmicsec soc threat-intel add-feed \
   --name "AlienVault OTX" \
   --type stix \
   --url https://otx.alienvault.com/api/v1/pulses/subscribed \
@@ -359,7 +359,7 @@ hacker_ai soc threat-intel add-feed \
   --update-interval 1h
 
 # Cross-reference with logs
-hacker_ai soc threat-intel correlate \
+cosmicsec soc threat-intel correlate \
   --feeds all \
   --data-sources splunk,sentinel \
   --time-range 7d \
@@ -369,14 +369,14 @@ hacker_ai soc threat-intel correlate \
 **IOC Management**:
 ```bash
 # Import IOCs
-hacker_ai soc ioc import \
+cosmicsec soc ioc import \
   --format stix \
   --file threat-intel/apt29.json \
   --tags apt29,russia,advanced-threat \
   --expiry 90d
 
 # Export IOCs for blocklist
-hacker_ai soc ioc export \
+cosmicsec soc ioc export \
   --type ip,domain \
   --format csv \
   --confidence high,medium \
@@ -387,20 +387,20 @@ hacker_ai soc ioc export \
 
 ```bash
 # Enable UEBA
-hacker_ai soc ueba enable \
+cosmicsec soc ueba enable \
   --entities users,devices,applications \
   --baseline-period 30d \
   --risk-scoring true
 
 # Investigate risky users
-hacker_ai soc ueba investigate \
+cosmicsec soc ueba investigate \
   --entity user:john.doe \
   --show-anomalies \
   --risk-timeline \
   --peer-comparison
 
 # Create behavioral rules
-hacker_ai soc ueba create-rule \
+cosmicsec soc ueba create-rule \
   --name "unusual-country-login" \
   --condition "login.country != user.baseline.countries" \
   --risk-score +30 \
@@ -412,11 +412,11 @@ hacker_ai soc ueba create-rule \
 **Advanced Log Queries**:
 ```bash
 # Search logs with natural language
-hacker_ai soc query \
+cosmicsec soc query \
   --nl "show me all failed SSH attempts from external IPs in the last hour"
 
 # Complex query
-hacker_ai soc query \
+cosmicsec soc query \
   --source windows-security \
   --filter "EventID=4625 AND LogonType=3" \
   --aggregate-by SourceIP \
@@ -427,7 +427,7 @@ hacker_ai soc query \
 **Log Enrichment**:
 ```bash
 # Enrich logs with context
-hacker_ai soc enrich \
+cosmicsec soc enrich \
   --log-source firewall \
   --enrich-fields src_ip,dst_ip,domain \
   --providers \
@@ -443,14 +443,14 @@ hacker_ai soc enrich \
 **Real-Time Alerting**:
 ```bash
 # Set up real-time monitors
-hacker_ai soc monitor create \
+cosmicsec soc monitor create \
   --name "critical-alerts" \
   --condition "severity='critical'" \
   --notifications slack,pagerduty,email \
   --escalation-after 5m
 
 # Monitor specific assets
-hacker_ai soc monitor asset \
+cosmicsec soc monitor asset \
   --assets critical-servers.txt \
   --alert-on \
     new-connections \
@@ -468,14 +468,14 @@ hacker_ai soc monitor asset \
 
 ```bash
 # Tune noisy alerts
-hacker_ai soc tune-alerts \
+cosmicsec soc tune-alerts \
   --analyze-false-positives \
   --suggest-rule-modifications \
   --auto-suppress-known-good \
   --consolidate-similar-alerts
 
 # Create whitelist
-hacker_ai soc whitelist add \
+cosmicsec soc whitelist add \
   --type process \
   --value "C:\\Windows\\System32\\svchost.exe" \
   --reason "legitimate system process" \
@@ -486,7 +486,7 @@ hacker_ai soc whitelist add \
 
 ```bash
 # AI-assisted investigation
-hacker_ai soc ai investigate \
+cosmicsec soc ai investigate \
   --alert-id ALERT-123 \
   --suggest-next-steps \
   --find-related-alerts \
@@ -494,7 +494,7 @@ hacker_ai soc ai investigate \
   --draft-report
 
 # Ask security questions
-hacker_ai soc ai ask \
+cosmicsec soc ai ask \
   "Is this PowerShell command malicious?" \
   --context alert-ALERT-123.json
 ```
@@ -503,14 +503,14 @@ hacker_ai soc ai ask \
 
 ```bash
 # Share investigation notes
-hacker_ai soc collaborate \
+cosmicsec soc collaborate \
   --incident INC-2024-001 \
   --share-with tier2-analysts \
   --add-note "Pivot to check other DCs for same IOCs" \
   --attach evidence/memory-dump.dmp
 
 # Create playbook from investigation
-hacker_ai soc playbook create-from-incident \
+cosmicsec soc playbook create-from-incident \
   --incident INC-2024-001 \
   --extract-steps \
   --name "dc-ransomware-response"
@@ -520,14 +520,14 @@ hacker_ai soc playbook create-from-incident \
 
 ```bash
 # Practice with simulations
-hacker_ai soc training simulate \
+cosmicsec soc training simulate \
   --scenario ransomware-attack \
   --difficulty advanced \
   --team-mode \
   --time-limited 60m
 
 # Review past incidents
-hacker_ai soc review \
+cosmicsec soc review \
   --incident-id INC-2023-156 \
   --analyze-response-time \
   --identify-improvements \
@@ -542,12 +542,12 @@ hacker_ai soc review \
 
 ```python
 # Python integration example
-from hacker_ai import SOC
+from cosmicsec import SOC
 
 # Connect to SOC platform
 soc = SOC(api_key="your-api-key")
 
-# Forward Splunk alerts to HACKER_AI
+# Forward Splunk alerts to CosmicSec
 def forward_alert(alert):
     soc.alerts.create(
         title=alert['title'],
@@ -558,7 +558,7 @@ def forward_alert(alert):
         auto_triage=True
     )
 
-# Query Splunk from HACKER_AI
+# Query Splunk from CosmicSec
 results = soc.query.splunk(
     query='index=windows EventCode=4625 | stats count by src_ip',
     time_range='24h'
@@ -568,7 +568,7 @@ results = soc.query.splunk(
 ### SOAR Integration (Palo Alto Cortex XSOAR)
 
 ```python
-# Trigger XSOAR playbook from HACKER_AI
+# Trigger XSOAR playbook from CosmicSec
 soc.soar.trigger_playbook(
     platform='xsoar',
     playbook='Phishing Investigation',
@@ -619,12 +619,12 @@ soc.integrations.servicenow.create_incident(
 
 ```bash
 # Start training
-hacker_ai soc training start \
+cosmicsec soc training start \
   --level intermediate \
   --focus threat-hunting,malware-analysis
 
 # Track progress
-hacker_ai soc training progress
+cosmicsec soc training progress
 ```
 
 ---
@@ -674,30 +674,30 @@ CommonSecurityLog
 
 ```bash
 # Dashboard
-hacker_ai soc dashboard
+cosmicsec soc dashboard
 
 # Alerts
-hacker_ai soc alerts --filter <filter>
-hacker_ai soc alerts prioritize
-hacker_ai soc alerts correlate
+cosmicsec soc alerts --filter <filter>
+cosmicsec soc alerts prioritize
+cosmicsec soc alerts correlate
 
 # Incidents
-hacker_ai soc incident create
-hacker_ai soc incident update --id <id>
-hacker_ai soc incident escalate --id <id>
+cosmicsec soc incident create
+cosmicsec soc incident update --id <id>
+cosmicsec soc incident escalate --id <id>
 
 # Threat Hunting
-hacker_ai soc hunt create --hypothesis <text>
-hacker_ai soc hunt ioc --ioc-file <file>
-hacker_ai soc hunt behavioral
+cosmicsec soc hunt create --hypothesis <text>
+cosmicsec soc hunt ioc --ioc-file <file>
+cosmicsec soc hunt behavioral
 
 # SOAR
-hacker_ai soc playbook run --name <name>
-hacker_ai soc contain --type <type>
+cosmicsec soc playbook run --name <name>
+cosmicsec soc contain --type <type>
 
 # Metrics
-hacker_ai soc metrics
-hacker_ai soc report --type <type>
+cosmicsec soc metrics
+cosmicsec soc report --type <type>
 ```
 
 ---

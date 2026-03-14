@@ -9,14 +9,14 @@ def readme():
         return "Modular AI-Powered Hacking Assistant (Red & Blue Team Ready)"
 
 setup(
-    name='hacker_ai',
-    version='0.1.0',
-    description='Advanced Modular AI Hacking Framework for Red & Blue Teams',
+    name='cosmicsec',
+    version='1.0.0',
+    description='CosmicSec - Universal Cybersecurity Intelligence Platform with Helix AI',
     long_description=readme(),
     long_description_content_type='text/markdown',
     author='Mufthakherul Islam Miraz',
     author_email='mufthakherul_cybersec@s6742.me',
-    url='https://github.com/mufthakherul/hacker_ai',  # Update if repo changes
+    url='https://github.com/mufthakherul/hacker_ai',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
@@ -62,8 +62,9 @@ setup(
     ],
     python_requires='>=3.9',
     keywords=[
-        'hacking', 'ai', 'cybersecurity', 'pentesting', 'redteam', 'blueteam',
-        'ethical hacking', 'automation', 'infosec', 'malware analysis', 'osint'
+        'cybersecurity', 'ai', 'security', 'pentesting', 'threat-intelligence',
+        'cosmicsec', 'helix-ai', 'guardaxissphere', 'security-platform', 'automation',
+        'vulnerability-scanning', 'incident-response', 'soc', 'devsecops', 'infosec'
     ],
     project_urls={
         'Documentation': 'https://github.com/mufthakherul/hacker_ai/wiki',

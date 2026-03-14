@@ -1,4 +1,4 @@
-# 🏗️ HACKER_AI - Modern Architecture Diagrams
+# 🏗️ CosmicSec - Modern Architecture Diagrams
 
 ## System Architecture Overview
 

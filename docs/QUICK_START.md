@@ -1,8 +1,8 @@
-# 🎯 HACKER_AI Quick Start Guide
+# 🎯 CosmicSec Quick Start Guide
 
 ## Getting Started in 5 Minutes
 
-This guide will help you get HACKER_AI up and running quickly for evaluation and testing.
+This guide will help you get CosmicSec up and running quickly for evaluation and testing.
 
 ---
 
@@ -20,8 +20,8 @@ This guide will help you get HACKER_AI up and running quickly for evaluation and
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/mufthakherul/hacker_ai.git
-cd hacker_ai
+git clone https://github.com/mufthakherul/cosmicsec.git
+cd cosmicsec
 ```
 
 ### 2. Install Dependencies
@@ -37,19 +37,19 @@ pip install -r requirements.txt
 ### 3. Configure Environment
 ```bash
 # Copy example environment file
-cp hacker_ai/.env.example hacker_ai/.env
+cp cosmicsec/.env.example cosmicsec/.env
 
 # Edit .env and add your API keys (optional)
-nano hacker_ai/.env
+nano cosmicsec/.env
 ```
 
 ### 4. Run the Application
 ```bash
 # Launch the CLI
-python hacker_ai/launcher.py
+python cosmicsec/launcher.py
 
 # Or use the main application
-python hacker_ai/main.py
+python cosmicsec/main.py
 ```
 
 ---
@@ -59,14 +59,14 @@ python hacker_ai/main.py
 ### 1. Using Docker Compose
 ```bash
 # Clone repository
-git clone https://github.com/mufthakherul/hacker_ai.git
-cd hacker_ai
+git clone https://github.com/mufthakherul/cosmicsec.git
+cd cosmicsec
 
 # Start with Docker Compose
 docker-compose up -d
 
 # Access the application
-# CLI: docker-compose exec app python hacker_ai/launcher.py
+# CLI: docker-compose exec app python cosmicsec/launcher.py
 ```
 
 ### 2. Docker Compose Configuration
@@ -82,13 +82,13 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     volumes:
-      - ./hacker_ai:/app/hacker_ai
-    command: python hacker_ai/launcher.py
+      - ./cosmicsec:/app/cosmicsec
+    command: python cosmicsec/launcher.py
 
   postgres:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=hacker_ai
+      - POSTGRES_DB=cosmicsec
       - POSTGRES_USER=hacker
       - POSTGRES_PASSWORD=changeme
     ports:
@@ -114,8 +114,8 @@ Once Phase 1 is implemented, you'll be able to use:
 ### 1. Full Stack Deployment
 ```bash
 # Clone repository
-git clone https://github.com/mufthakherul/hacker_ai.git
-cd hacker_ai
+git clone https://github.com/mufthakherul/cosmicsec.git
+cd cosmicsec
 
 # Start all services
 make dev-up
@@ -145,7 +145,7 @@ kubectl port-forward svc/hacker-ai-web 3000:3000
 
 1. **Launch the Interactive Launcher**
 ```bash
-python hacker_ai/launcher.py
+python cosmicsec/launcher.py
 ```
 
 2. **Select a Module**
@@ -163,7 +163,7 @@ Enter module number: 2
 3. **Run a Scan**
 ```python
 # Example: Vulnerability Scanner
-from hacker_ai.scanners.vulnerability_scanner import VulnerabilityScanner
+from cosmicsec.scanners.vulnerability_scanner import VulnerabilityScanner
 
 scanner = VulnerabilityScanner()
 results = scanner.scan_target("example.com")
@@ -174,7 +174,7 @@ print(results)
 
 #### OSINT Reconnaissance
 ```python
-from hacker_ai.recon.osint_tools import OSINTCollector
+from cosmicsec.recon.osint_tools import OSINTCollector
 
 osint = OSINTCollector()
 info = osint.gather_info("example.com")
@@ -183,7 +183,7 @@ print(info)
 
 #### CVE Scanning
 ```python
-from hacker_ai.scanners.cve_scanner import CVEScanner
+from cosmicsec.scanners.cve_scanner import CVEScanner
 
 scanner = CVEScanner()
 vulnerabilities = scanner.scan("nginx/1.18.0")
@@ -192,7 +192,7 @@ print(vulnerabilities)
 
 #### GitHub Leak Detection
 ```python
-from hacker_ai.recon.github_leak_detector import GitHubLeakDetector
+from cosmicsec.recon.github_leak_detector import GitHubLeakDetector
 
 detector = GitHubLeakDetector(github_token="your_token")
 leaks = detector.scan_org("example-org")
@@ -205,7 +205,7 @@ print(leaks)
 
 ### Environment Variables
 
-Create a `.env` file in the `hacker_ai/` directory:
+Create a `.env` file in the `cosmicsec/` directory:
 
 ```env
 # API Keys
@@ -214,7 +214,7 @@ GITHUB_TOKEN=ghp_...
 SHODAN_API_KEY=...
 
 # Database (for future use)
-DATABASE_URL=postgresql://user:pass@localhost/hacker_ai
+DATABASE_URL=postgresql://user:pass@localhost/cosmicsec
 REDIS_URL=redis://localhost:6379
 
 # Application
@@ -254,7 +254,7 @@ Edit `user_profiles.json` to set user roles:
 pytest tests/ -v
 
 # Or run a simple verification
-python -c "import hacker_ai; print('Installation successful!')"
+python -c "import cosmicsec; print('Installation successful!')"
 ```
 
 ### 2. Verify Modules
@@ -262,7 +262,7 @@ python -c "import hacker_ai; print('Installation successful!')"
 # List available modules
 python -c "
 from pathlib import Path
-modules = list(Path('hacker_ai').rglob('*.py'))
+modules = list(Path('cosmicsec').rglob('*.py'))
 print(f'Found {len(modules)} Python modules')
 "
 ```
@@ -270,8 +270,8 @@ print(f'Found {len(modules)} Python modules')
 ### 3. Test Basic Functionality
 ```python
 # test_basic.py
-from hacker_ai.utils.network_utils import check_connectivity
-from hacker_ai.utils.logger import get_logger
+from cosmicsec.utils.network_utils import check_connectivity
+from cosmicsec.utils.logger import get_logger
 
 # Test logging
 logger = get_logger(__name__)
@@ -302,7 +302,7 @@ pip install --upgrade -r requirements.txt
 ```bash
 # Solution: Run with appropriate permissions
 # Some scanning features may require root/admin
-sudo python hacker_ai/launcher.py
+sudo python cosmicsec/launcher.py
 ```
 
 ### Issue 4: API Key Errors
@@ -328,10 +328,10 @@ cat FEATURES_SPEC.md
 ### 2. Review Current Features
 - Check `docs/main_features.md`
 - Explore module directories:
-  - `hacker_ai/scanners/`
-  - `hacker_ai/recon/`
-  - `hacker_ai/phishing/`
-  - `hacker_ai/tools/`
+  - `cosmicsec/scanners/`
+  - `cosmicsec/recon/`
+  - `cosmicsec/phishing/`
+  - `cosmicsec/tools/`
 
 ### 3. Plan Your Implementation
 - Review `MODERNIZATION_ROADMAP.md` for upgrade path
@@ -357,9 +357,9 @@ pip install -r requirements-dev.txt  # Create this file
 pre-commit install
 
 # Run code quality checks
-black hacker_ai/
-flake8 hacker_ai/
-mypy hacker_ai/
+black cosmicsec/
+flake8 cosmicsec/
+mypy cosmicsec/
 ```
 
 ### 2. Create a Feature Branch
@@ -376,8 +376,8 @@ git checkout -b feature/your-feature-name
 pytest tests/
 
 # Run linters
-black hacker_ai/
-flake8 hacker_ai/
+black cosmicsec/
+flake8 cosmicsec/
 ```
 
 ### 4. Submit Pull Request
@@ -472,8 +472,8 @@ CSRF_COOKIE_SECURE = True
 - 📝 Implementation: `docs/IMPLEMENTATION_GUIDE.md`
 
 ### Support Channels
-- 🐛 Issues: https://github.com/mufthakherul/hacker_ai/issues
-- 💬 Discussions: https://github.com/mufthakherul/hacker_ai/discussions
+- 🐛 Issues: https://github.com/mufthakherul/cosmicsec/issues
+- 💬 Discussions: https://github.com/mufthakherul/cosmicsec/discussions
 - 📧 Email: mufthakherul_cybersec@s6742.me
 - 🌐 Website: https://mufthakherul.github.io
 
@@ -500,7 +500,7 @@ This tool is for **educational and authorized security testing only**.
 
 ## What's Next?
 
-Now that you have HACKER_AI running:
+Now that you have CosmicSec running:
 
 1. ✅ Explore the current features
 2. 📖 Read the modernization roadmap

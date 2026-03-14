@@ -14,19 +14,22 @@ from hacker_ai.utils.logger import log_module_run          # Optional
 console = Console()
 
 ASCII_LOGO = r"""
-[bold red]
-██╗  ██╗ █████╗  ██████╗██╗  ██╗███████╗██████╗  █████╗ ██╗
-██║  ██║██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗██╔══██╗██║
-███████║███████║██║     █████╔╝ █████╗  ██████╔╝███████║██║
-██╔══██║██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔═══╝ ██╔══██║██║
-██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║     ██║  ██║███████╗
-╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝╚══════╝[/bold red]
+[bold cyan]
+ ██████╗ ██████╗ ███████╗███╗   ███╗██╗ ██████╗███████╗███████╗ ██████╗
+██╔════╝██╔═══██╗██╔════╝████╗ ████║██║██╔════╝██╔════╝██╔════╝██╔════╝
+██║     ██║   ██║███████╗██╔████╔██║██║██║     ███████╗█████╗  ██║
+██║     ██║   ██║╚════██║██║╚██╔╝██║██║██║     ╚════██║██╔══╝  ██║
+╚██████╗╚██████╔╝███████║██║ ╚═╝ ██║██║╚██████╗███████║███████╗╚██████╗
+ ╚═════╝ ╚═════╝ ╚══════╝╚═╝     ╚═╝╚═╝ ╚═════╝╚══════╝╚══════╝ ╚═════╝[/bold cyan]
+[bold purple]         🌌 Universal Cybersecurity Intelligence Platform 🌌[/bold purple]
+[dim]                    Powered by Helix AI Engine[/dim]
 """
 
 def main():
     os.system('clear' if os.name != 'nt' else 'cls')
     console.print(ASCII_LOGO)
-    console.print("[bold cyan]Welcome to HACKER_AI – Modular AI Hacking Assistant[/bold cyan]\n")
+    console.print("[bold cyan]Welcome to CosmicSec – GuardAxisSphere Platform[/bold cyan]")
+    console.print("[dim]Your Intelligent Security Operations Hub with Helix AI[/dim]\n")
 
     modules_dir = os.path.join(os.path.dirname(__file__), 'modules')
     modules = [f[:-3] for f in os.listdir(modules_dir) if f.endswith('.py') and not f.startswith('_')]
