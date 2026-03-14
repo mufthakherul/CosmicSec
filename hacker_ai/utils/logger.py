@@ -10,13 +10,13 @@ def log_module_run(module_name):
         f.write(f"- {datetime.datetime.now()} - Ran `{module_name}`\n")
 
 
-LOG_FILE = "logs/hacker_ai.log"
+LOG_FILE = "logs/cosmicsec.log"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 
 # Ensure logs directory exists
 os.makedirs("logs", exist_ok=True)
 
-def setup_logger(name="hacker_ai"):
+def setup_logger(name="cosmicsec"):
     logger = logging.getLogger(name)
     logger.setLevel(getattr(logging, LOG_LEVEL, logging.DEBUG))
 
