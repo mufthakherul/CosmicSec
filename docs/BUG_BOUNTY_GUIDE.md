@@ -1,8 +1,8 @@
-# 🐛 Bug Bounty Hunter's Guide to HACKER_AI
+# 🐛 Bug Bounty Hunter's Guide to CosmicSec
 
 ## Introduction
 
-HACKER_AI provides a comprehensive suite of tools specifically designed for bug bounty hunters. This guide will help you maximize your earnings by automating reconnaissance, vulnerability discovery, and report submission workflows.
+CosmicSec provides a comprehensive suite of tools specifically designed for bug bounty hunters. Access features through the **GuardAxisSphere** platform interface, powered by **Helix AI** for intelligent vulnerability detection and automated workflows. This guide will help you maximize your earnings by automating reconnaissance, vulnerability discovery, and report submission workflows.
 
 ---
 
@@ -22,17 +22,17 @@ Connect directly to major bug bounty platforms:
 
 ```python
 # Add a new bug bounty target
-hacker_ai bounty add-target \
+cosmicsec bounty add-target \
   --platform hackerone \
   --program "example-company" \
   --scope "*.example.com" \
   --rewards "critical:$5000,high:$2500"
 
 # List all active programs
-hacker_ai bounty list-targets
+cosmicsec bounty list-targets
 
 # Track program updates
-hacker_ai bounty watch --program "example-company"
+cosmicsec bounty watch --program "example-company"
 ```
 
 ### 3. Automated Reconnaissance
@@ -40,7 +40,7 @@ hacker_ai bounty watch --program "example-company"
 **Subdomain Enumeration**:
 ```bash
 # Comprehensive subdomain discovery
-hacker_ai recon subdomains \
+cosmicsec recon subdomains \
   --domain example.com \
   --sources amass,subfinder,assetfinder,crt.sh \
   --active-verification \
@@ -51,7 +51,7 @@ hacker_ai recon subdomains \
 **Asset Discovery**:
 ```bash
 # Discover all assets in scope
-hacker_ai recon assets \
+cosmicsec recon assets \
   --scope-file scope.txt \
   --discover web,api,cloud,mobile \
   --verify-live \
@@ -61,7 +61,7 @@ hacker_ai recon assets \
 **GitHub Secrets Scanning**:
 ```bash
 # Scan for leaked credentials
-hacker_ai recon github-leaks \
+cosmicsec recon github-leaks \
   --organization example-company \
   --keywords "api_key,password,token,secret" \
   --filter-false-positives
@@ -72,7 +72,7 @@ hacker_ai recon github-leaks \
 **Web Application Scanning**:
 ```bash
 # Automated vulnerability scanning
-hacker_ai scan web \
+cosmicsec scan web \
   --target https://example.com \
   --scan-type comprehensive \
   --include xss,sqli,ssrf,xxe,idor,auth-bypass \
@@ -82,7 +82,7 @@ hacker_ai scan web \
 **API Security Testing**:
 ```bash
 # Test API endpoints
-hacker_ai scan api \
+cosmicsec scan api \
   --openapi-spec https://api.example.com/openapi.json \
   --auth-token $TOKEN \
   --fuzzing-enabled \
@@ -93,7 +93,7 @@ hacker_ai scan api \
 **Mobile App Analysis**:
 ```bash
 # Android APK analysis
-hacker_ai scan mobile \
+cosmicsec scan mobile \
   --type android \
   --apk app.apk \
   --check-ssl-pinning \
@@ -101,7 +101,7 @@ hacker_ai scan mobile \
   --deep-link-analysis
 
 # iOS IPA analysis
-hacker_ai scan mobile \
+cosmicsec scan mobile \
   --type ios \
   --ipa app.ipa \
   --jailbreak-detection \
@@ -113,7 +113,7 @@ hacker_ai scan mobile \
 **Auto-Generate PoCs**:
 ```bash
 # Generate PoC for vulnerability
-hacker_ai bounty generate-poc \
+cosmicsec bounty generate-poc \
   --vulnerability-type xss \
   --target https://example.com/search \
   --parameter q \
@@ -135,7 +135,7 @@ hacker_ai bounty generate-poc \
 **Draft Report**:
 ```bash
 # Create vulnerability report
-hacker_ai bounty create-report \
+cosmicsec bounty create-report \
   --platform hackerone \
   --program example-company \
   --vulnerability-type "SQL Injection" \
@@ -175,7 +175,7 @@ hacker_ai bounty create-report \
 **Submit Report**:
 ```bash
 # Submit to platform
-hacker_ai bounty submit-report \
+cosmicsec bounty submit-report \
   --report-id 12345 \
   --platform hackerone \
   --program example-company \
@@ -187,7 +187,7 @@ hacker_ai bounty submit-report \
 **Track Bounties**:
 ```bash
 # View earnings summary
-hacker_ai bounty earnings
+cosmicsec bounty earnings
 
 # Output:
 # ┌──────────────┬───────────┬────────┬──────────┐
@@ -204,7 +204,7 @@ hacker_ai bounty earnings
 **Analytics**:
 ```bash
 # Generate analytics report
-hacker_ai bounty analytics \
+cosmicsec bounty analytics \
   --period last-6-months \
   --metrics acceptance-rate,average-bounty,time-to-payout \
   --export-pdf bounty-analytics.pdf
@@ -224,34 +224,34 @@ Create a daily automation script:
 
 # 1. Check for new programs
 echo "Checking for new bug bounty programs..."
-hacker_ai bounty discover-programs \
+cosmicsec bounty discover-programs \
   --platforms hackerone,bugcrowd,intigriti \
   --min-reward 1000 \
   --filter-by-skill web,api
 
 # 2. Monitor existing targets
 echo "Monitoring existing targets for changes..."
-hacker_ai bounty monitor-targets \
+cosmicsec bounty monitor-targets \
   --check-scope-changes \
   --alert-on-new-subdomains \
   --notify-slack
 
 # 3. Run scheduled scans
 echo "Running scheduled scans..."
-for target in $(hacker_ai bounty list-targets --output json | jq -r '.[].domain'); do
-  hacker_ai scan web --target $target --quick-scan --background
+for target in $(cosmicsec bounty list-targets --output json | jq -r '.[].domain'); do
+  cosmicsec scan web --target $target --quick-scan --background
 done
 
 # 4. Check for vulnerabilities in dependencies
 echo "Scanning for dependency vulnerabilities..."
-hacker_ai scan dependencies \
+cosmicsec scan dependencies \
   --targets-file targets.txt \
   --check-cve-databases \
   --alert-on-critical
 
 # 5. Generate daily report
 echo "Generating daily summary..."
-hacker_ai bounty daily-report \
+cosmicsec bounty daily-report \
   --email your-email@example.com \
   --slack-webhook $SLACK_WEBHOOK
 ```
@@ -262,7 +262,7 @@ Set up continuous monitoring for high-value targets:
 
 ```bash
 # Monitor for new subdomains
-hacker_ai bounty monitor \
+cosmicsec bounty monitor \
   --type subdomain-discovery \
   --targets-file high-value-targets.txt \
   --interval 1h \
@@ -270,14 +270,14 @@ hacker_ai bounty monitor \
   --auto-scan-new
 
 # Monitor GitHub for leaks
-hacker_ai bounty monitor \
+cosmicsec bounty monitor \
   --type github-leaks \
   --organizations-file orgs.txt \
   --interval 30m \
   --auto-notify-program
 
 # Monitor SSL/TLS certificates
-hacker_ai bounty monitor \
+cosmicsec bounty monitor \
   --type certificate-transparency \
   --domains-file domains.txt \
   --interval 15m
@@ -289,18 +289,18 @@ Share findings with trusted colleagues:
 
 ```bash
 # Create a collaboration workspace
-hacker_ai bounty create-workspace \
+cosmicsec bounty create-workspace \
   --name "AwesomeBugHunters" \
   --members alice@example.com,bob@example.com
 
 # Share a finding
-hacker_ai bounty share-finding \
+cosmicsec bounty share-finding \
   --workspace AwesomeBugHunters \
   --finding-id 12345 \
   --permission view,comment
 
 # Coordinate on a program
-hacker_ai bounty coordinate \
+cosmicsec bounty coordinate \
   --workspace AwesomeBugHunters \
   --program example-company \
   --assign-targets \
@@ -317,7 +317,7 @@ Focus on critical severity vulnerabilities with high bounty rewards:
 
 ```bash
 # Scan for high-impact vulnerabilities only
-hacker_ai scan prioritized \
+cosmicsec scan prioritized \
   --target example.com \
   --vulnerability-types rce,sqli,auth-bypass \
   --min-severity high \
@@ -330,7 +330,7 @@ Leverage AI to discover hidden attack surfaces:
 
 ```bash
 # AI-powered reconnaissance
-hacker_ai ai recon \
+cosmicsec ai recon \
   --target example.com \
   --use-llm gpt-4 \
   --discover-hidden-endpoints \
@@ -344,7 +344,7 @@ Use AI to draft professional reports:
 
 ```bash
 # Generate report with AI
-hacker_ai ai write-report \
+cosmicsec ai write-report \
   --vulnerability-data findings/xss-001.json \
   --include-impact-analysis \
   --add-remediation-steps \
@@ -358,7 +358,7 @@ Monitor for newly discovered vulnerabilities:
 
 ```bash
 # Subscribe to CVE feeds
-hacker_ai threat-intel subscribe \
+cosmicsec threat-intel subscribe \
   --sources nvd,exploit-db,github-advisories \
   --filter-by-technology wordpress,django,react \
   --alert-on-critical \
@@ -371,7 +371,7 @@ Monitor your standing across platforms:
 
 ```bash
 # View reputation metrics
-hacker_ai bounty reputation
+cosmicsec bounty reputation
 
 # Output:
 # ┌──────────────┬──────────┬───────────┬─────────────┐
@@ -393,7 +393,7 @@ Practice your skills in safe environments:
 
 ```bash
 # Start a practice lab
-hacker_ai lab start \
+cosmicsec lab start \
   --type bug-bounty \
   --difficulty intermediate \
   --vulnerability-types xss,sqli,ssrf
@@ -412,7 +412,7 @@ Prepare for bug bounty certifications:
 
 ```bash
 # Bug Bounty Hunter Certification Track
-hacker_ai training start \
+cosmicsec training start \
   --certification bug-bounty-hunter \
   --track comprehensive
 
@@ -435,7 +435,7 @@ Monitor your hunting efficiency:
 
 ```bash
 # View performance metrics
-hacker_ai bounty metrics \
+cosmicsec bounty metrics \
   --period last-quarter \
   --include \
     time-to-discovery \
@@ -444,7 +444,7 @@ hacker_ai bounty metrics \
     earnings-per-hour
 
 # Export for analysis
-hacker_ai bounty metrics export \
+cosmicsec bounty metrics export \
   --format csv \
   --output metrics.csv
 ```
@@ -455,7 +455,7 @@ Calculate return on investment:
 
 ```bash
 # Calculate ROI
-hacker_ai bounty roi-calculator \
+cosmicsec bounty roi-calculator \
   --hours-invested 160 \
   --tools-cost 500 \
   --total-earnings 12500
@@ -476,7 +476,7 @@ Always ensure you're operating within legal boundaries:
 
 ```bash
 # Check program scope
-hacker_ai bounty check-scope \
+cosmicsec bounty check-scope \
   --program example-company \
   --target staging.example.com
 
@@ -489,11 +489,11 @@ hacker_ai bounty check-scope \
 
 ### Safe Testing Practices
 
-Use HACKER_AI's safe testing features:
+Use CosmicSec's safe testing features:
 
 ```bash
 # Use non-invasive scanning
-hacker_ai scan safe-mode \
+cosmicsec scan safe-mode \
   --target example.com \
   --no-active-exploitation \
   --respect-rate-limits \
@@ -515,13 +515,13 @@ hacker_ai scan safe-mode \
 
 ```bash
 # Access help system
-hacker_ai bounty help
+cosmicsec bounty help
 
 # Search knowledge base
-hacker_ai kb search "xss bypass techniques"
+cosmicsec kb search "xss bypass techniques"
 
 # Chat with AI assistant
-hacker_ai chat "How do I test for SSRF?"
+cosmicsec chat "How do I test for SSRF?"
 ```
 
 ---
@@ -532,28 +532,28 @@ hacker_ai chat "How do I test for SSRF?"
 
 ```bash
 # Target management
-hacker_ai bounty add-target --program <name> --scope <scope>
-hacker_ai bounty list-targets
-hacker_ai bounty monitor-targets
+cosmicsec bounty add-target --program <name> --scope <scope>
+cosmicsec bounty list-targets
+cosmicsec bounty monitor-targets
 
 # Reconnaissance
-hacker_ai recon subdomains --domain <domain>
-hacker_ai recon assets --scope-file <file>
-hacker_ai recon github-leaks --organization <org>
+cosmicsec recon subdomains --domain <domain>
+cosmicsec recon assets --scope-file <file>
+cosmicsec recon github-leaks --organization <org>
 
 # Scanning
-hacker_ai scan web --target <url>
-hacker_ai scan api --openapi-spec <spec>
-hacker_ai scan mobile --type <ios|android>
+cosmicsec scan web --target <url>
+cosmicsec scan api --openapi-spec <spec>
+cosmicsec scan mobile --type <ios|android>
 
 # Reporting
-hacker_ai bounty create-report --template <template>
-hacker_ai bounty submit-report --platform <platform>
-hacker_ai bounty earnings
+cosmicsec bounty create-report --template <template>
+cosmicsec bounty submit-report --platform <platform>
+cosmicsec bounty earnings
 
 # Analytics
-hacker_ai bounty analytics --period <period>
-hacker_ai bounty metrics --include <metrics>
+cosmicsec bounty analytics --period <period>
+cosmicsec bounty metrics --include <metrics>
 ```
 
 ---
