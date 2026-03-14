@@ -178,7 +178,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: cosmicsec-celery-worker
-    command: celery -A services.scan_service.tasks worker --loglevel=info --concurrency=4
+    command: celery -A services.scan_service.main worker --loglevel=info --concurrency=4
     environment:
       - DATABASE_URL=postgresql://cosmicsec:${POSTGRES_PASSWORD:-cosmicsec_dev_password}@postgres:5432/cosmicsec
       - REDIS_URL=redis://:${REDIS_PASSWORD:-cosmicsec_redis_password}@redis:6379/0
