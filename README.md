@@ -40,6 +40,8 @@ Welcome to the future of hacking. 🎩
 
 ## 🧠 Core Modules for All Security Professionals
 
+> Note: The module filenames below are illustrative examples of the platform’s architecture. Some entries are planned/future modules and may not yet exist in the repository. For currently implemented modules, browse the `hacker_ai/` directory (for example, `hacker_ai/scanners/cve_scanner.py`, `hacker_ai/tools/nmap_runner.py`).
+
 | Module Type | Examples | Target Users |
 |-------------|----------|--------------|
 | 🔍 **Reconnaissance & OSINT** | `osint_tools.py`, `subdomain_finder.py`, `github_leak_detector.py` | Bug Hunters, Pentesters, Threat Intel |
