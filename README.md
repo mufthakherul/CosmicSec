@@ -320,12 +320,13 @@ Check out our comprehensive documentation in the `/docs` folder to see the compl
 ### 🎯 CosmicSec Modernization Plan
 > **NEW!** Complete transformation roadmap for the GuardAxisSphere platform
 
-- 📋 **[Executive Summary](docs/SUMMARY.md)** - Overview of the transformation
+- 📋 **[Executive Summary (Archived)](Archives/Docs/SUMMARY.md)** - Historical transformation overview
 - 🗺️ **[Modernization Roadmap](docs/MODERNIZATION_ROADMAP.md)** - Complete 12-month plan
 - 🏗️ **[Architecture Diagrams](docs/ARCHITECTURE_DIAGRAM.md)** - System design & architecture
 - 📝 **[Implementation Guide](docs/IMPLEMENTATION_GUIDE.md)** - Step-by-step instructions
 - 🌟 **[Features Specification](docs/FEATURES_SPEC.md)** - Detailed feature descriptions
 - 🚀 **[Quick Start Guide](docs/QUICK_START.md)** - Get started in 5 minutes
+- 🗂️ **[Archive Index](Archives/README.md)** - Moved legacy docs/code/test artifacts
 
 ### 📚 Additional Resources
 - 📜 [Portfolio & Contact](https://mufthakherul.github.io)
