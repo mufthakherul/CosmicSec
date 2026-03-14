@@ -1,0 +1,2 @@
+[console_scripts]
+hacker_ai = hacker_ai.launcher:main
