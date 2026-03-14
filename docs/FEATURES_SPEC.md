@@ -1,4 +1,4 @@
-# 🌟 HACKER_AI - Advanced Features Specification
+# 🌟 CosmicSec - Advanced Features Specification
 
 ## Table of Contents
 1. [Core Platform Features](#core-platform-features)
@@ -704,7 +704,7 @@ class ReportGenerator:
 - **Send Findings to Splunk**: Stream scan results
 - **Query Splunk Logs**: Search for related events
 - **Create Correlations**: Link vulnerabilities to incidents
-- **Dashboard Integration**: Embed HACKER_AI in Splunk
+- **Dashboard Integration**: Embed CosmicSec in Splunk
 
 **Implementation**:
 ```python
@@ -715,7 +715,7 @@ class SplunkIntegration:
     async def send_finding(self, finding: Finding):
         event = {
             'time': finding.timestamp,
-            'sourcetype': 'hacker_ai:finding',
+            'sourcetype': 'cosmicsec:finding',
             'event': {
                 'severity': finding.severity,
                 'title': finding.title,
@@ -945,4 +945,4 @@ class NLQueryInterface:
 
 ---
 
-**This specification provides a comprehensive blueprint for transforming HACKER_AI into a world-class cybersecurity platform. Each feature is designed to be modular, scalable, and user-centric.**
+**This specification provides a comprehensive blueprint for transforming CosmicSec into a world-class cybersecurity platform. Each feature is designed to be modular, scalable, and user-centric.**

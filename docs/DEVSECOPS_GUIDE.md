@@ -1,8 +1,8 @@
-# 👨‍💻 Security Developer & DevSecOps Guide to HACKER_AI
+# 👨‍💻 Security Developer & DevSecOps Guide to CosmicSec
 
 ## Introduction
 
-HACKER_AI provides comprehensive tools for integrating security into the software development lifecycle (SDLC). This guide covers secure code analysis, dependency scanning, CI/CD integration, IDE plugins, and DevSecOps automation.
+CosmicSec provides comprehensive tools for integrating security into the software development lifecycle (SDLC) through the **GuardAxisSphere** platform. Powered by **Helix AI** for intelligent code analysis and automated security fixes, this guide covers secure code analysis, dependency scanning, CI/CD integration, IDE plugins, and DevSecOps automation.
 
 ---
 
@@ -13,7 +13,7 @@ HACKER_AI provides comprehensive tools for integrating security into the softwar
 **Analyze Code for Vulnerabilities**:
 ```bash
 # Scan entire repository
-hacker_ai devsec scan \
+cosmicsec devsec scan \
   --path /path/to/repo \
   --languages python,javascript,java \
   --include-dependencies \
@@ -21,7 +21,7 @@ hacker_ai devsec scan \
   --output report.html
 
 # Scan specific files
-hacker_ai devsec scan-file \
+cosmicsec devsec scan-file \
   --file src/auth/login.py \
   --ai-analysis \
   --show-dataflow \
@@ -31,7 +31,7 @@ hacker_ai devsec scan-file \
 **AI-Powered Fix Suggestions**:
 ```bash
 # Get AI-powered fix for vulnerability
-hacker_ai devsec fix \
+cosmicsec devsec fix \
   --vulnerability-id VULN-001 \
   --use-llm gpt-4 \
   --generate-patch \
@@ -39,7 +39,7 @@ hacker_ai devsec fix \
   --test-fix
 
 # Auto-fix common vulnerabilities
-hacker_ai devsec auto-fix \
+cosmicsec devsec auto-fix \
   --path src/ \
   --types sqli,xss,path-traversal \
   --create-pr \
@@ -51,7 +51,7 @@ hacker_ai devsec auto-fix \
 **Scan Dependencies**:
 ```bash
 # Scan package dependencies
-hacker_ai devsec deps scan \
+cosmicsec devsec deps scan \
   --manifest package.json \
   --check-cve \
   --check-licenses \
@@ -59,7 +59,7 @@ hacker_ai devsec deps scan \
   --output deps-report.json
 
 # Multi-language support
-hacker_ai devsec deps scan \
+cosmicsec devsec deps scan \
   --manifests \
     package.json \
     requirements.txt \
@@ -71,7 +71,7 @@ hacker_ai devsec deps scan \
 **Auto-Update Dependencies**:
 ```bash
 # Create PR for dependency updates
-hacker_ai devsec deps update \
+cosmicsec devsec deps update \
   --manifest package.json \
   --update-vulnerable-only \
   --run-tests \
@@ -79,7 +79,7 @@ hacker_ai devsec deps update \
   --pr-title "Security: Update vulnerable dependencies"
 
 # Continuous monitoring
-hacker_ai devsec deps monitor \
+cosmicsec devsec deps monitor \
   --manifests requirements.txt,package.json \
   --alert-on-new-cve \
   --notify-slack \
@@ -94,8 +94,8 @@ hacker_ai devsec deps monitor \
 code --install-extension hacker-ai.security-assistant
 
 # Configure extension
-hacker_ai devsec ide config-vscode \
-  --api-key $HACKER_AI_API_KEY \
+cosmicsec devsec ide config-vscode \
+  --api-key $CosmicSec_API_KEY \
   --enable-realtime-scan \
   --enable-ai-suggestions \
   --enable-inline-docs
@@ -112,7 +112,7 @@ hacker_ai devsec ide config-vscode \
 **JetBrains Plugin** (IntelliJ IDEA, PyCharm, WebStorm):
 ```bash
 # Install JetBrains plugin
-hacker_ai devsec ide install-jetbrains \
+cosmicsec devsec ide install-jetbrains \
   --products intellij,pycharm,webstorm
 
 # Features:
@@ -128,9 +128,9 @@ hacker_ai devsec ide install-jetbrains \
 Plug 'hacker-ai/vim-security'
 
 " Configure
-let g:hacker_ai_api_key = 'your-api-key'
-let g:hacker_ai_auto_scan = 1
-let g:hacker_ai_inline_warnings = 1
+let g:cosmicsec_api_key = 'your-api-key'
+let g:cosmicsec_auto_scan = 1
+let g:cosmicsec_inline_warnings = 1
 
 " Commands:
 :HackerAIScan          " Scan current file
@@ -157,10 +157,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: HACKER_AI Security Scan
+      - name: CosmicSec Security Scan
         uses: hacker-ai/security-scan@v1
         with:
-          api-key: ${{ secrets.HACKER_AI_API_KEY }}
+          api-key: ${{ secrets.CosmicSec_API_KEY }}
           scan-type: full
           fail-on-severity: high
           create-github-issues: true
@@ -178,7 +178,7 @@ security_scan:
   image: hackerai/scanner:latest
   stage: test
   script:
-    - hacker_ai devsec scan --path . --output-format gitlab
+    - cosmicsec devsec scan --path . --output-format gitlab
   artifacts:
     reports:
       sast: hacker-ai-sast.json
@@ -200,7 +200,7 @@ pipeline {
                 script {
                     def scanResult = sh(
                         script: """
-                            hacker_ai devsec scan \
+                            cosmicsec devsec scan \
                               --path . \
                               --format jenkins \
                               --fail-on-critical
@@ -217,7 +217,7 @@ pipeline {
 
         stage('Dependency Check') {
             steps {
-                sh 'hacker_ai devsec deps scan --manifest pom.xml'
+                sh 'cosmicsec devsec deps scan --manifest pom.xml'
             }
         }
     }
@@ -239,13 +239,13 @@ pipeline {
 **Secret Scanning**:
 ```bash
 # Install pre-commit hook
-hacker_ai devsec install-hooks \
+cosmicsec devsec install-hooks \
   --hooks secret-scan,sast,linting \
   --fail-on-secrets true
 
 # .git/hooks/pre-commit
 #!/bin/bash
-hacker_ai devsec pre-commit \
+cosmicsec devsec pre-commit \
   --scan-secrets \
   --scan-vulnerabilities \
   --auto-fix-linting \
@@ -283,7 +283,7 @@ hooks:
 **Docker Image Scanning**:
 ```bash
 # Scan Docker image
-hacker_ai devsec container scan \
+cosmicsec devsec container scan \
   --image myapp:latest \
   --check-cve \
   --check-secrets \
@@ -292,10 +292,10 @@ hacker_ai devsec container scan \
 
 # Scan during build
 docker build -t myapp:latest . && \
-  hacker_ai devsec container scan --image myapp:latest --fail-on-high
+  cosmicsec devsec container scan --image myapp:latest --fail-on-high
 
 # Continuous monitoring
-hacker_ai devsec container monitor \
+cosmicsec devsec container monitor \
   --registry docker.io/mycompany \
   --scan-interval 24h \
   --alert-on-new-cve
@@ -304,14 +304,14 @@ hacker_ai devsec container monitor \
 **Kubernetes Security**:
 ```bash
 # Scan K8s manifests
-hacker_ai devsec k8s scan \
+cosmicsec devsec k8s scan \
   --manifests k8s/*.yaml \
   --check-policies cis,nsa-cisa,pss \
   --check-misconfig \
   --suggest-fixes
 
 # Runtime security monitoring
-hacker_ai devsec k8s monitor \
+cosmicsec devsec k8s monitor \
   --namespace production \
   --detect-anomalies \
   --block-suspicious \
@@ -323,7 +323,7 @@ hacker_ai devsec k8s monitor \
 **Terraform Scanning**:
 ```bash
 # Scan Terraform code
-hacker_ai devsec iac scan \
+cosmicsec devsec iac scan \
   --type terraform \
   --path terraform/ \
   --check-misconfig \
@@ -333,13 +333,13 @@ hacker_ai devsec iac scan \
 # Scan before apply
 terraform plan -out=tfplan && \
   terraform show -json tfplan > tfplan.json && \
-  hacker_ai devsec iac validate --plan tfplan.json --fail-on-critical
+  cosmicsec devsec iac validate --plan tfplan.json --fail-on-critical
 ```
 
 **CloudFormation Scanning**:
 ```bash
 # Scan AWS CloudFormation
-hacker_ai devsec iac scan \
+cosmicsec devsec iac scan \
   --type cloudformation \
   --template template.yaml \
   --check-security-groups \
@@ -350,7 +350,7 @@ hacker_ai devsec iac scan \
 **Ansible Playbook Security**:
 ```bash
 # Scan Ansible playbooks
-hacker_ai devsec iac scan \
+cosmicsec devsec iac scan \
   --type ansible \
   --playbooks playbooks/*.yml \
   --check-secrets \
@@ -367,13 +367,13 @@ hacker_ai devsec iac scan \
 **Developer-Friendly Security**:
 ```bash
 # Quick security check during development
-hacker_ai devsec quick-check \
+cosmicsec devsec quick-check \
   --files $(git diff --name-only) \
   --show-only critical,high \
   --inline-suggestions
 
 # Security as Code
-hacker_ai devsec policy create \
+cosmicsec devsec policy create \
   --name "company-security-policy" \
   --rules security-policies/*.rego \
   --enforce-on-commit
@@ -408,7 +408,7 @@ gates:
 **Enforce Gates**:
 ```bash
 # Run security gates
-hacker_ai devsec gates check \
+cosmicsec devsec gates check \
   --config security-gates.yml \
   --scan-results ./reports/ \
   --fail-on-violation \
@@ -420,7 +420,7 @@ hacker_ai devsec gates check \
 **Security Test Suite**:
 ```python
 # security_tests.py
-from hacker_ai import SecurityTest
+from cosmicsec import SecurityTest
 
 class TestAuthentication(SecurityTest):
     def test_no_sql_injection(self):
@@ -442,7 +442,7 @@ class TestAuthentication(SecurityTest):
 **Run Security Tests**:
 ```bash
 # Run security test suite
-hacker_ai devsec test \
+cosmicsec devsec test \
   --test-dir tests/security/ \
   --parallel \
   --output junit.xml
@@ -456,13 +456,13 @@ pytest tests/security/ --hacker-ai --cov=src
 **Interactive Secure Coding Labs**:
 ```bash
 # Start a secure coding challenge
-hacker_ai devsec training start \
+cosmicsec devsec training start \
   --language python \
   --topic sql-injection \
   --difficulty intermediate
 
 # Create custom training
-hacker_ai devsec training create \
+cosmicsec devsec training create \
   --from-vulnerabilities ./scan-results.json \
   --generate-exercises \
   --create-quiz
@@ -473,7 +473,7 @@ hacker_ai devsec training create \
 **Developer Security Scorecard**:
 ```bash
 # View security metrics
-hacker_ai devsec metrics \
+cosmicsec devsec metrics \
   --repo mycompany/myapp \
   --period last-quarter \
   --show \
@@ -483,7 +483,7 @@ hacker_ai devsec metrics \
     security-debt
 
 # Generate dashboard
-hacker_ai devsec dashboard \
+cosmicsec devsec dashboard \
   --teams backend,frontend,mobile \
   --export-grafana \
   --live-update
@@ -497,7 +497,7 @@ hacker_ai devsec dashboard \
 
 ```bash
 # Generate secure boilerplate code
-hacker_ai devsec scaffold \
+cosmicsec devsec scaffold \
   --type rest-api \
   --language python \
   --framework fastapi \
@@ -505,7 +505,7 @@ hacker_ai devsec scaffold \
   --compliance pci-dss
 
 # Security templates
-hacker_ai devsec template \
+cosmicsec devsec template \
   --type secure-login \
   --language javascript \
   --framework react \
@@ -517,14 +517,14 @@ hacker_ai devsec template \
 
 ```bash
 # Analyze IAM policies
-hacker_ai devsec iam analyze \
+cosmicsec devsec iam analyze \
   --cloud aws \
   --check-overprivileged \
   --suggest-least-privilege \
   --export-policies
 
 # Generate minimal IAM policies
-hacker_ai devsec iam generate \
+cosmicsec devsec iam generate \
   --service s3,dynamodb,lambda \
   --actions read,write \
   --resources-file resources.txt
@@ -535,14 +535,14 @@ hacker_ai devsec iam generate \
 **Detect Secrets**:
 ```bash
 # Scan for secrets
-hacker_ai devsec secrets scan \
+cosmicsec devsec secrets scan \
   --path . \
   --types api-key,password,private-key,token \
   --check-git-history \
   --output secrets-report.json
 
 # Rotate leaked secrets
-hacker_ai devsec secrets rotate \
+cosmicsec devsec secrets rotate \
   --provider aws-secrets-manager \
   --leaked-secrets secrets-report.json \
   --notify-teams
@@ -551,13 +551,13 @@ hacker_ai devsec secrets rotate \
 **Integrate with Vault**:
 ```bash
 # Store secrets in HashiCorp Vault
-hacker_ai devsec secrets migrate-to-vault \
+cosmicsec devsec secrets migrate-to-vault \
   --from .env \
   --vault-path secret/myapp \
   --vault-addr https://vault.company.com
 
 # Generate code to retrieve secrets
-hacker_ai devsec secrets generate-code \
+cosmicsec devsec secrets generate-code \
   --language python \
   --provider vault \
   --secrets-path secret/myapp
@@ -568,14 +568,14 @@ hacker_ai devsec secrets generate-code \
 **SBOM Generation**:
 ```bash
 # Generate Software Bill of Materials
-hacker_ai devsec sbom generate \
+cosmicsec devsec sbom generate \
   --format cyclonedx \
   --output sbom.json \
   --include-dev-deps \
   --sign-with-cosign
 
 # Verify SBOM
-hacker_ai devsec sbom verify \
+cosmicsec devsec sbom verify \
   --sbom sbom.json \
   --signature sbom.json.sig \
   --public-key cosign.pub
@@ -584,7 +584,7 @@ hacker_ai devsec sbom verify \
 **Dependency Provenance**:
 ```bash
 # Verify dependency integrity
-hacker_ai devsec deps verify \
+cosmicsec devsec deps verify \
   --manifest package-lock.json \
   --check-signatures \
   --check-provenance \
@@ -598,7 +598,7 @@ hacker_ai devsec deps verify \
 ### Python Integration
 
 ```python
-from hacker_ai import DevSec
+from cosmicsec import DevSec
 
 # Initialize client
 devsec = DevSec(api_key="your-api-key")
@@ -634,7 +634,7 @@ if vuln.auto_fixable:
 ```javascript
 const { DevSec } = require('@hacker-ai/sdk');
 
-const devsec = new DevSec({ apiKey: process.env.HACKER_AI_API_KEY });
+const devsec = new DevSec({ apiKey: process.env.CosmicSec_API_KEY });
 
 // Scan dependencies
 async function checkDependencies() {
@@ -666,7 +666,7 @@ checkDependencies();
 ```python
 # Flask webhook receiver
 from flask import Flask, request
-from hacker_ai import DevSec
+from cosmicsec import DevSec
 
 app = Flask(__name__)
 devsec = DevSec(api_key="your-api-key")
@@ -747,7 +747,7 @@ app.post('/user', (req, res) => {
 
 ```bash
 # Start DevSecOps training
-hacker_ai devsec training \
+cosmicsec devsec training \
   --certification devsecops-professional \
   --modules \
     secure-coding \
@@ -761,7 +761,7 @@ hacker_ai devsec training \
 
 ```bash
 # Launch interactive lab
-hacker_ai devsec lab start \
+cosmicsec devsec lab start \
   --scenario "secure-cicd-pipeline" \
   --difficulty advanced \
   --duration 2h
@@ -775,34 +775,34 @@ hacker_ai devsec lab start \
 
 ```bash
 # Code Analysis
-hacker_ai devsec scan --path <path>
-hacker_ai devsec fix --vulnerability-id <id>
+cosmicsec devsec scan --path <path>
+cosmicsec devsec fix --vulnerability-id <id>
 
 # Dependencies
-hacker_ai devsec deps scan --manifest <file>
-hacker_ai devsec deps update --create-pr
+cosmicsec devsec deps scan --manifest <file>
+cosmicsec devsec deps update --create-pr
 
 # IDE
-hacker_ai devsec ide config-vscode
-hacker_ai devsec ide install-jetbrains
+cosmicsec devsec ide config-vscode
+cosmicsec devsec ide install-jetbrains
 
 # CI/CD
-hacker_ai devsec ci install --platform <platform>
-hacker_ai devsec gates check --config <config>
+cosmicsec devsec ci install --platform <platform>
+cosmicsec devsec gates check --config <config>
 
 # Container
-hacker_ai devsec container scan --image <image>
-hacker_ai devsec k8s scan --manifests <path>
+cosmicsec devsec container scan --image <image>
+cosmicsec devsec k8s scan --manifests <path>
 
 # IaC
-hacker_ai devsec iac scan --type <type> --path <path>
+cosmicsec devsec iac scan --type <type> --path <path>
 
 # Secrets
-hacker_ai devsec secrets scan --path <path>
-hacker_ai devsec secrets rotate --provider <provider>
+cosmicsec devsec secrets scan --path <path>
+cosmicsec devsec secrets rotate --provider <provider>
 
 # SBOM
-hacker_ai devsec sbom generate --format <format>
+cosmicsec devsec sbom generate --format <format>
 ```
 
 ---
