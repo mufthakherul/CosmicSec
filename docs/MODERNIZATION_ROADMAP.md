@@ -1,8 +1,8 @@
-# 🚀 HACKER_AI Modernization & Enhancement Roadmap
+# 🚀 CosmicSec Modernization & Enhancement Roadmap
 
 ## Executive Summary
 
-This roadmap transforms HACKER_AI from a traditional CLI-based pentesting tool into a **next-generation, cloud-native, AI-powered cybersecurity platform** with enterprise-grade architecture, modern UX, and advanced automation capabilities.
+This roadmap transforms CosmicSec from a traditional CLI-based pentesting tool into a **next-generation, cloud-native, AI-powered cybersecurity platform** with enterprise-grade architecture, modern UX, and advanced automation capabilities.
 
 ---
 
@@ -199,7 +199,7 @@ This roadmap transforms HACKER_AI from a traditional CLI-based pentesting tool i
 
 ## 🌐 Multi-Interface Access Strategy
 
-HACKER_AI will support **five distinct access interfaces**, each optimized for specific user roles and use cases:
+CosmicSec will support **five distinct access interfaces**, each optimized for specific user roles and use cases:
 
 ### Interface Comparison Matrix
 
@@ -235,8 +235,8 @@ HACKER_AI will support **five distinct access interfaces**, each optimized for s
 
 **Installation**:
 ```bash
-pip install hacker_ai
-hacker_ai scan --target example.com
+pip install cosmicsec
+cosmicsec scan --target example.com
 ```
 
 ### 2. Master CLI Admin Panel (Server-Side)
@@ -262,9 +262,9 @@ hacker_ai scan --target example.com
 **Access**:
 ```bash
 # SSH into server or direct terminal access
-hacker_ai admin user add --username john --role pentester
-hacker_ai admin health check
-hacker_ai admin audit view --last 100
+cosmicsec admin user add --username john --role pentester
+cosmicsec admin health check
+cosmicsec admin audit view --last 100
 ```
 
 ### 3. SSH Admin Interface
@@ -291,11 +291,11 @@ hacker_ai admin audit view --last 100
 ssh admin@hacker-ai-server.com -p 2222
 
 # Or use SSH commands directly
-ssh admin@hacker-ai-server.com "hacker_ai admin health check"
+ssh admin@hacker-ai-server.com "cosmicsec admin health check"
 
 # SFTP for file retrieval
 sftp admin@hacker-ai-server.com
-get /var/log/hacker_ai/audit.log
+get /var/log/cosmicsec/audit.log
 ```
 
 ### 4. REST API
@@ -326,7 +326,7 @@ curl -X POST https://api.hacker-ai.com/v1/scans \
   -d '{"target": "example.com", "scan_type": "full"}'
 
 # Python SDK
-from hacker_ai import Client
+from cosmicsec import Client
 client = Client(api_key="YOUR_API_KEY")
 scan = client.scans.create(target="example.com", scan_type="full")
 results = scan.wait_for_completion()
@@ -584,7 +584,7 @@ All interfaces implement:
 
 #### 1.5 Master CLI Admin Panel
 - [ ] **Server-Side Admin CLI**: Terminal-based administration
-  - [ ] `hacker_ai admin` command suite
+  - [ ] `cosmicsec admin` command suite
   - [ ] Interactive admin shell mode
   - [ ] Rich TUI for admin operations
 - [ ] **Admin Commands**:
@@ -969,7 +969,7 @@ All interfaces implement:
 ## 📐 Enhanced Project Structure
 
 ```
-hacker_ai/
+cosmicsec/
 ├── services/                          # Microservices
 │   ├── api-gateway/                   # API Gateway service
 │   │   ├── src/
@@ -1481,7 +1481,7 @@ Triggers: Push, PR, Tag
 
 ## 🏁 Conclusion
 
-This roadmap transforms HACKER_AI into a **world-class, enterprise-grade cybersecurity platform** that combines:
+This roadmap transforms CosmicSec into a **world-class, enterprise-grade cybersecurity platform** that combines:
 
 ✨ **Modern Architecture** - Cloud-native, scalable, resilient
 🤖 **Advanced AI/ML** - Autonomous, intelligent, predictive

@@ -1,24 +1,24 @@
-# 🔐 HACKER_AI — Universal Cybersecurity Platform for All Security Professionals
+# 🌌 CosmicSec — Universal Cybersecurity Intelligence Platform
 
-> ⚙️ The Ultimate Cybersecurity Swiss Army Knife. For Red Teams, Blue Teams, Purple Teams, Bug Hunters, SOC Analysts, Developers, Researchers, and Everyone in Between. Modular. Smart. Ethical. Powerful.
+> 🛡️ **GuardAxisSphere**: The Ultimate Enterprise Security Command Center. AI-Powered by **Helix** for Red Teams, Blue Teams, Purple Teams, Bug Hunters, SOC Analysts, Developers, Researchers, and Everyone in Between. Modular. Intelligent. Ethical. Powerful.
 
 ---
 
-![HACKER_AI](https://mufthakherul.github.io/images/projects/hacker_ai.png)
+![CosmicSec](https://mufthakherul.github.io/images/projects/cosmicsec.png)
 
 ## ✨ Highlights
 
 🎯 **Universal Platform**: Red Team, Blue Team, Purple Team, Bug Bounty, SOC, DevSecOps, Research, Compliance, and more
-🧠 **AI-Enhanced**: LLM-powered vulnerability analysis, code review, exploit generation, threat intelligence
-🔌 **Modular**: Plug-n-play architecture with 100+ specialized modules for every security role
-💻 **Multi-Interface Access**: CLI, REST API, Web Dashboard, SSH, Admin Panel, IDE Plugins
+🧠 **Helix AI Engine**: Advanced LLM-powered vulnerability analysis, code review, exploit generation, threat intelligence
+🔌 **Modular Architecture**: Plug-n-play with 100+ specialized modules for every security role
+💻 **GuardAxisSphere Interface**: Multi-access via CLI, REST API, Web Dashboard, SSH, Admin Panel, IDE Plugins
 🔒 **Role-Based Access**: Granular permissions for different security professionals
 📈 **Comprehensive Analytics**: Logs, heatmaps, dashboards, executive reports, compliance tracking
 🌐 **Modern Interfaces**: Terminal, Web, API, SSH, and IDE integration
 🔁 **Auto-Updating**: GitHub integration for updates and community plugins
 🎓 **Training Platform**: Interactive labs, CTF challenges, certification paths
 🔐 **Enterprise-Ready**: SOC2, ISO27001, GDPR, multi-tenancy, SSO, audit trails
-🤖 **AI Agents**: Autonomous security testing, threat hunting, code analysis
+🤖 **Helix AI Agents**: Autonomous security testing, threat hunting, code analysis
 🌍 **Cloud-Native**: Microservices, Kubernetes, multi-cloud security scanning
 📱 **Mobile Support**: iOS/Android apps for on-the-go security operations
 🔗 **Integrations**: 50+ integrations with SIEM, ticketing, CI/CD, threat intelligence
@@ -34,7 +34,7 @@ pip install -r requirements.txt
 python hacker_ai/launcher.py
 ```
 
-Welcome to the future of hacking. 🎩
+Welcome to the future of cybersecurity operations. 🌌
 
 ---
 
@@ -51,7 +51,7 @@ Welcome to the future of hacking. 🎩
 | 👨‍💻 **DevSecOps** | `code_analyzer.py`, `dependency_scanner.py`, `cicd_security.py`, `ide_plugin.py` | Security Developers, DevOps |
 | 📋 **Compliance & GRC** | `compliance_frameworks.py`, `risk_assessment.py`, `audit_trail.py` | Compliance Officers, Auditors |
 | 🎣 **Phishing & Social Eng** | `ai_phishing_simulator.py`, `credential_harvester.py` | Red Teams, Security Awareness |
-| 🧠 **AI Security Tools** | `ai_code_review.py`, `vulnerability_prediction.py`, `exploit_generator.py` | All Professionals |
+| 🧠 **AI Security Tools** | `ai_code_review.py`, `vulnerability_prediction.py`, `exploit_generator.py` | All Professionals (Powered by Helix) |
 | 🧰 **Penetration Testing** | `nmap_runner.py`, `sqlmap_runner.py`, `burpsuite_controller.py` | Pentesters, Red Teams |
 | 🕸️ **Web Application** | `api_fuzzer.py`, `xss_scanner.py`, `auth_tester.py` | Web App Pentesters |
 | 📱 **Mobile Security** | `ios_analyzer.py`, `android_apk_scanner.py`, `frida_automation.py` | Mobile Security Testers |
@@ -208,12 +208,12 @@ Use only in **legal environments** with proper authorization.
 
 ---
 
-## 🚀 What's New - Comprehensive Platform for All Cybersecurity Professionals
+## 🚀 What's New - CosmicSec: Comprehensive Platform for All Cybersecurity Professionals
 
-> **Exciting News!** We've expanded HACKER_AI beyond red/blue teams to become a comprehensive platform for the **entire cybersecurity community**!
+> **Exciting News!** We've evolved into **CosmicSec**, the **GuardAxisSphere** platform powered by **Helix AI** - a comprehensive ecosystem for the **entire cybersecurity community**!
 
 ### 🎯 Universal Vision
-Transform from a penetration testing tool to a **world-class, all-in-one cybersecurity platform** serving:
+Transform into a **world-class, all-in-one cybersecurity platform** serving:
 
 - 🔴 **Red Team Operators** - Advanced penetration testing and adversary simulation
 - 🔵 **Blue Team Defenders** - SOC operations, incident response, threat hunting
@@ -243,7 +243,7 @@ Transform from a penetration testing tool to a **world-class, all-in-one cyberse
 - **Backend**: FastAPI 0.110+, GraphQL (Strawberry), Celery 5.4+, Redis 7.2
 - **Frontend**: React 18.3+/Next.js 14+, SolidJS, Tailwind CSS 4.0, Vite 5.2
 - **Databases**: PostgreSQL 16, MongoDB 7.0, TimescaleDB, ClickHouse, Milvus
-- **AI/ML**: LangChain 0.2+, LangGraph, GPT-4o, Claude 3.5 Sonnet, Llama 3.1
+- **AI/ML**: LangChain 0.2+, LangGraph, GPT-4o, Claude 3.5 Sonnet, Llama 3.1 (Helix Engine)
 - **DevOps**: Kubernetes 1.30+, Docker 25+, ArgoCD 2.11, Cilium, Grafana Stack
 - **Security**: Trivy, Falco, Tetragon (eBPF), HashiCorp Vault, OPA/Kyverno
 - **Observability**: Prometheus, Grafana Loki, Tempo, VictoriaMetrics
@@ -251,7 +251,7 @@ Transform from a penetration testing tool to a **world-class, all-in-one cyberse
 ### 🌟 Comprehensive Feature Set
 - **100+ Specialized Modules** for every cybersecurity role
 - **50+ Integrations** with SIEM, ticketing, CI/CD, threat intelligence platforms
-- **AI-Powered Everything** - Code review, vulnerability analysis, exploit generation, threat hunting
+- **Helix AI-Powered Everything** - Code review, vulnerability analysis, exploit generation, threat hunting
 - **Multi-Cloud Support** - AWS, Azure, GCP security assessment and compliance
 - **Training Platform** - Interactive labs, CTF challenges, certification paths
 - **Compliance Automation** - SOC2, ISO27001, PCI-DSS, HIPAA, GDPR, NIST, CIS
@@ -263,7 +263,7 @@ Transform from a penetration testing tool to a **world-class, all-in-one cyberse
 - **Unlimited Scalability**: Kubernetes auto-scaling, multi-region deployment
 - **Universal Access**: 5 interfaces (CLI, API, Web, SSH, IDE) for all workflows
 - **Enterprise Ready**: Multi-tenancy, SSO, RBAC, compliance, audit trails
-- **AI-First Platform**: Most advanced AI integration in cybersecurity tools
+- **AI-First Platform**: Helix AI provides the most advanced AI integration in cybersecurity tools
 - **Complete Coverage**: From bug bounty to board room, one platform for all
 
 ### 🎯 Who Benefits?
@@ -280,7 +280,7 @@ This platform is designed to serve **every cybersecurity professional**:
 ### 🖥️ Access Interfaces for Every Workflow
 
 1. **Enhanced CLI** - For pentesters and terminal power users
-   - Rich TUI with auto-completion and AI suggestions
+   - Rich TUI with auto-completion and Helix AI suggestions
    - Offline mode with sync capabilities
    - Scripting and automation support
 
@@ -311,14 +311,14 @@ This platform is designed to serve **every cybersecurity professional**:
    - Inline security suggestions and auto-fix capabilities
 
 ### 📚 Learn More
-Check out our comprehensive documentation in the `/docs` folder to see the complete transformation plan!
+Check out our comprehensive documentation in the `/docs` folder to see the complete CosmicSec transformation plan!
 
 ---
 
 ## 📖 Documentation & Resources
 
-### 🎯 Modernization Plan
-> **NEW!** Complete transformation roadmap to make HACKER_AI a world-class platform
+### 🎯 CosmicSec Modernization Plan
+> **NEW!** Complete transformation roadmap for the GuardAxisSphere platform
 
 - 📋 **[Executive Summary](docs/SUMMARY.md)** - Overview of the transformation
 - 🗺️ **[Modernization Roadmap](docs/MODERNIZATION_ROADMAP.md)** - Complete 12-month plan
@@ -348,4 +348,4 @@ This project is licensed under the MIT License with Ethical & Controlled Use Mod
 
 ---
 
-> 🧠 Built with love, AI, and terminal power.
+> 🌌 Built with innovation, Helix AI, and professional excellence.
