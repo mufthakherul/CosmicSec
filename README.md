@@ -25,6 +25,24 @@
 
 ---
 
+## 🧭 Hybrid Runtime Strategy (New Baseline)
+
+CosmicSec is being migrated to a **hybrid platform model**:
+
+- **Dynamic Mode (Primary)**: routes requests to microservices and plugin-driven modules
+- **Hybrid Mode (Default)**: dynamic first, then static fallback for continuity
+- **Static/Emergency Mode**: disaster-control operations with deterministic fallback responses
+- **Demo Mode**: safe preview experience for unregistered users
+
+Runtime mode can be controlled by:
+
+- Environment variable: `PLATFORM_RUNTIME_MODE=hybrid|dynamic|static|demo|emergency`
+- Request header override: `X-Platform-Mode`
+
+The API gateway now exposes `GET /api/runtime/mode` for operational visibility.
+
+---
+
 ## 🚀 Quick Start
 
 ```bash
@@ -324,6 +342,7 @@ Check out our comprehensive documentation in the `/docs` folder to see the compl
 
 - 📋 **[Executive Summary (Archived)](Archives/Docs/SUMMARY.md)** - Historical transformation overview
 - 🗺️ **[Modernization Roadmap](docs/MODERNIZATION_ROADMAP.md)** - Complete 12-month plan
+- 🧩 **[Hybrid Platform Roadmap](docs/HYBRID_PLATFORM_ROADMAP.md)** - Dynamic/static/hybrid migration blueprint
 - 🏗️ **[Architecture Diagrams](docs/ARCHITECTURE_DIAGRAM.md)** - System design & architecture
 - 📝 **[Implementation Guide](docs/IMPLEMENTATION_GUIDE.md)** - Step-by-step instructions
 - 🌟 **[Features Specification](docs/FEATURES_SPEC.md)** - Detailed feature descriptions

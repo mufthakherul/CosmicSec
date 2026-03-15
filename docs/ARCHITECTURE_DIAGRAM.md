@@ -1,6 +1,8 @@
 # 🏗️ CosmicSec - Modern Architecture Diagrams
 
 > Note: This document describes the modernization target architecture. The current implementation is a subset of these components and should be validated against `services/`, `docker-compose.yml`, and `tests/`.
+>
+> Hybrid runtime baseline: API Gateway now supports `dynamic`, `hybrid`, `static`, `demo`, and `emergency` operating modes with dynamic-first routing and static fallback policy for selected endpoints.
 
 ## System Architecture Overview
 
