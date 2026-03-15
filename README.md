@@ -30,8 +30,8 @@
 ```bash
 git clone https://github.com/mufthakherul/hacker_ai.git
 cd hacker_ai
-pip install -r requirements.txt
-python hacker_ai/launcher.py
+pip install -e .
+cosmicsec
 ```
 
 Welcome to the future of cybersecurity operations. 🌌
@@ -40,7 +40,7 @@ Welcome to the future of cybersecurity operations. 🌌
 
 ## 🧠 Core Modules for All Security Professionals
 
-> Note: The module filenames below are illustrative examples of the platform’s architecture. Some entries are planned/future modules and may not yet exist in the repository. For currently implemented modules, browse the `hacker_ai/` directory (for example, `hacker_ai/scanners/cve_scanner.py`, `hacker_ai/tools/nmap_runner.py`).
+> Note: The module filenames below are illustrative examples of the platform’s architecture. Some entries are planned/future modules and may not yet exist in the repository. For currently implemented modules, browse `src/cosmicsec/` (for example, `src/cosmicsec/scanners/cve_scanner.py`, `src/cosmicsec/tools/nmap_runner.py`).
 
 | Module Type | Examples | Target Users |
 |-------------|----------|--------------|
@@ -67,7 +67,7 @@ Welcome to the future of cybersecurity operations. 🌌
 ## 🧬 Project Structure
 
 ```
-hacker_ai/
+src/cosmicsec/
 ├── config/           # Global config & optional YAML
 ├── scanners/         # Pentest tools & scanners
 ├── phishing/         # Payload & phishing simulation
@@ -197,7 +197,7 @@ pip install -e .
 Build executable:
 
 ```bash
-pyinstaller --onefile hacker_ai/launcher.py
+pyinstaller --onefile src/cosmicsec/launcher.py
 ```
 
 ---

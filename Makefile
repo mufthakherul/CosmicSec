@@ -117,10 +117,10 @@ watch-scans:
 	watch -n 2 'curl -s http://localhost:8002/stats | jq'
 
 admin-cli:
-	python -m hacker_ai.admin.cli shell
+	python -m cosmicsec.admin.cli shell
 
 admin-tui:
-	python -m hacker_ai.admin.tui
+	python -m cosmicsec.admin.tui
 
 admin-ssh:
-	python -m hacker_ai.admin.ssh_server
+	python -m cosmicsec.admin.ssh_server

@@ -1,13 +1,13 @@
 include README.md
 include LICENSE
 include requirements.txt
-recursive-include hacker_ai/data *
-recursive-include hacker_ai/assets *
-recursive-include hacker_ai/config *
-recursive-include hacker_ai/modules *
-recursive-include hacker_ai/phishing *
-recursive-include hacker_ai/scanners *
-recursive-include hacker_ai/tools *
-recursive-include hacker_ai/ui *
+recursive-include src/cosmicsec/data *
+recursive-include src/cosmicsec/assets *
+recursive-include src/cosmicsec/config *
+recursive-include src/cosmicsec/modules *
+recursive-include src/cosmicsec/phishing *
+recursive-include src/cosmicsec/scanners *
+recursive-include src/cosmicsec/tools *
+recursive-include src/cosmicsec/ui *
 global-exclude *.pyc
 global-exclude __pycache__/
