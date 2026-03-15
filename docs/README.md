@@ -9,6 +9,7 @@ Use this folder for current, operational documentation.
 - `FEATURES_SPEC.md`
 - `IMPLEMENTATION_GUIDE.md`
 - `MODERNIZATION_ROADMAP.md`
+- `PHASE_PROGRESS.md`
 - `BRANDING_GUIDE.md`
 - `BUG_BOUNTY_GUIDE.md`
 - `DEVSECOPS_GUIDE.md`
