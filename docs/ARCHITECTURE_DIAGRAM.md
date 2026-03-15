@@ -1,5 +1,7 @@
 # 🏗️ CosmicSec - Modern Architecture Diagrams
 
+> Note: This document describes the modernization target architecture. The current implementation is a subset of these components and should be validated against `services/`, `docker-compose.yml`, and `tests/`.
+
 ## System Architecture Overview
 
 ```
