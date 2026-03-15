@@ -352,27 +352,6 @@ services:
       - traefik.http.routers.cosmicsec-bugbounty.entrypoints=web
       - traefik.http.services.cosmicsec-bugbounty.loadbalancer.server.port=8009
 
-  # Phase 5 Advanced Service
-  phase5-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: cosmicsec-phase5-service
-    environment:
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-    ports:
-      - "8010:8010"
-    networks:
-      - cosmicsec-network
-    volumes:
-      - ./:/app
-    command: uvicorn services.phase5_service.main:app --host 0.0.0.0 --port 8010 --reload
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.cosmicsec-phase5.rule=PathPrefix(`/phase5`)
-      - traefik.http.routers.cosmicsec-phase5.entrypoints=web
-      - traefik.http.services.cosmicsec-phase5.loadbalancer.server.port=8010
-
   # Celery Worker - Background tasks
   celery-worker:
     build:
