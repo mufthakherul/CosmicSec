@@ -530,8 +530,8 @@ All interfaces implement:
 
 #### 1.1 Microservices Architecture
 - [x] Split monolith into 8-10 microservices
-- [x] Implement API Gateway with Kong/Traefik
-- [x] Add service discovery with Consul/etcd
+- [ ] Implement API Gateway with Kong/Traefik
+- [ ] Add service discovery with Consul/etcd
 - [x] Create shared libraries for common functionality
 
 #### 1.2 REST API Layer
@@ -579,8 +579,8 @@ All interfaces implement:
   - [x] Module control (start, stop, enable, disable)
   - [x] Log viewing and searching
   - [x] Real-time monitoring dashboards
-- [x] **SFTP Support**: Secure file transfer for logs and reports
-- [x] **SSH Tunneling**: Secure access to web dashboard
+- [ ] **SFTP Support**: Secure file transfer for logs and reports
+- [ ] **SSH Tunneling**: Secure access to web dashboard
 
 #### 1.5 Master CLI Admin Panel
 - [x] **Server-Side Admin CLI**: Terminal-based administration
@@ -597,7 +597,7 @@ All interfaces implement:
   - [x] `health check` - System health diagnostics
   - [x] `backup create/restore` - Data backup operations
 - [x] **Interactive Admin TUI**: Full-screen admin dashboard
-- [x] **Direct Database Access**: For advanced operations
+- [ ] **Direct Database Access**: For advanced operations
 
 #### 1.6 Database Migration
 - [x] PostgreSQL for structured data (users, scans, reports)
@@ -717,7 +717,7 @@ All interfaces implement:
 ### Phase 5: Specialized Features for All Cybersecurity Professionals (Months 13-16)
 
 #### 5.1 Bug Bounty Hunter Tools
-- [ ] **Bug Bounty Platform Integration** (Phase 5 foundation service started):
+- [ ] **Bug Bounty Platform Integration**:
   - [ ] HackerOne API integration for program discovery and submission
   - [ ] Bugcrowd integration for program management
   - [ ] Intigriti platform support

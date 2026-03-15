@@ -24,13 +24,7 @@ app = FastAPI(
 
 # Loader singleton — plugin dirs are configurable via env
 import os
-_DEFAULT_PLUGIN_DIRS = ":".join(
-    [
-        str(Path(__file__).resolve().parent / "official"),
-        "/opt/cosmicsec/plugins",
-    ]
-)
-_PLUGIN_DIRS = os.getenv("COSMICSEC_PLUGIN_DIRS", _DEFAULT_PLUGIN_DIRS).split(":")
+_PLUGIN_DIRS = os.getenv("COSMICSEC_PLUGIN_DIRS", "/opt/cosmicsec/plugins").split(":")
 _loader = PluginLoader(plugin_dirs=_PLUGIN_DIRS)
 # Discover at startup
 _loader.discover()

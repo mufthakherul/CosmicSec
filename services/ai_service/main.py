@@ -19,6 +19,9 @@ from .vector_store import chroma_search, collection_count, ingest_document
 from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
 from .ai_agents import get_exploit_guidance, run_autonomous_agent
 from .defensive_ai import DefensiveAI
+from .red_team import RedTeamScope, plan_attack_chain, select_exploit_logic, validate_safety
+from .zero_day_predictor import ZeroDayPredictor
+from .quantum_security import decrypt_payload, encrypt_payload, hybrid_key_exchange, list_algorithms
 
 app = FastAPI(
     title="CosmicSec AI Service",
@@ -28,6 +31,7 @@ app = FastAPI(
 
 # Initialize Defensive AI
 defensive_ai = DefensiveAI()
+zero_day_predictor = ZeroDayPredictor()
 
 
 
@@ -107,6 +111,41 @@ class AutonomousAgentRequest(BaseModel):
 class ExploitGuidanceRequest(BaseModel):
     identifier: str = Field(..., description="CVE ID (e.g. CVE-2021-44228) or vulnerability name")
 
+
+class RedTeamRequest(BaseModel):
+    target: str
+    authorized: bool = False
+    environment: str = Field(default="lab")
+    objectives: List[str] = Field(default_factory=list)
+
+
+class ZeroDayTrainRequest(BaseModel):
+    historical_records: List[dict] = Field(default_factory=list)
+
+
+class ZeroDayForecastRequest(BaseModel):
+    technology: str
+    telemetry: dict = Field(default_factory=dict)
+
+
+class ZeroDayPortfolioRequest(BaseModel):
+    portfolio: List[dict] = Field(default_factory=list)
+
+
+class QuantumKeyExchangeRequest(BaseModel):
+    client_nonce: str
+    server_nonce: str
+
+
+class QuantumEncryptRequest(BaseModel):
+    plaintext: dict
+    shared_secret: str
+
+
+class QuantumDecryptRequest(BaseModel):
+    ciphertext: str
+    mac: str
+    shared_secret: str
 
 @app.get("/health")
 async def health_check() -> dict:
@@ -359,3 +398,92 @@ def batch_remediation(findings: List[dict]):
         "timestamp": datetime.utcnow().isoformat()
     }
 
+
+# ========================
+# Phase 4: AI Red Team Endpoints
+# ========================
+
+@app.post("/red-team/safety-check")
+def red_team_safety_check(payload: RedTeamRequest) -> dict:
+    scope = RedTeamScope(
+        target=payload.target,
+        authorized=payload.authorized,
+        environment=payload.environment,
+        objectives=payload.objectives,
+    )
+    return {"success": True, "safety": validate_safety(scope), "timestamp": datetime.utcnow().isoformat()}
+
+
+@app.post("/red-team/plan")
+def red_team_plan(payload: RedTeamRequest) -> dict:
+    scope = RedTeamScope(
+        target=payload.target,
+        authorized=payload.authorized,
+        environment=payload.environment,
+        objectives=payload.objectives,
+    )
+    return {"success": True, "result": plan_attack_chain(scope), "timestamp": datetime.utcnow().isoformat()}
+
+
+@app.post("/red-team/attack-sequence")
+def red_team_attack_sequence(payload: RedTeamRequest) -> dict:
+    techniques = select_exploit_logic(payload.objectives)
+    return {
+        "success": True,
+        "target": payload.target,
+        "techniques": techniques,
+        "mode": "defensive-simulation",
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+# ========================
+# Phase 4: Zero-Day Prediction Endpoints
+# ========================
+
+@app.post("/zero-day/train")
+def zero_day_train(payload: ZeroDayTrainRequest) -> dict:
+    result = zero_day_predictor.train(payload.historical_records)
+    return {"success": True, "result": result, "timestamp": datetime.utcnow().isoformat()}
+
+
+@app.post("/zero-day/forecast")
+def zero_day_forecast(payload: ZeroDayForecastRequest) -> dict:
+    forecast = zero_day_predictor.forecast(payload.technology, payload.telemetry)
+    return {"success": True, "forecast": forecast, "timestamp": datetime.utcnow().isoformat()}
+
+
+@app.post("/zero-day/risk-trends")
+def zero_day_risk_trends(payload: ZeroDayPortfolioRequest) -> dict:
+    trends = zero_day_predictor.risk_trends(payload.portfolio)
+    return {"success": True, "trends": trends, "timestamp": datetime.utcnow().isoformat()}
+
+
+# ========================
+# Phase 4: Quantum-ready Security Endpoints
+# ========================
+
+@app.get("/quantum/algorithms")
+def quantum_algorithms() -> dict:
+    return {"success": True, "catalog": list_algorithms(), "timestamp": datetime.utcnow().isoformat()}
+
+
+@app.post("/quantum/key-exchange")
+def quantum_key_exchange(payload: QuantumKeyExchangeRequest) -> dict:
+    return {
+        "success": True,
+        "exchange": hybrid_key_exchange(payload.client_nonce, payload.server_nonce),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+@app.post("/quantum/encrypt")
+def quantum_encrypt(payload: QuantumEncryptRequest) -> dict:
+    result = encrypt_payload(payload.plaintext, payload.shared_secret)
+    return {"success": True, "encryption": result, "timestamp": datetime.utcnow().isoformat()}
+
+
+@app.post("/quantum/decrypt")
+def quantum_decrypt(payload: QuantumDecryptRequest) -> dict:
+    plaintext = decrypt_payload(payload.ciphertext, payload.mac, payload.shared_secret)
+    return {"success": True, "plaintext": plaintext, "timestamp": datetime.utcnow().isoformat()}

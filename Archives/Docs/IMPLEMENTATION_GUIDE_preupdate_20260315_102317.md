@@ -311,7 +311,7 @@
 ### Month 4: AI/ML Enhancements
 
 #### RAG System Implementation
-- [x] Set up vector database (Pinecone/Weaviate)
+- [ ] Set up vector database (Pinecone/Weaviate)
   ```python
   import pinecone
 
@@ -324,27 +324,27 @@
   ])
   ```
 
-- [x] Create embedding generation pipeline
-- [x] Implement semantic search
-- [x] Build CVE knowledge base
-- [x] Add MITRE ATT&CK integration
+- [ ] Create embedding generation pipeline
+- [ ] Implement semantic search
+- [ ] Build CVE knowledge base
+- [ ] Add MITRE ATT&CK integration
 
 #### AI Agents Development
-- [x] Create autonomous scanning agent
-- [x] Implement decision-making logic
-- [x] Add safety guardrails
-- [x] Create agent memory system
+- [ ] Create autonomous scanning agent
+- [ ] Implement decision-making logic
+- [ ] Add safety guardrails
+- [ ] Create agent memory system
 
 #### Natural Language Interface
-- [x] Implement query parser
-- [x] Add intent recognition
-- [x] Create response generator
-- [x] Build conversation context manager
+- [ ] Implement query parser
+- [ ] Add intent recognition
+- [ ] Create response generator
+- [ ] Build conversation context manager
 
 ### Month 5: Real-Time Collaboration
 
 #### WebSocket Infrastructure
-- [x] Set up Socket.io server
+- [ ] Set up Socket.io server
   ```typescript
   // frontend/src/services/socket.ts
   import io from 'socket.io-client';
@@ -356,37 +356,37 @@
   });
   ```
 
-- [x] Implement room/channel system
-- [x] Add presence tracking
-- [x] Create event handlers
+- [ ] Implement room/channel system
+- [ ] Add presence tracking
+- [ ] Create event handlers
 
 #### Collaboration Features
-- [x] Build team chat
+- [ ] Build team chat
   - Message threading
   - @mentions
   - File sharing
   - Emoji reactions
 
-- [x] Implement shared workspaces
+- [ ] Implement shared workspaces
   - Collaborative scan management
   - Shared dashboards
   - Team notes
 
-- [x] Add activity feed
+- [ ] Add activity feed
   - User actions
   - System events
   - Notifications
 
 #### Live Cursor & Presence
-- [x] Implement cursor tracking
-- [x] Add user avatars
-- [x] Show online/offline status
-- [x] Create typing indicators
+- [ ] Implement cursor tracking
+- [ ] Add user avatars
+- [ ] Show online/offline status
+- [ ] Create typing indicators
 
 ### Month 6: Plugin Ecosystem
 
 #### Plugin Framework
-- [x] Create plugin SDK
+- [ ] Create plugin SDK
   ```python
   # shared/plugin_sdk/base.py
   from abc import ABC, abstractmethod
@@ -405,23 +405,23 @@
           pass
   ```
 
-- [x] Implement plugin loader
-- [x] Add sandboxing mechanism
-- [x] Create plugin lifecycle management
+- [ ] Implement plugin loader
+- [ ] Add sandboxing mechanism
+- [ ] Create plugin lifecycle management
 
 #### Plugin Marketplace
-- [x] Build marketplace UI
-- [x] Create plugin registry API
-- [x] Implement plugin ratings/reviews
-- [x] Add plugin search and filtering
-- [x] Create plugin installation flow
+- [ ] Build marketplace UI
+- [ ] Create plugin registry API
+- [ ] Implement plugin ratings/reviews
+- [ ] Add plugin search and filtering
+- [ ] Create plugin installation flow
 
 #### Official Plugins
-- [x] Nmap integration plugin
-- [x] Metasploit bridge plugin
-- [x] JIRA integration plugin
-- [x] Slack notification plugin
-- [x] Custom report template plugin
+- [ ] Nmap integration plugin
+- [ ] Metasploit bridge plugin
+- [ ] JIRA integration plugin
+- [ ] Slack notification plugin
+- [ ] Custom report template plugin
 
 ---
 
