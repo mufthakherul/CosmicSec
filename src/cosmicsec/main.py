@@ -17,7 +17,7 @@ import traceback
 
 console = Console()
 
-MODULES_DIR = Path("hacker_ai")
+MODULES_DIR = Path("src/cosmicsec")
 USAGE_LOG = MODULES_DIR / "logbook.md"
 USAGE_STATS = MODULES_DIR / "usage_stats.json"
 USER_PROFILE = MODULES_DIR / "user_profiles.json"

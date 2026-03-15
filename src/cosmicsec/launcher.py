@@ -1,4 +1,4 @@
-# hacker_ai/launcher.py
+# cosmicsec/launcher.py
 
 import os
 import sys
@@ -7,9 +7,9 @@ import importlib
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt
-from hacker_ai.config import settings  # from config.py
-from hacker_ai.utils.fuzzy_search import fuzzy_find_module  # Optional
-from hacker_ai.utils.logger import log_module_run          # Optional
+from cosmicsec.config import settings  # from config.py
+from cosmicsec.utils.fuzzy_search import fuzzy_find_module  # Optional
+from cosmicsec.utils.logger import log_module_run  # Optional
 
 console = Console()
 
@@ -51,7 +51,7 @@ def main():
         if selected:
             console.print(f"\n[green]Launching:[/green] {selected}")
             try:
-                mod = importlib.import_module(f"hacker_ai.modules.{selected}")
+                mod = importlib.import_module(f"cosmicsec.modules.{selected}")
                 if hasattr(mod, 'run'):
                     log_module_run(selected)
                     mod.run()
