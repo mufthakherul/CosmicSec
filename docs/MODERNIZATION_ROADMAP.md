@@ -325,11 +325,15 @@ curl -X POST https://api.hacker-ai.com/v1/scans \
   -H "Content-Type: application/json" \
   -d '{"target": "example.com", "scan_type": "full"}'
 
-# Python SDK
-from cosmicsec import Client
-client = Client(api_key="YOUR_API_KEY")
-scan = client.scans.create(target="example.com", scan_type="full")
-results = scan.wait_for_completion()
+# Python API client example
+import requests
+resp = requests.post(
+    "https://api.hacker-ai.com/v1/scans",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={"target": "example.com", "scan_type": "full"},
+    timeout=30,
+)
+results = resp.json()
 ```
 
 ### 5. Web Admin Dashboard

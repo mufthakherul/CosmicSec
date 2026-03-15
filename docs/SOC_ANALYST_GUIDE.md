@@ -542,27 +542,33 @@ cosmicsec soc review \
 
 ```python
 # Python integration example
-from cosmicsec import SOC
+import requests
 
 # Connect to SOC platform
-soc = SOC(api_key="your-api-key")
+base = "http://localhost:8000"
 
 # Forward Splunk alerts to CosmicSec
 def forward_alert(alert):
-    soc.alerts.create(
-        title=alert['title'],
-        severity=alert['severity'],
-        source='splunk',
-        raw_data=alert,
-        auto_enrich=True,
-        auto_triage=True
+    requests.post(
+        f"{base}/api/webhooks/events",
+        json={
+            "event_type": "splunk.alert",
+            "title": alert["title"],
+            "severity": alert["severity"],
+            "source": "splunk",
+            "raw_data": alert,
+            "auto_enrich": True,
+            "auto_triage": True,
+        },
+        timeout=10,
     )
 
 # Query Splunk from CosmicSec
-results = soc.query.splunk(
-    query='index=windows EventCode=4625 | stats count by src_ip',
-    time_range='24h'
-)
+results = requests.get(
+    f"{base}/api/threat-intel/ip",
+    params={"indicator": "8.8.8.8"},
+    timeout=10,
+).json()
 ```
 
 ### SOAR Integration (Palo Alto Cortex XSOAR)

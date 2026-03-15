@@ -58,7 +58,7 @@ Welcome to the future of cybersecurity operations. 🌌
 
 ## 🧠 Core Modules for All Security Professionals
 
-> Note: The module filenames below are illustrative examples of the platform’s architecture. Some entries are planned/future modules and may not yet exist in the repository. For currently implemented modules, browse `src/cosmicsec/` (for example, `src/cosmicsec/scanners/cve_scanner.py`, `src/cosmicsec/tools/nmap_runner.py`).
+> Note: The module filenames below are illustrative examples of the platform’s architecture. Some entries are planned/future modules and may not yet exist in the repository. For currently implemented runtime modules, browse `services/`.
 
 | Module Type | Examples | Target Users |
 |-------------|----------|--------------|
@@ -85,16 +85,17 @@ Welcome to the future of cybersecurity operations. 🌌
 ## 🧬 Project Structure
 
 ```
-src/cosmicsec/
-├── config/           # Global config & optional YAML
-├── scanners/         # Pentest tools & scanners
-├── phishing/         # Payload & phishing simulation
-├── tools/            # Utilities & encoders
-├── launcher.py       # CLI launcher
-├── config.py         # Core settings
-├── logbook.md        # Usage history
-├── ui/               # Web UI (future)
+services/
+├── api_gateway/      # Hybrid runtime gateway and routing
+├── auth_service/     # Identity, RBAC, tenancy, quotas
+├── scan_service/     # Scanning orchestration and jobs
+├── recon_service/    # OSINT/recon pipelines
+├── ai_service/       # Helix AI analysis features
+├── report_service/   # Report generation and exports
+└── ...               # Collaboration, integration, bugbounty, phase5, etc.
 ```
+
+Legacy CLI package code from `src/cosmicsec/` has been moved to `Archives/Codes/legacy_cosmicsec_src/`.
 
 ---
 
@@ -212,10 +213,10 @@ Edit settings in `config.py` or use the interactive live config (coming soon).
 pip install -e .
 ```
 
-Build executable:
+Build executable (service entrypoint example):
 
 ```bash
-pyinstaller --onefile src/cosmicsec/launcher.py
+pyinstaller --onefile services/api_gateway/main.py
 ```
 
 ---

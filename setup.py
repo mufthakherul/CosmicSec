@@ -17,8 +17,8 @@ setup(
     author='Mufthakherul Islam Miraz',
     author_email='mufthakherul_cybersec@s6742.me',
     url='https://github.com/mufthakherul/hacker_ai',
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
+    packages=find_packages(where=".", include=["services", "services.*"]),
+    package_dir={"": "."},
     include_package_data=True,
     install_requires=[
         'rich',
@@ -47,8 +47,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'cosmicsec=cosmicsec.launcher:main',
-            'cosmicsec-admin=cosmicsec.admin.cli:main',
+            'cosmicsec-admin=services.admin_service.cli:main',
         ],
     },
     classifiers=[

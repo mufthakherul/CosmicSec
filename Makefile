@@ -117,10 +117,10 @@ watch-scans:
 	watch -n 2 'curl -s http://localhost:8002/stats | jq'
 
 admin-cli:
-	python -m cosmicsec.admin.cli shell
+	python -m services.admin_service.cli shell
 
 admin-tui:
-	python -m cosmicsec.admin.tui
+	python -m services.admin_service.tui
 
 admin-ssh:
-	python -m cosmicsec.admin.ssh_server
+	python -m services.admin_service.ssh_server

@@ -11,7 +11,7 @@
 #### Docker & Container Setup
 - [x] Create Dockerfile for each service
   ```dockerfile
-  # Example: services/auth-service/Dockerfile
+  # Example: services/auth_service/Dockerfile
   FROM python:3.11-slim
   WORKDIR /app
   COPY requirements.txt .
@@ -47,13 +47,13 @@
   	poetry install
 
   dev:
-  	docker-compose up
+  	docker compose up
 
   test:
   	pytest tests/ -v --cov
 
   build:
-  	docker-compose build
+  	docker compose build
 
   deploy:
   	kubectl apply -f infrastructure/kubernetes/
@@ -114,7 +114,7 @@
 #### FastAPI Setup
 - [x] Create API Gateway with FastAPI
   ```python
-  # services/api-gateway/main.py
+  # services/api_gateway/main.py
   from fastapi import FastAPI, Depends
   from fastapi.middleware.cors import CORSMiddleware
 
@@ -160,7 +160,7 @@
 #### Authorization Service
 - [x] Implement RBAC with Casbin
   ```python
-  # services/auth-service/rbac.py
+  # services/auth_service/rbac.py
   import casbin
 
   enforcer = casbin.Enforcer("model.conf", "policy.csv")
@@ -179,7 +179,7 @@
 - [x] Extract scanning logic from monolith
 - [x] Implement async scan execution with Celery
   ```python
-  # services/scan-service/tasks.py
+  # services/scan_service/tasks.py
   from celery import Celery
 
   celery_app = Celery('scan_service', broker='redis://redis:6379')

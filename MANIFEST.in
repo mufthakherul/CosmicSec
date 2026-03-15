@@ -1,13 +1,6 @@
 include README.md
 include LICENSE
 include requirements.txt
-recursive-include src/cosmicsec/data *
-recursive-include src/cosmicsec/assets *
-recursive-include src/cosmicsec/config *
-recursive-include src/cosmicsec/modules *
-recursive-include src/cosmicsec/phishing *
-recursive-include src/cosmicsec/scanners *
-recursive-include src/cosmicsec/tools *
-recursive-include src/cosmicsec/ui *
+recursive-include services *
 global-exclude *.pyc
 global-exclude __pycache__/

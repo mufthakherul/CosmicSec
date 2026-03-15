@@ -20,8 +20,8 @@ This guide will help you get CosmicSec up and running quickly for evaluation and
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/mufthakherul/cosmicsec.git
-cd cosmicsec
+git clone https://github.com/mufthakherul/hacker_ai.git
+cd hacker_ai
 ```
 
 ### 2. Install Dependencies
@@ -36,20 +36,14 @@ pip install -r requirements.txt
 
 ### 3. Configure Environment
 ```bash
-# Copy example environment file
-cp cosmicsec/.env.example cosmicsec/.env
-
-# Edit .env and add your API keys (optional)
-nano cosmicsec/.env
+# Edit root .env and add API keys (optional)
+nano .env
 ```
 
 ### 4. Run the Application
 ```bash
-# Launch the CLI
-python cosmicsec/launcher.py
-
-# Or use the main application
-python cosmicsec/main.py
+# Launch API gateway
+uvicorn services.api_gateway.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ---
@@ -59,31 +53,39 @@ python cosmicsec/main.py
 ### 1. Using Docker Compose
 ```bash
 # Clone repository
-git clone https://github.com/mufthakherul/cosmicsec.git
-cd cosmicsec
+git clone https://github.com/mufthakherul/hacker_ai.git
+cd hacker_ai
 
 # Start with Docker Compose
-docker-compose up -d
+docker compose up -d
 
 # Access the application
-# CLI: docker-compose exec app python cosmicsec/launcher.py
+# Web dashboard: http://localhost:3000
+# API docs: http://localhost:8000/api/docs
 ```
 
 ### 2. Docker Compose Configuration
 ```yaml
 # docker-compose.yml (create this file)
-version: '3.8'
-
 services:
-  app:
-    build: .
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api_gateway/Dockerfile
     ports:
       - "8000:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
     volumes:
-      - ./cosmicsec:/app/cosmicsec
-    command: python cosmicsec/launcher.py
+      - ./:/app
+    command: uvicorn services.api_gateway.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app/frontend
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 3000"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
 
   postgres:
     image: postgres:15-alpine
@@ -114,8 +116,8 @@ Once Phase 1 is implemented, you'll be able to use:
 ### 1. Full Stack Deployment
 ```bash
 # Clone repository
-git clone https://github.com/mufthakherul/cosmicsec.git
-cd cosmicsec
+git clone https://github.com/mufthakherul/hacker_ai.git
+cd hacker_ai
 
 # Start all services
 make dev-up
@@ -141,62 +143,40 @@ kubectl port-forward svc/hacker-ai-web 3000:3000
 
 ## Basic Usage
 
-### Using the CLI
+### Using the API & Services
 
-1. **Launch the Interactive Launcher**
+1. **Check platform health**
 ```bash
-python cosmicsec/launcher.py
+curl http://localhost:8000/health
 ```
 
-2. **Select a Module**
-```
-Available Modules:
-1. OSINT Tools
-2. Vulnerability Scanner
-3. Network Recon
-4. Web Shell
-5. Phishing Simulator
-
-Enter module number: 2
+2. **Create a scan via gateway**
+```bash
+curl -X POST http://localhost:8000/api/scans \
+  -H "Content-Type: application/json" \
+  -d '{"target":"example.com","scan_types":["network","web"],"depth":1}'
 ```
 
-3. **Run a Scan**
+3. **Run recon**
 ```python
-# Example: Vulnerability Scanner
-from cosmicsec.scanners.vulnerability_scanner import VulnerabilityScanner
+import requests
 
-scanner = VulnerabilityScanner()
-results = scanner.scan_target("example.com")
-print(results)
+r = requests.post("http://localhost:8000/api/recon", json={"target": "example.com"}, timeout=15)
+print(r.json())
 ```
 
 ### Using Individual Modules
 
-#### OSINT Reconnaissance
+#### AI health check
 ```python
-from cosmicsec.recon.osint_tools import OSINTCollector
-
-osint = OSINTCollector()
-info = osint.gather_info("example.com")
-print(info)
+import requests
+print(requests.get("http://localhost:8000/api/ai/health", timeout=10).json())
 ```
 
-#### CVE Scanning
+#### Runtime mode visibility
 ```python
-from cosmicsec.scanners.cve_scanner import CVEScanner
-
-scanner = CVEScanner()
-vulnerabilities = scanner.scan("nginx/1.18.0")
-print(vulnerabilities)
-```
-
-#### GitHub Leak Detection
-```python
-from cosmicsec.recon.github_leak_detector import GitHubLeakDetector
-
-detector = GitHubLeakDetector(github_token="your_token")
-leaks = detector.scan_org("example-org")
-print(leaks)
+import requests
+print(requests.get("http://localhost:8000/api/runtime/mode", timeout=10).json())
 ```
 
 ---
@@ -205,7 +185,7 @@ print(leaks)
 
 ### Environment Variables
 
-Create a `.env` file in the `cosmicsec/` directory:
+Create a `.env` file in the repository root:
 
 ```env
 # API Keys
@@ -227,22 +207,9 @@ SECRET_KEY=your-secret-key-here
 JWT_SECRET=your-jwt-secret
 ```
 
-### User Profiles
+### Multi-tenant setup
 
-Edit `user_profiles.json` to set user roles:
-
-```json
-{
-  "default_user": {
-    "role": "admin",
-    "permissions": ["all"],
-    "preferences": {
-      "theme": "dark",
-      "notifications": true
-    }
-  }
-}
-```
+Use API endpoints (`/api/orgs`, `/api/orgs/{org_id}/workspaces`, `/api/orgs/{org_id}/quotas`) instead of local JSON profile files.
 
 ---
 
@@ -253,33 +220,25 @@ Edit `user_profiles.json` to set user roles:
 # If tests are available
 pytest tests/ -v
 
-# Or run a simple verification
-python -c "import cosmicsec; print('Installation successful!')"
+# Basic verification
+curl http://localhost:8000/health
 ```
 
 ### 2. Verify Modules
 ```bash
-# List available modules
+# Count service Python modules
 python -c "
 from pathlib import Path
-modules = list(Path('cosmicsec').rglob('*.py'))
+modules = list(Path('services').rglob('*.py'))
 print(f'Found {len(modules)} Python modules')
 "
 ```
 
 ### 3. Test Basic Functionality
 ```python
-# test_basic.py
-from cosmicsec.utils.network_utils import check_connectivity
-from cosmicsec.utils.logger import get_logger
-
-# Test logging
-logger = get_logger(__name__)
-logger.info("Test log message")
-
-# Test network utils
-result = check_connectivity("8.8.8.8")
-print(f"Network connectivity: {result}")
+import requests
+print(requests.get("http://localhost:8000/health", timeout=10).json())
+print(requests.get("http://localhost:8000/api/runtime/mode", timeout=10).json())
 ```
 
 ---
@@ -302,7 +261,7 @@ pip install --upgrade -r requirements.txt
 ```bash
 # Solution: Run with appropriate permissions
 # Some scanning features may require root/admin
-sudo python cosmicsec/launcher.py
+sudo uvicorn services.api_gateway.main:app --host 0.0.0.0 --port 8000
 ```
 
 ### Issue 4: API Key Errors
@@ -327,11 +286,11 @@ cat FEATURES_SPEC.md
 
 ### 2. Review Current Features
 - Check `docs/main_features.md`
-- Explore module directories:
-  - `cosmicsec/scanners/`
-  - `cosmicsec/recon/`
-  - `cosmicsec/phishing/`
-  - `cosmicsec/tools/`
+- Explore service directories under `services/`:
+  - `services/scan_service/`
+  - `services/recon_service/`
+  - `services/ai_service/`
+  - `services/report_service/`
 
 ### 3. Plan Your Implementation
 - Review `MODERNIZATION_ROADMAP.md` for upgrade path

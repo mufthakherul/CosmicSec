@@ -228,3 +228,28 @@ platform/
 2. Add per-route fallback policy registry and strict deny rules.
 3. Add dashboards for fallback frequency and degraded operation time.
 4. Align `ARCHITECTURE_DIAGRAM.md` with implemented hybrid middleware map.
+
+---
+
+## 12) Migration Compatibility Matrix
+
+| Legacy / Old Reference | New Canonical Reference | Status |
+|---|---|---|
+| `src/cosmicsec/` runtime package | `services/` service packages | Migrated |
+| `services/scan-service` | `services/scan_service` | Migrated |
+| `services/recon-service` | `services/recon_service` | Migrated |
+| `services/ai-service` | `services/ai_service` | Migrated |
+| `services/report-service` | `services/report_service` | Migrated |
+| `services/bugbounty-service` | `services/bugbounty_service` | Migrated |
+| `services/collab-service` | `services/collab_service` | Migrated |
+| `services/integration-service` | `services/integration_service` | Migrated |
+| `services/phase5-service` | `services/phase5_service` | Migrated |
+| `python -m cosmicsec.admin.cli` | `python -m services.admin_service.cli` | Migrated |
+| `python -m cosmicsec.admin.tui` | `python -m services.admin_service.tui` | Migrated |
+| `python -m cosmicsec.admin.ssh_server` | `python -m services.admin_service.ssh_server` | Migrated |
+| local JSON-first admin state | dynamic default (`COSMICSEC_STORAGE_MODE=dynamic`) | Migrated |
+| emergency JSON persistence | `COSMICSEC_STORAGE_MODE=emergency_json` | Supported |
+
+Notes:
+- Legacy code is archived under `Archives/Codes/legacy_cosmicsec_src/`.
+- Avoid adding new runtime dependencies on archived paths.
