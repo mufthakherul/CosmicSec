@@ -294,7 +294,7 @@ services:
       dockerfile: Dockerfile
     container_name: cosmicsec-plugin-registry
     environment:
-      - COSMICSEC_PLUGIN_DIRS=/app/plugins/official:/opt/cosmicsec/plugins
+      - COSMICSEC_PLUGIN_DIRS=/opt/cosmicsec/plugins
       - ENVIRONMENT=${ENVIRONMENT:-development}
     ports:
       - "8007:8007"
@@ -309,48 +309,6 @@ services:
       - traefik.http.routers.cosmicsec-plugins.rule=PathPrefix(`/plugins`)
       - traefik.http.routers.cosmicsec-plugins.entrypoints=web
       - traefik.http.services.cosmicsec-plugins.loadbalancer.server.port=8007
-
-  # Integration Service — Phase 3 integration hub
-  integration-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: cosmicsec-integration-service
-    environment:
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-    ports:
-      - "8008:8008"
-    networks:
-      - cosmicsec-network
-    volumes:
-      - ./:/app
-    command: uvicorn services.integration_service.main:app --host 0.0.0.0 --port 8008 --reload
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.cosmicsec-integration.rule=PathPrefix(`/integration`)
-      - traefik.http.routers.cosmicsec-integration.entrypoints=web
-      - traefik.http.services.cosmicsec-integration.loadbalancer.server.port=8008
-
-  # Bug Bounty Service — Phase 5 foundation
-  bugbounty-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: cosmicsec-bugbounty-service
-    environment:
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-    ports:
-      - "8009:8009"
-    networks:
-      - cosmicsec-network
-    volumes:
-      - ./:/app
-    command: uvicorn services.bugbounty_service.main:app --host 0.0.0.0 --port 8009 --reload
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.cosmicsec-bugbounty.rule=PathPrefix(`/bugbounty`)
-      - traefik.http.routers.cosmicsec-bugbounty.entrypoints=web
-      - traefik.http.services.cosmicsec-bugbounty.loadbalancer.server.port=8009
 
   # Celery Worker - Background tasks
   celery-worker:
