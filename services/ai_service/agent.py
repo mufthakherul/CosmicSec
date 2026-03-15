@@ -8,27 +8,23 @@ Phase 2 extension: add LangGraph multi-agent workflows.
 from __future__ import annotations
 
 import os
+import importlib
 from typing import List, Optional
 
 from .prompt_templates import SYSTEM_PROMPT, SUMMARY_TEMPLATE
 from .rag_store import retrieve_guidance
 
-try:
-    from langchain.prompts import PromptTemplate  # type: ignore[import-not-found]
-    from langchain.chains import LLMChain  # type: ignore[import-not-found]
-    _LANGCHAIN_AVAILABLE = True
-except Exception:
-    _LANGCHAIN_AVAILABLE = False
-
-try:
-    from langchain_openai import ChatOpenAI  # type: ignore[import-not-found]
-    _OPENAI_AVAILABLE = True
-except Exception:
+def _has_module(module_name: str) -> bool:
+    """Return True when module can be imported at runtime."""
     try:
-        from langchain.llms import OpenAI as LegacyOpenAI  # type: ignore[import-not-found]
-        _OPENAI_AVAILABLE = True
+        importlib.import_module(module_name)
+        return True
     except Exception:
-        _OPENAI_AVAILABLE = False
+        return False
+
+
+_LANGCHAIN_AVAILABLE = _has_module("langchain")
+_OPENAI_AVAILABLE = _has_module("langchain_openai") or _has_module("langchain")
 
 # Build LangChain chain lazily
 _chain: Optional[object] = None
@@ -47,13 +43,13 @@ def _build_chain() -> Optional[object]:
     try:
         if _OPENAI_AVAILABLE:
             try:
-                from langchain_openai import ChatOpenAI
+                ChatOpenAI = importlib.import_module("langchain_openai").ChatOpenAI
                 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, openai_api_key=api_key)  # type: ignore[call-arg]
             except Exception:
-                from langchain.llms import OpenAI
+                OpenAI = importlib.import_module("langchain.llms").OpenAI
                 llm = OpenAI(temperature=0.3, openai_api_key=api_key)  # type: ignore[call-arg]
 
-            from langchain.prompts import PromptTemplate
+            PromptTemplate = importlib.import_module("langchain.prompts").PromptTemplate
             prompt = PromptTemplate(
                 input_variables=["system", "context", "query"],
                 template=(
@@ -63,7 +59,7 @@ def _build_chain() -> Optional[object]:
                     "Provide a concise security recommendation and remediation roadmap:"
                 ),
             )
-            from langchain.chains import LLMChain
+            LLMChain = importlib.import_module("langchain.chains").LLMChain
             _chain = LLMChain(llm=llm, prompt=prompt)
             return _chain
     except Exception:

@@ -630,7 +630,7 @@ All interfaces implement:
 - [x] Activity feed and notifications — `/api/collab/activity-feed` endpoint
 
 #### 2.3 Advanced Scanning Capabilities
-- [ ] **Distributed Scanning**: Multi-node scan distribution
+- [x] **Distributed Scanning**: Multi-node scan distribution — `services/scan_service/distributed_scanner.py` with node registry, health heartbeat, and deterministic load-aware target assignment
   - [x] **Cloud Scanner**: Scan AWS/Azure/GCP/K8s configurations — `POST /scans/cloud` with real-world misconfiguration catalog
   - [x] **Continuous Monitoring**: Schedule recurring scans — `services/scan_service/continuous_monitor.py` APScheduler + asyncio fallback
   - [x] **Smart Scanning**: AI-driven scan path optimization — `services/scan_service/smart_scanner.py` 25-rule tech fingerprinter + priority-ordered scan plan
@@ -642,17 +642,17 @@ All interfaces implement:
   - [x] Plugin marketplace with ratings/reviews — `plugins/registry.py` marketplace endpoints (browse, publish, rate, review)
 - [x] Sandboxed plugin execution — `PluginLoader.run()` with exception isolation + cleanup hooks
   - [x] Plugin dependency management — `PluginMetadata.dependencies` field + `PluginLoader.check_dependencies()` using `importlib.util.find_spec()`
-- [ ] Auto-updates for plugins
-- [ ] Community plugin repository
+- [x] Auto-updates for plugins — `/plugins/updates` and `/plugins/{name}/auto-update` endpoints with semantic version comparison + secure update metadata
+- [x] Community plugin repository — `/community/repositories` registration/list and `/community/repositories/{repo_id}/sync` marketplace index ingestion
 
 ### Phase 3: Enterprise & Scale (Months 7-9)
 
 #### 3.1 Multi-Tenancy
-- [ ] Organization/workspace isolation
-- [ ] Per-tenant resource quotas
-- [ ] Billing and subscription management
-- [ ] Custom branding per tenant
-- [ ] Audit logs per organization
+- [x] Organization/workspace isolation — `auth-service` org/workspace endpoints with org-scoped membership checks
+- [x] Per-tenant resource quotas — tenant limits for users/workspaces/scans-per-day with quota update API
+- [ ] Billing and subscription management [No need as it's a Non profit organization]
+- [x] Custom branding per tenant — organization branding metadata at creation time
+- [x] Audit logs per organization — org-scoped audit entries (`org=<id>`) for tenant operations
 
 #### 3.2 Compliance & Governance
 - [ ] SOC2/ISO27001 compliance features

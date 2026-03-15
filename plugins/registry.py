@@ -42,31 +42,41 @@ class RunPluginRequest(BaseModel):
     config: Optional[Dict[str, Any]] = None
 
 
-    class PublishPluginRequest(BaseModel):
-        name: str = Field(..., description="Plugin name (unique identifier)")
-        version: str = Field(..., description="Semantic version, e.g. 1.2.0")
-        description: str = Field(...)
-        author: str = Field(...)
-        tags: List[str] = Field(default_factory=list)
-        download_url: str = Field(..., description="HTTPS URL to the plugin .py file")
-        checksum_sha256: str = Field(..., description="SHA-256 hex digest used to verify the download")
+class PublishPluginRequest(BaseModel):
+    name: str = Field(..., description="Plugin name (unique identifier)")
+    version: str = Field(..., description="Semantic version, e.g. 1.2.0")
+    description: str = Field(...)
+    author: str = Field(...)
+    tags: List[str] = Field(default_factory=list)
+    download_url: str = Field(..., description="HTTPS URL to the plugin .py file")
+    checksum_sha256: str = Field(..., description="SHA-256 hex digest used to verify the download")
 
 
-    class RatePluginRequest(BaseModel):
-        user: str = Field(..., description="Username submitting the rating")
-        rating: int = Field(..., ge=1, le=5, description="Star rating from 1 to 5")
-        review: Optional[str] = Field(default=None, description="Optional text review")
+class RatePluginRequest(BaseModel):
+    user: str = Field(..., description="Username submitting the rating")
+    rating: int = Field(..., ge=1, le=5, description="Star rating from 1 to 5")
+    review: Optional[str] = Field(default=None, description="Optional text review")
 
 
-    # ---------------------------------------------------------------------------
-    # Marketplace in-memory store (replace with DB in production)
-    # ---------------------------------------------------------------------------
+class RegisterRepositoryRequest(BaseModel):
+    repo_id: str = Field(..., description="Unique repository ID")
+    name: str = Field(..., description="Display name")
+    index_url: str = Field(..., description="HTTPS URL to JSON plugin index")
+    trust_level: str = Field(default="community", description="community | verified | official")
+    enabled: bool = True
 
-    # _marketplace[name] = {name, version, description, author, tags, download_url,
-    #                        checksum_sha256, published_at, ratings}
-    _marketplace: Dict[str, Dict[str, Any]] = {}
-    # _ratings[name] = list of {user, rating, review, ts}
-    _ratings: Dict[str, List[Dict[str, Any]]] = {}
+
+# ---------------------------------------------------------------------------
+# Marketplace / community repository state (replace with DB in production)
+# ---------------------------------------------------------------------------
+
+# _marketplace[name] = {name, version, description, author, tags, download_url,
+#                        checksum_sha256, published_at, listing_id, source_repo}
+_marketplace: Dict[str, Dict[str, Any]] = {}
+# _ratings[name] = list of {user, rating, review, ts}
+_ratings: Dict[str, List[Dict[str, Any]]] = {}
+# _repositories[repo_id] = {repo metadata + last_sync + imported_count}
+_repositories: Dict[str, Dict[str, Any]] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -266,3 +276,170 @@ def _avg_rating(name: str) -> float:
     if not reviews:
         return 0.0
     return round(sum(r["rating"] for r in reviews) / len(reviews), 2)
+
+
+def _parse_semver(value: str) -> tuple:
+    """Best-effort semantic version tuple for comparisons."""
+    parts = [p for p in value.strip().split(".") if p]
+    out = []
+    for p in parts[:3]:
+        num = "".join(ch for ch in p if ch.isdigit())
+        out.append(int(num) if num else 0)
+    while len(out) < 3:
+        out.append(0)
+    return tuple(out)
+
+
+# ==========================================================================
+# Phase 2 — Remaining plugin ecosystem features
+# ==========================================================================
+
+@app.get("/plugins/updates")
+async def plugin_update_status() -> dict:
+    """
+    Auto-update intelligence endpoint.
+
+    Compares installed plugin versions against marketplace versions and
+    returns update recommendations.
+    """
+    installed = _loader.list_plugins()
+    updates: List[Dict[str, Any]] = []
+    for p in installed:
+        name = p["name"]
+        local_ver = p.get("version", "0.0.0")
+        remote = _marketplace.get(name)
+        if not remote:
+            continue
+        remote_ver = remote.get("version", "0.0.0")
+        if _parse_semver(remote_ver) > _parse_semver(local_ver):
+            updates.append(
+                {
+                    "plugin": name,
+                    "installed_version": local_ver,
+                    "available_version": remote_ver,
+                    "download_url": remote.get("download_url"),
+                    "checksum_sha256": remote.get("checksum_sha256"),
+                    "source": remote.get("source_repo", "marketplace"),
+                }
+            )
+    return {
+        "updates": updates,
+        "updates_available": len(updates),
+        "checked_plugins": len(installed),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+@app.post("/plugins/{name}/auto-update")
+async def auto_update_plugin(name: str) -> dict:
+    """
+    Simulate secure auto-update workflow (download/verify/install hooks).
+
+    This endpoint returns actionable update metadata for automation agents.
+    """
+    meta = _loader.get_metadata(name)
+    if meta is None:
+        raise HTTPException(status_code=404, detail=f"Plugin '{name}' not found")
+    remote = _marketplace.get(name)
+    if not remote:
+        return {"plugin": name, "updated": False, "reason": "No marketplace release found"}
+
+    local_ver = meta.version
+    remote_ver = remote.get("version", "0.0.0")
+    if _parse_semver(remote_ver) <= _parse_semver(local_ver):
+        return {"plugin": name, "updated": False, "reason": "Already up to date", "version": local_ver}
+
+    return {
+        "plugin": name,
+        "updated": False,
+        "status": "ready_for_update",
+        "from_version": local_ver,
+        "to_version": remote_ver,
+        "download_url": remote.get("download_url"),
+        "checksum_sha256": remote.get("checksum_sha256"),
+        "next_steps": [
+            "download package",
+            "verify SHA-256 checksum",
+            "install in plugin directory",
+            "reload plugin registry",
+        ],
+    }
+
+
+@app.get("/community/repositories")
+async def list_repositories() -> dict:
+    """List configured community plugin repositories."""
+    return {"repositories": list(_repositories.values()), "total": len(_repositories)}
+
+
+@app.post("/community/repositories", status_code=201)
+async def register_repository(payload: RegisterRepositoryRequest) -> dict:
+    """Register a community plugin repository index."""
+    if not payload.index_url.startswith("https://"):
+        raise HTTPException(status_code=400, detail="index_url must use HTTPS")
+    record = {
+        "repo_id": payload.repo_id,
+        "name": payload.name,
+        "index_url": payload.index_url,
+        "trust_level": payload.trust_level,
+        "enabled": payload.enabled,
+        "registered_at": datetime.utcnow().isoformat(),
+        "last_sync": None,
+        "imported_count": 0,
+    }
+    _repositories[payload.repo_id] = record
+    return record
+
+
+@app.post("/community/repositories/{repo_id}/sync")
+async def sync_repository(repo_id: str) -> dict:
+    """
+    Sync plugin metadata from a community repository.
+
+    Expects repository index JSON format:
+    {"plugins": [{name, version, description, author, tags, download_url, checksum_sha256}, ...]}
+    """
+    repo = _repositories.get(repo_id)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    if not repo.get("enabled", True):
+        raise HTTPException(status_code=400, detail="Repository is disabled")
+
+    try:
+        import httpx
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(repo["index_url"], timeout=15.0)
+            response.raise_for_status()
+            payload = response.json()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Repository sync failed: {exc}")
+
+    imported = 0
+    for p in payload.get("plugins", []):
+        name = p.get("name")
+        if not name:
+            continue
+        _marketplace[name] = {
+            "name": name,
+            "version": p.get("version", "0.0.0"),
+            "description": p.get("description", ""),
+            "author": p.get("author", "unknown"),
+            "tags": p.get("tags", []),
+            "download_url": p.get("download_url", ""),
+            "checksum_sha256": p.get("checksum_sha256", ""),
+            "published_at": datetime.utcnow().isoformat(),
+            "listing_id": secrets.token_urlsafe(10),
+            "source_repo": repo_id,
+        }
+        _ratings.setdefault(name, [])
+        imported += 1
+
+    repo["last_sync"] = datetime.utcnow().isoformat()
+    repo["imported_count"] = imported
+    return {
+        "repo_id": repo_id,
+        "imported_count": imported,
+        "marketplace_total": len(_marketplace),
+        "last_sync": repo["last_sync"],
+    }
