@@ -27,5 +27,11 @@ class CosmicSecClient:
     def runtime_contracts(self) -> dict:
         return self._client.get("/api/runtime/contracts").json()
 
+    def runtime_slo(self) -> dict:
+        return self._client.get("/api/runtime/slo").json()
+
+    def runtime_readiness(self) -> dict:
+        return self._client.get("/api/runtime/readiness").json()
+
     def runtime_traces(self, limit: int = 50) -> dict:
         return self._client.get("/api/runtime/traces", params={"limit": limit}).json()

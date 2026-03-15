@@ -242,6 +242,8 @@ cosmicsec_platform/
 - [x] Phase 4 distributed tracing export baseline (`COSMICSEC_TRACE_EXPORT_URL`, `GET /api/runtime/tracing`, `GET /api/runtime/traces`)
 - [x] Phase 4 chaos/degradation baseline tests for static/demo/emergency fallback behavior
 - [x] Phase 5 extraction to shared package (`cosmicsec_platform/middleware`)
+- [x] Phase 5 critical-route policy coverage (`auth.refresh`, `scan.get`, `ai.analyze`, `report.generate`)
+- [x] Phase 5 readiness + SLO snapshot endpoints (`GET /api/runtime/readiness`, `GET /api/runtime/slo`)
 
 ---
 

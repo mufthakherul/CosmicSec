@@ -140,3 +140,31 @@ def test_report_generate_static_mode_returns_fallback_profile() -> None:
     payload = response.json()
     assert payload["status"] == "queued_fallback"
     assert payload["_runtime"]["route"] == "static"
+
+
+def test_ai_analyze_static_mode_denied_by_policy() -> None:
+    response = client.post(
+        "/api/ai/analyze",
+        json={"query": "analyze this"},
+        headers={"X-Platform-Mode": "static"},
+    )
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["_runtime"]["route"] == "policy_denied"
+
+
+def test_runtime_slo_endpoint() -> None:
+    response = client.get("/api/runtime/slo")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "slo_targets" in payload
+    assert "current" in payload
+    assert "error_budget" in payload
+
+
+def test_runtime_readiness_endpoint() -> None:
+    response = client.get("/api/runtime/readiness")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "checks" in payload
+    assert "critical_routes_covered" in payload["checks"]
