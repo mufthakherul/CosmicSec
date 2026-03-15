@@ -24,6 +24,10 @@ class PluginMetadata:
     tags: List[str] = field(default_factory=list)
     # Minimum required permissions this plugin needs
     permissions: List[str] = field(default_factory=list)
+    # Python package dependencies (importable names, e.g. ["requests", "lxml"])
+    dependencies: List[str] = field(default_factory=list)
+    # Minimum platform version required
+    min_platform_version: str = "1.0.0"
 
 
 @dataclass

@@ -15,6 +15,7 @@ import sys
 import traceback
 from pathlib import Path
 from typing import Dict, List, Optional, Type
+from typing import Tuple
 
 from .base import PluginBase, PluginContext, PluginMetadata, PluginResult
 
@@ -137,6 +138,27 @@ class PluginLoader:
                 "enabled": name not in self._disabled,
             })
         return out
+
+        def check_dependencies(self, name: str) -> Dict[str, bool]:
+            """
+            Check whether all declared Python package dependencies for a plugin
+            are importable in the current environment.
+
+            Returns a dict mapping each dependency name to True (available) or
+            False (missing).  An empty dict is returned for unknown plugins.
+            """
+            cls = self._registry.get(name)
+            if cls is None:
+                return {}
+            meta = cls().metadata()
+            result: Dict[str, bool] = {}
+            for dep in getattr(meta, "dependencies", []):
+                result[dep] = importlib.util.find_spec(dep) is not None
+            return result
+
+        def missing_dependencies(self, name: str) -> List[str]:
+            """Return list of dependency names that are NOT importable."""
+            return [dep for dep, ok in self.check_dependencies(name).items() if not ok]
 
     def get_metadata(self, name: str) -> Optional[PluginMetadata]:
         cls = self._registry.get(name)

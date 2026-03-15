@@ -16,12 +16,15 @@ from .mitre_attack import map_multiple, map_to_attack
 from .prompt_templates import SUMMARY_TEMPLATE
 from .rag_store import retrieve_guidance
 from .vector_store import chroma_search, collection_count, ingest_document
+from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
+from .ai_agents import get_exploit_guidance, run_autonomous_agent
 
 app = FastAPI(
     title="CosmicSec AI Service",
     description="Helix AI — LangChain-powered security analysis, RAG guidance, and autonomous agents",
     version="2.0.0",
 )
+
 
 
 class Finding(BaseModel):
@@ -73,6 +76,32 @@ class MitreResponse(BaseModel):
 class IngestRequest(BaseModel):
     doc_id: str = Field(..., description="Unique document identifier")
     text: str = Field(..., description="Document text to embed and index")
+
+
+
+# Phase 2 — Anomaly detection models
+class AnomalyDetectRequest(BaseModel):
+    scan_record: dict = Field(..., description="Single scan result record to score")
+
+
+class BatchAnomalyRequest(BaseModel):
+    scan_records: List[dict] = Field(..., description="List of scan records; first N-1 used as baseline if not pre-fitted")
+
+
+class FitBaselineRequest(BaseModel):
+    historical_scans: List[dict] = Field(..., description="Historical scan records used to fit the anomaly baseline")
+
+
+# Phase 2 — Autonomous agent model
+class AutonomousAgentRequest(BaseModel):
+    target: str = Field(..., description="Target system, URL, or domain")
+    findings: List[str] = Field(default_factory=list, description="Finding title strings for analysis")
+    query: Optional[str] = Field(default=None, description="Optional focused question for the agent")
+
+
+# Phase 2 — Exploit guidance model
+class ExploitGuidanceRequest(BaseModel):
+    identifier: str = Field(..., description="CVE ID (e.g. CVE-2021-44228) or vulnerability name")
 
 
 @app.get("/health")
@@ -164,5 +193,78 @@ async def kb_stats() -> dict:
     """Return current knowledge base statistics."""
     return {
         "chromadb_documents": collection_count(),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+# ==========================================================================
+# Phase 2 endpoints
+# ==========================================================================
+
+@app.post("/agent/autonomous")
+async def autonomous_agent(payload: AutonomousAgentRequest) -> dict:
+    """
+    Autonomous multi-step security analysis agent.
+
+    Uses LangChain ReAct agent with 4 tools when OPENAI_API_KEY is set.
+    Falls back to deterministic 5-step pipeline (KB → MITRE → risk → recommendations).
+    """
+    result = run_autonomous_agent(
+        target=payload.target,
+        findings=payload.findings,
+        query=payload.query,
+    )
+    result["timestamp"] = datetime.utcnow().isoformat()
+    return result
+
+
+@app.post("/exploit/suggest")
+async def exploit_suggest(payload: ExploitGuidanceRequest) -> dict:
+    """
+    Educational CVE exploit guidance for defensive security research.
+
+    Returns attack technique overview, affected versions, and remediation.
+    For authorised penetration testing and security research only.
+    """
+    guidance = get_exploit_guidance(payload.identifier)
+    guidance["timestamp"] = datetime.utcnow().isoformat()
+    return guidance
+
+
+@app.post("/anomaly/fit")
+async def anomaly_fit(payload: FitBaselineRequest) -> dict:
+    """Fit the global anomaly detector on historical scan baseline data."""
+    fit_global_baseline(payload.historical_scans)
+    return {
+        "status": "fitted",
+        "sample_count": len(payload.historical_scans),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+@app.post("/anomaly/detect")
+async def anomaly_detect(payload: AnomalyDetectRequest) -> dict:
+    """
+    Score a single scan record for anomalousness.
+
+    Returns anomaly_score, is_anomaly, confidence, and explanation.
+    """
+    result = detect_anomaly(payload.scan_record)
+    result["timestamp"] = datetime.utcnow().isoformat()
+    return result
+
+
+@app.post("/anomaly/batch")
+async def anomaly_batch(payload: BatchAnomalyRequest) -> dict:
+    """
+    Score a batch of scan records.
+
+    Automatically uses first N-1 records as baseline if no prior fit.
+    """
+    results = batch_detect(payload.scan_records)
+    return {
+        "results": results,
+        "total": len(results),
+        "anomalies_detected": sum(1 for r in results if r.get("is_anomaly")),
         "timestamp": datetime.utcnow().isoformat(),
     }

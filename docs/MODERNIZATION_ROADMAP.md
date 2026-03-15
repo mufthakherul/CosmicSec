@@ -615,33 +615,33 @@ All interfaces implement:
 
 #### 2.1 AI/ML Enhancements
 - [x] **RAG System**: Knowledge base from CVE databases, exploit-db — ChromaDB vector store + 50-entry TF-IDF KB
-- [ ] **AI Agents**: Autonomous scanning agents with decision-making
+  - [x] **AI Agents**: Autonomous scanning agents with decision-making — `services/ai_service/ai_agents.py` ReAct agent with 4 tools + deterministic pipeline fallback
 - [x] **Natural Language Interface**: "Scan example.com for SQLi vulnerabilities" — `/api/ai/query` NL endpoint
-- [ ] **Exploit Generation**: AI-assisted exploit creation from CVE details
+  - [x] **Exploit Generation**: AI-assisted exploit creation from CVE details — `/api/ai/exploit/suggest` endpoint with 6-CVE KB
 - [x] **Threat Intelligence**: Auto-correlation with MITRE ATT&CK — `/api/ai/analyze/mitre` endpoint
-- [ ] **Anomaly Detection**: ML models for unusual patterns
+  - [x] **Anomaly Detection**: ML models for unusual patterns — `services/ai_service/anomaly_detector.py` IsolationForest + z-score fallback
 
 #### 2.2 Real-Time Collaboration
 - [x] Live cursors and presence indicators — collab-service WebSocket presence tracking
 - [x] Team chat with @mentions and threads — collab-service message threads + @mention parsing
 - [x] Shared workspaces for team operations — collab-service room system
 - [x] Real-time scan result streaming — collab-service `scan_update` WS event
-- [ ] Collaborative report editing
+  - [x] Collaborative report editing — `collab-service` REST endpoints (CRUD sections) + WebSocket `report_update` broadcast with revision history
 - [x] Activity feed and notifications — `/api/collab/activity-feed` endpoint
 
 #### 2.3 Advanced Scanning Capabilities
 - [ ] **Distributed Scanning**: Multi-node scan distribution
-- [ ] **Cloud Scanner**: Scan from multiple geographic locations
-- [ ] **Continuous Monitoring**: Schedule recurring scans
-- [ ] **Smart Scanning**: AI-driven scan path optimization
-- [ ] **API Fuzzing**: Automated API security testing
-- [ ] **Container Security**: Docker/K8s vulnerability scanning
+  - [x] **Cloud Scanner**: Scan AWS/Azure/GCP/K8s configurations — `POST /scans/cloud` with real-world misconfiguration catalog
+  - [x] **Continuous Monitoring**: Schedule recurring scans — `services/scan_service/continuous_monitor.py` APScheduler + asyncio fallback
+  - [x] **Smart Scanning**: AI-driven scan path optimization — `services/scan_service/smart_scanner.py` 25-rule tech fingerprinter + priority-ordered scan plan
+  - [x] **API Fuzzing**: Automated API security testing — `services/scan_service/api_fuzzer.py` 7 attack types (SQLi, XSS, path traversal, cmd injection, SSRF, SSTI, auth bypass)
+  - [x] **Container Security**: Docker/K8s vulnerability scanning — `services/scan_service/container_scanner.py` static Dockerfile + K8s manifest analysis
 
 #### 2.4 Plugin Ecosystem
 - [x] Plugin SDK with documentation — `plugins/sdk/base.py`, `loader.py`, `__init__.py`
-- [ ] Plugin marketplace with ratings/reviews
+  - [x] Plugin marketplace with ratings/reviews — `plugins/registry.py` marketplace endpoints (browse, publish, rate, review)
 - [x] Sandboxed plugin execution — `PluginLoader.run()` with exception isolation + cleanup hooks
-- [ ] Plugin dependency management
+  - [x] Plugin dependency management — `PluginMetadata.dependencies` field + `PluginLoader.check_dependencies()` using `importlib.util.find_spec()`
 - [ ] Auto-updates for plugins
 - [ ] Community plugin repository
 
