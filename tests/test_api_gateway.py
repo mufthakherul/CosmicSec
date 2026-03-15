@@ -178,6 +178,14 @@ def test_demo_mode_blocks_admin_paths() -> None:
     assert payload["_runtime"]["route"] == "policy_denied"
 
 
+def test_demo_mode_blocks_org_paths() -> None:
+    response = client.get("/api/orgs", headers={"X-Platform-Mode": "demo"})
+    assert response.status_code == 403
+    payload = response.json()
+    assert payload["_runtime"]["mode"] == "demo"
+    assert payload["_runtime"]["route"] == "policy_denied"
+
+
 def test_runtime_prometheus_metrics_endpoint() -> None:
     response = client.get("/api/runtime/metrics/prometheus")
     assert response.status_code == 200
@@ -199,3 +207,12 @@ def test_runtime_rollout_configuration_endpoints() -> None:
     reset = client.post("/api/runtime/rollout", json={"dynamic_canary_percent": 0})
     assert reset.status_code == 200
     assert reset.json()["dynamic_canary_percent"] == 0
+
+
+def test_runtime_compliance_endpoint() -> None:
+    response = client.get("/api/runtime/compliance")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["complete"] is True
+    assert "sections" in payload
+    assert "8_static_module_requirements" in payload["sections"]

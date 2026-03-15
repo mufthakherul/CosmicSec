@@ -248,6 +248,7 @@ cosmicsec_platform/
 - [x] Section 9 demo safety guard (privileged admin/org routes denied in demo mode)
 - [x] Section 10 observability expansion (`GET /api/runtime/metrics/prometheus`)
 - [x] Section 11 rollout controls baseline (`GET/POST /api/runtime/rollout`)
+- [x] Section 12 completion/compliance endpoint (`GET /api/runtime/compliance`)
 
 ---
 
