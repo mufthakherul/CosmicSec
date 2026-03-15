@@ -224,10 +224,10 @@ cosmicsec_platform/
 
 ## 11) Immediate Next Actions
 
-1. Add Prometheus/Grafana dashboards for fallback frequency and degraded operation time.
-2. Finalize SLO/error-budget tracking for hybrid mode availability.
-3. Add canary/traffic-split rollout controls for dynamic module changes.
-4. Continue resilience testing with scheduled chaos drills.
+1. Integrate Grafana panels on top of Prometheus runtime metrics (`/api/runtime/metrics/prometheus`).
+2. Tune SLO/error-budget thresholds per environment after production baselining.
+3. Extend canary controls with authz and persistence backing store.
+4. Automate scheduled chaos drills in CI/CD and incident game-days.
 
 ---
 
@@ -244,6 +244,10 @@ cosmicsec_platform/
 - [x] Phase 5 extraction to shared package (`cosmicsec_platform/middleware`)
 - [x] Phase 5 critical-route policy coverage (`auth.refresh`, `scan.get`, `ai.analyze`, `report.generate`)
 - [x] Phase 5 readiness + SLO snapshot endpoints (`GET /api/runtime/readiness`, `GET /api/runtime/slo`)
+- [x] Section 8 auditability baseline (degraded/policy-denied decisions logged with route + reason + trace)
+- [x] Section 9 demo safety guard (privileged admin/org routes denied in demo mode)
+- [x] Section 10 observability expansion (`GET /api/runtime/metrics/prometheus`)
+- [x] Section 11 rollout controls baseline (`GET/POST /api/runtime/rollout`)
 
 ---
 

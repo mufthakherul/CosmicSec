@@ -168,3 +168,34 @@ def test_runtime_readiness_endpoint() -> None:
     payload = response.json()
     assert "checks" in payload
     assert "critical_routes_covered" in payload["checks"]
+
+
+def test_demo_mode_blocks_admin_paths() -> None:
+    response = client.get("/api/admin/users", headers={"X-Platform-Mode": "demo"})
+    assert response.status_code == 403
+    payload = response.json()
+    assert payload["_runtime"]["mode"] == "demo"
+    assert payload["_runtime"]["route"] == "policy_denied"
+
+
+def test_runtime_prometheus_metrics_endpoint() -> None:
+    response = client.get("/api/runtime/metrics/prometheus")
+    assert response.status_code == 200
+    text = response.text
+    assert "cosmicsec_runtime_dynamic_total" in text
+    assert "cosmicsec_runtime_fallback_total" in text
+
+
+def test_runtime_rollout_configuration_endpoints() -> None:
+    current = client.get("/api/runtime/rollout")
+    assert current.status_code == 200
+    assert "dynamic_canary_percent" in current.json()
+
+    updated = client.post("/api/runtime/rollout", json={"dynamic_canary_percent": 25})
+    assert updated.status_code == 200
+    assert updated.json()["dynamic_canary_percent"] == 25
+
+    # reset to default to avoid cross-test contamination
+    reset = client.post("/api/runtime/rollout", json={"dynamic_canary_percent": 0})
+    assert reset.status_code == 200
+    assert reset.json()["dynamic_canary_percent"] == 0

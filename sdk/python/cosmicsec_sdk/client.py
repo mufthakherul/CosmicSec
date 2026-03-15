@@ -33,5 +33,16 @@ class CosmicSecClient:
     def runtime_readiness(self) -> dict:
         return self._client.get("/api/runtime/readiness").json()
 
+    def runtime_rollout(self) -> dict:
+        return self._client.get("/api/runtime/rollout").json()
+
+    def set_runtime_rollout(self, dynamic_canary_percent: int) -> dict:
+        return self._client.post(
+            "/api/runtime/rollout", json={"dynamic_canary_percent": dynamic_canary_percent}
+        ).json()
+
+    def runtime_metrics_prometheus(self) -> str:
+        return self._client.get("/api/runtime/metrics/prometheus").text
+
     def runtime_traces(self, limit: int = 50) -> dict:
         return self._client.get("/api/runtime/traces", params={"limit": limit}).json()
