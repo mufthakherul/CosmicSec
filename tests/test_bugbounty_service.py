@@ -53,3 +53,22 @@ def test_bugbounty_program_and_submission_flow() -> None:
     earnings = client.get("/dashboard/earnings")
     assert earnings.status_code == 200
     assert earnings.json()["total_submissions"] >= 1
+
+    share = client.post(
+        "/collaboration/share",
+        json={
+            "program_id": program_id,
+            "title": "Need validation",
+            "message": "Please verify impact and bypass path.",
+            "participants": ["alice", "bob"],
+        },
+    )
+    assert share.status_code == 200
+
+    threads = client.get("/collaboration/threads", params={"program_id": program_id})
+    assert threads.status_code == 200
+    assert threads.json()["total"] >= 1
+
+    templates = client.get("/reports/templates")
+    assert templates.status_code == 200
+    assert templates.json()["total"] >= 1

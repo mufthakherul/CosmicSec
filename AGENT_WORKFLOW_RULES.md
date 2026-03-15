@@ -8,3 +8,4 @@ These project rules are mandatory for future implementation work.
 4. Prefer advanced, production-lean implementations over bare stubs when feasible and safe.
 5. Update checklist checkboxes only after implementation is complete and validated.
 6. After completing a task: run tests, commit, and push.
+7. If replacing existing code with new code, archive the previous version first under `Archives/Tests/`.
