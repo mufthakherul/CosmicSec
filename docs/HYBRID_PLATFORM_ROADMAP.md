@@ -231,6 +231,20 @@ platform/
 
 ---
 
+## 11.1) Implementation Progress Snapshot
+
+- [x] Phase 1 baseline hybrid routes (`auth.login`, `scan.create`, `recon.lookup`, `ai.health`)
+- [x] Phase 2 policy registry implemented in gateway (`services/api_gateway/policy_registry.py`)
+- [x] Phase 2 static profile handlers moved to dedicated module (`services/api_gateway/static_profiles.py`)
+- [x] Phase 3 fallback contract schema standardization (`_runtime` + `_contract`, schema `cosmicsec.hybrid.v1`)
+- [x] Phase 3 contract helper endpoint (`GET /api/runtime/contracts`)
+- [x] Phase 4 baseline observability counters (`GET /api/runtime/metrics`, includes `fallback_total`, `dynamic_success_rate`)
+- [x] Phase 4 distributed tracing export baseline (`COSMICSEC_TRACE_EXPORT_URL`, `GET /api/runtime/tracing`, `GET /api/runtime/traces`)
+- [x] Phase 4 chaos/degradation baseline tests for static/demo/emergency fallback behavior
+- [ ] Phase 5 extraction to `platform/middleware` shared package
+
+---
+
 ## 12) Migration Compatibility Matrix
 
 | Legacy / Old Reference | New Canonical Reference | Status |
