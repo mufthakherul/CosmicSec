@@ -18,12 +18,16 @@ from .rag_store import retrieve_guidance
 from .vector_store import chroma_search, collection_count, ingest_document
 from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
 from .ai_agents import get_exploit_guidance, run_autonomous_agent
+from .defensive_ai import DefensiveAI
 
 app = FastAPI(
     title="CosmicSec AI Service",
     description="Helix AI — LangChain-powered security analysis, RAG guidance, and autonomous agents",
     version="2.0.0",
 )
+
+# Initialize Defensive AI
+defensive_ai = DefensiveAI()
 
 
 
@@ -268,3 +272,90 @@ async def anomaly_batch(payload: BatchAnomalyRequest) -> dict:
         "anomalies_detected": sum(1 for r in results if r.get("is_anomaly")),
         "timestamp": datetime.utcnow().isoformat(),
     }
+
+
+
+# ========================
+# Phase 4: Defensive AI Endpoints
+# ========================
+
+@app.post("/defensive/remediation")
+def get_remediation_guidance(vulnerability_type: str, finding: dict):
+    """
+    Generate AI-powered remediation guidance for a vulnerability
+
+    Phase 4: Defensive AI - Auto-remediation suggestions
+    """
+    remediation = defensive_ai.suggest_remediation(vulnerability_type, finding)
+    return {
+        "success": True,
+        "remediation": remediation,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+@app.post("/defensive/hardening")
+def get_hardening_recommendations(system_type: str):
+    """
+    Generate security hardening recommendations for a system type
+
+    Phase 4: Defensive AI - System hardening guidance
+    """
+    hardening = defensive_ai.generate_security_hardening(system_type)
+    return {
+        "success": True,
+        "hardening": hardening,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+@app.post("/defensive/incident-response")
+def generate_incident_response(vulnerability: dict):
+    """
+    Generate incident response plan for a vulnerability
+
+    Phase 4: Defensive AI - Incident response automation
+    """
+    response_plan = defensive_ai.generate_incident_response_plan(vulnerability)
+    return {
+        "success": True,
+        "incident_response_plan": response_plan,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+@app.post("/defensive/batch-remediation")
+def batch_remediation(findings: List[dict]):
+    """
+    Generate remediation guidance for multiple findings
+
+    Phase 4: Defensive AI - Batch remediation analysis
+    """
+    remediations = []
+    for finding in findings:
+        vuln_type = finding.get("vulnerability_type", "unknown")
+        remediation = defensive_ai.suggest_remediation(vuln_type, finding)
+        remediations.append(remediation)
+
+    # Sort by priority
+    remediations.sort(key=lambda x: {
+        "critical": 0,
+        "high": 1,
+        "medium": 2,
+        "low": 3
+    }.get(x.get("priority", "low"), 3))
+
+    return {
+        "success": True,
+        "total_findings": len(findings),
+        "remediations": remediations,
+        "summary": {
+            "critical": sum(1 for r in remediations if r.get("priority") == "critical"),
+            "high": sum(1 for r in remediations if r.get("priority") == "high"),
+            "medium": sum(1 for r in remediations if r.get("priority") == "medium"),
+            "low": sum(1 for r in remediations if r.get("priority") == "low"),
+            "auto_remediable": sum(1 for r in remediations if r.get("auto_remediable", False))
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
