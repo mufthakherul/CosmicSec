@@ -41,6 +41,9 @@ class CosmicSecClient:
             "/api/runtime/rollout", json={"dynamic_canary_percent": dynamic_canary_percent}
         ).json()
 
+    def runtime_compliance(self) -> dict:
+        return self._client.get("/api/runtime/compliance").json()
+
     def runtime_metrics_prometheus(self) -> str:
         return self._client.get("/api/runtime/metrics/prometheus").text
 
