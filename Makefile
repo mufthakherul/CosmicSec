@@ -23,6 +23,9 @@ dev:
 	@echo "  API Gateway:  http://localhost:8000"
 	@echo "  Auth Service: http://localhost:8001"
 	@echo "  Scan Service: http://localhost:8002"
+	@echo "  AI Service:   http://localhost:8003"
+	@echo "  Recon Service:http://localhost:8004"
+	@echo "  Report Service:http://localhost:8005"
 	@echo "  API Docs:     http://localhost:8000/api/docs"
 
 dev-build:
@@ -43,11 +46,23 @@ logs-auth:
 logs-scan:
 	docker-compose logs -f scan-service
 
+logs-ai:
+	docker-compose logs -f ai-service
+
+logs-recon:
+	docker-compose logs -f recon-service
+
+logs-report:
+	docker-compose logs -f report-service
+
 shell:
 	docker-compose exec api-gateway /bin/sh
 
 test:
 	pytest tests/ -v --cov=services --cov-report=html
+
+test-docker-env:
+	pytest tests/test_docker_env.py -q
 
 lint:
 	flake8 services/

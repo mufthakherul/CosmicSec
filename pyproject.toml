@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "cosmicsec"
+version = "1.0.0"
+description = "CosmicSec - Universal Cybersecurity Intelligence Platform"
+authors = ["Mufthakherul Islam Miraz <mufthakherul_cybersec@s6742.me>"]
+readme = "README.md"
+packages = [{ include = "hacker_ai" }, { include = "services" }]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+python-dotenv = ">=1.0.0"
+pyyaml = ">=6.0"
+requests = ">=2.31.0"
+httpx = ">=0.25.0"
+aiohttp = ">=3.9.0"
+rich = ">=13.7.0"
+textual = ">=0.44.0"
+openai = ">=1.3.0"
+cryptography = ">=41.0.0"
+passlib = {version = ">=1.7.4", extras = ["bcrypt"]}
+fastapi = ">=0.104.0"
+uvicorn = {version = ">=0.24.0", extras = ["standard"]}
+python-multipart = "*"
+slowapi = ">=0.1.9"
+python-jose = {version = ">=3.3.0", extras = ["cryptography"]}
+pydantic = {version = ">=2.5.0", extras = ["email"]}
+psycopg2-binary = ">=2.9.9"
+pymongo = ">=4.6.0"
+redis = ">=5.0.0"
+sqlalchemy = ">=2.0.0"
+alembic = ">=1.12.0"
+celery = ">=5.3.4"
+kombu = ">=5.3.4"
+prometheus-client = ">=0.19.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.3.0"
+pytest-cov = ">=5.0.0"
+black = ">=24.10.0"
+flake8 = ">=7.1.1"
+isort = ">=5.13.2"
+mypy = ">=1.11.2"
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
