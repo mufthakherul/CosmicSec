@@ -20,7 +20,7 @@
 🔐 **Enterprise-Ready**: SOC2, ISO27001, GDPR, multi-tenancy, SSO, audit trails
 🤖 **Helix AI Agents**: Autonomous security testing, threat hunting, code analysis
 🌍 **Cloud-Native**: Microservices, Kubernetes, multi-cloud security scanning
-📱 **Mobile Support**: iOS/Android apps for on-the-go security operations
+📱 **Mobile Support (Planned)**: iOS/Android apps for on-the-go security operations
 🔗 **Integrations**: 50+ integrations with SIEM, ticketing, CI/CD, threat intelligence
 
 ---
@@ -82,6 +82,8 @@ hacker_ai/
 
 ## 🧩 Advanced Features for All Security Roles
 
+> Status note: this checklist mixes implemented APIs with roadmap targets. For verified implementation status, use the microservices under `services/` and automated coverage in `tests/`.
+
 ### For Bug Bounty Hunters 🐛
 - [x] Multi-platform integration (HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack)
 - [x] Automated target reconnaissance and asset discovery
@@ -128,11 +130,11 @@ hacker_ai/
 - [x] Cloud cost optimization from security perspective
 
 ### For Mobile Security Testers 📱
-- [x] iOS static and dynamic analysis
-- [x] Android APK/AAB reverse engineering
-- [x] Frida hooking automation
-- [x] SSL/Certificate pinning bypass
-- [x] Privacy and permissions analysis
+- [ ] iOS static and dynamic analysis (planned)
+- [ ] Android APK/AAB reverse engineering (planned)
+- [ ] Frida hooking automation (planned)
+- [ ] SSL/Certificate pinning bypass (planned)
+- [ ] Privacy and permissions analysis (planned)
 
 ### For Blockchain Security Experts 🔗
 - [x] Smart contract static analysis (Solidity, Vyper)

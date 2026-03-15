@@ -10,8 +10,10 @@ from utils.async_tools import stream_response
 from utils.prompt_templates import generate_prompt
 from utils.voice_output import speak_text_if_enabled
 
-from llama_cpp import Llama  # You can switch this based on backend
-# Supports GGUF, GPTQ, Mistral, etc. (via config)
+try:
+    from llama_cpp import Llama  # You can switch this based on backend
+except ImportError:
+    Llama = None
 
 CONFIG_FILE = "config.py"
 MEMORY_FILE = "memory.json"
@@ -32,6 +34,12 @@ model = None
 
 def load_model():
     global model
+    if Llama is None:
+        raise RuntimeError(
+            "llama-cpp-python is not installed. "
+            "Install optional local LLM dependencies with: "
+            "pip install -r requirements-local-llm.txt"
+        )
     model = Llama(
         model_path=LLM_MODEL_PATH,
         n_ctx=4096,
@@ -48,7 +56,13 @@ def reload_model_handler(signum, frame):
 signal.signal(signal.SIGHUP, reload_model_handler)
 
 # Initial load
-load_model()
+if Llama is not None:
+    load_model()
+else:
+    logger.warning(
+        "[LLM] llama-cpp-python not installed; skipping local model bootstrap. "
+        "Install with: pip install -r requirements-local-llm.txt"
+    )
 
 
 # === Core Memory Handler ===
@@ -113,4 +127,3 @@ def set_assistant_mode(mode: str):
     global ASSISTANT_MODE
     ASSISTANT_MODE = mode
     logger.info(f"[LLM] Assistant mode set to: {mode}")
-
