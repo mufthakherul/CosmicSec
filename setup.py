@@ -47,6 +47,7 @@ setup(
     entry_points={
         'console_scripts': [
             'hacker_ai=hacker_ai.launcher:main',
+            'cosmicsec-admin=hacker_ai.admin.cli:main',
         ],
     },
     classifiers=[

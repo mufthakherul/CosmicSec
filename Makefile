@@ -12,6 +12,9 @@ help:
 	@echo "  make deploy     - Deploy to Kubernetes"
 	@echo "  make logs       - Show service logs"
 	@echo "  make shell      - Open shell in API gateway container"
+	@echo "  make admin-cli  - Launch CosmicSec admin CLI"
+	@echo "  make admin-tui  - Launch CosmicSec admin TUI"
+	@echo "  make admin-ssh  - Start CosmicSec SSH admin server"
 	@echo ""
 
 install:
@@ -112,3 +115,12 @@ watch-gateway:
 
 watch-scans:
 	watch -n 2 'curl -s http://localhost:8002/stats | jq'
+
+admin-cli:
+	python -m hacker_ai.admin.cli shell
+
+admin-tui:
+	python -m hacker_ai.admin.tui
+
+admin-ssh:
+	python -m hacker_ai.admin.ssh_server

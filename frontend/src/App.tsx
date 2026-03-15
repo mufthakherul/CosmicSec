@@ -3,6 +3,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { TwoFactorPage } from "./pages/TwoFactorPage";
+import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 
 function Dashboard() {
   return (
@@ -19,11 +20,13 @@ export function App() {
       <h1 className="text-3xl font-bold">CosmicSec Admin Dashboard</h1>
       <nav className="flex gap-4 text-indigo-300">
         <Link to="/">Dashboard</Link>
+        <Link to="/admin">Admin</Link>
         <Link to="/auth/login">Login</Link>
         <Link to="/auth/register">Register</Link>
       </nav>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/auth/forgot" element={<ForgotPasswordPage />} />

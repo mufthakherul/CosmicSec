@@ -16,6 +16,7 @@ aiohttp>=3.9.0
 # CLI and UI
 rich>=13.7.0
 textual>=0.44.0
+typer>=0.12.5
 npyscreen
 tqdm
 colorama
@@ -40,6 +41,7 @@ passlib[bcrypt]>=1.7.4
 # FastAPI and web services
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
+asyncssh>=2.15.0
 python-multipart
 slowapi>=0.1.9
 

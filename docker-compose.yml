@@ -1,6 +1,33 @@
 version: '3.8'
 
 services:
+  # Traefik - edge API gateway / reverse proxy
+  traefik:
+    image: traefik:v3.1
+    container_name: cosmicsec-traefik
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --api.dashboard=true
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - cosmicsec-network
+
+  # Consul - service discovery
+  consul:
+    image: hashicorp/consul:1.20
+    container_name: cosmicsec-consul
+    command: "agent -server -ui -bootstrap-expect=1 -client=0.0.0.0"
+    ports:
+      - "8500:8500"
+    networks:
+      - cosmicsec-network
+
   # PostgreSQL - Primary database
   postgres:
     image: postgres:16-alpine
@@ -122,6 +149,11 @@ services:
     volumes:
       - ./:/app
     command: uvicorn services.api_gateway.main:app --host 0.0.0.0 --port 8000 --reload
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cosmicsec-gateway.rule=PathPrefix(`/api`) || PathPrefix(`/health`) || PathPrefix(`/ws`)
+      - traefik.http.routers.cosmicsec-gateway.entrypoints=web
+      - traefik.http.services.cosmicsec-gateway.loadbalancer.server.port=8000
 
   # Auth Service
   auth-service:
@@ -145,6 +177,11 @@ services:
     volumes:
       - ./:/app
     command: uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8001 --reload
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cosmicsec-auth.rule=PathPrefix(`/auth`)
+      - traefik.http.routers.cosmicsec-auth.entrypoints=web
+      - traefik.http.services.cosmicsec-auth.loadbalancer.server.port=8001
 
   # Scan Service
   scan-service:
@@ -171,6 +208,11 @@ services:
     volumes:
       - ./:/app
     command: uvicorn services.scan_service.main:app --host 0.0.0.0 --port 8002 --reload
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cosmicsec-scan.rule=PathPrefix(`/scan`)
+      - traefik.http.routers.cosmicsec-scan.entrypoints=web
+      - traefik.http.services.cosmicsec-scan.loadbalancer.server.port=8002
 
   # AI Service (Phase 2 kickoff)
   ai-service:
