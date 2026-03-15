@@ -108,10 +108,10 @@ docs/
   HYBRID_PLATFORM_ROADMAP.md   # NEW
 ```
 
-Future extraction target:
+Future extraction target (implemented as `cosmicsec_platform/` to avoid clashing with Python stdlib `platform`):
 
 ```text
-platform/
+cosmicsec_platform/
   middleware/
     hybrid_router.py
     policy_registry.py
@@ -187,7 +187,7 @@ platform/
 
 ## Phase 5 — Full Platform Consolidation
 
-- Extract shared middleware to `platform/middleware`.
+- Extract shared middleware to `cosmicsec_platform/middleware`.
 - Wire all critical routes to hybrid policies.
 - Roll out production readiness checklist and SLOs.
 
@@ -224,10 +224,10 @@ platform/
 
 ## 11) Immediate Next Actions
 
-1. Expand hybrid routing from initial endpoints to all critical operations.
-2. Add per-route fallback policy registry and strict deny rules.
-3. Add dashboards for fallback frequency and degraded operation time.
-4. Align `ARCHITECTURE_DIAGRAM.md` with implemented hybrid middleware map.
+1. Add Prometheus/Grafana dashboards for fallback frequency and degraded operation time.
+2. Finalize SLO/error-budget tracking for hybrid mode availability.
+3. Add canary/traffic-split rollout controls for dynamic module changes.
+4. Continue resilience testing with scheduled chaos drills.
 
 ---
 
@@ -241,7 +241,7 @@ platform/
 - [x] Phase 4 baseline observability counters (`GET /api/runtime/metrics`, includes `fallback_total`, `dynamic_success_rate`)
 - [x] Phase 4 distributed tracing export baseline (`COSMICSEC_TRACE_EXPORT_URL`, `GET /api/runtime/tracing`, `GET /api/runtime/traces`)
 - [x] Phase 4 chaos/degradation baseline tests for static/demo/emergency fallback behavior
-- [ ] Phase 5 extraction to `platform/middleware` shared package
+- [x] Phase 5 extraction to shared package (`cosmicsec_platform/middleware`)
 
 ---
 
@@ -261,6 +261,8 @@ platform/
 | `python -m cosmicsec.admin.cli` | `python -m services.admin_service.cli` | Migrated |
 | `python -m cosmicsec.admin.tui` | `python -m services.admin_service.tui` | Migrated |
 | `python -m cosmicsec.admin.ssh_server` | `python -m services.admin_service.ssh_server` | Migrated |
+| shared middleware in gateway-only files | `cosmicsec_platform/middleware/*` shared package | Migrated |
+| no runtime envelope SDK utilities | `sdk/python/cosmicsec_sdk/runtime.py` helpers | Implemented |
 | local JSON-first admin state | dynamic default (`COSMICSEC_STORAGE_MODE=dynamic`) | Migrated |
 | emergency JSON persistence | `COSMICSEC_STORAGE_MODE=emergency_json` | Supported |
 

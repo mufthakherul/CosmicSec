@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "CosmicSec - Universal Cybersecurity Intelligence Platform"
 authors = ["Mufthakherul Islam Miraz <mufthakherul_cybersec@s6742.me>"]
 readme = "README.md"
-packages = [{ include = "services" }]
+packages = [{ include = "services" }, { include = "cosmicsec_platform" }]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"

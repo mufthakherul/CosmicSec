@@ -109,3 +109,34 @@ def test_runtime_traces_and_tracing_status_endpoints() -> None:
     status_payload = tracing_status.json()
     assert "buffer_size" in status_payload
     assert "export_enabled" in status_payload
+
+
+def test_auth_refresh_static_mode_denied_by_policy() -> None:
+    response = client.post(
+        "/api/auth/refresh",
+        json={"refresh_token": "abc"},
+        headers={"X-Platform-Mode": "static"},
+    )
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["_runtime"]["route"] == "policy_denied"
+
+
+def test_get_scan_emergency_mode_uses_partial_fallback() -> None:
+    response = client.get("/api/scans/test-scan-id", headers={"X-Platform-Mode": "emergency"})
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "degraded_unavailable"
+    assert payload["_runtime"]["route"] == "static"
+
+
+def test_report_generate_static_mode_returns_fallback_profile() -> None:
+    response = client.post(
+        "/api/reports/generate",
+        json={"scan_id": "x1", "format": "pdf"},
+        headers={"X-Platform-Mode": "static"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "queued_fallback"
+    assert payload["_runtime"]["route"] == "static"

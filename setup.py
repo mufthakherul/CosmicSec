@@ -17,7 +17,7 @@ setup(
     author='Mufthakherul Islam Miraz',
     author_email='mufthakherul_cybersec@s6742.me',
     url='https://github.com/mufthakherul/hacker_ai',
-    packages=find_packages(where=".", include=["services", "services.*"]),
+    packages=find_packages(where=".", include=["services", "services.*", "cosmicsec_platform", "cosmicsec_platform.*"]),
     package_dir={"": "."},
     include_package_data=True,
     install_requires=[
