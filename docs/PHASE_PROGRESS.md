@@ -25,6 +25,10 @@ This status uses **artifact-based verification** against Phase 1 implementation 
 - Score: **15/15 = 100.0%**
 - Validation: `pytest tests/ -q` → **8 passed**
 
+### Current reality check (advanced audit)
+- **Implementation Guide Phase 1**: core baseline largely implemented
+- **Modernization Roadmap Phase 1**: partially complete (not all advanced items such as SSH admin interface, full CLI admin panel, SDK generation, and complete admin dashboard UX are finished)
+
 ## Phase 2 status
 
 Phase 2 has been started with an initial AI service scaffold:
@@ -37,5 +41,4 @@ Current Phase 2 maturity: **Kickoff/Bootstrap**
 
 ## Notes
 
-This progress reflects implementation-ready baseline completion for Phase 1.
-The broader long-horizon roadmap items (full RAG, full collaboration stack, plugin marketplace, etc.) remain subsequent milestones.
+This progress reflects implementation-ready baseline completion for the implementation guide checklist, while the roadmap checklist is tracked separately and now aligned to actual delivered capabilities.
