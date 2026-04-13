@@ -1,40 +1,58 @@
-import { Link, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { ProtectedRoute } from "./router/ProtectedRoute";
+
+// Public pages
+import { LandingPage } from "./pages/LandingPage";
+import { DemoSandboxPage } from "./pages/DemoSandboxPage";
+import { PricingPage } from "./pages/PricingPage";
+
+// Auth pages
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { TwoFactorPage } from "./pages/TwoFactorPage";
+
+// Protected dashboard pages
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { Phase5OperationsPage } from "./pages/Phase5OperationsPage";
 
-function Dashboard() {
-  return (
-    <section>
-      <h2>GuardAxisSphere Dashboard</h2>
-      <p>Platform dashboard with integrated Phase 5 operations center access.</p>
-    </section>
-  );
-}
-
 export function App() {
   return (
-    <main className="min-h-screen space-y-6 px-8 py-6 font-sans">
-      <h1 className="text-3xl font-bold">CosmicSec Admin Dashboard</h1>
-      <nav className="flex gap-4 text-indigo-300">
-        <Link to="/">Dashboard</Link>
-        <Link to="/admin">Admin</Link>
-        <Link to="/phase5">Phase 5</Link>
-        <Link to="/auth/login">Login</Link>
-        <Link to="/auth/register">Register</Link>
-      </nav>
+    <AuthProvider>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
-        <Route path="/phase5" element={<Phase5OperationsPage />} />
+        {/* ------------------------------------------------------------------ */}
+        {/* Public routes — no auth required */}
+        {/* ------------------------------------------------------------------ */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/demo" element={<DemoSandboxPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
         <Route path="/auth/2fa" element={<TwoFactorPage />} />
+
+        {/* ------------------------------------------------------------------ */}
+        {/* Protected routes — requires authentication */}
+        {/* ------------------------------------------------------------------ */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/phase5"
+          element={
+            <ProtectedRoute>
+              <Phase5OperationsPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-    </main>
+    </AuthProvider>
   );
 }
+
