@@ -65,14 +65,14 @@ CosmicSec serves **three kinds of visitors** with fundamentally different needs:
 
 ## 2. Current Project Status
 
-> **Updated 2026-04-13 — All 7 phases (A–G) + SDK work are 100% complete.**
+> **Updated 2026-04-13 — All 8 phases (A–H) + SDK work are 100% complete.**
 
 ### ✅ What Is Built
 
 #### Backend Microservices (Python / FastAPI)
 | Service | Port | Status | Notes |
 |---------|------|--------|-------|
-| API Gateway | 8000 | ✅ Production-ready | HybridRouter, RBAC, WebSocket, per-user rate limiting, WAF middleware, Prometheus |
+| API Gateway | 8000 | ✅ Production-ready | HybridRouter, RBAC, WebSocket, per-user rate limiting, WAF middleware, Prometheus, **dashboard overview endpoint** |
 | Auth Service | 8001 | ✅ Solid | JWT, OAuth2, TOTP/2FA, casbin RBAC, session management |
 | Scan Service | 8002 | ✅ Good | Distributed scanner, smart scanner, continuous monitor, Celery tasks |
 | AI Service | 8003 | ✅ Advanced | LangChain + LangGraph workflow, ChromaDB, MITRE ATT&CK, anomaly detection, red team, Ollama local LLM, quantum-ready, zero-day predictor, NVD/MITRE KB loader |
@@ -84,7 +84,7 @@ CosmicSec serves **three kinds of visitors** with fundamentally different needs:
 | Bug Bounty Service | 8009 | ✅ Good | HackerOne/Bugcrowd/Intigriti, submission workflow, earnings, persistent DB |
 | Phase 5 Service | 8010 | ✅ Good | SOC ops, incident response, SAST, DevSecOps CI gates, persistent DB |
 | Agent Relay | 8011 | ✅ Good | CLI agent WebSocket hub, task dispatch |
-| **Notification Service** | **8012** | ✅ **NEW** | Email/Slack/webhook channels, Prometheus metrics, full CRUD |
+| Notification Service | 8012 | ✅ Done | Email/Slack/webhook channels, Prometheus metrics, full CRUD |
 | Admin Service | — | ✅ Good | Typer CLI, AsyncSSH admin shell, Textual TUI, TOTP MFA, audit-export command |
 
 #### Platform Middleware
@@ -100,40 +100,47 @@ CosmicSec serves **three kinds of visitors** with fundamentally different needs:
 |-----------|--------|-------|
 | Landing / Demo / Pricing pages | ✅ Done | Public static pages for unregistered users |
 | Login / Register / 2FA pages | ✅ Done | Full auth flow with ARIA accessibility |
-| Admin Dashboard | ✅ Good | Users, audit logs, module toggles, WebSocket live data |
-| Phase 5 Operations Page | ✅ Good | Risk posture, SOC metrics, bug bounty earnings |
+| **Dashboard Page** | ✅ **Phase H** | Security score gauge, stats, compliance bars, quick actions, activity feed |
+| Admin Dashboard | ✅ Done | Users, audit logs, module toggles, WebSocket live data |
+| Phase 5 Operations Page | ✅ Done | Risk posture, SOC metrics, bug bounty earnings |
 | Scan Page + Scan Detail | ✅ Done | Live WebSocket progress, findings grid, log stream |
 | Recon Page | ✅ Done | DNS, Shodan, VirusTotal, crt.sh, RDAP panels |
 | AI Analysis Page | ✅ Done | Risk gauge, MITRE ATT&CK table, recommendations |
 | Profile Page | ✅ Done | API key management, notification preferences |
 | Bug Bounty Page | ✅ Done | Program list, submission workflow |
 | Reports Page | ✅ Done | Report generation and download |
-| **Timeline Page** | ✅ **NEW** | Unified cross-source event timeline with filters, drill-down, JSON export |
-| Sidebar + AppLayout | ✅ Done | Collapsible, mobile-responsive, keyboard accessible, ESC to close |
-| **SkipLink** | ✅ **NEW** | Skip-to-content link for full a11y compliance |
+| Timeline Page | ✅ Done | Unified cross-source event timeline with filters, drill-down, JSON export |
+| **Settings Page** | ✅ **Phase H** | Appearance, notifications, scan defaults, security, danger zone |
+| **Agents Page** | ✅ **Phase H** | CLI agent status, tools, dispatch tasks, install guide |
+| Sidebar + AppLayout | ✅ Enhanced | Collapsible, mobile-responsive, keyboard accessible, role-gated Admin link |
+| **Desktop Header** | ✅ **Phase H** | Global search, theme toggle, notification bell, user avatar menu |
+| SkipLink | ✅ Done | Skip-to-content link for full a11y compliance |
+| **ErrorBoundary** | ✅ **Phase H** | React error boundary wrapping the full app |
+| **404 Not Found Page** | ✅ **Phase H** | Gradient animated 404 with navigation CTAs |
+| **ThemeContext** | ✅ **Phase H** | Dark/light mode with OS preference + localStorage persistence |
 
 #### SDK
 | SDK | Status | Notes |
 |-----|--------|-------|
 | Python SDK | ✅ Good | httpx sync client, runtime envelope parser |
-| **Go SDK** | ✅ **Full parity** | 13 methods total, JWT/API-key auth, envelope unwrapping, `go.mod` |
+| Go SDK | ✅ Full parity | 13 methods total, JWT/API-key auth, envelope unwrapping, `go.mod` |
 | JavaScript SDK | ✅ Good | Fetch-based (legacy compat) |
-| **TypeScript SDK** | ✅ **NEW** | `@cosmicsec/sdk` — 14-method typed client, `AgentWebSocketClient`, full Zod-compatible types |
+| TypeScript SDK | ✅ Done | `@cosmicsec/sdk` — 14-method typed client, `AgentWebSocketClient`, full Zod-compatible types |
 
 #### Infrastructure
 | Component | Status |
 |-----------|--------|
 | Docker Compose (all 16 services + observability) | ✅ Complete |
 | PostgreSQL + Redis + MongoDB + Elasticsearch + RabbitMQ | ✅ Configured |
-| **Traefik v3 + TLS (Let's Encrypt ACME)** | ✅ **NEW** |
-| **Prometheus + Grafana + Loki** | ✅ **NEW** |
+| Traefik v3 + TLS (Let's Encrypt ACME) | ✅ Done |
+| Prometheus + Grafana + Loki | ✅ Done |
 | Consul service discovery | ✅ Configured |
 | Alembic migrations (all tables) | ✅ Complete |
 | GitHub Actions (build, test, deploy, security-scan) | ✅ Present |
-| **PyPI publish workflow** (OIDC trusted) | ✅ **NEW** |
+| PyPI publish workflow (OIDC trusted) | ✅ Done |
 | Pre-commit hooks | ✅ Configured |
-| **Terraform (AWS RDS, ElastiCache, EKS)** | ✅ **NEW** |
-| **Kubernetes Helm chart** | ✅ **NEW** |
+| Terraform (AWS RDS, ElastiCache, EKS) | ✅ Done |
+| Kubernetes Helm chart | ✅ Done |
 
 #### Tests
 - **Python**: 1 260+ lines across 16+ test files covering all services
@@ -1038,9 +1045,122 @@ Use this checklist to track implementation. Check off items as they are complete
 - [x] TypeScript SDK (`sdk/typescript/` — `@cosmicsec/sdk`, 14-method typed client + `AgentWebSocketClient`)
 - [x] Go SDK (expanded to full parity: 13 methods, `SetToken`/`SetAPIKey`, envelope unwrapping)
 
+### Phase H — Next-Level Enhancements ✅ COMPLETE (100%)
+- [x] H1 · Security Operations Home Dashboard (`/dashboard`) — security score gauge, stats, compliance bars, activity feed
+- [x] H2 · Dark/Light theme (`ThemeContext.tsx`) — OS preference, localStorage persistence, `useTheme()` hook
+- [x] H3 · Desktop Header (`Header.tsx`) — global search, theme toggle, notification bell, user avatar dropdown
+- [x] H4 · 404 Not Found Page (`NotFoundPage.tsx`) — gradient animated design with navigation CTAs
+- [x] H5 · React Error Boundary (`ErrorBoundary.tsx`) — crash protection for the full app
+- [x] H6 · Settings Page (`/settings`) — appearance, notifications, scan defaults, security, danger zone
+- [x] H7 · Agents Page (`/agents`) — agent status, tools, dispatch, install guide
+- [x] H8 · Backend `GET /api/dashboard/overview` — aggregated metrics endpoint
+- [x] H9 · Sidebar improvements — role-gated admin link, Phase5 + Agents nav, Settings link
+- [x] H10 · `lib/utils.ts` — `cn()` TailwindCSS merge utility (was missing)
+- [x] H11 · ProtectedRoute role redirect fixed → `/dashboard`
+
 ---
 
-## Overall Completion: **100%** 🎉
+### Phase H — Next-Level Enhancements ✅ COMPLETE (100%)
+**Goal**: Elevate the platform beyond the initial roadmap with a richer UX, better DX, and new utility features.
+**Status**: ✅ Fully implemented — 2026-04-13
 
-All 7 phases (A–G) + SDK work fully implemented.
-60+ new files across Python, TypeScript, Go, Rust, HCL (Terraform), YAML (Helm/K8s/Compose).
+#### H1 · Security Operations Home Dashboard ✅
+- ✅ Created `frontend/src/pages/DashboardPage.tsx`
+  - SVG half-circle Security Score Gauge (0–100, colour-coded)
+  - Stats cards: Total Scans, Critical Findings, Active Agents, Open Bug Reports (with micro-trends)
+  - Compliance readiness bars (SOC 2 / PCI DSS / HIPAA) with colour thresholds
+  - Quick-action cards: New Scan, Recon, AI Analysis, Reports
+  - Platform module health grid with live pulse indicators
+  - Recent activity feed with severity dots, source icons, relative timestamps
+  - API fetch with mock fallback; greeting personalised to time of day
+- ✅ Route `/dashboard` added to `App.tsx` as default authenticated home
+
+#### H2 · Dark / Light Theme System ✅
+- ✅ Created `frontend/src/context/ThemeContext.tsx`
+  - Respects `prefers-color-scheme` on first visit; persists selection in `localStorage`
+  - Applies `dark` / `light` class to `<html>` for Tailwind dark-mode toggling
+  - `useTheme()` hook exposes `{ theme, toggleTheme, setTheme }`
+- ✅ `App.tsx` wrapped with `<ThemeProvider>` (outermost provider)
+
+#### H3 · Desktop Top Header Bar ✅
+- ✅ Created `frontend/src/components/Header.tsx`
+  - **Global search bar** with focus-expand animation and keyboard hint overlay
+  - **Theme toggle** button (Sun ↔ Moon icon) wired to `ThemeContext`
+  - **Notification bell** with unread count badge; dropdown showing all in-flight toasts with "Clear all"
+  - **User avatar dropdown**: initials avatar, name/email/role display, links to Profile & Settings, sign-out button
+- ✅ `AppLayout.tsx` updated — renders `<Header />` in desktop view (hidden on mobile)
+
+#### H4 · 404 Not Found Page ✅
+- ✅ Created `frontend/src/pages/NotFoundPage.tsx`
+  - Gradient "404" headline, subtle glow blob, concise message
+  - CTA buttons: "Go to Dashboard" + "Go Back" (uses `window.history.back()`)
+  - Help links to key routes
+
+#### H5 · React Error Boundary ✅
+- ✅ Created `frontend/src/components/ErrorBoundary.tsx`
+  - Class component (required by React's error boundary API)
+  - Catches JS render errors; shows error card with message and "Try again" reset button
+  - Logs errors to console (production: swap for Sentry/Datadog)
+- ✅ Wraps entire `<App>` in `App.tsx` for top-level crash protection
+
+#### H6 · Settings Page ✅
+- ✅ Created `frontend/src/pages/SettingsPage.tsx`
+  - **Appearance**: visual Dark / Light theme selector cards
+  - **Notifications**: email, Slack, critical-only toggles with accessible `role="switch"`
+  - **Scan defaults**: timeout input, auto-analyze AI toggle
+  - **Security**: session timeout select, 2FA toggle, "Sign out everywhere" button
+  - **Account info**: read-only user metadata grid
+  - **Danger zone**: delete account with email-confirmation guard
+- ✅ Route `/settings` added; Settings link in Sidebar footer + user dropdown
+
+#### H7 · Agents Page ✅
+- ✅ Created `frontend/src/pages/AgentsPage.tsx`
+  - Shows all connected local CLI agents: hostname, ID, platform, tools, status, last-seen, tasks
+  - Stats row: total / online / idle counts
+  - Per-agent "Dispatch task" CTA for online/idle agents
+  - Install banner with copy-paste pip install + connect commands
+  - API fetch with mock fallback; manual refresh button
+- ✅ Route `/agents` added; "Agents" link in Sidebar
+
+#### H8 · Backend Dashboard Overview API ✅
+- ✅ Added `GET /api/dashboard/overview` to `services/api_gateway/main.py`
+  - Aggregates: `total_scans`, `critical_findings`, `active_agents`, `open_bugs`, `findings_last_7d`, `compliance_pct`
+  - Derives `security_score` (0–100) from finding ratio and open bugs
+  - Rate-limited (60/min); graceful fallback when downstream services unreachable
+
+#### H9 · Sidebar Improvements ✅
+- ✅ Updated `frontend/src/components/Sidebar.tsx`
+  - Added `adminOnly` flag — Admin nav item visible only to users with `role === "admin"`
+  - Added: SOC / Phase5, Agents nav items
+  - Added: Settings link in sidebar footer area
+  - Updated Dashboard link to point to `/dashboard`
+
+#### H10 · `lib/utils.ts` Missing Utility Fixed ✅
+- ✅ Created `frontend/src/lib/utils.ts` — `cn()` helper (clsx + tailwind-merge) used by UI components
+
+#### H11 · ProtectedRoute Role Redirect Fixed ✅
+- ✅ `frontend/src/router/ProtectedRoute.tsx` — unauthorised role now redirects to `/dashboard` instead of public `/`
+
+---
+
+## Overall Completion: **100% + Phase H** 🎉
+
+All 8 phases (A–H) + SDK work fully implemented.
+70+ new files across Python, TypeScript, Go, Rust, HCL (Terraform), YAML (Helm/K8s/Compose).
+
+### Phase H Summary — What Was Added / Improved
+
+| Area | Enhancement |
+|------|-------------|
+| **Frontend** | Security Operations Dashboard (`/dashboard`) with score gauge, stats, activity feed |
+| **Frontend** | Dark/Light theme with OS preference detection and `localStorage` persistence |
+| **Frontend** | Desktop top header: global search, notification bell, user dropdown, theme toggle |
+| **Frontend** | 404 Not Found page with animated design |
+| **Frontend** | React Error Boundary for crash protection |
+| **Frontend** | Full Settings page (appearance, notifications, scan defaults, security, danger zone) |
+| **Frontend** | Agents page with status, tools, dispatch CTA, install guide |
+| **Frontend** | Admin-only sidebar link (role-gated), Phase5 & Agents nav items |
+| **Frontend** | `lib/utils.ts` — `cn()` TailwindCSS merge utility |
+| **Backend** | `GET /api/dashboard/overview` aggregated metrics endpoint |
+| **UX/DX** | ProtectedRoute role redirect → `/dashboard` (not public `/`) |
+
