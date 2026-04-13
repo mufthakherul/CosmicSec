@@ -396,6 +396,27 @@ services:
       - traefik.http.routers.cosmicsec-agent-relay.priority=20
       - traefik.http.services.cosmicsec-agent-relay.loadbalancer.server.port=8011
 
+  # Notification Service — Phase E event notifications
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cosmicsec-notification-service
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    ports:
+      - "8012:8012"
+    networks:
+      - cosmicsec-network
+    volumes:
+      - ./:/app
+    command: uvicorn services.notification_service.main:app --host 0.0.0.0 --port 8012 --reload
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cosmicsec-notification.rule=PathPrefix(`/notify`)
+      - traefik.http.routers.cosmicsec-notification.entrypoints=web
+      - traefik.http.services.cosmicsec-notification.loadbalancer.server.port=8012
+
   # Celery Worker - Background tasks
   celery-worker:
     build:
