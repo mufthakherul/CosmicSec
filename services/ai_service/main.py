@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime
 from typing import List, Optional
 
+import httpx
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
@@ -623,3 +624,72 @@ async def correlate_graph(req: CorrelationRequest):
         edges=edges,
         total_findings=len(findings),
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase F — AI Workflow
+# ---------------------------------------------------------------------------
+
+class WorkflowStartRequest(BaseModel):
+    target: str
+    async_mode: bool = Field(default=False, description="Run workflow in background (not yet implemented)")
+
+
+@app.post("/ai/workflow/start", tags=["workflow"])
+async def start_workflow(req: WorkflowStartRequest):
+    """Kick off a full automated multi-step security assessment workflow."""
+    from .langgraph_flow import run_workflow
+    result = await run_workflow(req.target)
+    return {
+        "target": result["target"],
+        "recon_results": result["recon_results"],
+        "scan_count": len(result["scan_results"]),
+        "ai_findings": result["ai_findings"],
+        "report_url": result["report_url"],
+        "errors": result["errors"],
+        "status": "completed",
+    }
+
+
+class DispatchTaskRequest(BaseModel):
+    agent_id: str
+    findings: List[dict] = Field(default_factory=list)
+    target: str
+
+
+@app.post("/ai/dispatch-task", tags=["workflow"])
+async def dispatch_task(req: DispatchTaskRequest):
+    """AI selects the best tool to run based on findings, dispatches task to agent relay."""
+    import uuid as _uuid2
+
+    # Heuristic tool selection
+    severities = [f.get("severity", "info").lower() for f in req.findings]
+    if "critical" in severities or "high" in severities:
+        tool, args = "nuclei", ["-u", req.target, "-severity", "critical,high"]
+        reason = "Critical/high findings detected — running nuclei for CVE checks"
+    elif "medium" in severities:
+        tool, args = "nikto", ["-h", req.target]
+        reason = "Medium findings detected — running nikto for web vulnerability scan"
+    else:
+        tool, args = "nmap", ["-sV", "-T4", req.target]
+        reason = "Running nmap service discovery scan"
+
+    task_id = str(_uuid2.uuid4())
+    task_payload = {
+        "task_id": task_id,
+        "agent_id": req.agent_id,
+        "tool": tool,
+        "args": args,
+        "target": req.target,
+        "reason": reason,
+    }
+
+    # Try to dispatch to agent relay
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post("http://agent-relay:8011/relay/dispatch-task", json=task_payload)
+    except Exception:
+        pass  # Agent relay may not be running; task still returned
+
+    return task_payload
+

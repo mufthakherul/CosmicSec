@@ -4,12 +4,16 @@ Helix AI Security Agent — LangChain-powered orchestration.
 Phase 1: LangChain chain with OpenAI GPT when OPENAI_API_KEY is set;
 graceful template-based fallback otherwise.
 Phase 2 extension: add LangGraph multi-agent workflows.
+Phase F4: Ollama local LLM support via OLLAMA_BASE_URL env var.
 """
 from __future__ import annotations
 
+import logging
 import os
 import importlib
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 from .prompt_templates import SYSTEM_PROMPT, SUMMARY_TEMPLATE
 from .rag_store import retrieve_guidance
@@ -68,6 +72,34 @@ def _build_chain() -> Optional[object]:
     return None
 
 
+def _build_ollama_chain() -> Optional[object]:
+    """Build an Ollama LLM chain if OLLAMA_BASE_URL is set and langchain_community is available."""
+    global _chain
+    base_url = os.getenv("OLLAMA_BASE_URL")
+    if not base_url:
+        return None
+    try:
+        ollama_mod = importlib.import_module("langchain_community.llms")
+        Ollama = ollama_mod.Ollama
+        model = os.getenv("OLLAMA_MODEL", "llama3")
+        llm = Ollama(base_url=base_url, model=model, temperature=0.3)  # type: ignore[call-arg]
+        PromptTemplate = importlib.import_module("langchain.prompts").PromptTemplate
+        prompt = PromptTemplate(
+            input_variables=["system", "context", "query"],
+            template="{system}\n\nContext:\n{context}\n\nQuery: {query}\n\nAnalysis:",
+        )
+        try:
+            chain = prompt | llm
+        except Exception:
+            from langchain.chains import LLMChain  # type: ignore[import]
+            chain = LLMChain(llm=llm, prompt=prompt)
+        _chain = chain
+        return _chain
+    except Exception as exc:
+        logger.warning("Ollama chain build failed: %s", exc)
+        return None
+
+
 def run_security_agent(
     target: str,
     finding_titles: List[str],
@@ -84,7 +116,8 @@ def run_security_agent(
     rag_results = retrieve_guidance(query_text, top_k=3)
     context = "\n- ".join(rag_results) if rag_results else "No specific guidance found."
 
-    chain = _build_chain()
+    # Try Ollama first (local LLM takes priority)
+    chain = _build_ollama_chain() or _build_chain()
     if chain is not None:
         try:
             # LangChain chain invocation
