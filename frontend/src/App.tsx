@@ -23,6 +23,7 @@ import { AIAnalysisPage } from "./pages/AIAnalysisPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { BugBountyPage } from "./pages/BugBountyPage";
+import { TimelinePage } from "./pages/TimelinePage";
 
 export function App() {
   return (
@@ -111,6 +112,14 @@ export function App() {
           element={
             <ProtectedRoute>
               <BugBountyPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/timeline"
+          element={
+            <ProtectedRoute>
+              <TimelinePage />
             </ProtectedRoute>
           }
         />
