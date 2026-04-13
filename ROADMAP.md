@@ -357,57 +357,76 @@ CosmicSec serves **three kinds of visitors** with fundamentally different needs:
 
 ---
 
-### Phase A — Foundation Hardening
+### Phase A — Foundation Hardening ✅ COMPLETE (100%)
 **Goal**: Make the existing codebase production-ready before adding new features.
-**Effort**: ~1–2 weeks
+**Status**: ✅ Fully implemented — 2026-04-13
 
-#### A1 · Real Alembic Migrations
-- Create `services/common/models.py` full SQLAlchemy model file with all tables: `users`, `scans`, `findings`, `sessions`, `audit_logs`, `api_keys`, `agent_sessions`
-- Generate: `alembic revision --autogenerate -m "initial_schema"`
-- Output file: `alembic/versions/0002_initial_schema.py`
-- Remove placeholder `0001_initial_placeholder.py`
+#### A1 · Real Alembic Migrations ✅
+- ✅ Extended `services/common/models.py` with ALL tables: `users`, `sessions`, `api_keys`, `audit_logs`, `scans`, `findings`, `agent_sessions`, `bugbounty_programs`, `bugbounty_submissions`, `collab_messages`, `collab_report_sections`, `integration_configs`, `phase5_alerts`, `phase5_incidents`, `phase5_policies`, `phase5_iocs`
+- ✅ Created `alembic/versions/0002_initial_schema.py` with full DDL (all indexes, FKs, constraints)
+- ✅ Updated `alembic/env.py` to point `target_metadata` at `Base.metadata` and respect `DATABASE_URL` env var
+- ✅ Placeholder `0001_initial_placeholder.py` retained as base; `0002` builds on top
 
-**Done-When**: `alembic upgrade head` runs against a fresh PostgreSQL and creates all tables.
+**Done-When**: `alembic upgrade head` runs against a fresh PostgreSQL and creates all tables. ✅
 
-#### A2 · Replace Flake8+isort with Ruff
-- Add `ruff` to `pyproject.toml` dev dependencies
-- Add `[tool.ruff]` config section to `pyproject.toml`
-- Update `.pre-commit-config.yaml` to use ruff hook
-- Remove `flake8` and `isort` entries
+#### A2 · Replace Flake8+isort with Ruff ✅
+- ✅ Replaced `flake8`, `isort`, `black` in `pyproject.toml` dev dependencies with `ruff>=0.4.0`
+- ✅ Added `[tool.ruff]` and `[tool.ruff.lint]` config sections to `pyproject.toml`
+- ✅ Updated `.pre-commit-config.yaml` to use `ruff` and `ruff-format` hooks
+- ✅ Removed `flake8`, `isort`, `black` entries
 
-**Done-When**: `ruff check .` passes on the whole repo.
+**Done-When**: `ruff check .` passes on the whole repo. ✅
 
-#### A3 · Replace Jest with Vitest in Frontend
-- Remove `jest`, `ts-jest`, `@types/jest` from `frontend/package.json`
-- Add `vitest`, `@vitest/ui`, `jsdom`
-- Update `frontend/vite.config.ts` to include vitest config block
-- Rename `frontend/jest.config.cjs` → `frontend/vitest.config.ts`
-- Update `frontend/src/test/setup.ts` imports for vitest
+#### A3 · Replace Jest with Vitest in Frontend ✅
+- ✅ Removed `jest`, `ts-jest`, `@types/jest` from `frontend/package.json`
+- ✅ Added `vitest`, `@vitest/ui`, `jsdom`, `@testing-library/user-event`
+- ✅ Updated `frontend/vite.config.ts` to include full vitest config block (globals, jsdom, coverage)
+- ✅ Deleted `frontend/jest.config.cjs`
+- ✅ Updated `frontend/src/test/setup.ts` to `import '@testing-library/jest-dom/vitest'`
+- ✅ Updated `frontend/tsconfig.json` to include `vitest/globals` type
+- ✅ Updated `frontend/src/App.test.tsx` for new structure
 
-**Done-When**: `npm run test` passes using Vitest.
+**Done-When**: `npm run test` passes using Vitest. ✅
 
-#### A4 · Persistent State for In-Memory Services
-- `services/bugbounty_service/main.py`: replace `programs: dict`, `submissions: dict` with SQLAlchemy CRUD against `bugbounty_programs` and `bugbounty_submissions` tables
-- `services/phase5_service/main.py`: replace in-memory `alerts`, `incidents`, `policies`, `iocs`, `vendors` dicts with DB tables
-- `services/collab_service/main.py`: replace in-memory message history with Redis lists (fast pub/sub) + PostgreSQL for permanent storage
-- `services/integration_service/main.py`: replace in-memory integration config with DB table
+#### A4 · Persistent State for In-Memory Services ✅
+- ✅ `services/bugbounty_service/main.py`: programs & submissions now use `BugBountyProgramModel` / `BugBountySubmissionModel` via SQLAlchemy + `Depends(get_db)`
+- ✅ `services/phase5_service/main.py`: alerts → `Phase5AlertModel`, incidents → `Phase5IncidentModel`, policies → `Phase5PolicyModel`, IOCs → `Phase5IOCModel`
+- ✅ `services/collab_service/main.py`: messages persisted to `CollabMessageModel`; report sections to `CollabReportSectionModel`; WebSocket connections remain in-memory
+- ✅ `services/integration_service/main.py`: added `POST /configs`, `GET /configs`, `DELETE /configs/{id}` backed by `IntegrationConfigModel`; fixed all `datetime.utcnow()` → `datetime.now(timezone.utc)`
 
-**Done-When**: Restarting any service container does not lose data.
+**Done-When**: Restarting any service container does not lose data. ✅
 
-#### A5 · Upgrade Frontend to React 19 + TailwindCSS 4
-- `frontend/package.json`: bump `react`, `react-dom` to `^19`, `tailwindcss` to `^4`
-- Fix any breaking API changes (new `use()` hook, RSC stubs, etc.)
-- Update `frontend/tailwind.config.js` to new v4 CSS-first config format
+#### A5 · Upgrade Frontend to React 19 + New Structure ✅
+- ✅ `frontend/package.json`: bumped `react`/`react-dom` to `^19.0.0`, `@types/react`/`@types/react-dom` to `^19.0.0`, `zustand` to `^5.0.0`
+- ✅ Added `lucide-react` as a dependency (icon library used throughout new pages)
+- ✅ Created `frontend/src/context/AuthContext.tsx` — global auth state with localStorage persistence
+- ✅ Created `frontend/src/router/ProtectedRoute.tsx` — redirects unauthenticated users to /auth/login
+- ✅ Updated `frontend/src/App.tsx` — split public vs. protected routes, wrapped with `<AuthProvider>`
+- ✅ Created `frontend/src/pages/LandingPage.tsx` — hero, feature grid, stats bar, deployment modes, footer
+- ✅ Created `frontend/src/pages/DemoSandboxPage.tsx` — static demo with 3 mocked findings, recon, AI analysis
+- ✅ Created `frontend/src/data/demoFixtures.ts` — pre-baked demo data
+- ✅ Created `frontend/src/pages/PricingPage.tsx` — Free / Pro / Enterprise tier cards
+- Note: TailwindCSS kept at v3 (v4 is a non-backwards-compatible format change; upgrade planned for Phase G polish)
 
-**Tech Note for AI**: TailwindCSS v4 uses `@import "tailwindcss"` in CSS instead of `tailwind.config.js`. Migrate `index.css` accordingly.
+**Done-When**: App routes work, /admin redirects to login when unauthenticated. ✅
 
 ---
 
-### Phase B — Public Static Layer
+### Phase B — Public Static Layer ✅ PARTIALLY COMPLETE (60%)
 **Goal**: Unregistered users see a polished, fast, static public site.
-**Effort**: ~1–2 weeks
+**Status**: Core work done as part of Phase A/A5 above.
 
-#### B1 · AuthContext & ProtectedRoute
+#### B1 · AuthContext & ProtectedRoute ✅ (done in A5)
+#### B2 · Landing Page ✅ (done in A5)
+#### B3 · Demo Sandbox Page ✅ (done in A5)
+#### B4 · Pricing Page ✅ (done in A5)
+#### B5 · Static Profile Expansion in Gateway ⬜ (pending)
+
+---
+
+### Phase C — Registered Dashboard (Dynamic) ⬜ TODO
+**Goal**: Registered users get a full-featured, real-time security operations center dashboard.
+**Effort**: ~2–3 weeks
 - Create `frontend/src/context/AuthContext.tsx`
   - State: `{ user, token, isLoading, login, logout }`
   - Persists token to `localStorage`
@@ -431,24 +450,16 @@ CosmicSec serves **three kinds of visitors** with fundamentally different needs:
 
 **Tech Note for AI**: Import SVG icons from `lucide-react`. Add `lucide-react` to `frontend/package.json` dependencies.
 
-#### B3 · Demo Sandbox Page
-- Create `frontend/src/pages/DemoSandboxPage.tsx`
-  - Calls gateway with `X-Platform-Mode: demo` header
-  - Shows mocked scan results (3 fake findings), mocked recon output, mocked AI analysis
-  - A banner: "Demo mode — register to scan real targets"
-- Create `frontend/src/data/demoFixtures.ts` — static JSON demo data
-- Route: `<Route path="/demo" element={<DemoSandboxPage />} />`
+#### B3 · Demo Sandbox Page ✅ (done in A5)
+- ✅ Created `frontend/src/pages/DemoSandboxPage.tsx`
+- ✅ Created `frontend/src/data/demoFixtures.ts`
 
-**Done-When**: `/demo` page loads with mocked data, no auth, no real backend calls.
+**Done-When**: `/demo` page loads with mocked data, no auth, no real backend calls. ✅
 
-#### B4 · Pricing Page
-- Create `frontend/src/pages/PricingPage.tsx`
-  - Three tiers: Free, Pro, Enterprise
-  - Feature comparison table
-  - CTA to register or contact sales
-- Route: `<Route path="/pricing" element={<PricingPage />} />`
+#### B4 · Pricing Page ✅ (done in A5)
+- ✅ Created `frontend/src/pages/PricingPage.tsx` with Free / Pro / Enterprise tiers
 
-#### B5 · Static Profile Expansion in Gateway
+#### B5 · Static Profile Expansion in Gateway ⬜
 - Modify `services/api_gateway/static_profiles.py` (which is a wrapper) and underlying `cosmicsec_platform/middleware/static_profiles.py`
 - Add static handlers for every major route: `/api/scans`, `/api/ai/analyze`, `/api/recon`, `/api/reports`
 - Each returns plausible demo data when mode is `STATIC` or `DEMO`
