@@ -14,14 +14,11 @@
     "isolatedModules": true,
     "noEmit": true,
     "types": [
-      "vite/client"
+      "vite/client",
+      "vitest/globals"
     ]
   },
   "include": [
     "src"
-  ],
-  "exclude": [
-    "src/**/*.test.ts",
-    "src/**/*.test.tsx"
   ]
 }
