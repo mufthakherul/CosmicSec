@@ -83,7 +83,7 @@ Link: <https://docs.api.com/v2/endpoint>; rel="successor-version"
 ```
 
 #### I5 · GraphQL Integration Layer ✅
-**File**: `services/common/graphql_integration.py` (450+ lines)
+**Files**: `services/api_gateway/graphql_runtime.py` (active runtime), `Archives/Deprecated/services/common/graphql_integration.py` (archived reference)
 - [x] Complete GraphQL schema with 25+ types
 - [x] Query resolvers for all major endpoints
 - [x] Mutation resolvers for CRUD operations

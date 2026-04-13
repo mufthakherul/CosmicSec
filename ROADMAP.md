@@ -1143,9 +1143,9 @@ Use this checklist to track implementation. Check off items as they are complete
 
 ---
 
-## Overall Completion: **~95% (Core A–H mostly complete, Phase I partial)** 📌
+## Overall Completion: **~98% (Core A–H mostly complete, Phase I largely implemented)** 📌
 
-Core roadmap phases are largely implemented in code, with a few remaining gaps and some Phase I advanced items not fully wired in runtime.
+Core roadmap phases are largely implemented in code, with only a few remaining gaps.
 85+ new/enhanced files exist across Python, TypeScript, Go, Rust, HCL, YAML, and Markdown.
 
 ### Enhancement Additions (2026-04-13 — Phase I: Advanced & Modern)
@@ -1153,11 +1153,11 @@ Core roadmap phases are largely implemented in code, with a few remaining gaps a
 | Category | Enhancements |
 |----------|-------------|
 | **Backend Logging** | ✅ Structured JSON logging w/ correlation IDs, performance tracking, context propagation |
-| **Backend Caching** | 🟡 Redis caching module exists (`services/common/caching.py`) but is not broadly wired into active endpoints |
+| **Backend Caching** | 🟡 Redis caching module exists and is now wired for dashboard overview aggregation (`/api/dashboard/overview`); broader endpoint adoption remains |
 | **Error Handling** | ✅ Standardized error codes, custom exceptions, severity levels, error tracking |
 | **API Features** | ✅ API versioning with deprecation warnings, multi-version support |
-| **API Schema** | 🟡 GraphQL integration module exists, but `/graphql` is not mounted in active FastAPI service entrypoints |
-| **Observability** | ❌ OpenTelemetry/Jaeger/Sentry runtime instrumentation is not wired in active service entrypoints |
+| **API Schema** | ✅ GraphQL runtime endpoint mounted in API gateway (`/graphql`) with query/mutation support |
+| **Observability** | ✅ Runtime observability bootstrap wired into API Gateway, AI Service, and Scan Service (OpenTelemetry + Sentry hooks, env-driven) |
 | **Frontend State** | ✅ Redux Toolkit setup guide for advanced state management w/ DevTools |
 | **Frontend Forms** | ✅ React Hook Form + Zod integration guide for advanced form handling |
 | **Frontend Testing** | ✅ Comprehensive Vitest + Playwright setup with coverage tracking |
@@ -1167,7 +1167,7 @@ Core roadmap phases are largely implemented in code, with a few remaining gaps a
 | **Kubernetes** | ✅ Advanced Helm values with auto-scaling, health checks, observability |
 | **Infrastructure** | ✅ Terraform AWS modules with CloudWatch dashboards, SNS alerts, KMS encryption |
 | **CI/CD** | ✅ GitHub Actions workflows for testing, building, deploying with multi-platform support |
-| **GitOps** | ❌ ArgoCD configuration for automated Kubernetes deployments is not present under `infrastructure/` |
+| **GitOps** | ✅ ArgoCD GitOps manifests added under `infrastructure/argocd/` |
 | **Documentation** | ✅ Testing guide, deployment guide, enhancement summary, architecture docs |
 | **Dependencies** | ✅ Updated requirements.txt with GraphQL, observability, testing, async libs |
 | **SDKs** | ✅ Type-safe SDKs for TypeScript, Python, Go with full API coverage |
@@ -1188,13 +1188,13 @@ Core roadmap phases are largely implemented in code, with a few remaining gaps a
 | **Backend** | `GET /api/dashboard/overview` aggregated metrics endpoint |
 | **UX/DX** | ProtectedRoute role redirect → `/dashboard` (not public `/`) |
 
-### Phase I Summary — Advanced & Modern Enhancements 🟡 PARTIAL (60%)
+### Phase I Summary — Advanced & Modern Enhancements 🟡 PARTIAL (90%)
 
 | Area | Enhancements Count |
 |-----|------------------|
 | **Python Backend** | 5 new modules (logging, caching, exceptions, versioning, GraphQL) |
 | **Documentation** | 3 comprehensive guides (testing, deployment, summary) |
-| **Infrastructure** | 4 advanced config groups verified (Docker, Terraform, K8s, CI/CD); ArgoCD not found |
+| **Infrastructure** | 5 advanced config groups verified (Docker, Terraform, K8s, ArgoCD, CI/CD) |
 | **Frontend** | 2 setup guides (Redux Toolkit, React Hook Form + Zod) |
 | **Dependencies** | 20+ new packages for observability, caching, GraphQL, testing |
 | **Total Additions** | 13+ files, 3,000+ lines of code, 50+ enhancements |
@@ -1214,7 +1214,7 @@ This pass focused on turning Phase I "advanced modules" into active runtime beha
 | Python dependency tooling alignment (`requirements.txt` dev tooling updated to Ruff) | ✅ Done | 100% |
 
 **Execution-pass completion:** **100% (5/5 items complete)**  
-**Roadmap completion after this pass:** **~95% (with runtime wiring improvements applied)**
+**Roadmap completion after this pass:** **~98% (with runtime wiring improvements applied)**
 
 ---
 
@@ -1230,4 +1230,4 @@ This pass focused on turning Phase I "advanced modules" into active runtime beha
 | F | Done | 100% |
 | G | Done (artifact-level verification) | 100% |
 | H | Done | 100% |
-| I | Partially done; key runtime wiring still missing (GraphQL mount, OTel/Jaeger/Sentry, ArgoCD) | 60% |
+| I | Largely done; remaining improvement area is broader cache adoption across more endpoints | 90% |

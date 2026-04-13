@@ -54,7 +54,7 @@ PROJECT_COMPLETION_SUMMARY = """
 - ✅ `services/common/caching.py` - Redis caching layer
 - ✅ `services/common/exceptions.py` - Standardized error handling
 - ✅ `services/common/versioning.py` - API versioning
-- ✅ `services/common/graphql_integration.py` - GraphQL support
+- ✅ `services/api_gateway/graphql_runtime.py` - Active GraphQL runtime endpoint
 
 #### Frontend Guides (3)
 - ✅ `frontend/src/store/REDUX_SETUP_GUIDE.md` - Redux Toolkit setup
