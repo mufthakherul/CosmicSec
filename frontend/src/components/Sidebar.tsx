@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Activity,
@@ -37,12 +36,13 @@ const NAV_ITEMS: NavItem[] = [
 interface SidebarProps {
   mobileOpen: boolean;
   onMobileClose: () => void;
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
 }
 
-export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChange }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
 
   const isActive = (to: string) =>
     to === "/admin" ? location.pathname === "/admin" : location.pathname.startsWith(to);
@@ -86,7 +86,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
             </button>
             {/* Desktop collapse toggle */}
             <button
-              onClick={() => setCollapsed((c) => !c)}
+              onClick={() => onCollapsedChange(!collapsed)}
               className="hidden rounded p-1 text-slate-400 hover:text-white md:block"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >

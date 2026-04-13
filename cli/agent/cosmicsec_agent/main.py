@@ -196,9 +196,35 @@ def connect(
     console.print(f"[bold cyan]Connecting to {server} as agent {agent_id}…[/bold cyan]")
 
     async def _run() -> None:
+        # First: register agent with server via REST
+        http_base = server.replace("ws://", "http://").replace("wss://", "https://")
+        import httpx
+        try:
+            async with httpx.AsyncClient() as http_client:
+                reg_resp = await http_client.post(
+                    f"{http_base}/api/agents/register",
+                    json={"manifest": manifest, "agent_id": agent_id},
+                    headers={"X-API-Key": api_key},
+                    timeout=10.0,
+                )
+                if reg_resp.status_code == 200:
+                    reg_data = reg_resp.json()
+                    # Server may assign a canonical agent_id
+                    canonical_id = reg_data.get("agent_id", agent_id)
+                    if canonical_id != agent_id:
+                        cfg["agent_id"] = canonical_id
+                        _save_config(cfg)
+                    console.print(f"[green]Registered with server. Agent ID: {canonical_id}[/green]")
+                else:
+                    console.print(f"[yellow]Registration returned {reg_resp.status_code} — continuing anyway.[/yellow]")
+        except Exception as exc:
+            console.print(f"[yellow]Could not reach registration endpoint: {exc}[/yellow]")
+
+        # Then: open WebSocket + immediately send manifest
         await client.connect()
+        await client._send_raw({"type": "manifest", "payload": manifest})
         console.print("[green]Connected! Streaming mode active. Press Ctrl+C to exit.[/green]")
-        console.print(f"Tool manifest: {len(manifest['tools'])} tool(s) registered.")
+        console.print(f"Tool manifest sent: {len(manifest['tools'])} tool(s).")
         async for task in client.receive_tasks():
             console.print(f"[bold yellow]Received task:[/bold yellow] {task}")
 

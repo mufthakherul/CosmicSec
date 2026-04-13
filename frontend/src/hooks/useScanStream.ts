@@ -19,8 +19,19 @@ export function useScanStream(scanId: string | undefined) {
   const connect = useCallback(() => {
     if (!scanId || !mountedRef.current) return;
 
-    const host = window.location.host;
-    const ws = new WebSocket(`ws://${host}/ws/scans/${scanId}`);
+    // Derive ws/wss scheme from the API base URL env var, or fall back to
+    // matching the current page protocol (http→ws, https→wss).
+    const apiBase = import.meta.env.VITE_API_BASE_URL as string | undefined;
+    let wsUrl: string;
+    if (apiBase) {
+      const httpBase = apiBase.replace(/\/+$/, "");
+      wsUrl = httpBase.replace(/^https?/, (scheme) => (scheme === "https" ? "wss" : "ws")) + `/ws/scans/${scanId}`;
+    } else {
+      const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+      wsUrl = `${scheme}://${window.location.host}/ws/scans/${scanId}`;
+    }
+
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -83,7 +94,7 @@ function handleMessage(
       useScanStore.getState().updateScan(scanId, { progress: Number(p.progress ?? 0) });
       break;
     case "complete":
-      useScanStore.getState().updateScan(scanId, { status: "complete", progress: 100 });
+      useScanStore.getState().updateScan(scanId, { status: "completed", progress: 100 });
       break;
     case "error":
       useScanStore.getState().updateScan(scanId, { status: "failed" });

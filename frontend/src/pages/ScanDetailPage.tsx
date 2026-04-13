@@ -15,7 +15,7 @@ import { AppLayout } from "../components/AppLayout";
 import { useScanStore, type Finding, type FindingSeverity } from "../store/scanStore";
 import { useScanStream } from "../hooks/useScanStream";
 
-const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 const SEV_STYLES: Record<FindingSeverity, { label: string; className: string; icon: React.ElementType }> = {
   critical: { label: "Critical", className: "bg-red-500/20 text-red-400 border-red-500/30", icon: ShieldAlert },
@@ -62,7 +62,15 @@ export function ScanDetailPage() {
 
   const handleExport = async () => {
     try {
-      const res = await fetch(`${API}/api/reports?scan_id=${id}`);
+      const token = localStorage.getItem("cosmicsec_token");
+      const res = await fetch(`${API}/api/reports/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ scan_id: id, format: "json" }),
+      });
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -89,7 +97,6 @@ export function ScanDetailPage() {
   const criticalCount = scan.findings.filter((f) => f.severity === "critical").length;
   const highCount = scan.findings.filter((f) => f.severity === "high").length;
   const isRunning = scan.status === "running";
-
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -140,9 +147,9 @@ export function ScanDetailPage() {
           <div className="mb-2 flex items-center justify-between text-sm">
             <div className="flex items-center gap-2 text-slate-400">
               {isRunning && <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />}
-              {scan.status === "complete" && <CheckCircle className="h-4 w-4 text-emerald-400" />}
+              {scan.status === "completed" && <CheckCircle className="h-4 w-4 text-emerald-400" />}
               {scan.status === "failed" && <AlertCircle className="h-4 w-4 text-rose-400" />}
-              {scan.status === "queued" && <Clock className="h-4 w-4 text-slate-400" />}
+              {scan.status === "pending" && <Clock className="h-4 w-4 text-slate-400" />}
               <span className="capitalize">{scan.status}</span>
             </div>
             <span className="font-mono text-slate-500">{scan.progress}%</span>

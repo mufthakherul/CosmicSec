@@ -391,8 +391,9 @@ services:
     command: uvicorn services.agent_relay.main:app --host 0.0.0.0 --port 8011 --reload
     labels:
       - traefik.enable=true
-      - traefik.http.routers.cosmicsec-agent-relay.rule=PathPrefix(`/relay`) || PathPrefix(`/ws/agent`)
+      - traefik.http.routers.cosmicsec-agent-relay.rule=PathPrefix(`/relay`) || PathPrefix(`/ws/relay`)
       - traefik.http.routers.cosmicsec-agent-relay.entrypoints=web
+      - traefik.http.routers.cosmicsec-agent-relay.priority=20
       - traefik.http.services.cosmicsec-agent-relay.loadbalancer.server.port=8011
 
   # Celery Worker - Background tasks

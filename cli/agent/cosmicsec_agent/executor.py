@@ -35,11 +35,11 @@ async def run_tool(
 
     assert proc.stdout is not None  # guaranteed by PIPE
 
-    deadline = asyncio.get_event_loop().time() + timeout
+    deadline = time.monotonic() + timeout
 
     try:
         while True:
-            remaining = deadline - asyncio.get_event_loop().time()
+            remaining = deadline - time.monotonic()
             if remaining <= 0:
                 proc.kill()
                 await proc.wait()

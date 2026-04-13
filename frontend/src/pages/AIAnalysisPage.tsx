@@ -4,7 +4,7 @@ import { AppLayout } from "../components/AppLayout";
 import { useScanStore } from "../store/scanStore";
 import { useNotificationStore } from "../store/notificationStore";
 
-const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 interface MitreMapping {
   technique_id: string;
@@ -12,14 +12,18 @@ interface MitreMapping {
   tactic: string;
 }
 
+/**
+ * AnalysisResult is assembled client-side from two backend calls:
+ *   POST /api/ai/analyze  → { summary, risk_score, recommendations }
+ *   POST /api/ai/mitre    → { mappings: [{technique_id, technique_name, tactic}] }
+ */
 interface AnalysisResult {
-  analysis_id: string;
   risk_score: number;
+  /** Derived from risk_score: 0-39 low, 40-59 medium, 60-79 high, 80-100 critical */
   risk_level: string;
   summary: string;
   mitre_mappings: MitreMapping[];
   recommendations: string[];
-  confidence: number;
 }
 
 /* SVG risk gauge */
@@ -96,13 +100,60 @@ export function AIAnalysisPage() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch(`${API}/api/ai/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: inputText.trim(), scan_id: selectedScan || undefined }),
+      const token = localStorage.getItem("cosmicsec_token");
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      // Parse the input into findings array expected by /api/ai/analyze
+      const findingLines = inputText.trim().split("\n").filter(Boolean);
+      const findings = findingLines.map((line, i) => {
+        const sevMatch = /\[(critical|high|medium|low|info)\]/i.exec(line);
+        return {
+          id: `f-${i}`,
+          title: line.replace(/\[.*?\]\s*/g, "").slice(0, 120),
+          severity: (sevMatch?.[1]?.toLowerCase() ?? "info") as string,
+          description: line,
+        };
       });
-      const data = (await res.json()) as AnalysisResult;
-      setResult(data);
+
+      const target = selectedScan
+        ? (scans.find((s) => s.id === selectedScan)?.target ?? "unknown")
+        : "custom-input";
+
+      // Call analyze + mitre in parallel
+      const [analyzeRes, mitreRes] = await Promise.all([
+        fetch(`${API}/api/ai/analyze`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ target, findings }),
+        }),
+        fetch(`${API}/api/ai/analyze/mitre`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ findings: findingLines }),
+        }),
+      ]);
+
+      interface AnalyzeRaw { summary: string; risk_score: number; recommendations: string[] }
+      interface MitreRaw { mappings: MitreMapping[] }
+
+      const analyzeData = (await analyzeRes.json()) as AnalyzeRaw;
+      const mitreData = (await mitreRes.json()) as MitreRaw;
+
+      const riskScore = analyzeData.risk_score ?? 0;
+      const riskLevel =
+        riskScore >= 80 ? "critical"
+        : riskScore >= 60 ? "high"
+        : riskScore >= 40 ? "medium"
+        : "low";
+
+      setResult({
+        risk_score: riskScore,
+        risk_level: riskLevel,
+        summary: analyzeData.summary ?? "",
+        mitre_mappings: mitreData.mappings ?? [],
+        recommendations: analyzeData.recommendations ?? [],
+      });
       addNotification({ type: "success", message: "AI analysis complete." });
     } catch {
       addNotification({ type: "error", message: "AI analysis request failed." });
@@ -196,7 +247,6 @@ export function AIAnalysisPage() {
                       {result.risk_level}
                     </p>
                     <p className="text-sm text-slate-400">{result.summary}</p>
-                    <p className="text-xs text-slate-600">Confidence: {Math.round(result.confidence * 100)}%</p>
                   </div>
                 </div>
 

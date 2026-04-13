@@ -1,7 +1,8 @@
 import { create } from "zustand";
 
 export type FindingSeverity = "critical" | "high" | "medium" | "low" | "info";
-export type ScanStatus = "queued" | "running" | "complete" | "failed";
+/** Values mirror the scan service ScanStatus enum: pending | running | completed | failed */
+export type ScanStatus = "pending" | "running" | "completed" | "failed";
 
 export interface Finding {
   id: string;

@@ -3,16 +3,22 @@ import { Globe, Download, ChevronDown, ChevronRight, Loader2, Search } from "luc
 import { AppLayout } from "../components/AppLayout";
 import { useNotificationStore } from "../store/notificationStore";
 
-const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
+/** Matches the actual recon service /recon response shape */
 interface ReconResult {
   target: string;
-  timestamp: number;
-  dns?: { A?: string[]; AAAA?: string[]; MX?: string[]; NS?: string[]; TXT?: string[]; CNAME?: string[] };
-  shodan?: { ip_str?: string; ports?: number[]; hostnames?: string[]; org?: string; country_name?: string };
-  virustotal?: { positives?: number; total?: number; permalink?: string };
-  subdomains?: string[];
-  rdap?: { handle?: string; name?: string; type?: string; status?: string[] };
+  timestamp: string;
+  /** dns.ips: resolved IP addresses; dns.errors: any resolution errors */
+  dns: { ips: string[]; errors: string[] };
+  /** Shodan lookup — disabled when SHODAN_API_KEY not set */
+  shodan: { enabled: boolean; subdomains?: string[]; data_preview?: unknown[]; error?: string };
+  /** VirusTotal lookup — disabled when VIRUSTOTAL_API_KEY not set */
+  virustotal: { enabled: boolean; analysis_stats?: Record<string, number>; error?: string };
+  /** crt.sh certificate transparency subdomains */
+  crtsh: { enabled: boolean; subdomains?: string[]; error?: string };
+  /** RDAP registration info */
+  rdap: { enabled: boolean; handle?: string; status?: string[]; nameservers?: string[]; events?: unknown[]; error?: string };
   findings?: { source: string; summary: string }[];
 }
 
@@ -65,9 +71,13 @@ export function ReconPage() {
     setLoading(true);
     setResult(null);
     try {
+      const token = localStorage.getItem("cosmicsec_token");
       const res = await fetch(`${API}/api/recon`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ target: target.trim() }),
       });
       const data = (await res.json()) as ReconResult;
@@ -143,6 +153,7 @@ export function ReconPage() {
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-400">
                 Results for <span className="font-semibold text-slate-200">{result.target}</span>
+                <span className="ml-2 text-xs text-slate-600">{result.timestamp}</span>
               </p>
               <button
                 onClick={handleExport}
@@ -154,97 +165,105 @@ export function ReconPage() {
             </div>
 
             {/* DNS */}
-            <CollapsiblePanel title="DNS Records" defaultOpen>
-              {result.dns ? (
-                <div className="space-y-2 text-sm">
-                  {Object.entries(result.dns).map(([type, records]) =>
-                    records && records.length > 0 ? (
-                      <div key={type} className="flex gap-3">
-                        <span className="w-10 flex-shrink-0 font-mono text-cyan-400">{type}</span>
-                        <span className="text-slate-300">{records.join(", ")}</span>
-                      </div>
-                    ) : null,
+            <CollapsiblePanel title={`DNS Records${result.dns.ips.length > 0 ? ` (${result.dns.ips.length} IPs)` : ""}`} defaultOpen>
+              {result.dns.ips.length > 0 ? (
+                <div className="space-y-1 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">A / AAAA Records</p>
+                  <div className="flex flex-wrap gap-2">
+                    {result.dns.ips.map((ip) => (
+                      <span key={ip} className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-xs text-cyan-300">{ip}</span>
+                    ))}
+                  </div>
+                  {result.dns.errors.length > 0 && (
+                    <p className="mt-1 text-xs text-rose-400">Errors: {result.dns.errors.join("; ")}</p>
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">No DNS data returned.</p>
+                <p className="text-sm text-slate-500">
+                  {result.dns.errors.length > 0 ? result.dns.errors.join("; ") : "No DNS records resolved."}
+                </p>
               )}
             </CollapsiblePanel>
 
             {/* Shodan */}
-            <CollapsiblePanel title="Shodan Intel">
-              {result.shodan ? (
-                <dl className="grid grid-cols-2 gap-2 text-sm">
-                  {[
-                    ["IP", result.shodan.ip_str],
-                    ["Org", result.shodan.org],
-                    ["Country", result.shodan.country_name],
-                    ["Open Ports", result.shodan.ports?.join(", ")],
-                    ["Hostnames", result.shodan.hostnames?.join(", ")],
-                  ].map(([k, v]) =>
-                    v ? (
-                      <div key={k}>
-                        <dt className="text-xs text-slate-500">{k}</dt>
-                        <dd className="font-mono text-slate-300">{v}</dd>
-                      </div>
-                    ) : null,
-                  )}
-                </dl>
+            <CollapsiblePanel title="Shodan Intelligence">
+              {!result.shodan.enabled ? (
+                <p className="text-sm text-slate-500">Shodan not configured (SHODAN_API_KEY not set).</p>
+              ) : result.shodan.error ? (
+                <p className="text-sm text-rose-400">Error: {result.shodan.error}</p>
               ) : (
-                <p className="text-sm text-slate-500">No Shodan data.</p>
+                <div className="space-y-2">
+                  {result.shodan.subdomains && result.shodan.subdomains.length > 0 && (
+                    <div>
+                      <p className="mb-1 text-xs uppercase tracking-wide text-slate-500">Subdomains via Shodan</p>
+                      <div className="flex flex-wrap gap-2">
+                        {result.shodan.subdomains.map((sub) => (
+                          <span key={sub} className="rounded-md bg-slate-800 px-2 py-0.5 font-mono text-xs text-slate-300">{sub}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {result.shodan.data_preview && result.shodan.data_preview.length > 0 && (
+                    <p className="text-xs text-slate-500">{result.shodan.data_preview.length} service record(s) found.</p>
+                  )}
+                </div>
               )}
             </CollapsiblePanel>
 
             {/* VirusTotal */}
-            <CollapsiblePanel title="VirusTotal">
-              {result.virustotal ? (
-                <div className="text-sm">
-                  <p className="text-slate-300">
-                    Detections:{" "}
-                    <span className={`font-semibold ${(result.virustotal.positives ?? 0) > 0 ? "text-rose-400" : "text-emerald-400"}`}>
-                      {result.virustotal.positives ?? 0} / {result.virustotal.total ?? 0}
-                    </span>
-                  </p>
-                  {result.virustotal.permalink && (
-                    <a
-                      href={result.virustotal.permalink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 text-xs text-blue-400 hover:underline"
-                    >
-                      View full report →
-                    </a>
-                  )}
-                </div>
+            <CollapsiblePanel title="VirusTotal Analysis">
+              {!result.virustotal.enabled ? (
+                <p className="text-sm text-slate-500">VirusTotal not configured (VIRUSTOTAL_API_KEY not set).</p>
+              ) : result.virustotal.error ? (
+                <p className="text-sm text-rose-400">Error: {result.virustotal.error}</p>
+              ) : result.virustotal.analysis_stats ? (
+                <dl className="grid grid-cols-3 gap-3 text-sm">
+                  {Object.entries(result.virustotal.analysis_stats).map(([stat, count]) => (
+                    <div key={stat} className="rounded-lg bg-slate-900 p-2 text-center">
+                      <dt className="text-xs capitalize text-slate-500">{stat}</dt>
+                      <dd className={`text-base font-bold ${stat === "malicious" && count > 0 ? "text-rose-400" : "text-slate-200"}`}>{count}</dd>
+                    </div>
+                  ))}
+                </dl>
               ) : (
-                <p className="text-sm text-slate-500">No VirusTotal data.</p>
+                <p className="text-sm text-slate-500">No analysis data available.</p>
               )}
             </CollapsiblePanel>
 
-            {/* Subdomains */}
-            <CollapsiblePanel title={`Subdomains (${result.subdomains?.length ?? 0})`}>
-              {result.subdomains && result.subdomains.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {result.subdomains.map((sub) => (
-                    <span key={sub} className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-xs text-slate-300">
-                      {sub}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-slate-500">No subdomains discovered.</p>
-              )}
-            </CollapsiblePanel>
+            {/* Subdomains (crt.sh) */}
+            {(() => {
+              const subs = result.crtsh.subdomains ?? [];
+              return (
+                <CollapsiblePanel title={`Certificate Transparency Subdomains (${subs.length})`}>
+                  {!result.crtsh.enabled ? (
+                    <p className="text-sm text-slate-500">crt.sh lookup unavailable.</p>
+                  ) : result.crtsh.error ? (
+                    <p className="text-sm text-rose-400">Error: {result.crtsh.error}</p>
+                  ) : subs.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {subs.map((sub) => (
+                        <span key={sub} className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-xs text-slate-300">{sub}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">No subdomains found via certificate transparency logs.</p>
+                  )}
+                </CollapsiblePanel>
+              );
+            })()}
 
             {/* RDAP */}
             <CollapsiblePanel title="RDAP Registration">
-              {result.rdap ? (
+              {!result.rdap.enabled ? (
+                <p className="text-sm text-slate-500">RDAP lookup unavailable.</p>
+              ) : result.rdap.error ? (
+                <p className="text-sm text-rose-400">Error: {result.rdap.error}</p>
+              ) : (
                 <dl className="grid grid-cols-2 gap-2 text-sm">
                   {[
                     ["Handle", result.rdap.handle],
-                    ["Name", result.rdap.name],
-                    ["Type", result.rdap.type],
                     ["Status", result.rdap.status?.join(", ")],
+                    ["Nameservers", result.rdap.nameservers?.join(", ")],
                   ].map(([k, v]) =>
                     v ? (
                       <div key={k}>
@@ -254,8 +273,6 @@ export function ReconPage() {
                     ) : null,
                   )}
                 </dl>
-              ) : (
-                <p className="text-sm text-slate-500">No RDAP data.</p>
               )}
             </CollapsiblePanel>
           </div>

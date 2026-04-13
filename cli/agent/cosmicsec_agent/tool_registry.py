@@ -69,11 +69,8 @@ _KNOWN_TOOLS: dict[str, dict] = {
     },
 }
 
-# Human-friendly name aliases (manifest key → binary name)
-_TOOL_NAME_ALIASES: dict[str, str] = {
-    "metasploit": "msfconsole",
-    "zaproxy": "zap.sh",
-}
+# Reverse alias map: binary name → human-friendly name used in manifests
+_BINARY_TO_ALIAS: dict[str, str] = {v: k for k, v in _TOOL_NAME_ALIASES.items()}
 
 
 @dataclass
@@ -81,6 +78,7 @@ class ToolInfo:
     """Metadata for a discovered security tool."""
 
     name: str
+    binary: str
     path: str
     version: str
     capabilities: list[str] = field(default_factory=list)
@@ -97,9 +95,12 @@ class ToolRegistry:
             if path is None:
                 continue
             version = self.probe_version(tool_name, path)
+            # Use human-friendly alias as the reported name when available
+            friendly_name = _BINARY_TO_ALIAS.get(tool_name, tool_name)
             found.append(
                 ToolInfo(
-                    name=tool_name,
+                    name=friendly_name,
+                    binary=tool_name,
                     path=path,
                     version=version,
                     capabilities=list(meta["capabilities"]),
@@ -140,6 +141,7 @@ class ToolRegistry:
             "tools": [
                 {
                     "name": t.name,
+                    "binary": t.binary,
                     "path": t.path,
                     "version": t.version,
                     "capabilities": t.capabilities,
