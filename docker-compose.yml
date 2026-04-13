@@ -374,6 +374,28 @@ services:
       - traefik.http.routers.cosmicsec-phase5.entrypoints=web
       - traefik.http.services.cosmicsec-phase5.loadbalancer.server.port=8010
 
+  # Agent Relay — Phase D CLI agent WebSocket hub
+  agent-relay:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cosmicsec-agent-relay
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    ports:
+      - "8011:8011"
+    networks:
+      - cosmicsec-network
+    volumes:
+      - ./:/app
+    command: uvicorn services.agent_relay.main:app --host 0.0.0.0 --port 8011 --reload
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cosmicsec-agent-relay.rule=PathPrefix(`/relay`) || PathPrefix(`/ws/relay`)
+      - traefik.http.routers.cosmicsec-agent-relay.entrypoints=web
+      - traefik.http.routers.cosmicsec-agent-relay.priority=20
+      - traefik.http.services.cosmicsec-agent-relay.loadbalancer.server.port=8011
+
   # Celery Worker - Background tasks
   celery-worker:
     build:

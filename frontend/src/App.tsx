@@ -16,6 +16,13 @@ import { TwoFactorPage } from "./pages/TwoFactorPage";
 // Protected dashboard pages
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { Phase5OperationsPage } from "./pages/Phase5OperationsPage";
+import { ScanPage } from "./pages/ScanPage";
+import { ScanDetailPage } from "./pages/ScanDetailPage";
+import { ReconPage } from "./pages/ReconPage";
+import { AIAnalysisPage } from "./pages/AIAnalysisPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { ReportsPage } from "./pages/ReportsPage";
+import { BugBountyPage } from "./pages/BugBountyPage";
 
 export function App() {
   return (
@@ -48,6 +55,62 @@ export function App() {
           element={
             <ProtectedRoute>
               <Phase5OperationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scans"
+          element={
+            <ProtectedRoute>
+              <ScanPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scans/:id"
+          element={
+            <ProtectedRoute>
+              <ScanDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recon"
+          element={
+            <ProtectedRoute>
+              <ReconPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai"
+          element={
+            <ProtectedRoute>
+              <AIAnalysisPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <ReportsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bugbounty"
+          element={
+            <ProtectedRoute>
+              <BugBountyPage />
             </ProtectedRoute>
           }
         />
