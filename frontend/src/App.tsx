@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./router/ProtectedRoute";
+import { SkipLink } from "./components/ui/SkipLink";
 
 // Public pages
 import { LandingPage } from "./pages/LandingPage";
@@ -28,6 +29,7 @@ import { TimelinePage } from "./pages/TimelinePage";
 export function App() {
   return (
     <AuthProvider>
+      <SkipLink />
       <Routes>
         {/* ------------------------------------------------------------------ */}
         {/* Public routes — no auth required */}
