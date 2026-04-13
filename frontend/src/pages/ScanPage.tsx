@@ -5,17 +5,29 @@ import { AppLayout } from "../components/AppLayout";
 import { useScanStore, type Scan, type ScanStatus } from "../store/scanStore";
 import { useNotificationStore } from "../store/notificationStore";
 
-const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 const TOOLS = ["nmap", "nikto", "nuclei", "gobuster", "sqlmap"] as const;
 type Tool = (typeof TOOLS)[number];
 
 const STATUS_BADGE: Record<ScanStatus, { label: string; className: string; icon: React.ElementType }> = {
-  queued: { label: "Queued", className: "bg-slate-700 text-slate-300", icon: Clock },
+  pending: { label: "Pending", className: "bg-slate-700 text-slate-300", icon: Clock },
   running: { label: "Running", className: "bg-blue-500/20 text-blue-400", icon: Loader2 },
-  complete: { label: "Complete", className: "bg-emerald-500/20 text-emerald-400", icon: CheckCircle },
+  completed: { label: "Complete", className: "bg-emerald-500/20 text-emerald-400", icon: CheckCircle },
   failed: { label: "Failed", className: "bg-rose-500/20 text-rose-400", icon: AlertCircle },
 };
+
+/** Map UI scan type + selected tools to ScanConfig.scan_types array. */
+function toScanTypes(scanType: "quick" | "full" | "custom", tools: Set<Tool>): string[] {
+  if (scanType === "quick") return ["network", "web"];
+  if (scanType === "full") return ["network", "web", "api", "cloud", "container"];
+  // custom — derive from selected tools
+  const types = new Set<string>();
+  if (tools.has("nmap")) types.add("network");
+  if (tools.has("nikto") || tools.has("nuclei") || tools.has("sqlmap")) types.add("web");
+  if (tools.has("gobuster")) { types.add("web"); types.add("api"); }
+  return types.size > 0 ? [...types] : ["network"];
+}
 
 export function ScanPage() {
   const navigate = useNavigate();
@@ -40,13 +52,19 @@ export function ScanPage() {
 
     setSubmitting(true);
     try {
+      const token = localStorage.getItem("cosmicsec_token");
       const res = await fetch(`${API}/api/scans`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           target: target.trim(),
-          scan_type: scanType,
-          tools: Array.from(selectedTools),
+          scan_types: toScanTypes(scanType, selectedTools),
+          depth: scanType === "quick" ? 1 : scanType === "full" ? 3 : 2,
+          timeout: 300,
+          options: { tools: Array.from(selectedTools) },
         }),
       });
 
@@ -57,7 +75,7 @@ export function ScanPage() {
         id,
         target: target.trim(),
         tool: Array.from(selectedTools).join(", "),
-        status: "queued",
+        status: "pending",
         progress: 0,
         findings: [],
         createdAt: new Date().toISOString(),

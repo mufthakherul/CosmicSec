@@ -21,6 +21,8 @@ import { ScanDetailPage } from "./pages/ScanDetailPage";
 import { ReconPage } from "./pages/ReconPage";
 import { AIAnalysisPage } from "./pages/AIAnalysisPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { ReportsPage } from "./pages/ReportsPage";
+import { BugBountyPage } from "./pages/BugBountyPage";
 
 export function App() {
   return (
@@ -93,6 +95,22 @@ export function App() {
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <ReportsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bugbounty"
+          element={
+            <ProtectedRoute>
+              <BugBountyPage />
             </ProtectedRoute>
           }
         />

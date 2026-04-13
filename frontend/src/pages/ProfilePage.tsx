@@ -4,7 +4,7 @@ import { AppLayout } from "../components/AppLayout";
 import { useAuth } from "../context/AuthContext";
 import { useNotificationStore } from "../store/notificationStore";
 
-const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 interface ApiKey {
   id: string;
@@ -49,9 +49,13 @@ export function ProfilePage() {
   const generateKey = async () => {
     setGeneratingKey(true);
     try {
-      const res = await fetch(`${API}/auth/api-keys`, {
+      const token = localStorage.getItem("cosmicsec_token");
+      const res = await fetch(`${API}/api/auth/apikeys`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ name: `key-${Date.now()}` }),
       });
       const data = (await res.json()) as { id?: string; key?: string; name?: string; prefix?: string; created_at?: string };
@@ -73,7 +77,11 @@ export function ProfilePage() {
 
   const revokeKey = async (id: string) => {
     try {
-      await fetch(`${API}/auth/api-keys/${id}`, { method: "DELETE" });
+      const token = localStorage.getItem("cosmicsec_token");
+      await fetch(`${API}/api/auth/apikeys/${id}`, {
+        method: "DELETE",
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
       setApiKeys((prev) => prev.filter((k) => k.id !== id));
       addNotification({ type: "success", message: "API key revoked." });
     } catch {
