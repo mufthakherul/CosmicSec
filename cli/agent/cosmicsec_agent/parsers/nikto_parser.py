@@ -61,8 +61,12 @@ class NiktoParser:
 
             content = line[1:].strip()
             # Skip header/summary lines
-            if content.startswith("Target") or content.startswith("Start Time") or \
-               content.startswith("End Time") or content.startswith("1 host"):
+            if (
+                content.startswith("Target")
+                or content.startswith("Start Time")
+                or content.startswith("End Time")
+                or content.startswith("1 host")
+            ):
                 continue
 
             osvdb_match = _OSVDB_RE.search(content)
