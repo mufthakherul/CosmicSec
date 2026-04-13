@@ -67,13 +67,56 @@ apscheduler>=3.10.0
 # Monitoring and logging
 prometheus-client>=0.19.0
 
+# GraphQL Support
+ariadne>=0.21.0
+
+# Advanced Redis
+redis>=5.0.0
+aioredis>=2.0.1
+
+# Distributed Tracing & Observability
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-exporter-jaeger>=1.20.0
+opentelemetry-instrumentation-fastapi>=0.41b0
+
 # Reporting
 reportlab>=4.2.0
 python-docx>=1.1.2
+jinja2>=3.1.0
+
+# Data validation and serialization
+marshmallow>=3.20.0
+simplejson>=3.19.0
+
+# Advanced error handling
+sentry-sdk>=1.40.0
+
+# Rate limiting enhancements
+aiolimiter>=1.11.0
+
+# Webhook support
+python-webhooks>=0.5.0
+
+# Async utilities
+trio>=0.23.0
+anyio>=4.0.0
 
 # Utils
 schedule
 tabulate
+python-dateutil>=2.8.0
+
+# SBOM Generation
+cyclonedx-python>=3.12.0
+
+# Secrets Management (Vault integration - optional)
+hvac>=1.2.0
 
 # Development
 flask
+pytest-asyncio>=0.20.0
+pytest-cov>=4.1.0
+black>=24.0.0
+isort>=5.13.0
+mypy>=1.7.0
