@@ -368,7 +368,7 @@ CosmicSec serves **three kinds of visitors** with fundamentally different needs:
 
 ---
 
-### Phase A — Foundation Hardening ✅ COMPLETE (100%)
+### Phase A — Foundation Hardening 🟡 PARTIAL (80%)
 **Goal**: Make the existing codebase production-ready before adding new features.
 **Status**: ✅ Fully implemented — 2026-04-13
 
@@ -988,7 +988,7 @@ Use this checklist to track implementation. Check off items as they are complete
 - [x] A2 · Replace Flake8+isort with Ruff
 - [x] A3 · Replace Jest with Vitest in frontend
 - [x] A4 · Persistent state for in-memory services (bugbounty, phase5, collab, integration)
-- [x] A5 · Upgrade frontend to React 19 + TailwindCSS 4
+- [ ] A5 · Upgrade frontend to React 19 + TailwindCSS 4 *(React 19 is implemented; Tailwind is currently `^3.4.10`)*
 
 ### Phase B — Public Static Layer ✅ COMPLETE (100%)
 - [x] B1 · AuthContext + ProtectedRoute
@@ -1143,21 +1143,21 @@ Use this checklist to track implementation. Check off items as they are complete
 
 ---
 
-## Overall Completion: **100% + Phase H + Advanced Enhancements Phase I** 🎉
+## Overall Completion: **~95% (Core A–H mostly complete, Phase I partial)** 📌
 
-All 8 phases (A–H) fully implemented + new Phase I with advanced modern features.
-85+ new/enhanced files across Python, TypeScript, Go, Rust, HCL, YAML, Markdown.
+Core roadmap phases are largely implemented in code, with a few remaining gaps and some Phase I advanced items not fully wired in runtime.
+85+ new/enhanced files exist across Python, TypeScript, Go, Rust, HCL, YAML, and Markdown.
 
 ### Enhancement Additions (2026-04-13 — Phase I: Advanced & Modern)
 
 | Category | Enhancements |
 |----------|-------------|
 | **Backend Logging** | ✅ Structured JSON logging w/ correlation IDs, performance tracking, context propagation |
-| **Backend Caching** | ✅ Redis caching layer w/ TTL, tagging, selective invalidation, stats tracking |
+| **Backend Caching** | 🟡 Redis caching module exists (`services/common/caching.py`) but is not broadly wired into active endpoints |
 | **Error Handling** | ✅ Standardized error codes, custom exceptions, severity levels, error tracking |
 | **API Features** | ✅ API versioning with deprecation warnings, multi-version support |
-| **API Schema** | ✅ GraphQL integration (Ariadne) alongside REST with full resolver setup |
-| **Observability** | ✅ OpenTelemetry setup with Jaeger tracing, Prometheus metrics, Sentry integration |
+| **API Schema** | 🟡 GraphQL integration module exists, but `/graphql` is not mounted in active FastAPI service entrypoints |
+| **Observability** | ❌ OpenTelemetry/Jaeger/Sentry runtime instrumentation is not wired in active service entrypoints |
 | **Frontend State** | ✅ Redux Toolkit setup guide for advanced state management w/ DevTools |
 | **Frontend Forms** | ✅ React Hook Form + Zod integration guide for advanced form handling |
 | **Frontend Testing** | ✅ Comprehensive Vitest + Playwright setup with coverage tracking |
@@ -1167,7 +1167,7 @@ All 8 phases (A–H) fully implemented + new Phase I with advanced modern featur
 | **Kubernetes** | ✅ Advanced Helm values with auto-scaling, health checks, observability |
 | **Infrastructure** | ✅ Terraform AWS modules with CloudWatch dashboards, SNS alerts, KMS encryption |
 | **CI/CD** | ✅ GitHub Actions workflows for testing, building, deploying with multi-platform support |
-| **GitOps** | ✅ ArgoCD configuration for automated Kubernetes deployments |
+| **GitOps** | ❌ ArgoCD configuration for automated Kubernetes deployments is not present under `infrastructure/` |
 | **Documentation** | ✅ Testing guide, deployment guide, enhancement summary, architecture docs |
 | **Dependencies** | ✅ Updated requirements.txt with GraphQL, observability, testing, async libs |
 | **SDKs** | ✅ Type-safe SDKs for TypeScript, Python, Go with full API coverage |
@@ -1188,14 +1188,46 @@ All 8 phases (A–H) fully implemented + new Phase I with advanced modern featur
 | **Backend** | `GET /api/dashboard/overview` aggregated metrics endpoint |
 | **UX/DX** | ProtectedRoute role redirect → `/dashboard` (not public `/`) |
 
-### Phase I Summary — Advanced & Modern Enhancements (NEW)
+### Phase I Summary — Advanced & Modern Enhancements 🟡 PARTIAL (60%)
 
 | Area | Enhancements Count |
 |-----|------------------|
 | **Python Backend** | 5 new modules (logging, caching, exceptions, versioning, GraphQL) |
 | **Documentation** | 3 comprehensive guides (testing, deployment, summary) |
-| **Infrastructure** | 5 advanced config files (Docker, Terraform, K8s, ArgoCD, CI/CD) |
+| **Infrastructure** | 4 advanced config groups verified (Docker, Terraform, K8s, CI/CD); ArgoCD not found |
 | **Frontend** | 2 setup guides (Redux Toolkit, React Hook Form + Zod) |
 | **Dependencies** | 20+ new packages for observability, caching, GraphQL, testing |
 | **Total Additions** | 13+ files, 3,000+ lines of code, 50+ enhancements |
 
+---
+
+### Execution Update — Runtime Wiring & Tooling Alignment (2026-04-13)
+
+This pass focused on turning Phase I "advanced modules" into active runtime behavior and tightening developer tooling consistency.
+
+| Item | Status | Completion |
+|------|--------|------------|
+| Structured logging wired into API gateway runtime (`setup_structured_logging`, request/trace context middleware, response tracing headers) | ✅ Done | 100% |
+| Standardized exception handling wired for `CosmicSecException` in API gateway | ✅ Done | 100% |
+| API version middleware activated in API gateway request/response pipeline | ✅ Done | 100% |
+| Linting automation aligned to Ruff in `Makefile` (`lint`/`format`) | ✅ Done | 100% |
+| Python dependency tooling alignment (`requirements.txt` dev tooling updated to Ruff) | ✅ Done | 100% |
+
+**Execution-pass completion:** **100% (5/5 items complete)**  
+**Roadmap completion after this pass:** **~95% (with runtime wiring improvements applied)**
+
+---
+
+### Reality Audit — Done vs Not Done (Code-Verified, 2026-04-13)
+
+| Phase | Code-verified status | Completion |
+|------|-----------------------|------------|
+| A | Mostly done; Tailwind v4 upgrade not complete | 80% |
+| B | Done | 100% |
+| C | Done | 100% |
+| D | Done | 100% |
+| E | Done | 100% |
+| F | Done | 100% |
+| G | Done (artifact-level verification) | 100% |
+| H | Done | 100% |
+| I | Partially done; key runtime wiring still missing (GraphQL mount, OTel/Jaeger/Sentry, ArgoCD) | 60% |
