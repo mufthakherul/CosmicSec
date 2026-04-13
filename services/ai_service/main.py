@@ -6,6 +6,7 @@ Phase 2: ChromaDB vector store, MITRE ATT&CK, NL interface, autonomous agents.
 """
 
 import uuid
+import logging
 from datetime import datetime
 from typing import List, Optional
 
@@ -24,12 +25,17 @@ from .defensive_ai import DefensiveAI
 from .red_team import RedTeamScope, plan_attack_chain, select_exploit_logic, validate_safety
 from .zero_day_predictor import ZeroDayPredictor
 from .quantum_security import decrypt_payload, encrypt_payload, hybrid_key_exchange, list_algorithms
+from services.common.observability import setup_observability
 
 app = FastAPI(
     title="CosmicSec AI Service",
     description="Helix AI — LangChain-powered security analysis, RAG guidance, and autonomous agents",
     version="2.0.0",
 )
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+_observability_state = setup_observability(app, service_name="ai-service", logger=logger)
 
 # Initialize Defensive AI
 defensive_ai = DefensiveAI()
@@ -692,4 +698,3 @@ async def dispatch_task(req: DispatchTaskRequest):
         pass  # Agent relay may not be running; task still returned
 
     return task_payload
-
