@@ -154,12 +154,11 @@ CosmicSec/
 │   ├── ai_service/         # LangChain, MITRE ATT&CK, threat intel
 │   ├── recon_service/      # Passive recon engines
 │   ├── report_service/     # Multi-format report generation
-│   ├── collab_service/     # Real-time collaboration
-│   └── plugin_registry/    # Plugin SDK & official plugins
+│   └── collab_service/     # Real-time collaboration
 ├── cosmicsec_platform/     # Shared contracts, middleware, utilities
 ├── frontend/               # Web UI
 ├── sdk/                    # Public SDK for CLI / integrations
-├── plugins/                # Community & official plugins
+├── plugins/                # Plugin Registry, community plugins, official plugin examples
 ├── infrastructure/         # Kubernetes, Terraform, CI/CD configs
 ├── scripts/                # Dev, migration, seed scripts
 ├── tests/                  # Test suite
