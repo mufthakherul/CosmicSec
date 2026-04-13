@@ -111,7 +111,7 @@ export function AIAnalysisPage() {
         return {
           id: `f-${i}`,
           title: line.replace(/\[.*?\]\s*/g, "").slice(0, 120),
-          severity: (sevMatch?.[1]?.toLowerCase() ?? "info") as string,
+          severity: sevMatch?.[1]?.toLowerCase() ?? "info",
           description: line,
         };
       });
