@@ -13,9 +13,11 @@ import {
   LogOut,
   Menu,
   Radar,
+  Settings,
   Shield,
   User,
   X,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -23,17 +25,20 @@ interface NavItem {
   label: string;
   to: string;
   icon: React.ElementType;
+  adminOnly?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
+  { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
   { label: "Scans", to: "/scans", icon: Radar },
   { label: "Recon", to: "/recon", icon: Globe },
   { label: "AI Analysis", to: "/ai", icon: Brain },
   { label: "Timeline", to: "/timeline", icon: Clock },
   { label: "Reports", to: "/reports", icon: FileText },
   { label: "Bug Bounty", to: "/bugbounty", icon: Bug },
-  { label: "Profile", to: "/profile", icon: User },
+  { label: "SOC / Phase5", to: "/phase5", icon: Activity },
+  { label: "Agents", to: "/agents", icon: Zap },
+  { label: "Admin", to: "/admin", icon: Shield, adminOnly: true },
 ];
 
 interface SidebarProps {
@@ -110,7 +115,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
         {/* Nav items */}
         <nav role="navigation" aria-label="Main navigation" className="flex-1 overflow-y-auto px-2 py-4">
           <ul className="space-y-1">
-            {NAV_ITEMS.map(({ label, to, icon: Icon }) => (
+            {NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === "admin").map(({ label, to, icon: Icon }) => (
               <li key={to}>
                 <Link
                   to={to}
@@ -133,8 +138,26 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
           </ul>
         </nav>
 
-        {/* User info + logout */}
+        {/* Settings + User info + logout */}
         <div className="border-t border-slate-800 p-3">
+          {/* Settings link */}
+          <Link
+            to="/settings"
+            onClick={onMobileClose}
+            title={collapsed ? "Settings" : undefined}
+            aria-current={isActive("/settings") ? "page" : undefined}
+            className={[
+              "mb-2 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isActive("/settings")
+                ? "bg-cyan-500/10 text-cyan-400"
+                : "text-slate-400 hover:bg-slate-800 hover:text-slate-100",
+              collapsed ? "justify-center" : "",
+            ].join(" ")}
+          >
+            <Settings className="h-4 w-4 flex-shrink-0" />
+            {!collapsed && <span>Settings</span>}
+          </Link>
+
           {!collapsed ? (
             <div className="mb-2 flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2">
               <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400">
