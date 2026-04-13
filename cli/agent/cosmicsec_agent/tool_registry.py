@@ -69,6 +69,12 @@ _KNOWN_TOOLS: dict[str, dict] = {
     },
 }
 
+# Human-friendly name aliases (human name → binary name)
+_TOOL_NAME_ALIASES: dict[str, str] = {
+    "metasploit": "msfconsole",
+    "zaproxy": "zap.sh",
+}
+
 # Reverse alias map: binary name → human-friendly name used in manifests
 _BINARY_TO_ALIAS: dict[str, str] = {v: k for k, v in _TOOL_NAME_ALIASES.items()}
 
