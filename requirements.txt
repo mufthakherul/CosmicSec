@@ -117,6 +117,5 @@ hvac>=1.2.0
 flask
 pytest-asyncio>=0.20.0
 pytest-cov>=4.1.0
-black>=24.0.0
-isort>=5.13.0
+ruff>=0.4.0
 mypy>=1.7.0

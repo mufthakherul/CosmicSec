@@ -68,13 +68,10 @@ test-docker-env:
 	pytest tests/test_docker_env.py -q
 
 lint:
-	flake8 services/
-	black services/ --check
-	isort services/ --check-only
+	ruff check .
 
 format:
-	black services/
-	isort services/
+	ruff format .
 
 build:
 	docker-compose build
