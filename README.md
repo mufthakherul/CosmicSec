@@ -173,9 +173,9 @@ CosmicSec/
 CosmicSec supports community plugins via the Plugin SDK. See [`sdk/`](sdk/) for the SDK and [`plugins/`](plugins/) for official plugin examples.
 
 ```python
-from cosmicsec_platform.sdk import BasePlugin
+from plugins.sdk import PluginBase
 
-class MyPlugin(BasePlugin):
+class MyPlugin(PluginBase):
     name = "my-plugin"
     version = "1.0.0"
 
