@@ -166,7 +166,7 @@ export function AIAnalysisPage() {
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
-                {loading ? "Analysing…" : "Run Analysis"}
+                {loading ? "Analyzing…" : "Run Analysis"}
               </button>
             </form>
           </section>
