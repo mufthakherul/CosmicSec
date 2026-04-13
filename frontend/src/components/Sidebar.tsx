@@ -1,10 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import {
   Activity,
   Brain,
   Bug,
   ChevronLeft,
   ChevronRight,
+  Clock,
   FileText,
   Globe,
   LayoutDashboard,
@@ -28,6 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Scans", to: "/scans", icon: Radar },
   { label: "Recon", to: "/recon", icon: Globe },
   { label: "AI Analysis", to: "/ai", icon: Brain },
+  { label: "Timeline", to: "/timeline", icon: Clock },
   { label: "Reports", to: "/reports", icon: FileText },
   { label: "Bug Bounty", to: "/bugbounty", icon: Bug },
   { label: "Profile", to: "/profile", icon: User },
@@ -43,6 +46,14 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChange }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onMobileClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onMobileClose]);
 
   const isActive = (to: string) =>
     to === "/admin" ? location.pathname === "/admin" : location.pathname.startsWith(to);
@@ -89,6 +100,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
               onClick={() => onCollapsedChange(!collapsed)}
               className="hidden rounded p-1 text-slate-400 hover:text-white md:block"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!collapsed}
             >
               {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </button>
@@ -96,7 +108,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto px-2 py-4">
+        <nav role="navigation" aria-label="Main navigation" className="flex-1 overflow-y-auto px-2 py-4">
           <ul className="space-y-1">
             {NAV_ITEMS.map(({ label, to, icon: Icon }) => (
               <li key={to}>
@@ -104,6 +116,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
                   to={to}
                   onClick={onMobileClose}
                   title={collapsed ? label : undefined}
+                  aria-current={isActive(to) ? "page" : undefined}
                   className={[
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive(to)

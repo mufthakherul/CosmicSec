@@ -1,0 +1,24 @@
+{
+  "name": "@cosmicsec/sdk",
+  "version": "1.0.0",
+  "description": "Official TypeScript SDK for CosmicSec Universal Cybersecurity Intelligence Platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "keywords": ["cosmicsec", "security", "cybersecurity", "sdk", "typescript"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}

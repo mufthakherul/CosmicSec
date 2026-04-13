@@ -1,0 +1,57 @@
+{
+  "id": null,
+  "uid": "cosmicsec-overview",
+  "title": "CosmicSec Platform Overview",
+  "tags": ["cosmicsec"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "HTTP Requests Total",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_requests_total[5m]))", "legendFormat": "req/s", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "value" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 10}, {"color": "red", "value": 100}] } } }
+    },
+    {
+      "id": 2,
+      "title": "Error Rate",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m]))", "legendFormat": "errors/s", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}] } } }
+    },
+    {
+      "id": 3,
+      "title": "Active Scans",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [{ "expr": "cosmicsec_active_scans", "legendFormat": "active scans", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "blue", "value": null}] } } }
+    },
+    {
+      "id": 4,
+      "title": "Agent Connections",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [{ "expr": "cosmicsec_agent_connections", "legendFormat": "agents", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "green", "value": null}] } } }
+    },
+    {
+      "id": 5,
+      "title": "Request Rate by Service",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 4 },
+      "targets": [{ "expr": "rate(http_requests_total[5m])", "legendFormat": "{{job}}", "datasource": "Prometheus" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } }
+    }
+  ]
+}

@@ -3,16 +3,17 @@ services:
   traefik:
     image: traefik:v3.1
     container_name: cosmicsec-traefik
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --api.dashboard=true
+    command: --configFile=/etc/traefik/traefik.yml
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./infrastructure/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./infrastructure/traefik-dynamic.yml:/etc/traefik/dynamic/traefik-dynamic.yml:ro
+      - traefik_acme:/acme
+      - traefik_logs:/var/log/traefik
     networks:
       - cosmicsec-network
 
@@ -396,6 +397,27 @@ services:
       - traefik.http.routers.cosmicsec-agent-relay.priority=20
       - traefik.http.services.cosmicsec-agent-relay.loadbalancer.server.port=8011
 
+  # Notification Service — Phase E event notifications
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cosmicsec-notification-service
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    ports:
+      - "8012:8012"
+    networks:
+      - cosmicsec-network
+    volumes:
+      - ./:/app
+    command: uvicorn services.notification_service.main:app --host 0.0.0.0 --port 8012 --reload
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cosmicsec-notification.rule=PathPrefix(`/notify`)
+      - traefik.http.routers.cosmicsec-notification.entrypoints=web
+      - traefik.http.services.cosmicsec-notification.loadbalancer.server.port=8012
+
   # Celery Worker - Background tasks
   celery-worker:
     build:
@@ -435,6 +457,54 @@ services:
     volumes:
       - ./:/app
 
+  # Prometheus — metrics collection
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: cosmicsec-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./infrastructure/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - cosmicsec-network
+
+  # Grafana — dashboards
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: cosmicsec-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-cosmicsec_grafana_password}
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./infrastructure/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - cosmicsec-network
+
+  # Loki — log aggregation
+  loki:
+    image: grafana/loki:2.9.7
+    container_name: cosmicsec-loki
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - cosmicsec-network
+
 networks:
   cosmicsec-network:
     driver: bridge
@@ -447,3 +517,8 @@ volumes:
   rabbitmq_data:
   chroma_data:
   plugin_data:
+  traefik_acme:
+  traefik_logs:
+  prometheus_data:
+  grafana_data:
+  loki_data:

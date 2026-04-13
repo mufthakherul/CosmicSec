@@ -1,0 +1,115 @@
+global:
+  imageTag: latest
+  imagePullPolicy: IfNotPresent
+
+replicaCount: 1
+
+image:
+  repository: cosmicsec
+  pullPolicy: IfNotPresent
+  tag: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: cosmicsec.io
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: cosmicsec-tls
+      hosts:
+        - cosmicsec.io
+
+services:
+  apiGateway:
+    enabled: true
+    port: 8000
+    replicas: 2
+    resources:
+      requests: { cpu: "100m", memory: "256Mi" }
+      limits:   { cpu: "500m", memory: "512Mi" }
+  authService:
+    enabled: true
+    port: 8001
+    replicas: 2
+  scanService:
+    enabled: true
+    port: 8002
+    replicas: 3
+  aiService:
+    enabled: true
+    port: 8003
+    replicas: 1
+    resources:
+      requests: { cpu: "500m", memory: "1Gi" }
+      limits:   { cpu: "2000m", memory: "4Gi" }
+  reconService:
+    enabled: true
+    port: 8004
+    replicas: 2
+  reportService:
+    enabled: true
+    port: 8005
+    replicas: 1
+  collabService:
+    enabled: true
+    port: 8006
+    replicas: 2
+  pluginRegistry:
+    enabled: true
+    port: 8007
+    replicas: 1
+  integrationService:
+    enabled: true
+    port: 8008
+    replicas: 1
+  bugbountyService:
+    enabled: true
+    port: 8009
+    replicas: 1
+  phase5Service:
+    enabled: true
+    port: 8010
+    replicas: 1
+  agentRelay:
+    enabled: true
+    port: 8011
+    replicas: 2
+  notificationService:
+    enabled: true
+    port: 8012
+    replicas: 1
+
+postgresql:
+  enabled: true
+  auth:
+    database: cosmicsec
+    username: cosmicsec
+    existingSecret: cosmicsec-postgres-secret
+  primary:
+    persistence:
+      size: 20Gi
+
+redis:
+  enabled: true
+  auth:
+    existingSecret: cosmicsec-redis-secret
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 2000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
