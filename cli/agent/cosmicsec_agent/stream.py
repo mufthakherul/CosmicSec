@@ -46,7 +46,7 @@ class AgentStreamClient:
         """
         import websockets
 
-        ws_url = f"{self._server_url}/ws/agent/{self._agent_id}?api_key={self._api_key}"
+        ws_url = f"{self._server_url}/ws/agent/{self._agent_id}"
         while True:
             try:
                 self._ws = await websockets.connect(
