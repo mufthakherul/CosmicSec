@@ -5,9 +5,11 @@ Phase 1: LangChain + TF-IDF RAG, OpenAI chain, security analysis endpoints.
 Phase 2: ChromaDB vector store, MITRE ATT&CK, NL interface, autonomous agents.
 """
 
+import uuid
 from datetime import datetime
 from typing import List, Optional
 
+import httpx
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
@@ -487,3 +489,207 @@ def quantum_encrypt(payload: QuantumEncryptRequest) -> dict:
 def quantum_decrypt(payload: QuantumDecryptRequest) -> dict:
     plaintext = decrypt_payload(payload.ciphertext, payload.mac, payload.shared_secret)
     return {"success": True, "plaintext": plaintext, "timestamp": datetime.utcnow().isoformat()}
+
+
+# ---------------------------------------------------------------------------
+# Phase E — Cross-Layer Intelligence Correlation
+# ---------------------------------------------------------------------------
+
+class CorrelationFinding(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    severity: str = Field(default="medium")
+    description: str = Field(default="")
+    target: Optional[str] = None
+    cve_id: Optional[str] = None
+    mitre_technique: Optional[str] = None
+    source: str = Field(default="web_scan")
+    tool: Optional[str] = None
+
+class CorrelationRequest(BaseModel):
+    findings: List[CorrelationFinding]
+
+class CorrelationReport(BaseModel):
+    risk_score: int
+    total_findings: int
+    grouped_by_target: dict
+    grouped_by_cve: dict
+    grouped_by_technique: dict
+    recommendations: List[str]
+
+class GraphNode(BaseModel):
+    id: str
+    node_type: str  # "target" | "cve" | "technique"
+    label: str
+    weight: int = 1
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    edge_type: str
+    weight: int = 1
+
+class CorrelationGraph(BaseModel):
+    nodes: List[GraphNode]
+    edges: List[GraphEdge]
+    total_findings: int
+
+@app.post("/correlate", response_model=CorrelationReport, tags=["correlation"])
+async def correlate_findings(req: CorrelationRequest):
+    """Cross-source AI correlation — groups findings by target, CVE, and MITRE technique."""
+    findings = req.findings
+    if not findings:
+        return CorrelationReport(
+            risk_score=0, total_findings=0,
+            grouped_by_target={}, grouped_by_cve={}, grouped_by_technique={},
+            recommendations=["No findings to correlate."],
+        )
+
+    # Group findings
+    grouped_by_target: dict = {}
+    grouped_by_cve: dict = {}
+    grouped_by_technique: dict = {}
+    severity_weights = {"critical": 10, "high": 7, "medium": 4, "low": 2, "info": 1}
+
+    for f in findings:
+        if f.target:
+            grouped_by_target.setdefault(f.target, []).append(f.model_dump())
+        if f.cve_id:
+            grouped_by_cve.setdefault(f.cve_id, []).append(f.model_dump())
+        if f.mitre_technique:
+            grouped_by_technique.setdefault(f.mitre_technique, []).append(f.model_dump())
+
+    # Compute weighted risk score (0-100)
+    raw_score = sum(severity_weights.get(f.severity.lower(), 1) for f in findings)
+    # Amplify score if multiple sources confirm same finding
+    for group in list(grouped_by_cve.values()) + list(grouped_by_technique.values()):
+        if len(group) > 1:
+            raw_score += len(group) * 2  # multi-source amplifier
+    risk_score = min(100, int(raw_score * 100 / max(len(findings) * 10, 1)))
+
+    # Get recommendations from RAG
+    recommendations: List[str] = []
+    try:
+        for target in list(grouped_by_target.keys())[:3]:
+            guidance = retrieve_guidance(f"security findings for {target}")
+            if guidance:
+                recommendations.append(guidance[0] if isinstance(guidance, list) else str(guidance))
+    except Exception:
+        pass
+    if not recommendations:
+        severities = [f.severity.lower() for f in findings]
+        if "critical" in severities or "high" in severities:
+            recommendations.append("Immediately patch critical and high severity vulnerabilities.")
+        if grouped_by_cve:
+            recommendations.append(f"Address {len(grouped_by_cve)} unique CVEs found across sources.")
+        if grouped_by_technique:
+            recommendations.append(f"Review {len(grouped_by_technique)} MITRE ATT&CK techniques identified.")
+        recommendations.append("Correlate findings across all sources before prioritising remediation.")
+
+    return CorrelationReport(
+        risk_score=risk_score,
+        total_findings=len(findings),
+        grouped_by_target=grouped_by_target,
+        grouped_by_cve=grouped_by_cve,
+        grouped_by_technique=grouped_by_technique,
+        recommendations=recommendations[:5],
+    )
+
+
+@app.post("/correlate/graph", response_model=CorrelationGraph, tags=["correlation"])
+async def correlate_graph(req: CorrelationRequest):
+    """Returns a typed correlation graph — nodes (targets + CVEs) and weighted edges."""
+    findings = req.findings
+    nodes: dict[str, GraphNode] = {}
+    edges: list[GraphEdge] = []
+
+    for f in findings:
+        if f.target and f.target not in nodes:
+            nodes[f.target] = GraphNode(id=f.target, node_type="target", label=f.target)
+        if f.target:
+            nodes[f.target].weight += 1
+        if f.cve_id:
+            if f.cve_id not in nodes:
+                nodes[f.cve_id] = GraphNode(id=f.cve_id, node_type="cve", label=f.cve_id)
+            if f.target:
+                edges.append(GraphEdge(source=f.target, target=f.cve_id, edge_type="has_cve"))
+        if f.mitre_technique:
+            if f.mitre_technique not in nodes:
+                nodes[f.mitre_technique] = GraphNode(id=f.mitre_technique, node_type="technique", label=f.mitre_technique)
+            if f.target:
+                edges.append(GraphEdge(source=f.target, target=f.mitre_technique, edge_type="uses_technique"))
+
+    return CorrelationGraph(
+        nodes=list(nodes.values()),
+        edges=edges,
+        total_findings=len(findings),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase F — AI Workflow
+# ---------------------------------------------------------------------------
+
+class WorkflowStartRequest(BaseModel):
+    target: str
+    async_mode: bool = Field(default=False, description="Run workflow in background (not yet implemented)")
+
+
+@app.post("/ai/workflow/start", tags=["workflow"])
+async def start_workflow(req: WorkflowStartRequest):
+    """Kick off a full automated multi-step security assessment workflow."""
+    from .langgraph_flow import run_workflow
+    result = await run_workflow(req.target)
+    return {
+        "target": result["target"],
+        "recon_results": result["recon_results"],
+        "scan_count": len(result["scan_results"]),
+        "ai_findings": result["ai_findings"],
+        "report_url": result["report_url"],
+        "errors": result["errors"],
+        "status": "completed",
+    }
+
+
+class DispatchTaskRequest(BaseModel):
+    agent_id: str
+    findings: List[dict] = Field(default_factory=list)
+    target: str
+
+
+@app.post("/ai/dispatch-task", tags=["workflow"])
+async def dispatch_task(req: DispatchTaskRequest):
+    """AI selects the best tool to run based on findings, dispatches task to agent relay."""
+    import uuid as _uuid2
+
+    # Heuristic tool selection
+    severities = [f.get("severity", "info").lower() for f in req.findings]
+    if "critical" in severities or "high" in severities:
+        tool, args = "nuclei", ["-u", req.target, "-severity", "critical,high"]
+        reason = "Critical/high findings detected — running nuclei for CVE checks"
+    elif "medium" in severities:
+        tool, args = "nikto", ["-h", req.target]
+        reason = "Medium findings detected — running nikto for web vulnerability scan"
+    else:
+        tool, args = "nmap", ["-sV", "-T4", req.target]
+        reason = "Running nmap service discovery scan"
+
+    task_id = str(_uuid2.uuid4())
+    task_payload = {
+        "task_id": task_id,
+        "agent_id": req.agent_id,
+        "tool": tool,
+        "args": args,
+        "target": req.target,
+        "reason": reason,
+    }
+
+    # Try to dispatch to agent relay
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post("http://agent-relay:8011/relay/dispatch-task", json=task_payload)
+    except Exception:
+        pass  # Agent relay may not be running; task still returned
+
+    return task_payload
+

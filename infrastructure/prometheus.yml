@@ -1,0 +1,61 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:8000']
+    metrics_path: '/metrics'
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:8001']
+    metrics_path: '/metrics'
+  - job_name: 'scan-service'
+    static_configs:
+      - targets: ['scan-service:8002']
+    metrics_path: '/metrics'
+  - job_name: 'ai-service'
+    static_configs:
+      - targets: ['ai-service:8003']
+    metrics_path: '/metrics'
+  - job_name: 'recon-service'
+    static_configs:
+      - targets: ['recon-service:8004']
+    metrics_path: '/metrics'
+  - job_name: 'report-service'
+    static_configs:
+      - targets: ['report-service:8005']
+    metrics_path: '/metrics'
+  - job_name: 'collab-service'
+    static_configs:
+      - targets: ['collab-service:8006']
+    metrics_path: '/metrics'
+  - job_name: 'plugin-registry'
+    static_configs:
+      - targets: ['plugin-registry:8007']
+    metrics_path: '/metrics'
+  - job_name: 'integration-service'
+    static_configs:
+      - targets: ['integration-service:8008']
+    metrics_path: '/metrics'
+  - job_name: 'bugbounty-service'
+    static_configs:
+      - targets: ['bugbounty-service:8009']
+    metrics_path: '/metrics'
+  - job_name: 'phase5-service'
+    static_configs:
+      - targets: ['phase5-service:8010']
+    metrics_path: '/metrics'
+  - job_name: 'agent-relay'
+    static_configs:
+      - targets: ['agent-relay:8011']
+    metrics_path: '/metrics'
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:8012']
+    metrics_path: '/metrics'
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['traefik:8080']
+    metrics_path: '/metrics'
