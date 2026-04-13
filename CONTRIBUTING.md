@@ -174,7 +174,7 @@ Pre-commit hooks (`.pre-commit-config.yaml`) run these checks automatically befo
 **Key conventions:**
 
 - Line length: **100 characters** (Black/isort configured)
-- Target Python versions: 3.9, 3.10, 3.11
+- Target Python versions: 3.9, 3.10, 3.11, 3.12
 - Use type annotations on all public functions and methods
 - Do not commit secrets, credentials, API keys, or private data
 - Keep microservices self-contained — avoid cross-service imports outside `cosmicsec_platform/`
