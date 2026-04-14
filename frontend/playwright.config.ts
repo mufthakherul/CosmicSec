@@ -6,4 +6,10 @@ export default defineConfig({
         baseURL: 'http://localhost:5173',
         headless: true,
     },
+    webServer: {
+        command: 'npm run dev -- --host 127.0.0.1 --port 5173',
+        port: 5173,
+        timeout: 120000,
+        reuseExistingServer: true,
+    },
 });
