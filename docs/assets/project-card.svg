@@ -1,0 +1,23 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="40" x2="1200" y2="620" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#1E1B4B"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="120" y1="120" x2="560" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1280" height="640" rx="36" fill="url(#bg)"/>
+  <rect x="84" y="84" width="1112" height="472" rx="28" fill="#020617" fill-opacity="0.55" stroke="#334155"/>
+  <g>
+    <path d="M220 194L340 244V332C340 399 293 458 220 477C147 458 100 399 100 332V244L220 194Z" fill="#0B1220" stroke="url(#accent)" stroke-width="12"/>
+    <path d="M175 324L208 357L270 295" stroke="url(#accent)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="390" y="255" fill="#E2E8F0" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="78" font-weight="700">CosmicSec</text>
+  <text x="390" y="318" fill="#94A3B8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34">Universal Cybersecurity Intelligence Platform</text>
+  <text x="390" y="386" fill="#CBD5E1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="28">Hybrid API • AI Security Workflows • Local Agent • Enterprise-Ready</text>
+  <rect x="390" y="426" width="206" height="56" rx="16" fill="#0EA5E9" fill-opacity="0.18" stroke="#38BDF8"/>
+  <text x="420" y="462" fill="#7DD3FC" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="600">API + Dashboard</text>
+</svg>
