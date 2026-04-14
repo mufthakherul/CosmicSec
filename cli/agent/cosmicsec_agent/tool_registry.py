@@ -1,4 +1,5 @@
 """Tool registry — discovers locally installed security tools and probes their versions."""
+
 from __future__ import annotations
 
 import shutil

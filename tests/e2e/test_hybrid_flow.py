@@ -2,11 +2,13 @@
 End-to-end test: Full hybrid flow.
 Skipped when TEST_BASE_URL environment variable is not set.
 """
+
 from __future__ import annotations
 
 import os
-import pytest
+
 import httpx
+import pytest
 
 BASE_URL = os.getenv("TEST_BASE_URL", "")
 
@@ -42,9 +44,12 @@ def test_protected_route_requires_auth(client):
 def test_register_and_login(client):
     """Register a new user, then log in and get a token."""
     import secrets
+
     email = f"e2e-{secrets.token_hex(4)}@test.cosmicsec.io"
     # Register
-    reg = client.post("/auth/register", json={"email": email, "password": "Test1234!", "full_name": "E2E User"})
+    reg = client.post(
+        "/auth/register", json={"email": email, "password": "Test1234!", "full_name": "E2E User"}
+    )
     assert reg.status_code in (200, 201, 409)  # 409 if already exists
     # Login
     login = client.post("/auth/login", json={"email": email, "password": "Test1234!"})

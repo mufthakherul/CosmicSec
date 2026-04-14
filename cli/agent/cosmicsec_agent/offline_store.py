@@ -1,4 +1,5 @@
 """Offline SQLite store for scan results and findings when the agent is disconnected."""
+
 from __future__ import annotations
 
 import csv
@@ -118,9 +119,7 @@ class OfflineStore:
     def get_unsynced_findings(self) -> list[dict]:
         """Return all findings that have not yet been synced to the server."""
         with self._connect() as conn:
-            rows = conn.execute(
-                "SELECT * FROM findings WHERE synced = 0"
-            ).fetchall()
+            rows = conn.execute("SELECT * FROM findings WHERE synced = 0").fetchall()
         return [dict(row) for row in rows]
 
     def mark_synced(self, finding_ids: list[str]) -> None:

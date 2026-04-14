@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 from services.scan_service import main as scan_main
 from services.scan_service.main import app
 
-
 client = TestClient(app)
 
 

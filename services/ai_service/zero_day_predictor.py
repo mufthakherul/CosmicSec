@@ -1,10 +1,10 @@
 """Phase 4 predictive security helpers for zero-day risk forecasting."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
 from statistics import mean
-from typing import Dict, List
 
 
 @dataclass
@@ -19,10 +19,17 @@ class ZeroDayPredictor:
     def __init__(self) -> None:
         self.state = PredictorState()
 
-    def train(self, records: List[Dict[str, float]]) -> Dict[str, object]:
+    def train(self, records: list[dict[str, float]]) -> dict[str, object]:
         if not records:
-            self.state = PredictorState(trained=True, baseline_cvss=5.0, baseline_exploitability=0.3, sample_count=0)
-            return {"status": "trained", "sample_count": 0, "baseline_cvss": 5.0, "baseline_exploitability": 0.3}
+            self.state = PredictorState(
+                trained=True, baseline_cvss=5.0, baseline_exploitability=0.3, sample_count=0
+            )
+            return {
+                "status": "trained",
+                "sample_count": 0,
+                "baseline_cvss": 5.0,
+                "baseline_exploitability": 0.3,
+            }
 
         cvss_values = [float(r.get("cvss", 0.0)) for r in records]
         exploit_values = [float(r.get("exploit_probability", 0.0)) for r in records]
@@ -40,7 +47,7 @@ class ZeroDayPredictor:
             "baseline_exploitability": self.state.baseline_exploitability,
         }
 
-    def forecast(self, technology: str, telemetry: Dict[str, float]) -> Dict[str, object]:
+    def forecast(self, technology: str, telemetry: dict[str, float]) -> dict[str, object]:
         if not self.state.trained:
             self.train([])
 
@@ -80,8 +87,11 @@ class ZeroDayPredictor:
             },
         }
 
-    def risk_trends(self, portfolio: List[Dict[str, object]]) -> Dict[str, object]:
-        forecasts = [self.forecast(str(item.get("technology", "unknown")), item.get("telemetry", {})) for item in portfolio]
+    def risk_trends(self, portfolio: list[dict[str, object]]) -> dict[str, object]:
+        forecasts = [
+            self.forecast(str(item.get("technology", "unknown")), item.get("telemetry", {}))
+            for item in portfolio
+        ]
         avg = round(mean([f["risk_score"] for f in forecasts]), 2) if forecasts else 0.0
         return {
             "portfolio_size": len(forecasts),

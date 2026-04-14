@@ -7,25 +7,27 @@ Every plugin MUST subclass PluginBase and implement:
 
 The loader validates these contracts before execution.
 """
+
 from __future__ import annotations
 
 import abc
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
 class PluginMetadata:
     """Declarative metadata every plugin must provide."""
+
     name: str
     version: str
     description: str
     author: str
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     # Minimum required permissions this plugin needs
-    permissions: List[str] = field(default_factory=list)
+    permissions: list[str] = field(default_factory=list)
     # Python package dependencies (importable names, e.g. ["requests", "lxml"])
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     # Minimum platform version required
     min_platform_version: str = "1.0.0"
 
@@ -38,22 +40,24 @@ class PluginContext:
     Plugins MUST NOT import external processes or open raw sockets;
     they should only use the helpers exposed here.
     """
+
     target: str
-    options: Dict[str, Any] = field(default_factory=dict)
-    scan_id: Optional[str] = None
-    user: Optional[str] = None
+    options: dict[str, Any] = field(default_factory=dict)
+    scan_id: str | None = None
+    user: str | None = None
     # Shared artefact store — plugins may read/write named keys
-    artefacts: Dict[str, Any] = field(default_factory=dict)
+    artefacts: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class PluginResult:
     """Uniform return type for all plugin executions."""
+
     success: bool
     data: Any = None
-    findings: List[Dict[str, Any]] = field(default_factory=list)
-    errors: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    findings: list[dict[str, Any]] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class PluginBase(abc.ABC):
@@ -69,7 +73,7 @@ class PluginBase(abc.ABC):
         """Return this plugin's static metadata descriptor."""
         ...
 
-    def init(self, config: Dict[str, Any]) -> None:
+    def init(self, config: dict[str, Any]) -> None:
         """
         Optional lifecycle hook — called once by the loader before the first
         ``run()``. Override to set up connections, load models, etc.

@@ -1,10 +1,9 @@
 """Phase 4 AI Red Team planning with strict safety guardrails."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List
-
 
 SAFE_TECHNIQUES = {
     "recon": ["asset_inventory", "attack_surface_mapping", "service_enumeration"],
@@ -20,11 +19,11 @@ class RedTeamScope:
     target: str
     authorized: bool
     environment: str
-    objectives: List[str]
+    objectives: list[str]
 
 
-def validate_safety(scope: RedTeamScope) -> Dict[str, object]:
-    issues: List[str] = []
+def validate_safety(scope: RedTeamScope) -> dict[str, object]:
+    issues: list[str] = []
     if not scope.authorized:
         issues.append("Authorization is required before generating red-team plans.")
     if scope.environment.lower() not in {"lab", "staging", "production-approved"}:
@@ -39,8 +38,8 @@ def validate_safety(scope: RedTeamScope) -> Dict[str, object]:
     }
 
 
-def select_exploit_logic(objectives: List[str]) -> List[Dict[str, str]]:
-    selected: List[Dict[str, str]] = []
+def select_exploit_logic(objectives: list[str]) -> list[dict[str, str]]:
+    selected: list[dict[str, str]] = []
     lower_objectives = " ".join(objectives).lower()
 
     for stage, techniques in SAFE_TECHNIQUES.items():
@@ -59,7 +58,7 @@ def select_exploit_logic(objectives: List[str]) -> List[Dict[str, str]]:
     return selected
 
 
-def plan_attack_chain(scope: RedTeamScope) -> Dict[str, object]:
+def plan_attack_chain(scope: RedTeamScope) -> dict[str, object]:
     safety = validate_safety(scope)
     if not safety["is_safe"]:
         return {

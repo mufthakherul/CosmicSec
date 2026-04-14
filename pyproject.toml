@@ -54,10 +54,28 @@ target-version = ["py39", "py310", "py311"]
 [tool.ruff]
 line-length = 100
 target-version = "py39"
+exclude = [
+    "Archives/",
+    ".git",
+    "__pycache__",
+    "*.pyc",
+    ".venv",
+    "venv",
+    "node_modules",
+    "dist",
+    "build",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
-ignore = ["E501", "B008", "B006"]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B006",   # mutable default argument
+    "B008",   # do not perform function calls in default arguments
+    "B027",   # abstract method without abstractmethod decorator (style choice)
+    "B904",   # raise from within except clause (pervasive style in codebase)
+    "SIM102", # nested if statements (readability preference)
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["services", "cosmicsec_platform"]

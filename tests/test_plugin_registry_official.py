@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from plugins.registry import app
 
-
 client = TestClient(app)
 
 
