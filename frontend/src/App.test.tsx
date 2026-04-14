@@ -17,7 +17,7 @@ describe('App', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText(/CosmicSec/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /start free/i })).toBeInTheDocument();
   });
 
   it('redirects /admin to login when unauthenticated', () => {
