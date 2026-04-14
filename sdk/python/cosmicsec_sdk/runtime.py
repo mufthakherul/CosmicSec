@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 
 @dataclass
@@ -15,7 +15,7 @@ class RuntimeEnvelope:
     route_key: str | None
 
 
-def parse_runtime_envelope(payload: Dict[str, Any]) -> RuntimeEnvelope:
+def parse_runtime_envelope(payload: dict[str, Any]) -> RuntimeEnvelope:
     runtime = payload.get("_runtime", {})
     contract = payload.get("_contract", {})
     return RuntimeEnvelope(
@@ -27,12 +27,11 @@ def parse_runtime_envelope(payload: Dict[str, Any]) -> RuntimeEnvelope:
     )
 
 
-def is_degraded(payload: Dict[str, Any]) -> bool:
+def is_degraded(payload: dict[str, Any]) -> bool:
     return parse_runtime_envelope(payload).degraded
 
 
-def assert_not_degraded(payload: Dict[str, Any]) -> None:
+def assert_not_degraded(payload: dict[str, Any]) -> None:
     env = parse_runtime_envelope(payload)
     if env.degraded:
         raise RuntimeError(f"Operation degraded via route={env.route} mode={env.mode}")
-

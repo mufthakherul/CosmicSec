@@ -1,4 +1,5 @@
 """Phase 2 — tests for the real-time collaboration service."""
+
 from fastapi.testclient import TestClient
 
 from services.collab_service.main import app

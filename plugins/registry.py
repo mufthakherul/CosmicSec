@@ -3,12 +3,14 @@ Plugin Registry — FastAPI service for managing installed plugins.
 
 Mounts as a sub-application or standalone at port 8007.
 """
+
 from __future__ import annotations
 
+import os
+import secrets
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-import secrets
+from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -22,8 +24,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Loader singleton — plugin dirs are configurable via env
-import os
 _DEFAULT_PLUGIN_DIRS = ":".join(
     [
         str(Path(__file__).resolve().parent / "official"),
@@ -40,12 +40,13 @@ _loader.discover()
 # Request/response models
 # ---------------------------------------------------------------------------
 
+
 class RunPluginRequest(BaseModel):
     target: str = Field(..., description="Target to pass to the plugin context")
-    options: Dict[str, Any] = Field(default_factory=dict)
-    scan_id: Optional[str] = None
-    user: Optional[str] = None
-    config: Optional[Dict[str, Any]] = None
+    options: dict[str, Any] = Field(default_factory=dict)
+    scan_id: str | None = None
+    user: str | None = None
+    config: dict[str, Any] | None = None
 
 
 class PublishPluginRequest(BaseModel):
@@ -53,7 +54,7 @@ class PublishPluginRequest(BaseModel):
     version: str = Field(..., description="Semantic version, e.g. 1.2.0")
     description: str = Field(...)
     author: str = Field(...)
-    tags: List[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
     download_url: str = Field(..., description="HTTPS URL to the plugin .py file")
     checksum_sha256: str = Field(..., description="SHA-256 hex digest used to verify the download")
 
@@ -61,7 +62,7 @@ class PublishPluginRequest(BaseModel):
 class RatePluginRequest(BaseModel):
     user: str = Field(..., description="Username submitting the rating")
     rating: int = Field(..., ge=1, le=5, description="Star rating from 1 to 5")
-    review: Optional[str] = Field(default=None, description="Optional text review")
+    review: str | None = Field(default=None, description="Optional text review")
 
 
 class RegisterRepositoryRequest(BaseModel):
@@ -78,16 +79,17 @@ class RegisterRepositoryRequest(BaseModel):
 
 # _marketplace[name] = {name, version, description, author, tags, download_url,
 #                        checksum_sha256, published_at, listing_id, source_repo}
-_marketplace: Dict[str, Dict[str, Any]] = {}
+_marketplace: dict[str, dict[str, Any]] = {}
 # _ratings[name] = list of {user, rating, review, ts}
-_ratings: Dict[str, List[Dict[str, Any]]] = {}
+_ratings: dict[str, list[dict[str, Any]]] = {}
 # _repositories[repo_id] = {repo metadata + last_sync + imported_count}
-_repositories: Dict[str, Dict[str, Any]] = {}
+_repositories: dict[str, dict[str, Any]] = {}
 
 
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
 
 @app.get("/health")
 async def health() -> dict:
@@ -184,11 +186,12 @@ async def plugin_dependencies(name: str) -> dict:
 # Phase 2 — Plugin Marketplace
 # ==========================================================================
 
+
 @app.get("/marketplace")
 async def marketplace_list(
-    tag: Optional[str] = None,
-    author: Optional[str] = None,
-    min_rating: Optional[float] = None,
+    tag: str | None = None,
+    author: str | None = None,
+    min_rating: float | None = None,
 ) -> dict:
     """
     Browse available plugins in the community marketplace.
@@ -201,10 +204,7 @@ async def marketplace_list(
     if author:
         plugins = [p for p in plugins if p.get("author", "").lower() == author.lower()]
     if min_rating is not None:
-        plugins = [
-            p for p in plugins
-            if _avg_rating(p["name"]) >= min_rating
-        ]
+        plugins = [p for p in plugins if _avg_rating(p["name"]) >= min_rating]
     # Enrich with ratings
     for p in plugins:
         p["average_rating"] = _avg_rating(p["name"])
@@ -223,7 +223,7 @@ async def publish_plugin(payload: PublishPluginRequest) -> dict:
     """
     if not payload.download_url.startswith("https://"):
         raise HTTPException(status_code=400, detail="download_url must use HTTPS")
-    entry: Dict[str, Any] = {
+    entry: dict[str, Any] = {
         "name": payload.name,
         "version": payload.version,
         "description": payload.description,
@@ -300,6 +300,7 @@ def _parse_semver(value: str) -> tuple:
 # Phase 2 — Remaining plugin ecosystem features
 # ==========================================================================
 
+
 @app.get("/plugins/updates")
 async def plugin_update_status() -> dict:
     """
@@ -309,7 +310,7 @@ async def plugin_update_status() -> dict:
     returns update recommendations.
     """
     installed = _loader.list_plugins()
-    updates: List[Dict[str, Any]] = []
+    updates: list[dict[str, Any]] = []
     for p in installed:
         name = p["name"]
         local_ver = p.get("version", "0.0.0")
@@ -353,7 +354,12 @@ async def auto_update_plugin(name: str) -> dict:
     local_ver = meta.version
     remote_ver = remote.get("version", "0.0.0")
     if _parse_semver(remote_ver) <= _parse_semver(local_ver):
-        return {"plugin": name, "updated": False, "reason": "Already up to date", "version": local_ver}
+        return {
+            "plugin": name,
+            "updated": False,
+            "reason": "Already up to date",
+            "version": local_ver,
+        }
 
     return {
         "plugin": name,

@@ -1,9 +1,11 @@
 """End-to-end test: Static/demo mode and unauthenticated access."""
+
 from __future__ import annotations
 
 import os
-import pytest
+
 import httpx
+import pytest
 
 BASE_URL = os.getenv("TEST_BASE_URL", "")
 

@@ -4,15 +4,15 @@ Phase 2 — MITRE ATT&CK correlation engine.
 Maps vulnerability / finding titles to ATT&CK tactics, techniques,
 and their recommended mitigations.
 """
+
 from __future__ import annotations
 
 import re
-from typing import Dict, List, Optional
 
 # ---------------------------------------------------------------------------
 # ATT&CK technique registry (curated subset relevant to appsec/infrasec)
 # ---------------------------------------------------------------------------
-_TECHNIQUE_REGISTRY: List[Dict[str, str]] = [
+_TECHNIQUE_REGISTRY: list[dict[str, str]] = [
     {
         "keywords": "sql injection|sqli|sql",
         "tactic": "Initial Access / Execution",
@@ -155,7 +155,7 @@ _TECHNIQUE_REGISTRY: List[Dict[str, str]] = [
     },
 ]
 
-_FALLBACK: Dict[str, str] = {
+_FALLBACK: dict[str, str] = {
     "tactic": "Undetermined",
     "technique_id": "T0000",
     "technique_name": "Unknown Technique",
@@ -163,7 +163,7 @@ _FALLBACK: Dict[str, str] = {
 }
 
 
-def map_to_attack(finding: str) -> Dict[str, str]:
+def map_to_attack(finding: str) -> dict[str, str]:
     """
     Map a finding title / description to the most relevant MITRE ATT&CK entry.
 
@@ -185,6 +185,6 @@ def map_to_attack(finding: str) -> Dict[str, str]:
     return dict(_FALLBACK)
 
 
-def map_multiple(findings: List[str]) -> List[Dict[str, str]]:
+def map_multiple(findings: list[str]) -> list[dict[str, str]]:
     """Map a list of finding strings to ATT&CK entries."""
     return [{"finding": f, **map_to_attack(f)} for f in findings]

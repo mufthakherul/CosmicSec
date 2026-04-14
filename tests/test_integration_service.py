@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from services.integration_service.main import app
 
-
 client = TestClient(app)
 
 
@@ -21,7 +20,12 @@ def test_siem_vendor_endpoints() -> None:
 
 
 def test_ticketing_endpoints() -> None:
-    payload = {"project": "SEC", "summary": "Vulnerability found", "description": "Details", "labels": ["security"]}
+    payload = {
+        "project": "SEC",
+        "summary": "Vulnerability found",
+        "description": "Details",
+        "labels": ["security"],
+    }
 
     jira = client.post("/ticket/jira", json=payload)
     assert jira.status_code == 200
@@ -39,12 +43,20 @@ def test_ticketing_endpoints() -> None:
 def test_webhook_and_notifications() -> None:
     webhook = client.post(
         "/ticket/webhook",
-        json={"target_url": "https://example.org/hooks", "event_type": "ticket_created", "payload": {"id": "abc"}},
+        json={
+            "target_url": "https://example.org/hooks",
+            "event_type": "ticket_created",
+            "payload": {"id": "abc"},
+        },
     )
     assert webhook.status_code == 200
     assert webhook.json()["status"] == "queued"
 
-    notify_payload = {"channel": "#alerts", "message": "Security event", "attributes": {"severity": "high"}}
+    notify_payload = {
+        "channel": "#alerts",
+        "message": "Security event",
+        "attributes": {"severity": "high"},
+    }
     for endpoint in (
         "/notify/slack",
         "/notify/teams",

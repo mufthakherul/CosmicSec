@@ -2,12 +2,12 @@
 LangGraph multi-agent security assessment workflow.
 Gracefully falls back to sequential execution if langgraph is not installed.
 """
+
 from __future__ import annotations
 
-import asyncio
 import importlib
 import logging
-from typing import Any, Optional, TypedDict
+from typing import Any, TypedDict
 
 import httpx
 
@@ -69,7 +69,11 @@ async def analyze_node(state: WorkflowState) -> WorkflowState:
     """Run AI analysis over scan results."""
     try:
         findings_payload = [
-            {"title": f.get("title", "Unknown"), "severity": f.get("severity", "info"), "description": f.get("description", "")}
+            {
+                "title": f.get("title", "Unknown"),
+                "severity": f.get("severity", "info"),
+                "description": f.get("description", ""),
+            }
             for f in state["scan_results"][:20]
         ]
         async with httpx.AsyncClient(timeout=30) as client:
@@ -124,7 +128,7 @@ async def run_workflow(target: str) -> WorkflowState:
 
     if _has_langgraph:
         try:
-            from langgraph.graph import StateGraph, END  # type: ignore[import]
+            from langgraph.graph import END, StateGraph  # type: ignore[import]
 
             workflow = StateGraph(WorkflowState)
             workflow.add_node("recon", recon_node)
