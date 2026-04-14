@@ -53,3 +53,8 @@ frontend/**/.vite/
 # Project specific
 config/settings.json
 logbook.md
+
+# SQLite databases (test artifacts)
+*.db
+*.sqlite
+*.sqlite3
