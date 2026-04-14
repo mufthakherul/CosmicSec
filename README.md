@@ -3,7 +3,15 @@
 [![License: Custom MIT + Ethical Use](https://img.shields.io/badge/License-Custom%20MIT%20%2B%20Ethical%20Use-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104%2B-009688.svg)](https://fastapi.tiangolo.com)
-[![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Lint: Ruff](https://img.shields.io/badge/lint-ruff-46a758.svg)](https://github.com/astral-sh/ruff)
+
+<p align="left">
+  <img src="docs/assets/logo.svg" alt="CosmicSec logo" width="96" />
+</p>
+
+<p align="left">
+  <img src="docs/assets/project-card.svg" alt="CosmicSec project card" width="560" />
+</p>
 
 > **⚠️ Authorized & Ethical Use Only.** CosmicSec is designed exclusively for ethical cybersecurity research, authorized penetration testing, and blue-team training. See [LICENSE](LICENSE) for full terms.
 
@@ -135,9 +143,8 @@ pytest tests/ -v --cov=services --cov-report=term-missing
 ### Linting & Formatting
 
 ```bash
-black .
-isort .
-flake8 .
+ruff check .
+ruff format .
 mypy .
 ```
 
@@ -145,26 +152,7 @@ mypy .
 
 ## 📁 Project Structure
 
-```
-CosmicSec/
-├── services/               # Microservice implementations
-│   ├── api_gateway/        # HybridRouter, middleware, RBAC
-│   ├── auth_service/       # JWT, OAuth2, 2FA
-│   ├── scan_service/       # Distributed scanner, Celery workers
-│   ├── ai_service/         # LangChain, MITRE ATT&CK, threat intel
-│   ├── recon_service/      # Passive recon engines
-│   ├── report_service/     # Multi-format report generation
-│   └── collab_service/     # Real-time collaboration
-├── cosmicsec_platform/     # Shared contracts, middleware, utilities
-├── frontend/               # Web UI
-├── sdk/                    # Public SDK for CLI / integrations
-├── plugins/                # Plugin Registry, community plugins, official plugin examples
-├── infrastructure/         # Kubernetes, Terraform, CI/CD configs
-├── scripts/                # Dev, migration, seed scripts
-├── tests/                  # Test suite
-├── alembic/                # Database migrations
-└── docs/                   # Extended documentation
-```
+See the maintained structure map: **[`docs/DIRECTORY_STRUCTURE.md`](docs/DIRECTORY_STRUCTURE.md)**.
 
 ---
 
