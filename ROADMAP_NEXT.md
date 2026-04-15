@@ -1,7 +1,29 @@
 # CosmicSec — Next-Generation Implementation Roadmap (v2)
 
 ### Phase-by-Phase Guide for Humans & AI Coding Agents
-> **Version**: 2.0 (2026-04-15) | **Companion**: [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md)
+> **Version**: 2.1 (2026-04-15) | **Companion**: [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md)
+
+---
+
+> ### 📊 Overall Progress: **~12% Complete** (Phase K done, cross-cutting started)
+>
+> | Phase | Status | Progress |
+> |-------|--------|----------|
+> | **K — Critical Security Hardening** | ✅ Complete | 100% |
+> | **L — Production Data Layer** | ⬜ Not started | 0% |
+> | **M — Frontend Completion** | ⬜ Not started | 0% |
+> | **N — Dependency Modernization** | ⬜ Not started | 0% |
+> | **O — Test Coverage** | ⬜ Not started | 0% |
+> | **P — Rust Ingest Engine** | ⬜ Not started | 0% |
+> | **Q — AI/ML Workflows** | ⬜ Not started | 0% |
+> | **R — Enterprise Features** | ⬜ Not started | 0% |
+> | **S — Performance & Scale** | ⬜ Not started | 0% |
+> | **T — Go Event Broker** | ⬜ Not started | 0% |
+> | **U — Mobile & PWA** | ⬜ Not started | 0% |
+> | **V — DX & Polish** | ⬜ Not started | 0% |
+> | **Cross-Cutting** | 🟡 In progress | ~20% |
+
+---
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: Full codebase (19,655 lines Python + 1,747 TypeScript modules + SDKs + infra)
 
@@ -142,15 +164,17 @@ Rust (Ingest Engine)   ←── PostgreSQL COPY protocol ────→  Postg
 
 ---
 
-## Phase K — Critical Security Hardening
+## Phase K — Critical Security Hardening ✅ COMPLETE (100%)
 
 > 🎯 **Goal**: Fix all 10 critical security vulnerabilities. After this phase, the platform is safe for internal/staging deployment.
 >
 > 📋 **Prerequisites**: None — this is the first phase.
 >
 > 🌐 **Languages**: Python, TypeScript, SQL, YAML
+>
+> ✅ **Completed**: 2026-04-15 — All 9 sub-tasks implemented and verified.
 
-### K.1 — Fix Authentication Pages
+### K.1 — Fix Authentication Pages ✅
 
 **What to do**: Replace the 4 stub auth pages with fully functional implementations including form state management, client-side validation, API integration, loading states, error handling, and accessibility.
 
@@ -215,7 +239,7 @@ Add react-hook-form and zod as dependencies: npm install react-hook-form @hookfo
 
 ---
 
-### K.2 — Eliminate In-Memory Auth Stores
+### K.2 — Eliminate In-Memory Auth Stores ✅
 
 **What to do**: Replace `fake_api_keys_db = {}` and `fake_2fa_db = {}` in auth service with real SQLAlchemy database queries. Encrypt 2FA secrets at rest.
 
@@ -251,7 +275,7 @@ Fallback: Dict cache → DB on cache miss → Error response on DB failure
 
 ---
 
-### K.3 — CORS Hardening
+### K.3 — CORS Hardening ✅
 
 **What to do**: Replace `allow_origins=["*"]` with environment-configurable origin allowlist.
 
@@ -279,7 +303,7 @@ Update .env.example with COSMICSEC_CORS_ORIGINS=http://localhost:3000,http://loc
 
 ---
 
-### K.4 — Remove All Hardcoded Secrets
+### K.4 — Remove All Hardcoded Secrets ✅
 
 **What to do**: Remove default admin password from init-db.sql, remove hardcoded "ChangeMe123!" from admin dashboard, remove hardcoded localhost URL.
 
@@ -315,7 +339,7 @@ Update .env.example with COSMICSEC_CORS_ORIGINS=http://localhost:3000,http://loc
 
 ---
 
-### K.5 — Login Rate Limiting
+### K.5 — Login Rate Limiting ✅
 
 **What to do**: Add rate limiting to auth service login endpoint to prevent brute force.
 
@@ -346,7 +370,7 @@ In services/auth_service/main.py:
 
 ---
 
-### K.6 — XSS Prevention in Reports
+### K.6 — XSS Prevention in Reports ✅
 
 **What to do**: Replace f-string HTML concatenation with Jinja2 templates with auto-escaping.
 
@@ -375,7 +399,7 @@ In services/report_service/main.py:
 
 ---
 
-### K.7 — WebSocket Authentication
+### K.7 — WebSocket Authentication ✅
 
 **What to do**: Add JWT validation on WebSocket upgrade for collab_service and agent_relay.
 
@@ -413,7 +437,7 @@ In services/report_service/main.py:
 
 ---
 
-### K.8 — Remove Production --reload & Fix Docker Mismatches
+### K.8 — Remove Production --reload & Fix Docker Mismatches ✅
 
 **What to do**: Remove `--reload` from production compose, fix Node.js version mismatch, fix Python version inconsistency.
 
@@ -444,7 +468,7 @@ In services/report_service/main.py:
 
 ---
 
-### K.9 — Narrow Exception Handlers
+### K.9 — Narrow Exception Handlers ✅
 
 **What to do**: Replace all 114+ bare `except Exception:` handlers with specific exception types.
 
@@ -2034,17 +2058,17 @@ These improvements span multiple phases and should be applied continuously:
 - [ ] Add SAST in CI (Bandit for Python, ESLint security plugin for TypeScript)
 - [ ] Add container image scanning (Trivy) in build workflow
 - [ ] Add SBOM generation (Syft/CycloneDX) for supply chain security
-- [ ] Add WebSocket message validation (JSON Schema) in all WS endpoints
-- [ ] Add request payload size limits (1MB default, 10MB for file uploads)
+- [x] Add WebSocket message validation (JSON Schema) in all WS endpoints ✅ *(collab_service + agent_relay)*
+- [x] Add request payload size limits (1MB default, 10MB for file uploads) ✅ *(API Gateway middleware)*
 - [ ] Add SQL injection testing in CI (sqlmap against test DB)
-- [ ] Add HTTP security headers (X-Frame-Options, X-Content-Type-Options, etc.)
+- [x] Add HTTP security headers (X-Frame-Options, X-Content-Type-Options, etc.) ✅ *(API Gateway middleware)*
 
 ### Developer Experience
-- [ ] Add docker-compose.dev.yml with hot-reload for all services
-- [ ] Add VS Code workspace settings (`.vscode/settings.json`, extensions.json)
+- [x] Add docker-compose.dev.yml with hot-reload for all services ✅ *(Phase K.8)*
+- [x] Add VS Code workspace settings (`.vscode/settings.json`, extensions.json) ✅
 - [ ] Add pre-commit hooks: ruff, mypy (strict), prettier, eslint
-- [ ] Add Makefile targets: `make dev-frontend`, `make dev-backend`, `make seed`, `make test-all`
-- [ ] Add GitHub Codespaces devcontainer configuration
+- [x] Add Makefile targets: `make dev-frontend`, `make dev-backend`, `make seed`, `make test-all` ✅
+- [x] Add GitHub Codespaces devcontainer configuration ✅ *(.devcontainer/devcontainer.json)*
 - [ ] Add development seed data script
 
 ### Code Quality
