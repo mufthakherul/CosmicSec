@@ -1,6 +1,26 @@
-import { useState, useRef, useEffect } from "react";
-import { Bell, Moon, Search, Sun, User, LogOut, Settings, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState, useRef, useEffect, useMemo } from "react";
+import {
+  Bell,
+  Moon,
+  Search,
+  Sun,
+  User,
+  LogOut,
+  Settings,
+  ChevronDown,
+  LayoutDashboard,
+  Radar,
+  Globe,
+  Brain,
+  Clock,
+  FileText,
+  Bug,
+  Activity,
+  Zap,
+  Shield,
+  SlidersHorizontal,
+} from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { useNotificationStore } from "../store/notificationStore";
@@ -10,34 +30,249 @@ import { useNotificationStore } from "../store/notificationStore";
 // ---------------------------------------------------------------------------
 
 function GlobalSearch() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [query, setQuery] = useState("");
-  const [focused, setFocused] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const entries = useMemo(() => {
+    const baseEntries = [
+      {
+        label: "Dashboard",
+        description: "Overview, metrics, and activity",
+        path: "/dashboard",
+        icon: LayoutDashboard,
+        keywords: "home overview stats summary",
+      },
+      {
+        label: "Scans",
+        description: "Run and manage security scans",
+        path: "/scans",
+        icon: Radar,
+        keywords: "scan target tools findings",
+      },
+      {
+        label: "Recon",
+        description: "Reconnaissance workflows and results",
+        path: "/recon",
+        icon: Globe,
+        keywords: "recon osint domain subdomain",
+      },
+      {
+        label: "AI Analysis",
+        description: "AI-assisted threat and finding analysis",
+        path: "/ai",
+        icon: Brain,
+        keywords: "ai analysis explain remediation",
+      },
+      {
+        label: "Timeline",
+        description: "Events and incident timeline",
+        path: "/timeline",
+        icon: Clock,
+        keywords: "events activity incident history",
+      },
+      {
+        label: "Reports",
+        description: "Generate and export reports",
+        path: "/reports",
+        icon: FileText,
+        keywords: "pdf report export compliance",
+      },
+      {
+        label: "Bug Bounty",
+        description: "Bounty programs and submissions",
+        path: "/bugbounty",
+        icon: Bug,
+        keywords: "bounty submissions rewards",
+      },
+      {
+        label: "SOC / Phase5",
+        description: "SOC and advanced operations center",
+        path: "/phase5",
+        icon: Activity,
+        keywords: "soc phase5 operations alerts",
+      },
+      {
+        label: "Agents",
+        description: "Agent fleet and execution status",
+        path: "/agents",
+        icon: Zap,
+        keywords: "agents autonomous runtime",
+      },
+      {
+        label: "Settings",
+        description: "Preferences and account defaults",
+        path: "/settings",
+        icon: SlidersHorizontal,
+        keywords: "preferences defaults profile",
+      },
+    ];
+
+    if (user?.role === "admin") {
+      baseEntries.push({
+        label: "Admin",
+        description: "Administrative controls and users",
+        path: "/admin",
+        icon: Shield,
+        keywords: "admin users governance",
+      });
+    }
+
+    return baseEntries;
+  }, [user?.role]);
+
+  const normalized = query.trim().toLowerCase();
+  const results = useMemo(() => {
+    if (!normalized) {
+      return entries.slice(0, 8);
+    }
+    return entries
+      .filter((item) =>
+        `${item.label} ${item.description} ${item.keywords}`.toLowerCase().includes(normalized),
+      )
+      .slice(0, 8);
+  }, [entries, normalized]);
+
+  const goTo = (path: string) => {
+    setOpen(false);
+    if (location.pathname !== path) {
+      navigate(path);
+    }
+  };
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [normalized]);
+
+  useEffect(() => {
+    const onGlobalShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        inputRef.current?.focus();
+        setOpen(true);
+      }
+    };
+
+    const onOutsideClick = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", onGlobalShortcut);
+    document.addEventListener("mousedown", onOutsideClick);
+    return () => {
+      document.removeEventListener("keydown", onGlobalShortcut);
+      document.removeEventListener("mousedown", onOutsideClick);
+    };
+  }, []);
+
+  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open) {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        setOpen(true);
+      }
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveIndex((idx) => (results.length ? (idx + 1) % results.length : 0));
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveIndex((idx) => (results.length ? (idx - 1 + results.length) % results.length : 0));
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (results[activeIndex]) {
+        goTo(results[activeIndex].path);
+      }
+      return;
+    }
+
+    if (event.key === "Escape") {
+      setOpen(false);
+    }
+  };
 
   return (
-    <div className="relative hidden md:block">
+    <div ref={containerRef} className="relative hidden md:block">
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
       <input
+        ref={inputRef}
         type="search"
-        placeholder="Search scans, findings, targets…"
+        placeholder="Search pages…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onFocus={() => setOpen(true)}
+        onKeyDown={onKeyDown}
         className={[
           "h-9 w-64 rounded-lg border bg-slate-800 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500",
           "outline-none transition-all duration-200",
-          focused
+          open
             ? "border-cyan-500 ring-1 ring-cyan-500/30 w-80"
             : "border-slate-700 hover:border-slate-600",
         ].join(" ")}
+        role="combobox"
+        aria-expanded={open}
+        aria-controls="global-search-results"
         aria-label="Global search"
       />
-      {focused && query.trim() && (
-        <div className="absolute top-full left-0 z-50 mt-2 w-80 rounded-xl border border-slate-700 bg-slate-900 p-3 shadow-2xl">
-          <p className="text-xs text-slate-500">
-            Press <kbd className="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs">Enter</kbd>{" "}
-            to search for "{query}"
-          </p>
+      {open && (
+        <div
+          id="global-search-results"
+          className="absolute top-full left-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl"
+        >
+          <div className="border-b border-slate-800 px-3 py-2 text-xs text-slate-500">
+            Press{" "}
+            <kbd className="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-300">
+              {navigator.platform.toUpperCase().includes("MAC") ? "⌘K" : "Ctrl+K"}
+            </kbd>{" "}
+            to focus, <kbd className="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-300">↑↓</kbd>{" "}
+            to navigate
+          </div>
+
+          {results.length === 0 ? (
+            <div className="px-4 py-6 text-sm text-slate-400">No matching pages found.</div>
+          ) : (
+            <ul className="max-h-80 overflow-y-auto py-1" role="listbox" aria-label="Search results">
+              {results.map((item, index) => {
+                const Icon = item.icon;
+                const isActive = index === activeIndex;
+                return (
+                  <li key={item.path}>
+                    <button
+                      type="button"
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={() => goTo(item.path)}
+                      className={[
+                        "flex w-full items-start gap-3 px-3 py-2 text-left transition-colors",
+                        isActive ? "bg-cyan-500/10" : "hover:bg-slate-800/80",
+                      ].join(" ")}
+                    >
+                      <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-cyan-400" />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium text-slate-100">
+                          {item.label}
+                        </span>
+                        <span className="block truncate text-xs text-slate-400">{item.description}</span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       )}
     </div>
