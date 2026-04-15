@@ -59,3 +59,4 @@ logbook.md
 *.sqlite
 *.sqlite3
 nohup.out
+.coverage
