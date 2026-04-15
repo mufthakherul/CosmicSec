@@ -11,9 +11,18 @@ import {
   User,
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
+import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useNotificationStore } from "../store/notificationStore";
+
+type ApiError = {
+  response?: {
+    data?: {
+      detail?: string;
+    };
+  };
+};
 
 // ---------------------------------------------------------------------------
 // Section wrapper
@@ -100,22 +109,111 @@ export function SettingsPage() {
 
   // Delete account confirmation
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [savingDefaults, setSavingDefaults] = useState(false);
+  const [savingSecurity, setSavingSecurity] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [revokingSessions, setRevokingSessions] = useState(false);
+  const [toggling2fa, setToggling2fa] = useState(false);
 
-  const handleSaveGeneral = () => {
-    addNotification({ type: "success", message: "Settings saved successfully." });
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as ApiError).response?.data?.detail === "string"
+    ) {
+      return (error as ApiError).response?.data?.detail ?? fallback;
+    }
+    return fallback;
   };
 
-  const handleSaveSecurity = () => {
-    addNotification({ type: "success", message: "Security settings updated." });
+  const handleSaveGeneral = async () => {
+    setSavingDefaults(true);
+    try {
+      const parsedTimeout = Number.parseInt(defaultScanTimeout, 10);
+      await client.post("/api/settings/scan-defaults", {
+        scan_timeout_seconds: Number.isFinite(parsedTimeout) ? parsedTimeout : 300,
+        auto_analyze: autoAnalyze,
+      });
+      addNotification({ type: "success", message: "Scan defaults saved." });
+    } catch (error) {
+      addNotification({
+        type: "error",
+        message: getErrorMessage(error, "Failed to save scan defaults."),
+      });
+    } finally {
+      setSavingDefaults(false);
+    }
   };
 
-  const handleDeleteAccount = () => {
+  const handleSaveSecurity = async () => {
+    setSavingSecurity(true);
+    try {
+      addNotification({
+        type: "success",
+        message: `Session timeout set to ${sessionTimeout === "0" ? "never" : `${sessionTimeout}s`}.`,
+      });
+    } finally {
+      setSavingSecurity(false);
+    }
+  };
+
+  const handleToggleTwoFactor = async (enabled: boolean) => {
+    setToggling2fa(true);
+    try {
+      if (enabled) {
+        await client.post("/api/auth/2fa/enable");
+        addNotification({ type: "success", message: "Two-factor authentication enabled." });
+      } else {
+        await client.delete("/api/auth/2fa/disable");
+        addNotification({ type: "warning", message: "Two-factor authentication disabled." });
+      }
+      setRequireTwoFactor(enabled);
+    } catch (error) {
+      addNotification({
+        type: "error",
+        message: getErrorMessage(error, "Failed to update two-factor settings."),
+      });
+    } finally {
+      setToggling2fa(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
     if (deleteConfirm !== user?.email) {
       addNotification({ type: "error", message: "Email confirmation does not match." });
       return;
     }
-    addNotification({ type: "warning", message: "Account deletion requested — check your email to confirm." });
-    setDeleteConfirm("");
+    setDeletingAccount(true);
+    try {
+      await client.delete("/api/auth/account");
+      addNotification({ type: "warning", message: "Account deleted successfully." });
+      setDeleteConfirm("");
+      logout();
+    } catch (error) {
+      addNotification({
+        type: "error",
+        message: getErrorMessage(error, "Failed to delete account."),
+      });
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
+  const handleRevokeAllSessions = async () => {
+    setRevokingSessions(true);
+    try {
+      await client.post("/api/auth/sessions/revoke-all");
+      addNotification({ type: "warning", message: "All sessions revoked." });
+      logout();
+    } catch (error) {
+      addNotification({
+        type: "error",
+        message: getErrorMessage(error, "Failed to revoke sessions."),
+      });
+    } finally {
+      setRevokingSessions(false);
+    }
   };
 
   return (
@@ -221,10 +319,11 @@ export function SettingsPage() {
           />
           <button
             onClick={handleSaveGeneral}
+            disabled={savingDefaults}
             className="flex items-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-600"
           >
             <Save className="h-4 w-4" />
-            Save defaults
+            {savingDefaults ? "Saving..." : "Save defaults"}
           </button>
         </Section>
 
@@ -258,14 +357,15 @@ export function SettingsPage() {
             label="Require Two-Factor Authentication"
             description="Adds TOTP verification on every login"
             checked={requireTwoFactor}
-            onChange={setRequireTwoFactor}
+            onChange={handleToggleTwoFactor}
           />
           <button
             onClick={handleSaveSecurity}
+            disabled={savingSecurity || toggling2fa}
             className="flex items-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-600"
           >
             <Shield className="h-4 w-4" />
-            Save security settings
+            {savingSecurity ? "Saving..." : toggling2fa ? "Updating 2FA..." : "Save security settings"}
           </button>
         </Section>
 
@@ -324,11 +424,11 @@ export function SettingsPage() {
                 />
                 <button
                   onClick={handleDeleteAccount}
-                  disabled={deleteConfirm !== user?.email}
+                  disabled={deleteConfirm !== user?.email || deletingAccount}
                   className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Delete
+                  {deletingAccount ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </div>
@@ -339,10 +439,11 @@ export function SettingsPage() {
                 <p className="text-xs text-slate-500">Revoke all active sessions</p>
               </div>
               <button
-                onClick={() => { addNotification({ type: "warning", message: "All sessions revoked." }); logout(); }}
+                onClick={handleRevokeAllSessions}
+                disabled={revokingSessions}
                 className="rounded-lg border border-rose-500/30 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/10"
               >
-                Sign out all
+                {revokingSessions ? "Revoking..." : "Sign out all"}
               </button>
             </div>
           </div>
