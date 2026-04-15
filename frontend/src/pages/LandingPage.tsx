@@ -12,6 +12,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import { PublicNav } from "../components/PublicNav";
 
 const FEATURES = [
   {
@@ -68,47 +69,23 @@ const STATS = [
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans overflow-x-hidden">
-      {/* ------------------------------------------------------------------ */}
-      {/* Navbar */}
-      {/* ------------------------------------------------------------------ */}
-      <nav className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
+      <PublicNav
+        brand={
+          <>
             <Shield className="h-7 w-7 text-cyan-400" />
             <span className="text-xl font-bold tracking-tight">CosmicSec</span>
-          </div>
-          <div className="hidden md:flex items-center gap-6 text-sm text-slate-400">
-            <Link to="/demo" className="hover:text-white transition-colors">
-              Demo
-            </Link>
-            <Link to="/pricing" className="hover:text-white transition-colors">
-              Pricing
-            </Link>
-            <a
-              href="https://github.com/mufthakherul/CosmicSec"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              GitHub
-            </a>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/auth/login"
-              className="text-sm text-slate-300 hover:text-white transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/auth/register"
-              className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400 transition-colors"
-            >
-              Start Free
-            </Link>
-          </div>
-        </div>
-      </nav>
+          </>
+        }
+        links={[
+          { label: "Demo", to: "/demo" },
+          { label: "Pricing", to: "/pricing" },
+          { label: "GitHub", to: "https://github.com/mufthakherul/CosmicSec", external: true },
+        ]}
+        actions={[
+          { label: "Sign In", to: "/auth/login", variant: "ghost" },
+          { label: "Start Free", to: "/auth/register", variant: "primary" },
+        ]}
+      />
 
       {/* ------------------------------------------------------------------ */}
       {/* Hero */}
