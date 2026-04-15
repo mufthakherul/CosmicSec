@@ -2,10 +2,10 @@
 
 ### From Local Scanner to AI-Powered Security Command Center
 
-> **Version**: 1.0 (2026-04-15) | **Parent Roadmap**: [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)
+> **Version**: 2.0 (2026-04-15) | **Parent Roadmap**: [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: `cli/agent/` module, related SDK integration, server-side agent relay, AI-driven CLI workflows
-> **Current State**: v0.1.0 foundation — tool discovery, basic scan execution, offline store, WebSocket streaming
+> **Current State**: v0.2.0 — **hybrid dynamic/static execution engine implemented** (Phase CA-4.5 ✅), tool discovery, basic scan execution, offline store, WebSocket streaming
 
 ---
 
@@ -34,27 +34,32 @@ This document is a **companion to [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)** and d
 4. [Phase CA-2 — Core CLI Overhaul & Modern UX](#phase-ca-2--core-cli-overhaul--modern-ux)
 5. [Phase CA-3 — Interactive TUI Mode & Live Dashboards](#phase-ca-3--interactive-tui-mode--live-dashboards)
 6. [Phase CA-4 — AI-Powered CLI Agent (Conversational Security)](#phase-ca-4--ai-powered-cli-agent-conversational-security)
-7. [Phase CA-5 — Advanced Scanning, Orchestration & Pipelines](#phase-ca-5--advanced-scanning-orchestration--pipelines)
-8. [Phase CA-6 — Enterprise, Multi-Tenant & Team Features](#phase-ca-6--enterprise-multi-tenant--team-features)
-9. [Phase CA-7 — Developer Experience, Branding & Distribution](#phase-ca-7--developer-experience-branding--distribution)
-10. [Phase CA-8 — Plugin System, Extensibility & Marketplace](#phase-ca-8--plugin-system-extensibility--marketplace)
-11. [Phase CA-9 — Offline-First Intelligence & Edge Computing](#phase-ca-9--offline-first-intelligence--edge-computing)
-12. [Phase CA-10 — Performance, Cross-Platform & Rust Acceleration](#phase-ca-10--performance-cross-platform--rust-acceleration)
-13. [Implementation Priority Matrix](#implementation-priority-matrix)
-14. [Target CLI Architecture](#target-cli-architecture)
-15. [New File & Directory Map](#new-file--directory-map)
-16. [Summary — Before vs. After](#summary--before-vs-after)
+7. [**Phase CA-4.5 — Hybrid Dynamic/Static Execution Engine** ✅](#phase-ca-45--hybrid-dynamicstatic-execution-engine-)
+8. [Phase CA-5 — Advanced Scanning, Orchestration & Pipelines](#phase-ca-5--advanced-scanning-orchestration--pipelines)
+9. [Phase CA-6 — Enterprise, Multi-Tenant & Team Features](#phase-ca-6--enterprise-multi-tenant--team-features)
+10. [Phase CA-7 — Developer Experience, Branding & Distribution](#phase-ca-7--developer-experience-branding--distribution)
+11. [Phase CA-8 — Plugin System, Extensibility & Marketplace](#phase-ca-8--plugin-system-extensibility--marketplace)
+12. [Phase CA-9 — Offline-First Intelligence & Edge Computing](#phase-ca-9--offline-first-intelligence--edge-computing)
+13. [Phase CA-10 — Performance, Cross-Platform & Rust Acceleration](#phase-ca-10--performance-cross-platform--rust-acceleration)
+14. [Implementation Priority Matrix](#implementation-priority-matrix)
+15. [Target CLI Architecture](#target-cli-architecture)
+16. [New File & Directory Map](#new-file--directory-map)
+17. [Summary — Before vs. After](#summary--before-vs-after)
 
 ---
 
 ## Current State Audit
 
-### ✅ What Already Exists (v0.1.0)
+### ✅ What Already Exists (v0.2.0)
 
 | Component | File | Status | LOC |
 |-----------|------|--------|-----|
-| CLI entry point (Typer) | `cli/agent/cosmicsec_agent/main.py` | ✅ Working | 309 |
-| Tool discovery (14 tools) | `cli/agent/cosmicsec_agent/tool_registry.py` | ✅ Working | 159 |
+| CLI entry point (Typer) | `cli/agent/cosmicsec_agent/main.py` | ✅ Working | 430+ |
+| Tool discovery (14 tools) | `cli/agent/cosmicsec_agent/tool_registry.py` | ✅ Enhanced | 290+ |
+| **Hybrid execution engine** | `cli/agent/cosmicsec_agent/hybrid_engine.py` | ✅ **NEW** | 430+ |
+| **AI task planner** | `cli/agent/cosmicsec_agent/ai_planner.py` | ✅ **NEW** | 480+ |
+| **Intent parser (NL)** | `cli/agent/cosmicsec_agent/intent_parser.py` | ✅ **NEW** | 300+ |
+| **Dynamic command resolver** | `cli/agent/cosmicsec_agent/dynamic_resolver.py` | ✅ **NEW** | 210+ |
 | Async subprocess executor | `cli/agent/cosmicsec_agent/executor.py` | ✅ Working | 95 |
 | SQLite offline store | `cli/agent/cosmicsec_agent/offline_store.py` | ✅ Working | 159 |
 | WebSocket stream client | `cli/agent/cosmicsec_agent/stream.py` | ✅ Working | 131 |
@@ -62,6 +67,7 @@ This document is a **companion to [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)** and d
 | Nikto parser | `cli/agent/cosmicsec_agent/parsers/nikto_parser.py` | ✅ Working | 92 |
 | Nuclei parser (JSONL) | `cli/agent/cosmicsec_agent/parsers/nuclei_parser.py` | ✅ Working | 72 |
 | Gobuster parser | `cli/agent/cosmicsec_agent/parsers/gobuster_parser.py` | ✅ Working | 80 |
+| **Hybrid engine tests (42)** | `cli/agent/tests/test_hybrid_engine.py` | ✅ **NEW** | 320+ |
 | Server-side agent relay | `services/agent_relay/main.py` | ✅ Basic | ~200 |
 | TypeScript Agent SDK | `sdk/typescript/src/agent.ts` | ✅ Basic | 72 |
 | Go SDK agent methods | `sdk/go/client.go` | ✅ Basic | 220 |
@@ -69,25 +75,40 @@ This document is a **companion to [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)** and d
 | Admin CLI (Typer) | `services/admin_service/cli.py` | ✅ Working | 271 |
 | Admin TUI (Textual) | `services/admin_service/tui.py` | ⚠️ Stub | 20 |
 
-### 🔴 Critical Gaps
+### 🟢 What Changed from v0.1.0 → v0.2.0 (Phase CA-4.5)
 
-| ID | Gap | Impact |
-|----|-----|--------|
-| CG-01 | **No authentication flow** — API key stored as plaintext in `~/.cosmicsec/config.json` | Security vulnerability |
-| CG-02 | **No `login` command** — users must manually provide `--api-key` every time | Terrible UX |
-| CG-03 | **No interactive/conversational mode** — all commands are one-shot | Not competitive with modern CLI agents |
-| CG-04 | **No AI integration** — zero LLM calls, no `ask`, `analyze`, or `explain` commands | Missing core differentiator |
-| CG-05 | **No progress indicators during scans** — output only after completion | Bad UX for long-running tools |
-| CG-06 | **No scan cancellation** — Ctrl+C kills the entire agent | No graceful abort |
-| CG-07 | **No config management** — no `cosmicsec config set/get/list` | Must manually edit JSON |
-| CG-08 | **Zero test coverage** — `tests/__init__.py` is empty | No quality gates |
-| CG-09 | **Agent relay uses in-memory dict** — all connections lost on restart | Data loss |
-| CG-10 | **No shell completions** — no tab completion for commands or tool names | Missing standard feature |
-| CG-11 | **No update mechanism** — no `cosmicsec update` or version checking | Manual updates only |
-| CG-12 | **No profile/workspace support** — cannot manage multiple targets/servers | Single-context only |
-| CG-13 | **No output formatting options** — only Rich tables, no `--json` or `--quiet` flags | Not scriptable |
-| CG-14 | **No scan history** — cannot list, search, or revisit previous scans | Data not accessible |
-| CG-15 | **Only 4 parsers** — 10 of 14 supported tools have no output parsing | Incomplete coverage |
+| Change | Description |
+|--------|-------------|
+| **Hybrid execution engine** | New `cosmicsec-agent run` command accepts natural language instructions and uses AI + static fallback |
+| **AI task planner** | Supports OpenAI, Ollama (local), and CosmicSec Cloud providers for dynamic planning |
+| **Intent parser** | Rule-based NL parser handles scans, workflows, analysis, reports — works 100% offline |
+| **Dynamic resolver** | Safety-validated command resolution with allowlist and blocklist patterns |
+| **Enhanced tool registry** | Categories, descriptions, default args, dynamic registration, capability-based lookup |
+| **3 execution modes** | `static` (registry-only), `dynamic` (AI-only), `hybrid` (AI + static fallback) |
+| **`plan` command** | Preview execution plans without running them |
+| **`mode` subcommand** | `mode show` / `mode set` for default execution mode management |
+| **42 passing tests** | Comprehensive tests for intent parsing, resolver safety, AI planning, and engine execution |
+
+### 🔴 Critical Gaps (Updated for v0.2.0)
+
+| ID | Gap | Impact | Status |
+|----|-----|--------|--------|
+| CG-01 | **No authentication flow** — API key stored as plaintext in `~/.cosmicsec/config.json` | Security vulnerability | 🔴 Open |
+| CG-02 | **No `login` command** — users must manually provide `--api-key` every time | Terrible UX | 🔴 Open |
+| CG-03 | ~~No interactive/conversational mode~~ → **`run` command** accepts natural language | ~~Not competitive~~ | 🟡 Partial (v0.2.0) |
+| CG-04 | ~~No AI integration~~ → **Hybrid engine** with OpenAI/Ollama/Cloud providers | ~~Missing differentiator~~ | 🟡 Partial (v0.2.0) |
+| CG-05 | **No progress indicators during scans** — output only after completion | Bad UX for long-running tools | 🔴 Open |
+| CG-06 | **No scan cancellation** — Ctrl+C kills the entire agent | No graceful abort | 🔴 Open |
+| CG-07 | **No config management** — no `cosmicsec config set/get/list` | Must manually edit JSON | 🔴 Open |
+| CG-08 | ~~Zero test coverage~~ → **42 tests** for hybrid engine | ~~No quality gates~~ | 🟡 Partial (v0.2.0) |
+| CG-09 | **Agent relay uses in-memory dict** — all connections lost on restart | Data loss | 🔴 Open |
+| CG-10 | **No shell completions** — no tab completion for commands or tool names | Missing standard feature | 🔴 Open |
+| CG-11 | **No update mechanism** — no `cosmicsec update` or version checking | Manual updates only | 🔴 Open |
+| CG-12 | **No profile/workspace support** — cannot manage multiple targets/servers | Single-context only | 🔴 Open |
+| CG-13 | **No output formatting options** — only Rich tables, no `--json` or `--quiet` flags | Not scriptable | 🔴 Open |
+| CG-14 | **No scan history** — cannot list, search, or revisit previous scans | Data not accessible | 🔴 Open |
+| CG-15 | **Only 4 parsers** — 10 of 14 supported tools have no output parsing | Incomplete coverage | 🔴 Open |
+| CG-16 | ~~Tool selection is static/registry-only~~ → **Hybrid dynamic/static engine** | ~~Not competitive with Copilot/Gemini CLI~~ | ✅ **Fixed** (v0.2.0) |
 
 ### 🟡 What Dependencies Already Exist
 
@@ -942,6 +963,282 @@ cosmicsec report generate --format html
 
 ---
 
+## Phase CA-4.5 — Hybrid Dynamic/Static Execution Engine ✅
+
+> 🎯 **Goal**: Transform the CLI from a static, registry-only tool runner into a hybrid engine that combines AI-powered dynamic planning (like GitHub Copilot CLI, Gemini CLI, OpenAI CLI) with the reliable static tool registry — making CosmicSec competitive with leading AI CLI agents while maintaining offline reliability.
+>
+> ✅ **Status**: **IMPLEMENTED in v0.2.0** — This phase is complete. All components below are working and tested.
+>
+> 📋 **Prerequisites**: None (this was implemented early to establish the core architecture)
+>
+> 🌐 **Languages**: Python
+>
+> ⏱️ **Actual Duration**: Implemented in v0.2.0
+
+### The Problem
+
+The v0.1.0 agent had a critical limitation:
+
+```
+BEFORE (v0.1.0 — Static Only):
+  User → picks a tool → registry finds it → runs it
+
+  $ cosmicsec-agent scan --tool nmap --target 192.168.1.1
+  # Only works with pre-registered tools
+  # No natural language understanding
+  # No AI-powered planning
+  # Cannot chain operations
+  # Cannot handle "check my project and run tests"
+```
+
+Modern CLI agents (GitHub Copilot CLI, Gemini CLI, OpenAI CLI) all use **dynamic AI-powered command planning**. Users describe what they want in natural language, and the AI determines what to run.
+
+### The Solution — Hybrid Architecture
+
+```
+AFTER (v0.2.0 — Hybrid Dynamic/Static):
+
+  ┌────────────────────────────────────────────────────────────┐
+  │  User: "scan 192.168.1.1 with nmap then analyze results"  │
+  └──────────────────────────┬─────────────────────────────────┘
+                             │
+                   ┌─────────▼──────────┐
+                   │   Intent Parser    │  ← Rule-based NL parsing (STATIC)
+                   │   (offline, fast)  │     Handles common patterns locally
+                   └─────────┬──────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+      confidence ≥ 0.8  confidence < 0.8  forced mode
+              │              │              │
+              ▼              ▼              │
+     ┌────────────┐  ┌──────────────┐      │
+     │ Static     │  │ AI Planner   │      │
+     │ Plan       │  │ (OpenAI /    │◄─────┘
+     │ Builder    │  │  Ollama /    │  ← LLM-powered planning (DYNAMIC)
+     │            │  │  Cloud)      │     Handles arbitrary instructions
+     └─────┬──────┘  └──────┬───────┘
+           │                │
+           │   ┌────────────┘
+           │   │ (fallback if AI fails)
+           ▼   ▼
+     ┌─────────────────┐
+     │  Execution Plan  │   Structured steps: tool_run, shell_cmd,
+     │  (JSON)          │   ai_analysis, report, etc.
+     └────────┬────────┘
+              │
+     ┌────────▼────────┐
+     │ Dynamic Resolver │  ← Safety gate: allowlist, blocklist,
+     │ (Security Gate)  │     secret detection, user confirmation
+     └────────┬────────┘
+              │
+     ┌────────▼────────┐
+     │ Hybrid Engine    │  ← Executes plan steps with progress display
+     │ (Executor)       │     Respects dependencies and conditions
+     └─────────────────┘
+```
+
+### CA-4.5.1 — Intent Parser (Rule-Based, Offline) ✅
+
+**File**: `cli/agent/cosmicsec_agent/intent_parser.py`
+
+The local intent parser is the **static** component — fast, deterministic, and works completely offline:
+
+- **Intent categories**: SCAN, RECON, EXPLOIT, ANALYZE, REPORT, MONITOR, CONFIG, WORKFLOW, CUSTOM
+- **Target extraction**: IPv4, CIDR, hostnames, URLs via regex
+- **Tool name resolution**: 40+ aliases (e.g., "port scan" → nmap, "sql injection" → sqlmap)
+- **Workflow detection**: Splits multi-step commands on "then", "and then", "after that", "followed by"
+- **Intensity modifiers**: "quick", "deep", "thorough", "aggressive", "stealth"
+- **Confidence scoring**: 0.0–1.0 based on how much context was extracted
+
+```python
+# Example: "deep scan 192.168.1.1 with nmap and nuclei"
+ParsedIntent(
+    category=IntentCategory.SCAN,
+    targets=["192.168.1.1"],
+    tools=["nmap", "nuclei"],
+    flags={"depth": "thorough", "timeout": 1800},
+    confidence=0.85,
+)
+```
+
+---
+
+### CA-4.5.2 — AI Task Planner (LLM-Powered, Dynamic) ✅
+
+**File**: `cli/agent/cosmicsec_agent/ai_planner.py`
+
+The AI planner is the **dynamic** component — handles arbitrary instructions via LLM:
+
+- **Provider abstraction**: `LLMProvider` protocol with 3 implementations:
+  - `OpenAIProvider` — GPT-4o/GPT-4-turbo via OpenAI API
+  - `OllamaProvider` — Local LLMs (Llama 3.1, CodeLlama) via Ollama HTTP API
+  - `CloudProvider` — CosmicSec cloud AI service proxy
+- **Structured JSON output**: AI returns typed execution plans, not free text
+- **Tool-aware prompting**: System prompt includes discovered tool capabilities
+- **Provider cascade**: Tries each provider in order; falls back gracefully
+- **Execution plan model**: Steps with types, dependencies, conditions, timeouts
+
+```python
+# Example AI-generated plan for: "check if the web app has SQL injection then report findings"
+ExecutionPlan(
+    source="hybrid-dynamic",
+    confidence=0.85,
+    steps=[
+        ExecutionStep(id="step_1", step_type=StepType.TOOL_RUN, tool="sqlmap",
+                      args=["--batch", "--risk=2"], target="http://example.com"),
+        ExecutionStep(id="step_2", step_type=StepType.AI_ANALYSIS,
+                      depends_on=["step_1"], description="Analyze SQL injection findings"),
+        ExecutionStep(id="step_3", step_type=StepType.REPORT,
+                      depends_on=["step_2"], metadata={"format": "html"}),
+    ],
+)
+```
+
+---
+
+### CA-4.5.3 — Dynamic Command Resolver (Safety Gate) ✅
+
+**File**: `cli/agent/cosmicsec_agent/dynamic_resolver.py`
+
+Security boundary between AI-suggested actions and actual system execution:
+
+- **Safe command allowlist**: 80+ commands (security tools, dev tools, system info)
+- **Dangerous pattern blocklist**: rm -rf, fork bombs, pipe-to-shell, disk overwrite, sudo rm, etc.
+- **Secret leak detection**: Warns when commands reference `$PASSWORD`, `$SECRET`, `$API_KEY`, etc.
+- **Registered tool fast-path**: Tools from ToolRegistry get safety_score=1.0 (fully trusted)
+- **Capability-based resolution**: Find best tool for a capability ("port_scan" → nmap)
+
+```python
+# Blocked: rm -rf /
+resolver.resolve("rm", ["-rf", "/"])
+# → ResolvedCommand(safety_score=0.0, warnings=["Blocked: matches dangerous pattern..."])
+
+# Trusted: registered tool
+resolver.resolve("nmap", ["-sV", "192.168.1.1"])
+# → ResolvedCommand(safety_score=1.0, is_registered_tool=True, path="/usr/bin/nmap")
+```
+
+---
+
+### CA-4.5.4 — Hybrid Execution Engine ✅
+
+**File**: `cli/agent/cosmicsec_agent/hybrid_engine.py`
+
+The unified execution engine that ties everything together:
+
+- **Three modes**: `static` (registry-only), `dynamic` (AI-only), `hybrid` (AI + static fallback)
+- **Plan → Resolve → Execute**: Structured pipeline with safety validation at every step
+- **Dependency resolution**: Steps can depend on previous steps
+- **Conditional execution**: Steps can have conditions (e.g., "only if findings > 0")
+- **Rich progress display**: Real-time progress with spinners and status icons
+- **Result aggregation**: Collects all findings, outputs, and metadata across steps
+
+---
+
+### CA-4.5.5 — Enhanced Tool Registry ✅
+
+**File**: `cli/agent/cosmicsec_agent/tool_registry.py` (enhanced)
+
+Extended with richer metadata for AI planner context:
+
+- **Categories**: recon, web, vuln, exploit, custom
+- **Descriptions**: Human-readable tool descriptions
+- **Default arguments**: Sensible defaults per tool
+- **Dynamic registration**: `register_dynamic()` for plugins/AI-discovered tools
+- **Capability-based lookup**: `find_by_capability()` and `find_by_category()`
+- **AI context export**: `to_ai_context()` formats tool data for LLM prompts
+
+---
+
+### CA-4.5.6 — New CLI Commands ✅
+
+**File**: `cli/agent/cosmicsec_agent/main.py` (enhanced)
+
+New commands added:
+
+| Command | Description |
+|---------|-------------|
+| `cosmicsec-agent run "<instruction>"` | Execute natural language instruction via hybrid engine |
+| `cosmicsec-agent plan "<instruction>"` | Preview execution plan without running |
+| `cosmicsec-agent mode show` | Show current default execution mode |
+| `cosmicsec-agent mode set <mode>` | Set default execution mode (static/dynamic/hybrid) |
+
+```bash
+# Natural language execution (HYBRID — the new way)
+cosmicsec-agent run "scan 192.168.1.1 with nmap then analyze the results"
+
+# Preview what would happen
+cosmicsec-agent plan "deep scan 10.0.0.0/24 with all tools" --output-format json
+
+# Force static mode (no AI, pure registry)
+cosmicsec-agent run "scan 192.168.1.1 with nmap" --mode static
+
+# Force dynamic mode (AI-only planning)
+cosmicsec-agent run "check my web app for vulnerabilities" --mode dynamic
+
+# Dry run (plan only, no execution)
+cosmicsec-agent run "full security audit of example.com" --dry-run
+
+# Set default mode
+cosmicsec-agent mode set hybrid
+```
+
+---
+
+### CA-4.5.7 — Test Suite (42 Tests) ✅
+
+**File**: `cli/agent/tests/test_hybrid_engine.py`
+
+Comprehensive test coverage for the hybrid engine:
+
+| Test Class | Tests | Coverage |
+|-----------|-------|----------|
+| `TestLocalIntentParser` | 15 | Intent classification, target extraction, tool mapping, workflows, confidence |
+| `TestDynamicResolver` | 8 | Safety validation, blocklist, allowlist, capability resolution, secret detection |
+| `TestAITaskPlanner` | 8 | Static planning, workflow planning, serialization, provider fallback |
+| `TestHybridEngine` | 7 | Mode creation, planning, dry-run, context building |
+| `TestExecutionModels` | 4 | Step/Plan serialization, enum values |
+
+---
+
+### 🧪 CA-4.5 Verification ✅
+
+```bash
+# Install the agent
+cd cli/agent && pip install -e .
+
+# Run all 42 tests
+python -m pytest tests/test_hybrid_engine.py -v
+# → 42 passed ✅
+
+# Lint check
+ruff check .
+# → All checks passed ✅
+
+# Try the new commands
+cosmicsec-agent run "scan 192.168.1.1 with nmap" --dry-run
+cosmicsec-agent plan "check for SQL injection on example.com"
+cosmicsec-agent mode show
+cosmicsec-agent mode set hybrid
+```
+
+### How Hybrid Mode Compares to Competitors
+
+| Feature | CosmicSec Agent v0.2.0 | GitHub Copilot CLI | Gemini CLI | OpenAI CLI |
+|---------|----------------------|-------------------|-----------|-----------|
+| Natural language input | ✅ `run` command | ✅ `??` prefix | ✅ Conversational | ✅ Conversational |
+| Static tool registry | ✅ 14 security tools | ❌ | ❌ | ❌ |
+| Hybrid static/dynamic | ✅ **Unique** | ❌ Dynamic only | ❌ Dynamic only | ❌ Dynamic only |
+| Offline operation | ✅ Static mode + Ollama | ❌ Requires API | ❌ Requires API | ❌ Requires API |
+| Safety validation | ✅ Allowlist + blocklist | ⚠️ User confirmation | ⚠️ User confirmation | ⚠️ User confirmation |
+| Multi-step workflows | ✅ "then" chaining | ❌ Single command | ⚠️ Limited | ⚠️ Limited |
+| Execution plan preview | ✅ `plan` command | ❌ | ❌ | ❌ |
+| Security-domain focused | ✅ Built for security | ❌ General purpose | ❌ General purpose | ❌ General purpose |
+| Provider flexibility | ✅ OpenAI/Ollama/Cloud | ❌ GitHub AI only | ❌ Gemini only | ❌ OpenAI only |
+
+---
+
 ## Phase CA-5 — Advanced Scanning, Orchestration & Pipelines
 
 > 🎯 **Goal**: Evolve from single-tool execution to multi-tool orchestration with scan workflows, scheduling, CI/CD pipeline integration, and automated scan chaining.
@@ -1618,14 +1915,15 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
                     IMPACT
                     HIGH ─────────────────────────────────────────┐
                     │                                             │
-                    │  CA-1 (Security/Auth) │  CA-6 (Enterprise)  │
-                    │  CA-2 (Core UX)       │  CA-8 (Plugins)     │
-                    │  CA-4 (AI Agent)      │                     │
+                    │  CA-4.5 (Hybrid) ✅ │  CA-6 (Enterprise)   │
+                    │  CA-1 (Security)    │  CA-8 (Plugins)      │
+                    │  CA-2 (Core UX)     │                      │
+                    │  CA-4 (AI Agent)    │                      │
                     │                                             │
                     MEDIUM ───────────────────────────────────────│
                     │                                             │
-                    │  CA-3 (TUI/REPL)      │  CA-9 (Offline AI)  │
-                    │  CA-5 (Orchestration)  │  CA-10 (Rust)       │
+                    │  CA-3 (TUI/REPL)      │  CA-9 (Offline AI) │
+                    │  CA-5 (Orchestration)  │  CA-10 (Rust)      │
                     │  CA-7 (DX/Polish)     │                     │
                     │                                             │
                     LOW ──────────────────────────────────────────│
@@ -1636,20 +1934,21 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 
 ### Recommended Execution Order
 
-| Order | Phase | Est. Duration | Dependencies |
-|-------|-------|--------------|--------------|
-| 1st 🔴 | **CA-1** — Security & Auth | 1 week | Main Phase K |
-| 2nd 🔴 | **CA-2** — Core CLI Overhaul | 1–2 weeks | CA-1 |
-| 3rd 🟠 | **CA-4** — AI-Powered CLI | 2–3 weeks | CA-2, Main Phase Q |
-| 4th 🟠 | **CA-3** — Interactive TUI | 2–3 weeks | CA-2 |
-| 5th 🟠 | **CA-5** — Orchestration & Pipelines | 2 weeks | CA-2 |
-| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 |
-| 7th 🟡 | **CA-6** — Enterprise Features | 1–2 weeks | CA-1, Main Phase R |
-| 8th 🟡 | **CA-8** — Plugin System | 1–2 weeks | CA-5 |
-| 9th 🟢 | **CA-9** — Offline Intelligence | 1–2 weeks | CA-4, Main Phase Q |
-| 10th 🟢 | **CA-10** — Performance & Rust | 2 weeks | CA-2, CA-5 |
+| Order | Phase | Est. Duration | Dependencies | Status |
+|-------|-------|--------------|--------------|--------|
+| ✅ | **CA-4.5** — Hybrid Dynamic/Static Engine | Done | None | ✅ **Complete** |
+| 1st 🔴 | **CA-1** — Security & Auth | 1 week | Main Phase K | ⏳ Next |
+| 2nd 🔴 | **CA-2** — Core CLI Overhaul | 1–2 weeks | CA-1 | ⏳ Pending |
+| 3rd 🟠 | **CA-4** — AI-Powered CLI (extends CA-4.5) | 2–3 weeks | CA-2, CA-4.5 ✅ | ⏳ Pending |
+| 4th 🟠 | **CA-3** — Interactive TUI | 2–3 weeks | CA-2 | ⏳ Pending |
+| 5th 🟠 | **CA-5** — Orchestration & Pipelines | 2 weeks | CA-2 | ⏳ Pending |
+| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 | ⏳ Pending |
+| 7th 🟡 | **CA-6** — Enterprise Features | 1–2 weeks | CA-1, Main Phase R | ⏳ Pending |
+| 8th 🟡 | **CA-8** — Plugin System | 1–2 weeks | CA-5 | ⏳ Pending |
+| 9th 🟢 | **CA-9** — Offline Intelligence | 1–2 weeks | CA-4, Main Phase Q | ⏳ Pending |
+| 10th 🟢 | **CA-10** — Performance & Rust | 2 weeks | CA-2, CA-5 | ⏳ Pending |
 
-**Total estimated effort**: 14–22 weeks for 1–2 developers
+**Total estimated effort**: 14–22 weeks for 1–2 developers (Phase CA-4.5 complete)
 
 ---
 
@@ -1666,7 +1965,20 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘           │
 │       └─────────────┴────────────┴─────────────┘                │
 │                          │                                       │
-├──────────────────────────┼──────────────────────────────────────┤
+│                          ▼                                       │
+│  ┌──────────────────────────────────────────────────────┐       │
+│  │            🆕 HYBRID ENGINE LAYER (v0.2.0)            │       │
+│  │                                                       │       │
+│  │  ┌───────────┐ ┌───────────┐ ┌───────────┐          │       │
+│  │  │ Intent    │ │ AI Task   │ │ Dynamic   │          │       │
+│  │  │ Parser    │ │ Planner   │ │ Resolver  │          │       │
+│  │  │ (static)  │ │ (dynamic) │ │ (safety)  │          │       │
+│  │  └─────┬─────┘ └─────┬─────┘ └─────┬─────┘          │       │
+│  │        └──────────────┴─────────────┘                │       │
+│  │               Mode: static│dynamic│hybrid             │       │
+│  └──────────────────────────┬───────────────────────────┘       │
+│                              │                                   │
+├──────────────────────────────┼──────────────────────────────────┤
 │                    CORE ENGINE LAYER                              │
 │                                                                  │
 │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐       │
@@ -1682,7 +1994,7 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐       │
 │  │  Tool     │ │  Async    │ │  Parser   │ │ Scheduler │       │
 │  │ Registry  │ │ Executor  │ │ Pipeline  │ │  (cron)   │       │
-│  │ (14 tools)│ │ (parallel)│ │ (14 parse)│ │           │       │
+│  │ (14+dyn) │ │ (parallel)│ │ (14 parse)│ │           │       │
 │  └───────────┘ └───────────┘ └───────────┘ └───────────┘       │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
@@ -1702,6 +2014,15 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 │  │  Client   │ │  Stream   │ │  Sync     │ │  Manager  │       │
 │  │ (httpx)   │ │  Client   │ │  Engine   │ │ (OAuth2)  │       │
 │  └───────────┘ └───────────┘ └───────────┘ └───────────┘       │
+│                                                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                    AI PROVIDER LAYER (v0.2.0)                     │
+│                                                                  │
+│  ┌───────────┐ ┌───────────┐ ┌───────────┐                     │
+│  │  OpenAI   │ │  Ollama   │ │ CosmicSec │                     │
+│  │ Provider  │ │ Provider  │ │  Cloud    │                     │
+│  │ (GPT-4o) │ │ (local)   │ │ Provider  │                     │
+│  └───────────┘ └───────────┘ └───────────┘                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1711,12 +2032,18 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 
 ```
 cli/agent/
-├── pyproject.toml                         [MODIFY — add deps]
+├── pyproject.toml                         [MODIFIED v0.2.0 — optional AI deps]
 ├── README.md                              [REWRITE — comprehensive docs]
 ├── Dockerfile                             [NEW — CA-7]
 ├── cosmicsec_agent/
-│   ├── __init__.py                        [MODIFY — update version]
-│   ├── main.py                            [MAJOR REWRITE — all new commands]
+│   ├── __init__.py                        [MODIFIED v0.2.0 — version 0.2.0]
+│   ├── main.py                            [MODIFIED v0.2.0 — run/plan/mode commands]
+│   │
+│   ├── # --- Phase CA-4.5: Hybrid Engine (IMPLEMENTED ✅) ---
+│   ├── hybrid_engine.py                   [NEW ✅] Hybrid dynamic/static execution engine
+│   ├── ai_planner.py                      [NEW ✅] AI-powered task planner (OpenAI/Ollama/Cloud)
+│   ├── intent_parser.py                   [NEW ✅] Rule-based NL intent classification
+│   ├── dynamic_resolver.py                [NEW ✅] Safe command resolution + allowlist
 │   │
 │   ├── # --- Phase CA-1: Security & Auth ---
 │   ├── auth.py                            [NEW] Auth flow logic
@@ -1769,7 +2096,7 @@ cli/agent/
 │   ├── executor.py                        [ENHANCE — concurrent execution]
 │   ├── offline_store.py                   [ENHANCE — search, pagination, sync]
 │   ├── stream.py                          [ENHANCE — smart sync, compression]
-│   ├── tool_registry.py                   [ENHANCE — plugin tool loading]
+│   ├── tool_registry.py                   [ENHANCED ✅ v0.2.0 — categories, dynamic registration, capability lookup]
 │   └── parsers/
 │       ├── __init__.py                    [MODIFY — export all 14 parsers]
 │       ├── nmap_parser.py                 [EXISTING]
@@ -1789,6 +2116,7 @@ cli/agent/
 │
 ├── tests/
 │   ├── __init__.py
+│   ├── test_hybrid_engine.py              [NEW ✅ v0.2.0 — 42 tests]
 │   ├── test_credential_store.py           [NEW — CA-7]
 │   ├── test_tool_registry.py              [NEW — CA-7]
 │   ├── test_executor.py                   [NEW — CA-7]
@@ -1819,24 +2147,29 @@ cli/agent/
 
 ## Summary — Before vs. After
 
-| Metric | Current (v0.1.0) | After Phase CA-10 |
-|--------|-------------------|-------------------|
-| **Commands** | 5 (discover, scan, connect, offline export, status) | 50+ commands across 12 subgroups |
-| **Authentication** | Raw API key in plaintext JSON | Encrypted keyring + OAuth2 + profiles |
-| **AI Integration** | ❌ None | ✅ `ask`, `chat`, `analyze`, `explain`, `suggest` with OpenAI/Ollama/Cloud |
-| **Interactive Mode** | ❌ None | ✅ REPL shell + full-screen TUI dashboard |
-| **Output Formats** | Rich table only | Table, JSON, YAML, CSV, SARIF, quiet mode |
-| **Tool Parsers** | 4 of 14 | 14 of 14 + plugin extensibility |
-| **Scan Orchestration** | Single tool, sequential | YAML workflows, parallel, conditional, scheduled |
-| **CI/CD Integration** | ❌ None | ✅ SARIF, JUnit, exit codes, policy gates |
-| **Offline Capability** | Basic SQLite store | Full offline AI + smart delta sync |
-| **Test Coverage** | 0% | 90%+ |
-| **Cross-Platform** | Untested | Linux + macOS + Windows CI matrix |
-| **Installation** | `pip install -e .` only | pip, Homebrew, Docker, standalone binary |
-| **Plugin System** | ❌ None | ✅ Tool, command, output, workflow plugins |
-| **Documentation** | 69-line README | Full docs site with guides, examples, API ref |
-| **Competitive Position** | Basic scanner wrapper | Enterprise CLI agent comparable to leading security platforms |
+| Metric | v0.1.0 (Before) | v0.2.0 (Now) | After Phase CA-10 |
+|--------|-------------------|--------------|-------------------|
+| **Commands** | 5 (discover, scan, connect, offline export, status) | **9** (+run, plan, mode show, mode set) | 50+ commands across 12 subgroups |
+| **Execution Mode** | ❌ Static only (registry) | ✅ **Hybrid** (static + dynamic + AI) | ✅ Hybrid with full AI integration |
+| **AI Integration** | ❌ None | ✅ **OpenAI/Ollama/Cloud** providers | ✅ `ask`, `chat`, `analyze`, `explain`, `suggest` with full AI |
+| **NL Commands** | ❌ None | ✅ **`run "scan 192.168.1.1"`** | ✅ Full conversational + NL interface |
+| **Tool Selection** | Static registry only | **Hybrid** AI-planned + registry fallback | Hybrid + plugin extensibility |
+| **Safety Validation** | ❌ None | ✅ **Allowlist + blocklist + secret detection** | ✅ Full sandboxed execution |
+| **Authentication** | Raw API key in plaintext JSON | Raw API key in plaintext JSON | Encrypted keyring + OAuth2 + profiles |
+| **Interactive Mode** | ❌ None | ❌ None | ✅ REPL shell + full-screen TUI dashboard |
+| **Output Formats** | Rich table only | Rich table only | Table, JSON, YAML, CSV, SARIF, quiet mode |
+| **Tool Parsers** | 4 of 14 | 4 of 14 | 14 of 14 + plugin extensibility |
+| **Tool Metadata** | Name, path, version, capabilities | **+Category, description, default args, dynamic reg** | Full metadata + plugin tools |
+| **Scan Orchestration** | Single tool, sequential | **Multi-step workflows** ("then" chaining) | YAML workflows, parallel, conditional, scheduled |
+| **CI/CD Integration** | ❌ None | ❌ None | ✅ SARIF, JUnit, exit codes, policy gates |
+| **Offline Capability** | Basic SQLite store | Basic SQLite + **offline intent parsing** | Full offline AI + smart delta sync |
+| **Test Coverage** | 0% | **42 tests** (hybrid engine) | 90%+ |
+| **Cross-Platform** | Untested | Untested | Linux + macOS + Windows CI matrix |
+| **Installation** | `pip install -e .` only | `pip install -e .[ai]` (with AI extras) | pip, Homebrew, Docker, standalone binary |
+| **Plugin System** | ❌ None | Dynamic tool registration API | ✅ Tool, command, output, workflow plugins |
+| **Documentation** | 69-line README | 69-line README | Full docs site with guides, examples, API ref |
+| **Competitive Position** | Basic scanner wrapper | **Competitive with GitHub Copilot CLI** | Enterprise CLI agent comparable to leading security platforms |
 
 ---
 
-*This CLI Agent roadmap was generated from deep analysis of the entire CosmicSec codebase — existing CLI foundation, server-side services, SDKs, AI capabilities, and main roadmap phases. It is designed for incremental execution by both human developers and AI coding agents.*
+*This CLI Agent roadmap was generated from deep analysis of the entire CosmicSec codebase — existing CLI foundation, server-side services, SDKs, AI capabilities, and main roadmap phases. Phase CA-4.5 (Hybrid Dynamic/Static Engine) has been implemented and is the foundation for all subsequent AI-powered features. It is designed for incremental execution by both human developers and AI coding agents.*
