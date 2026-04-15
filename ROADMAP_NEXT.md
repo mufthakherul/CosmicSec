@@ -52,6 +52,8 @@ Phase X — [Title]
 17. [Target Architecture (Post-Phase V)](#target-architecture-post-phase-v)
 18. [New File & Directory Map](#new-file--directory-map)
 
+> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
+
 ---
 
 ## Gap Summary from Deep Audit
@@ -2123,6 +2125,8 @@ These improvements span multiple phases and should be applied continuously:
 
 ## Target Architecture (Post-Phase V)
 
+> **📌 CLI Agent Deep Dive**: The CLI Agent (`[CLI Agent]` in the diagram below) has its own dedicated 10-phase roadmap covering AI integration, interactive TUI, YAML workflow engine, plugin system, and more. See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)** for the full plan (Phases CA-1 through CA-10, est. 14–22 weeks).
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                          CLIENT LAYER                                    │
@@ -2280,7 +2284,10 @@ CosmicSec/                               (modified or new files marked)
 | **Event architecture** | Synchronous HTTP | ✅ NATS JetStream + event sourcing |
 | **Deprecated packages** | 3 (aioredis, jaeger, fuzzywuzzy) | 0 (all replaced) |
 | **Version currency** | 42+ packages behind | All at latest compatible versions |
+| **CLI Agent** | 5 basic commands, 4 parsers, no AI | 50+ commands, 14 parsers, AI chat, TUI, plugins ([full roadmap](./ROADMAP_CLI_AGENT.md)) |
 
 ---
 
 *This roadmap was generated from deep analysis of the entire CosmicSec codebase (code, build, live Playwright testing, dependency audit) and is designed to be executed phase-by-phase by both human developers and AI coding agents.*
+
+*For the dedicated CLI Agent implementation plan, see the companion document: [`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md).*
