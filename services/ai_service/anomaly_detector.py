@@ -212,7 +212,7 @@ class AnomalyDetector:
     ) -> str:
         if not is_anomaly:
             return "Scan results are within normal baseline parameters."
-        feat_map = dict(zip(_FEATURE_NAMES, features))
+        feat_map = dict(zip(_FEATURE_NAMES, features, strict=False))
         parts: list[str] = []
         if "critical_count" in anomalous:
             parts.append(f"critical findings spike ({int(feat_map['critical_count'])})")
