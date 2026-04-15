@@ -58,3 +58,4 @@ logbook.md
 *.db
 *.sqlite
 *.sqlite3
+nohup.out
