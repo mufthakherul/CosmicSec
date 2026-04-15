@@ -4,14 +4,7 @@
  * Returns categorized results. Falls back to "Search unavailable" when API fails.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { search as searchApi, type Scan, type Finding, type Report } from "../api/endpoints";
-
-interface SearchResults {
-  scans: Scan[];
-  findings: Finding[];
-  agents: unknown[];
-  reports: Report[];
-}
+import { search as searchApi, type SearchResults } from "../api/endpoints";
 
 const EMPTY: SearchResults = { scans: [], findings: [], agents: [], reports: [] };
 const DEBOUNCE_MS = 300;

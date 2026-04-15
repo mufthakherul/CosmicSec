@@ -5,13 +5,13 @@
 
 ---
 
-> ### 📊 Overall Progress: **~42% Complete** (Phases K+L complete, Phase M near completion)
+> ### 📊 Overall Progress: **~45% Complete** (Phases K+L+M complete, Phase N ready)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
 > | **K — Critical Security Hardening** | ✅ Complete | 100% |
 > | **L — Production Data Layer** | ✅ Complete | 100% |
-> | **M — Frontend Completion** | 🟡 In progress | ~90% |
+> | **M — Frontend Completion** | ✅ Complete | 100% |
 > | **N — Dependency Modernization** | ⬜ Not started | 0% |
 > | **O — Test Coverage** | ⬜ Not started | 0% |
 > | **P — Rust Ingest Engine** | ⬜ Not started | 0% |
@@ -677,7 +677,7 @@ pytest tests/ -v --cov=services
 
 ---
 
-## Phase M — Frontend Completion & Modernization 🟡 IN PROGRESS (~90%)
+## Phase M — Frontend Completion & Modernization ✅ COMPLETE (100%)
 
 > 🎯 **Goal**: Complete all incomplete frontend features, add centralized API client, code splitting, mobile responsive nav, and performance optimizations. After this phase, every page is fully functional.
 >
@@ -685,7 +685,7 @@ pytest tests/ -v --cov=services
 >
 > 🌐 **Languages**: TypeScript, CSS (Tailwind)
 >
-> 🟡 **In Progress**: M.1, M.2, M.3, M.5, M.6, M.7, M.8, M.9 complete; M.4 frontend UX completed (API-backed federated search pending)
+> ✅ **Completed (2026-04-15)**: M.1 through M.9 fully implemented, including M.4 backend-connected federated search.
 
 ### M.1 — Centralized API Client ✅
 
@@ -789,13 +789,17 @@ Target: initial bundle < 120KB, largest route chunk < 80KB
 
 ---
 
-### M.4 — Global Search Implementation 🟡
+### M.4 — Global Search Implementation ✅
 
 **What to do**: Wire the visible-but-non-functional GlobalSearch to an actual search experience, then connect it to a backend search API.
 
 > ✅ **Update (2026-04-15)**: Implemented functional GlobalSearch UX in `Header.tsx` with live filtering, dropdown results, keyboard navigation (↑/↓/Enter/Escape), click-to-navigate, and Cmd/Ctrl+K quick-focus shortcut.
 >
-> 🔜 **Remaining for full completion**: Add authenticated `GET /api/search` in API Gateway and connect categorized backend search results (scans/findings/agents/reports).
+> ✅ **Update (2026-04-15, follow-up)**:
+> - Added authenticated `GET /api/search` in `services/api_gateway/main.py`.
+> - Connected `frontend/src/components/Header.tsx` GlobalSearch to debounced API search hook results.
+> - Added categorized backend result rendering (scans/findings/agents/reports) with sectioned dropdown, keyboard navigation, and click-to-route behavior.
+> - Preserved resilient fallback: when API search is unavailable, show warning and continue with client-side quick-link filtering.
 
 **AI Agent Prompt**:
 ```
