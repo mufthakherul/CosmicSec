@@ -1,3 +1,3 @@
 module github.com/mufthakherul/cosmicsec-go-sdk
 
-go 1.22
+go 1.24
