@@ -5,13 +5,13 @@
 
 ---
 
-> ### 📊 Overall Progress: **~30% Complete** (Phases K+L done, M in progress)
+> ### 📊 Overall Progress: **~35% Complete** (Phases K+L done, M advancing)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
 > | **K — Critical Security Hardening** | ✅ Complete | 100% |
 > | **L — Production Data Layer** | ✅ Complete | 100% |
-> | **M — Frontend Completion** | 🟡 In progress | ~50% |
+> | **M — Frontend Completion** | 🟡 In progress | ~65% |
 > | **N — Dependency Modernization** | ⬜ Not started | 0% |
 > | **O — Test Coverage** | ⬜ Not started | 0% |
 > | **P — Rust Ingest Engine** | ⬜ Not started | 0% |
@@ -677,7 +677,7 @@ pytest tests/ -v --cov=services
 
 ---
 
-## Phase M — Frontend Completion & Modernization 🟡 IN PROGRESS (~50%)
+## Phase M — Frontend Completion & Modernization 🟡 IN PROGRESS (~65%)
 
 > 🎯 **Goal**: Complete all incomplete frontend features, add centralized API client, code splitting, mobile responsive nav, and performance optimizations. After this phase, every page is fully functional.
 >
@@ -685,7 +685,7 @@ pytest tests/ -v --cov=services
 >
 > 🌐 **Languages**: TypeScript, CSS (Tailwind)
 >
-> 🟡 **In Progress**: M.1–M.5 complete, M.6–M.9 remain
+> 🟡 **In Progress**: M.1, M.3, M.6, M.7, M.8, M.9 complete; M.2 and M.5 remain; M.4 frontend UX completed (API-backed federated search pending)
 
 ### M.1 — Centralized API Client ✅
 
@@ -782,9 +782,13 @@ Target: initial bundle < 120KB, largest route chunk < 80KB
 
 ---
 
-### M.4 — Global Search Implementation ✅
+### M.4 — Global Search Implementation 🟡
 
-**What to do**: Wire the visible-but-non-functional GlobalSearch to actual search API.
+**What to do**: Wire the visible-but-non-functional GlobalSearch to an actual search experience, then connect it to a backend search API.
+
+> ✅ **Update (2026-04-15)**: Implemented functional GlobalSearch UX in `Header.tsx` with live filtering, dropdown results, keyboard navigation (↑/↓/Enter/Escape), click-to-navigate, and Cmd/Ctrl+K quick-focus shortcut.
+>
+> 🔜 **Remaining for full completion**: Add authenticated `GET /api/search` in API Gateway and connect categorized backend search results (scans/findings/agents/reports).
 
 **AI Agent Prompt**:
 ```
@@ -854,9 +858,19 @@ Wire to phase5Api.ts with proper TypeScript types.
 
 ---
 
-### M.6 — Settings Page API Integration
+### M.6 — Settings Page API Integration ✅
 
 **What to do**: Wire "Save defaults" button and other settings to actual API calls.
+
+> ✅ **Update (2026-04-15)**:
+> - Implemented Settings page API wiring in `frontend/src/pages/SettingsPage.tsx`:
+>   - `POST /api/settings/scan-defaults`
+>   - `POST /api/auth/sessions/revoke-all`
+>   - `DELETE /api/auth/account`
+>   - `POST /api/auth/2fa/enable`
+>   - `DELETE /api/auth/2fa/disable`
+> - Added per-action loading states and success/error notifications for improved UX.
+> - Added supporting API routes in API Gateway and Auth Service for end-to-end behavior.
 
 **AI Agent Prompt**:
 ```
