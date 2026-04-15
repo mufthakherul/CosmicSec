@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from statistics import mean
 
 
@@ -78,7 +78,7 @@ class ZeroDayPredictor:
             "risk_score": risk_score,
             "risk_trend": trend,
             "forecast_window_days": 30,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(tz=UTC).isoformat(),
             "drivers": {
                 "internet_exposure": exposure,
                 "patch_latency_days": patch_latency,
@@ -97,5 +97,5 @@ class ZeroDayPredictor:
             "portfolio_size": len(forecasts),
             "average_risk_score": avg,
             "forecasts": forecasts,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(tz=UTC).isoformat(),
         }

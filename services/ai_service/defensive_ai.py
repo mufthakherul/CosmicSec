@@ -3,7 +3,7 @@ Defensive AI Module - Auto-remediation and Defensive Recommendations
 Part of Phase 4 - Innovation & Differentiation
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -200,7 +200,7 @@ class DefensiveAI:
                 ],
                 "estimated_effort": "medium",
                 "priority": "medium",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(tz=UTC).isoformat(),
             }
 
         kb_entry = self.remediation_db[vuln_type]
@@ -218,7 +218,7 @@ class DefensiveAI:
             "estimated_effort": self._estimate_effort(vuln_type),
             "priority": self._calculate_priority(kb_entry["severity"], finding),
             "affected_components": finding.get("affected_components", []),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(tz=UTC).isoformat(),
         }
 
     def _can_auto_remediate(self, vuln_type: str, finding: dict[str, Any]) -> bool:
@@ -341,7 +341,7 @@ class DefensiveAI:
                 "Fail2ban for intrusion prevention",
                 "Lynis for system hardening audit",
             ],
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(tz=UTC).isoformat(),
         }
 
     def generate_incident_response_plan(self, vulnerability: dict[str, Any]) -> dict[str, Any]:
@@ -401,5 +401,5 @@ class DefensiveAI:
                 "Conduct lessons learned session",
                 "Update detection rules",
             ],
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(tz=UTC).isoformat(),
         }

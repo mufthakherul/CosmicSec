@@ -1,17 +1,33 @@
-.PHONY: install dev test build clean deploy help
+.PHONY: install dev test build clean help
 
 help:
-	@echo "CosmicSec - GuardAxisSphere Platform"
+	@echo "CosmicSec — Universal Cybersecurity Intelligence Platform"
 	@echo ""
-	@echo "Available commands:"
+	@echo "Development:"
 	@echo "  make install    - Install Python dependencies"
-	@echo "  make dev        - Start development environment with Docker Compose"
-	@echo "  make test       - Run tests"
+	@echo "  make dev        - Start dev environment (Docker Compose)"
+	@echo "  make dev-build  - Rebuild & start all containers"
+	@echo "  make stop       - Stop all containers"
+	@echo "  make restart    - Restart all containers"
+	@echo ""
+	@echo "Testing & Quality:"
+	@echo "  make test       - Run Python tests with coverage"
+	@echo "  make lint       - Run Ruff linter"
+	@echo "  make format     - Auto-format code with Ruff"
+	@echo ""
+	@echo "Docker:"
 	@echo "  make build      - Build Docker images"
-	@echo "  make clean      - Clean up containers and volumes"
-	@echo "  make deploy     - Deploy to Kubernetes"
-	@echo "  make logs       - Show service logs"
-	@echo "  make shell      - Open shell in API gateway container"
+	@echo "  make clean      - Remove containers, volumes, caches"
+	@echo "  make ps         - Show running containers"
+	@echo "  make logs       - Tail all service logs"
+	@echo "  make shell      - Open shell in API gateway"
+	@echo "  make health     - Check service health endpoints"
+	@echo ""
+	@echo "Database:"
+	@echo "  make db-migrate - Run Alembic migrations"
+	@echo "  make db-reset   - Reset database and restart"
+	@echo ""
+	@echo "Admin:"
 	@echo "  make admin-cli  - Launch CosmicSec admin CLI"
 	@echo "  make admin-tui  - Launch CosmicSec admin TUI"
 	@echo "  make admin-ssh  - Start CosmicSec SSH admin server"
@@ -99,12 +115,12 @@ db-reset:
 
 health:
 	@echo "Checking service health..."
-	@curl -s http://localhost:8000/health || echo "API Gateway: DOWN"
-	@curl -s http://localhost:8001/health || echo "Auth Service: DOWN"
-	@curl -s http://localhost:8002/health || echo "Scan Service: DOWN"
-
-deploy:
-	kubectl apply -f infrastructure/kubernetes/
+	@curl -sf http://localhost:8000/health && echo " API Gateway: UP" || echo " API Gateway: DOWN"
+	@curl -sf http://localhost:8001/health && echo " Auth Service: UP" || echo " Auth Service: DOWN"
+	@curl -sf http://localhost:8002/health && echo " Scan Service: UP" || echo " Scan Service: DOWN"
+	@curl -sf http://localhost:8003/health && echo " AI Service: UP" || echo " AI Service: DOWN"
+	@curl -sf http://localhost:8004/health && echo " Recon Service: UP" || echo " Recon Service: DOWN"
+	@curl -sf http://localhost:8005/health && echo " Report Service: UP" || echo " Report Service: DOWN"
 
 # Development shortcuts
 watch-gateway:

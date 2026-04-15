@@ -7,8 +7,7 @@ Phase 2: ChromaDB vector store, MITRE ATT&CK, NL interface, autonomous agents.
 
 import logging
 import uuid
-from datetime import datetime
-from typing import Optional
+from datetime import UTC, datetime
 
 import httpx
 from fastapi import FastAPI
@@ -64,12 +63,12 @@ class AgentResponse(BaseModel):
     target: str
     strategy: str
     actions: list[str]
-    rag_context: Optional[list[str]] = None
+    rag_context: list[str] | None = None
 
 
 class NLQueryRequest(BaseModel):
     query: str = Field(..., description="Natural language security query")
-    context: Optional[str] = Field(default=None, description="Optional additional context")
+    context: str | None = Field(default=None, description="Optional additional context")
 
 
 class MitreRequest(BaseModel):
@@ -117,7 +116,7 @@ class AutonomousAgentRequest(BaseModel):
     findings: list[str] = Field(
         default_factory=list, description="Finding title strings for analysis"
     )
-    query: Optional[str] = Field(
+    query: str | None = Field(
         default=None, description="Optional focused question for the agent"
     )
 
@@ -168,7 +167,7 @@ async def health_check() -> dict:
     return {
         "status": "healthy",
         "service": "ai",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -226,7 +225,7 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
         "guidance": guidance,
         "source": "chromadb" if chroma_hits else "tfidf",
         "actions": agent_result["actions"],
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -254,7 +253,7 @@ async def kb_stats() -> dict:
     """Return current knowledge base statistics."""
     return {
         "chromadb_documents": collection_count(),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -276,7 +275,7 @@ async def autonomous_agent(payload: AutonomousAgentRequest) -> dict:
         findings=payload.findings,
         query=payload.query,
     )
-    result["timestamp"] = datetime.utcnow().isoformat()
+    result["timestamp"] = datetime.now(tz=UTC).isoformat()
     return result
 
 
@@ -289,7 +288,7 @@ async def exploit_suggest(payload: ExploitGuidanceRequest) -> dict:
     For authorised penetration testing and security research only.
     """
     guidance = get_exploit_guidance(payload.identifier)
-    guidance["timestamp"] = datetime.utcnow().isoformat()
+    guidance["timestamp"] = datetime.now(tz=UTC).isoformat()
     return guidance
 
 
@@ -300,7 +299,7 @@ async def anomaly_fit(payload: FitBaselineRequest) -> dict:
     return {
         "status": "fitted",
         "sample_count": len(payload.historical_scans),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -312,7 +311,7 @@ async def anomaly_detect(payload: AnomalyDetectRequest) -> dict:
     Returns anomaly_score, is_anomaly, confidence, and explanation.
     """
     result = detect_anomaly(payload.scan_record)
-    result["timestamp"] = datetime.utcnow().isoformat()
+    result["timestamp"] = datetime.now(tz=UTC).isoformat()
     return result
 
 
@@ -328,7 +327,7 @@ async def anomaly_batch(payload: BatchAnomalyRequest) -> dict:
         "results": results,
         "total": len(results),
         "anomalies_detected": sum(1 for r in results if r.get("is_anomaly")),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -345,7 +344,7 @@ def get_remediation_guidance(vulnerability_type: str, finding: dict):
     Phase 4: Defensive AI - Auto-remediation suggestions
     """
     remediation = defensive_ai.suggest_remediation(vulnerability_type, finding)
-    return {"success": True, "remediation": remediation, "timestamp": datetime.utcnow().isoformat()}
+    return {"success": True, "remediation": remediation, "timestamp": datetime.now(tz=UTC).isoformat()}
 
 
 @app.post("/defensive/hardening")
@@ -356,7 +355,7 @@ def get_hardening_recommendations(system_type: str):
     Phase 4: Defensive AI - System hardening guidance
     """
     hardening = defensive_ai.generate_security_hardening(system_type)
-    return {"success": True, "hardening": hardening, "timestamp": datetime.utcnow().isoformat()}
+    return {"success": True, "hardening": hardening, "timestamp": datetime.now(tz=UTC).isoformat()}
 
 
 @app.post("/defensive/incident-response")
@@ -370,7 +369,7 @@ def generate_incident_response(vulnerability: dict):
     return {
         "success": True,
         "incident_response_plan": response_plan,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -405,7 +404,7 @@ def batch_remediation(findings: list[dict]):
             "low": sum(1 for r in remediations if r.get("priority") == "low"),
             "auto_remediable": sum(1 for r in remediations if r.get("auto_remediable", False)),
         },
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -425,7 +424,7 @@ def red_team_safety_check(payload: RedTeamRequest) -> dict:
     return {
         "success": True,
         "safety": validate_safety(scope),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -440,7 +439,7 @@ def red_team_plan(payload: RedTeamRequest) -> dict:
     return {
         "success": True,
         "result": plan_attack_chain(scope),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -452,7 +451,7 @@ def red_team_attack_sequence(payload: RedTeamRequest) -> dict:
         "target": payload.target,
         "techniques": techniques,
         "mode": "defensive-simulation",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -464,19 +463,19 @@ def red_team_attack_sequence(payload: RedTeamRequest) -> dict:
 @app.post("/zero-day/train")
 def zero_day_train(payload: ZeroDayTrainRequest) -> dict:
     result = zero_day_predictor.train(payload.historical_records)
-    return {"success": True, "result": result, "timestamp": datetime.utcnow().isoformat()}
+    return {"success": True, "result": result, "timestamp": datetime.now(tz=UTC).isoformat()}
 
 
 @app.post("/zero-day/forecast")
 def zero_day_forecast(payload: ZeroDayForecastRequest) -> dict:
     forecast = zero_day_predictor.forecast(payload.technology, payload.telemetry)
-    return {"success": True, "forecast": forecast, "timestamp": datetime.utcnow().isoformat()}
+    return {"success": True, "forecast": forecast, "timestamp": datetime.now(tz=UTC).isoformat()}
 
 
 @app.post("/zero-day/risk-trends")
 def zero_day_risk_trends(payload: ZeroDayPortfolioRequest) -> dict:
     trends = zero_day_predictor.risk_trends(payload.portfolio)
-    return {"success": True, "trends": trends, "timestamp": datetime.utcnow().isoformat()}
+    return {"success": True, "trends": trends, "timestamp": datetime.now(tz=UTC).isoformat()}
 
 
 # ========================
@@ -489,7 +488,7 @@ def quantum_algorithms() -> dict:
     return {
         "success": True,
         "catalog": list_algorithms(),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -498,20 +497,20 @@ def quantum_key_exchange(payload: QuantumKeyExchangeRequest) -> dict:
     return {
         "success": True,
         "exchange": hybrid_key_exchange(payload.client_nonce, payload.server_nonce),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
 
 @app.post("/quantum/encrypt")
 def quantum_encrypt(payload: QuantumEncryptRequest) -> dict:
     result = encrypt_payload(payload.plaintext, payload.shared_secret)
-    return {"success": True, "encryption": result, "timestamp": datetime.utcnow().isoformat()}
+    return {"success": True, "encryption": result, "timestamp": datetime.now(tz=UTC).isoformat()}
 
 
 @app.post("/quantum/decrypt")
 def quantum_decrypt(payload: QuantumDecryptRequest) -> dict:
     plaintext = decrypt_payload(payload.ciphertext, payload.mac, payload.shared_secret)
-    return {"success": True, "plaintext": plaintext, "timestamp": datetime.utcnow().isoformat()}
+    return {"success": True, "plaintext": plaintext, "timestamp": datetime.now(tz=UTC).isoformat()}
 
 
 # ---------------------------------------------------------------------------
@@ -524,11 +523,11 @@ class CorrelationFinding(BaseModel):
     title: str
     severity: str = Field(default="medium")
     description: str = Field(default="")
-    target: Optional[str] = None
-    cve_id: Optional[str] = None
-    mitre_technique: Optional[str] = None
+    target: str | None = None
+    cve_id: str | None = None
+    mitre_technique: str | None = None
     source: str = Field(default="web_scan")
-    tool: Optional[str] = None
+    tool: str | None = None
 
 
 class CorrelationRequest(BaseModel):
