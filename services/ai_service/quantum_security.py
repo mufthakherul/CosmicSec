@@ -7,7 +7,7 @@ import hashlib
 import hmac
 import json
 import secrets
-from datetime import datetime
+from datetime import UTC, datetime
 
 
 def list_algorithms() -> dict[str, object]:
@@ -18,7 +18,7 @@ def list_algorithms() -> dict[str, object]:
             {"name": "X25519+ML-KEM-Hybrid", "purpose": "key_exchange", "status": "active-hybrid"},
             {"name": "AES-256-GCM", "purpose": "data_encryption", "status": "active"},
         ],
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -42,7 +42,7 @@ def encrypt_payload(plaintext: dict[str, object], shared_secret: str) -> dict[st
     return {
         "ciphertext": base64.b64encode(ciphertext).decode("utf-8"),
         "mac": mac,
-        "encrypted_at": datetime.utcnow().isoformat(),
+        "encrypted_at": datetime.now(tz=UTC).isoformat(),
     }
 
 
