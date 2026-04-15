@@ -894,7 +894,7 @@ For very long lists (1000+ items), add @tanstack/react-virtual for virtualized s
 
 ---
 
-### M.8 — Zustand Store Persistence
+### M.8 — Zustand Store Persistence ✅
 
 **What to do**: Persist Zustand stores to survive page refresh.
 
