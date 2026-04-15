@@ -16,6 +16,14 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useNotificationStore } from "../store/notificationStore";
 
+type ApiError = {
+  response?: {
+    data?: {
+      detail?: string;
+    };
+  };
+};
+
 // ---------------------------------------------------------------------------
 // Section wrapper
 // ---------------------------------------------------------------------------
@@ -112,10 +120,9 @@ export function SettingsPage() {
       typeof error === "object" &&
       error !== null &&
       "response" in error &&
-      typeof (error as { response?: { data?: { detail?: string } } }).response?.data?.detail ===
-        "string"
+      typeof (error as ApiError).response?.data?.detail === "string"
     ) {
-      return (error as { response?: { data?: { detail?: string } } }).response?.data?.detail ?? fallback;
+      return (error as ApiError).response?.data?.detail ?? fallback;
     }
     return fallback;
   };
@@ -123,9 +130,9 @@ export function SettingsPage() {
   const handleSaveGeneral = async () => {
     setSavingDefaults(true);
     try {
-      const timeout = Number.parseInt(defaultScanTimeout, 10);
+      const parsedTimeout = Number.parseInt(defaultScanTimeout, 10);
       await client.post("/api/settings/scan-defaults", {
-        scan_timeout_seconds: Number.isFinite(timeout) ? timeout : 300,
+        scan_timeout_seconds: Number.isFinite(parsedTimeout) ? parsedTimeout : 300,
         auto_analyze: autoAnalyze,
       });
       addNotification({ type: "success", message: "Scan defaults saved." });
