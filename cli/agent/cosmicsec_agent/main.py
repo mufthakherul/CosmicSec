@@ -1,25 +1,43 @@
-"""CosmicSec Agent CLI — main entry point (Typer + Rich)."""
+"""CosmicSec Agent CLI — main entry point (Typer + Rich).
+
+Supports three execution modes:
+  • **static**  — Registry-only tool execution (fast, offline, deterministic)
+  • **dynamic** — AI-powered planning and execution (like GitHub Copilot CLI)
+  • **hybrid**  — AI planning with static fallback (default, recommended)
+"""
 
 from __future__ import annotations
 
 import asyncio
 import json
+import os
 import uuid
 from pathlib import Path
 from typing import Optional
 
 import typer
 from rich.console import Console
+from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
 app = typer.Typer(
     name="cosmicsec-agent",
-    help="CosmicSec local agent — discover tools, run scans, stream findings to cloud.",
+    help=(
+        "CosmicSec Agent — AI-powered security command center.\n\n"
+        "Modes: static (registry-only), dynamic (AI-planned), hybrid (default).\n\n"
+        "Quick start:\n"
+        '  cosmicsec-agent run "scan 192.168.1.1 with nmap"\n'
+        "  cosmicsec-agent discover\n"
+        "  cosmicsec-agent scan -t 192.168.1.1 --tool nmap"
+    ),
     add_completion=False,
 )
 offline_app = typer.Typer(help="Offline data management commands.")
 app.add_typer(offline_app, name="offline")
+
+mode_app = typer.Typer(help="Execution mode management.")
+app.add_typer(mode_app, name="mode")
 
 console = Console()
 
@@ -50,7 +68,12 @@ def _save_config(cfg: dict) -> None:
 
 @app.command()
 def discover() -> None:
-    """List all security tools installed on this machine."""
+    """List all security tools installed on this machine.
+
+    \b
+    Shows tools from both the static registry and any dynamically
+    discovered tools. Use with --json for machine-readable output.
+    """
     from .tool_registry import ToolRegistry
 
     registry = ToolRegistry()
@@ -71,6 +94,141 @@ def discover() -> None:
         table.add_row(t.name, t.path, t.version, ", ".join(t.capabilities))
 
     console.print(table)
+
+
+# ---------------------------------------------------------------------------
+# run (hybrid engine — the core new command)
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def run(
+    instruction: str = typer.Argument(..., help="Natural language instruction to execute"),
+    mode: str = typer.Option(
+        "hybrid",
+        "--mode",
+        "-m",
+        help="Execution mode: static, dynamic, or hybrid (default)",
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Plan only, do not execute"),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Minimal output (for scripting)"),
+) -> None:
+    """Execute a natural language security instruction using the hybrid engine.
+
+    The hybrid engine combines AI-powered dynamic planning with the static tool
+    registry for reliable, intelligent execution.
+
+    \b
+    Examples:
+      cosmicsec-agent run "scan 192.168.1.1 with nmap"
+      cosmicsec-agent run "check my network then analyze the results" --mode hybrid
+      cosmicsec-agent run "run nuclei on example.com" --mode static
+      cosmicsec-agent run "test the web app and generate a report" --dry-run
+    """
+    from .hybrid_engine import ExecutionMode, HybridEngine
+
+    mode_map = {
+        "static": ExecutionMode.STATIC,
+        "dynamic": ExecutionMode.DYNAMIC,
+        "hybrid": ExecutionMode.HYBRID,
+    }
+    exec_mode = mode_map.get(mode.lower())
+    if exec_mode is None:
+        console.print(f"[red]Invalid mode '{mode}'. Use: static, dynamic, or hybrid.[/red]")
+        raise typer.Exit(1)
+
+    cfg = _load_config()
+    engine = HybridEngine(mode=exec_mode, config=cfg)
+
+    if not quiet:
+        console.print(
+            f"\n[bold cyan]🚀 CosmicSec Hybrid Engine[/bold cyan] "
+            f"[dim]({exec_mode.value} mode)[/dim]"
+        )
+        console.print(f"[dim]Instruction: {instruction}[/dim]\n")
+
+    result = asyncio.run(engine.execute(instruction, interactive=not quiet, dry_run=dry_run))
+
+    if dry_run:
+        if not quiet:
+            console.print("[yellow]Dry run — no commands were executed.[/yellow]")
+        raise typer.Exit(0)
+
+    if not result.success:
+        raise typer.Exit(1)
+
+
+# ---------------------------------------------------------------------------
+# plan (show execution plan without running)
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def plan(
+    instruction: str = typer.Argument(..., help="Natural language instruction to plan"),
+    mode: str = typer.Option("hybrid", "--mode", "-m", help="Planning mode"),
+    output_format: str = typer.Option("table", "--output-format", "-o", help="table or json"),
+) -> None:
+    """Show the execution plan for an instruction without executing it.
+
+    Useful for previewing what the hybrid engine would do.
+
+    \b
+    Examples:
+      cosmicsec-agent plan "scan 10.0.0.0/24 with all tools"
+      cosmicsec-agent plan "check for sql injection on example.com" -o json
+    """
+    from .hybrid_engine import ExecutionMode, HybridEngine
+
+    mode_map = {
+        "static": ExecutionMode.STATIC,
+        "dynamic": ExecutionMode.DYNAMIC,
+        "hybrid": ExecutionMode.HYBRID,
+    }
+    exec_mode = mode_map.get(mode.lower(), ExecutionMode.HYBRID)
+
+    cfg = _load_config()
+    engine = HybridEngine(mode=exec_mode, config=cfg)
+
+    execution_plan = asyncio.run(engine.plan(instruction))
+
+    if output_format == "json":
+        console.print_json(json.dumps(execution_plan.to_dict(), indent=2))
+    else:
+        engine._display_plan(execution_plan)
+
+
+# ---------------------------------------------------------------------------
+# mode show / mode set
+# ---------------------------------------------------------------------------
+
+
+@mode_app.command("show")
+def mode_show() -> None:
+    """Show the current default execution mode."""
+    cfg = _load_config()
+    current = cfg.get("execution_mode", "hybrid")
+    console.print(f"[bold]Current execution mode:[/bold] [cyan]{current}[/cyan]")
+    console.print()
+    console.print("[dim]Available modes:[/dim]")
+    console.print("  [blue]static[/blue]   — Registry-only (fast, offline, deterministic)")
+    console.print("  [green]dynamic[/green]  — AI-powered planning (like GitHub Copilot CLI)")
+    console.print("  [magenta]hybrid[/magenta]   — AI + static fallback (recommended)")
+
+
+@mode_app.command("set")
+def mode_set(
+    mode: str = typer.Argument(..., help="Mode to set: static, dynamic, or hybrid"),
+) -> None:
+    """Set the default execution mode."""
+    valid = {"static", "dynamic", "hybrid"}
+    if mode.lower() not in valid:
+        console.print(f"[red]Invalid mode '{mode}'. Use: {', '.join(valid)}[/red]")
+        raise typer.Exit(1)
+    cfg = _load_config()
+    cfg["execution_mode"] = mode.lower()
+    _save_config(cfg)
+    console.print(f"[green]Default execution mode set to:[/green] [bold]{mode.lower()}[/bold]")
 
 
 # ---------------------------------------------------------------------------
@@ -276,7 +434,7 @@ def offline_export(
 
 @app.command()
 def status() -> None:
-    """Show installed tools and current connection status."""
+    """Show agent status including tools, connection, and execution mode."""
     from .offline_store import OfflineStore
     from .tool_registry import ToolRegistry
 
@@ -286,12 +444,29 @@ def status() -> None:
     store = OfflineStore()
     unsynced = store.get_unsynced_findings()
 
-    console.print("\n[bold]CosmicSec Agent Status[/bold]")
+    exec_mode = cfg.get("execution_mode", "hybrid")
+    mode_colors = {"static": "blue", "dynamic": "green", "hybrid": "magenta"}
+    mode_color = mode_colors.get(exec_mode, "white")
+
+    console.print()
+    console.print(
+        Panel(
+            "[bold]CosmicSec Agent Status[/bold]",
+            subtitle="AI-Powered Security Command Center",
+        )
+    )
     console.print(f"  Config: {_CONFIG_FILE}")
     console.print(f"  Agent ID: {cfg.get('agent_id', '[dim]not registered[/dim]')}")
     console.print(f"  Server: {cfg.get('server', '[dim]not configured[/dim]')}")
+    console.print(f"  [bold]Execution Mode:[/bold] [{mode_color}]{exec_mode}[/{mode_color}]")
     console.print(f"  Tools available: {len(tools)}")
     console.print(f"  Unsynced findings: {len(unsynced)}")
+
+    # AI provider status
+    has_openai = bool(cfg.get("openai_api_key") or os.environ.get("OPENAI_API_KEY"))
+    has_server = bool(cfg.get("server"))
+    console.print(f"  OpenAI: {'[green]configured[/green]' if has_openai else '[dim]not configured[/dim]'}")
+    console.print(f"  Cloud AI: {'[green]available[/green]' if has_server else '[dim]not connected[/dim]'}")
 
     if tools:
         table = Table(show_header=True, header_style="bold magenta")

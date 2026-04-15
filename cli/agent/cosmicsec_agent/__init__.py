@@ -1,3 +1,9 @@
-"""CosmicSec Agent — local security tool orchestrator."""
+"""CosmicSec Agent — AI-powered local security tool orchestrator.
 
-__version__ = "0.1.0"
+Supports three execution modes:
+  • static  — Registry-only tool execution (fast, offline, deterministic)
+  • dynamic — AI-powered planning and execution (like GitHub Copilot CLI)
+  • hybrid  — AI planning with static fallback (default, recommended)
+"""
+
+__version__ = "0.2.0"
