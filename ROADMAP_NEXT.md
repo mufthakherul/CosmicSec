@@ -5,13 +5,13 @@
 
 ---
 
-> ### 📊 Overall Progress: **~24% Complete** (Phases K+L done, cross-cutting started)
+> ### 📊 Overall Progress: **~30% Complete** (Phases K+L done, M in progress)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
 > | **K — Critical Security Hardening** | ✅ Complete | 100% |
 > | **L — Production Data Layer** | ✅ Complete | 100% |
-> | **M — Frontend Completion** | ⬜ Not started | 0% |
+> | **M — Frontend Completion** | 🟡 In progress | ~50% |
 > | **N — Dependency Modernization** | ⬜ Not started | 0% |
 > | **O — Test Coverage** | ⬜ Not started | 0% |
 > | **P — Rust Ingest Engine** | ⬜ Not started | 0% |
@@ -677,15 +677,17 @@ pytest tests/ -v --cov=services
 
 ---
 
-## Phase M — Frontend Completion & Modernization
+## Phase M — Frontend Completion & Modernization 🟡 IN PROGRESS (~50%)
 
 > 🎯 **Goal**: Complete all incomplete frontend features, add centralized API client, code splitting, mobile responsive nav, and performance optimizations. After this phase, every page is fully functional.
 >
 > 📋 **Prerequisites**: Phase K (auth pages), Phase L (API returns real data)
 >
 > 🌐 **Languages**: TypeScript, CSS (Tailwind)
+>
+> 🟡 **In Progress**: M.1–M.5 complete, M.6–M.9 remain
 
-### M.1 — Centralized API Client
+### M.1 — Centralized API Client ✅
 
 **What to do**: Create a single API client that all pages use instead of inline `fetch()`.
 
@@ -747,7 +749,7 @@ Ensure PricingPage.tsx nav also gets the hamburger treatment.
 
 ---
 
-### M.3 — Code Splitting & Lazy Loading
+### M.3 — Code Splitting & Lazy Loading ✅
 
 **What to do**: Split the single 419KB JS bundle into route-level chunks.
 
@@ -780,7 +782,7 @@ Target: initial bundle < 120KB, largest route chunk < 80KB
 
 ---
 
-### M.4 — Global Search Implementation
+### M.4 — Global Search Implementation ✅
 
 **What to do**: Wire the visible-but-non-functional GlobalSearch to actual search API.
 
@@ -869,7 +871,7 @@ In frontend/src/pages/SettingsPage.tsx:
 
 ---
 
-### M.7 — Pagination & Virtual Scrolling
+### M.7 — Pagination & Virtual Scrolling ✅
 
 **What to do**: Add pagination to all list views.
 
@@ -914,7 +916,7 @@ Same for notificationStore.ts:
 
 ---
 
-### M.9 — Token Lifecycle Management
+### M.9 — Token Lifecycle Management ✅
 
 **What to do**: Add JWT expiration checking, silent refresh, and return-to URL on redirect.
 
