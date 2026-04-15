@@ -6,16 +6,16 @@ Usage:
     loader.discover()
     result = loader.run("my_plugin", context)
 """
+
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import inspect
 import logging
 import sys
 import traceback
 from pathlib import Path
-from typing import Dict, List, Optional, Type
-from typing import Tuple
 
 from .base import PluginBase, PluginContext, PluginMetadata, PluginResult
 
@@ -26,7 +26,7 @@ class PluginValidationError(Exception):
     """Raised when a plugin fails the contract validation check."""
 
 
-def _load_class_from_file(path: Path) -> Optional[Type[PluginBase]]:
+def _load_class_from_file(path: Path) -> type[PluginBase] | None:
     """Dynamically import a Python file and find the PluginBase subclass."""
     spec = importlib.util.spec_from_file_location(path.stem, path)
     if spec is None or spec.loader is None:
@@ -42,16 +42,12 @@ def _load_class_from_file(path: Path) -> Optional[Type[PluginBase]]:
         return None
 
     for obj in vars(module).values():
-        if (
-            inspect.isclass(obj)
-            and issubclass(obj, PluginBase)
-            and obj is not PluginBase
-        ):
+        if inspect.isclass(obj) and issubclass(obj, PluginBase) and obj is not PluginBase:
             return obj
     return None
 
 
-def _validate(cls: Type[PluginBase]) -> None:
+def _validate(cls: type[PluginBase]) -> None:
     """Assert the class satisfies the plugin contract."""
     instance = cls.__new__(cls)
     if not hasattr(instance, "metadata"):
@@ -77,23 +73,23 @@ class PluginLoader:
     should be done at startup.
     """
 
-    def __init__(self, plugin_dirs: Optional[List[str]] = None):
-        self._dirs: List[Path] = [Path(d) for d in (plugin_dirs or [])]
-        self._registry: Dict[str, Type[PluginBase]] = {}
-        self._instances: Dict[str, PluginBase] = {}
+    def __init__(self, plugin_dirs: list[str] | None = None):
+        self._dirs: list[Path] = [Path(d) for d in (plugin_dirs or [])]
+        self._registry: dict[str, type[PluginBase]] = {}
+        self._instances: dict[str, PluginBase] = {}
         self._disabled: set[str] = set()
 
     # ------------------------------------------------------------------
     # Discovery
     # ------------------------------------------------------------------
 
-    def discover(self) -> List[str]:
+    def discover(self) -> list[str]:
         """
         Scan configured directories for plugin files and register them.
 
         Returns list of successfully loaded plugin names.
         """
-        loaded: List[str] = []
+        loaded: list[str] = []
         for directory in self._dirs:
             if not directory.is_dir():
                 continue
@@ -113,7 +109,7 @@ class PluginLoader:
                     logger.warning("Plugin validation failed (%s): %s", pyfile.name, exc)
         return loaded
 
-    def register(self, cls: Type[PluginBase]) -> str:
+    def register(self, cls: type[PluginBase]) -> str:
         """Manually register a plugin class (for built-in plugins)."""
         _validate(cls)
         meta = cls().metadata()
@@ -125,21 +121,23 @@ class PluginLoader:
     # Introspection
     # ------------------------------------------------------------------
 
-    def list_plugins(self) -> List[Dict]:
+    def list_plugins(self) -> list[dict]:
         out = []
         for name, cls in self._registry.items():
             meta = cls().metadata()
-            out.append({
-                "name": meta.name,
-                "version": meta.version,
-                "description": meta.description,
-                "author": meta.author,
-                "tags": meta.tags,
-                "enabled": name not in self._disabled,
-            })
+            out.append(
+                {
+                    "name": meta.name,
+                    "version": meta.version,
+                    "description": meta.description,
+                    "author": meta.author,
+                    "tags": meta.tags,
+                    "enabled": name not in self._disabled,
+                }
+            )
         return out
 
-    def check_dependencies(self, name: str) -> Dict[str, bool]:
+    def check_dependencies(self, name: str) -> dict[str, bool]:
         """
         Check whether all declared Python package dependencies for a plugin
         are importable in the current environment.
@@ -151,16 +149,16 @@ class PluginLoader:
         if cls is None:
             return {}
         meta = cls().metadata()
-        result: Dict[str, bool] = {}
+        result: dict[str, bool] = {}
         for dep in getattr(meta, "dependencies", []):
             result[dep] = importlib.util.find_spec(dep) is not None
         return result
 
-    def missing_dependencies(self, name: str) -> List[str]:
+    def missing_dependencies(self, name: str) -> list[str]:
         """Return list of dependency names that are NOT importable."""
         return [dep for dep, ok in self.check_dependencies(name).items() if not ok]
 
-    def get_metadata(self, name: str) -> Optional[PluginMetadata]:
+    def get_metadata(self, name: str) -> PluginMetadata | None:
         cls = self._registry.get(name)
         return cls().metadata() if cls else None
 
@@ -186,7 +184,7 @@ class PluginLoader:
     # Execution
     # ------------------------------------------------------------------
 
-    def run(self, name: str, context: PluginContext, config: Optional[Dict] = None) -> PluginResult:
+    def run(self, name: str, context: PluginContext, config: dict | None = None) -> PluginResult:
         """
         Run a plugin by name.
 
@@ -225,9 +223,7 @@ class PluginLoader:
             logger.error("Plugin %s raised during run():\n%s", name, tb)
             result = PluginResult(success=False, errors=[tb])
         finally:
-            try:
+            with contextlib.suppress(Exception):
                 instance.cleanup()
-            except Exception:
-                pass
 
         return result

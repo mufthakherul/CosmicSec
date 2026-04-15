@@ -1,4 +1,5 @@
 """Nmap output parser — supports both XML and plain-text output."""
+
 from __future__ import annotations
 
 import re
@@ -8,36 +9,36 @@ from datetime import datetime, timezone
 
 # Severity mapping based on port number / service risk
 _PORT_SEVERITY: dict[int, str] = {
-    21: "medium",    # FTP
-    22: "low",       # SSH
-    23: "high",      # Telnet
-    25: "medium",    # SMTP
-    53: "low",       # DNS
-    80: "info",      # HTTP
-    110: "medium",   # POP3
-    111: "medium",   # rpcbind
-    135: "medium",   # MSRPC
-    139: "medium",   # NetBIOS
-    143: "medium",   # IMAP
-    161: "medium",   # SNMP
-    389: "medium",   # LDAP
-    443: "info",     # HTTPS
-    445: "high",     # SMB
-    512: "high",     # rexec
-    513: "high",     # rlogin
-    514: "high",     # rsh
-    1433: "high",    # MSSQL
-    1521: "high",    # Oracle DB
+    21: "medium",  # FTP
+    22: "low",  # SSH
+    23: "high",  # Telnet
+    25: "medium",  # SMTP
+    53: "low",  # DNS
+    80: "info",  # HTTP
+    110: "medium",  # POP3
+    111: "medium",  # rpcbind
+    135: "medium",  # MSRPC
+    139: "medium",  # NetBIOS
+    143: "medium",  # IMAP
+    161: "medium",  # SNMP
+    389: "medium",  # LDAP
+    443: "info",  # HTTPS
+    445: "high",  # SMB
+    512: "high",  # rexec
+    513: "high",  # rlogin
+    514: "high",  # rsh
+    1433: "high",  # MSSQL
+    1521: "high",  # Oracle DB
     2049: "medium",  # NFS
     3306: "medium",  # MySQL
-    3389: "high",    # RDP
+    3389: "high",  # RDP
     5432: "medium",  # PostgreSQL
-    5900: "high",    # VNC
-    6379: "high",    # Redis
-    8080: "info",    # HTTP alt
-    8443: "info",    # HTTPS alt
-    9200: "high",    # Elasticsearch
-    27017: "high",   # MongoDB
+    5900: "high",  # VNC
+    6379: "high",  # Redis
+    8080: "info",  # HTTP alt
+    8443: "info",  # HTTPS alt
+    9200: "high",  # Elasticsearch
+    27017: "high",  # MongoDB
 }
 
 
@@ -98,9 +99,7 @@ class NmapParser:
                     service_version = f"{product} {version}".strip()
 
                 severity = _severity_for_port(port_num)
-                description = (
-                    f"Port {port_num}/{protocol} is open — service: {service_name}"
-                )
+                description = f"Port {port_num}/{protocol} is open — service: {service_name}"
                 if service_version:
                     description += f" ({service_version})"
 

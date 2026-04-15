@@ -1,14 +1,15 @@
 """Phase 2 — tests for the plugin SDK (PluginBase, PluginLoader, mitre_attack)."""
+
 import pytest
 
 from plugins.sdk.base import PluginBase, PluginContext, PluginMetadata, PluginResult
 from plugins.sdk.loader import PluginLoader, PluginValidationError
-from services.ai_service.mitre_attack import map_to_attack, map_multiple
-
+from services.ai_service.mitre_attack import map_multiple, map_to_attack
 
 # ---------------------------------------------------------------------------
 # Plugin SDK tests
 # ---------------------------------------------------------------------------
+
 
 class _GoodPlugin(PluginBase):
     def metadata(self) -> PluginMetadata:
@@ -30,6 +31,7 @@ class _GoodPlugin(PluginBase):
 
 class _BadPlugin:
     """Intentionally does NOT subclass PluginBase."""
+
     pass
 
 
@@ -94,15 +96,22 @@ def test_plugin_validation_error_non_base() -> None:
 # MITRE ATT&CK correlation tests
 # ---------------------------------------------------------------------------
 
+
 def test_mitre_sql_injection() -> None:
     result = map_to_attack("SQL injection found in login endpoint")
     assert result["technique_id"] == "T1190"
-    assert "sql" in result["technique_name"].lower() or "exploit" in result["technique_name"].lower()
+    assert (
+        "sql" in result["technique_name"].lower() or "exploit" in result["technique_name"].lower()
+    )
 
 
 def test_mitre_ssrf() -> None:
     result = map_to_attack("SSRF via webhook URL parameter")
-    assert "T1090" in result["technique_id"] or "ssrf" in result["technique_name"].lower() or "proxy" in result["technique_name"].lower()
+    assert (
+        "T1090" in result["technique_id"]
+        or "ssrf" in result["technique_name"].lower()
+        or "proxy" in result["technique_name"].lower()
+    )
 
 
 def test_mitre_brute_force() -> None:

@@ -1,4 +1,5 @@
 """Async executor for running security tools as subprocesses."""
+
 from __future__ import annotations
 
 import asyncio
@@ -77,9 +78,7 @@ async def run_tool_complete(
     )
 
     try:
-        stdout_bytes, stderr_bytes = await asyncio.wait_for(
-            proc.communicate(), timeout=timeout
-        )
+        stdout_bytes, stderr_bytes = await asyncio.wait_for(proc.communicate(), timeout=timeout)
         exit_code = proc.returncode if proc.returncode is not None else 0
     except asyncio.TimeoutError:
         proc.kill()

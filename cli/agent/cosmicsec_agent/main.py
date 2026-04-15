@@ -1,4 +1,5 @@
 """CosmicSec Agent CLI — main entry point (Typer + Rich)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -30,6 +31,7 @@ _CONFIG_FILE = _CONFIG_DIR / "config.json"
 # Config helpers
 # ---------------------------------------------------------------------------
 
+
 def _load_config() -> dict:
     if _CONFIG_FILE.exists():
         return json.loads(_CONFIG_FILE.read_text())
@@ -44,6 +46,7 @@ def _save_config(cfg: dict) -> None:
 # ---------------------------------------------------------------------------
 # discover
 # ---------------------------------------------------------------------------
+
 
 @app.command()
 def discover() -> None:
@@ -73,6 +76,7 @@ def discover() -> None:
 # ---------------------------------------------------------------------------
 # scan
 # ---------------------------------------------------------------------------
+
 
 @app.command()
 def scan(
@@ -119,9 +123,7 @@ def scan(
         if output_format == "xml" and tool_info.name == "nmap":
             extra_args = ["-oX", "-"] + extra_args
 
-        result = asyncio.run(
-            run_tool_complete(tool_info.path, extra_args + [target])
-        )
+        result = asyncio.run(run_tool_complete(tool_info.path, extra_args + [target]))
 
         store.update_scan_status(scan_id, "complete" if result.exit_code == 0 else "error")
 
@@ -164,7 +166,9 @@ def _display_findings(findings: list[dict], tool_name: str, target: str) -> None
     for f in findings:
         sev = f.get("severity", "info")
         style = _SEVERITY_STYLES.get(sev, "")
-        table.add_row(f"[{style}]{sev.upper()}[/{style}]", f.get("title", ""), f.get("evidence", ""))
+        table.add_row(
+            f"[{style}]{sev.upper()}[/{style}]", f.get("title", ""), f.get("evidence", "")
+        )
 
     console.print(table)
 
@@ -172,6 +176,7 @@ def _display_findings(findings: list[dict], tool_name: str, target: str) -> None
 # ---------------------------------------------------------------------------
 # connect
 # ---------------------------------------------------------------------------
+
 
 @app.command()
 def connect(
@@ -199,6 +204,7 @@ def connect(
         # First: register agent with server via REST
         http_base = server.replace("ws://", "http://").replace("wss://", "https://")
         import httpx
+
         try:
             async with httpx.AsyncClient() as http_client:
                 reg_resp = await http_client.post(
@@ -214,9 +220,13 @@ def connect(
                     if canonical_id != agent_id:
                         cfg["agent_id"] = canonical_id
                         _save_config(cfg)
-                    console.print(f"[green]Registered with server. Agent ID: {canonical_id}[/green]")
+                    console.print(
+                        f"[green]Registered with server. Agent ID: {canonical_id}[/green]"
+                    )
                 else:
-                    console.print(f"[yellow]Registration returned {reg_resp.status_code} — continuing anyway.[/yellow]")
+                    console.print(
+                        f"[yellow]Registration returned {reg_resp.status_code} — continuing anyway.[/yellow]"
+                    )
         except Exception as exc:
             console.print(f"[yellow]Could not reach registration endpoint: {exc}[/yellow]")
 
@@ -237,6 +247,7 @@ def connect(
 # ---------------------------------------------------------------------------
 # offline export
 # ---------------------------------------------------------------------------
+
 
 @offline_app.command("export")
 def offline_export(
@@ -262,6 +273,7 @@ def offline_export(
 # status
 # ---------------------------------------------------------------------------
 
+
 @app.command()
 def status() -> None:
     """Show installed tools and current connection status."""
@@ -274,7 +286,7 @@ def status() -> None:
     store = OfflineStore()
     unsynced = store.get_unsynced_findings()
 
-    console.print(f"\n[bold]CosmicSec Agent Status[/bold]")
+    console.print("\n[bold]CosmicSec Agent Status[/bold]")
     console.print(f"  Config: {_CONFIG_FILE}")
     console.print(f"  Agent ID: {cfg.get('agent_id', '[dim]not registered[/dim]')}")
     console.print(f"  Server: {cfg.get('server', '[dim]not configured[/dim]')}")

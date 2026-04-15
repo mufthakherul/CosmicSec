@@ -2,9 +2,9 @@
 Defensive AI Module - Auto-remediation and Defensive Recommendations
 Part of Phase 4 - Innovation & Differentiation
 """
-from typing import Dict, List, Any, Optional
+
 from datetime import datetime
-import json
+from typing import Any
 
 
 class DefensiveAI:
@@ -14,7 +14,7 @@ class DefensiveAI:
         # Remediation knowledge base
         self.remediation_db = self._load_remediation_kb()
 
-    def _load_remediation_kb(self) -> Dict[str, Any]:
+    def _load_remediation_kb(self) -> dict[str, Any]:
         """Load remediation knowledge base for common vulnerabilities"""
         return {
             "SQL_INJECTION": {
@@ -24,18 +24,18 @@ class DefensiveAI:
                     "Implement input validation and sanitization",
                     "Use ORM frameworks with built-in protection",
                     "Apply least privilege database permissions",
-                    "Enable SQL injection detection in WAF"
+                    "Enable SQL injection detection in WAF",
                 ],
                 "code_snippets": {
                     "python": "cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))",
                     "java": "PreparedStatement pstmt = conn.prepareStatement('SELECT * FROM users WHERE id = ?');",
-                    "nodejs": "db.query('SELECT * FROM users WHERE id = $1', [userId])"
+                    "nodejs": "db.query('SELECT * FROM users WHERE id = $1', [userId])",
                 },
                 "config_changes": [
                     "Enable ModSecurity SQL injection rules",
                     "Configure database firewall",
-                    "Enable query logging for anomaly detection"
-                ]
+                    "Enable query logging for anomaly detection",
+                ],
             },
             "XSS": {
                 "severity": "high",
@@ -44,18 +44,18 @@ class DefensiveAI:
                     "Implement Content Security Policy (CSP)",
                     "Use auto-escaping template engines",
                     "Sanitize HTML input with allowlist",
-                    "Enable HTTPOnly and Secure flags on cookies"
+                    "Enable HTTPOnly and Secure flags on cookies",
                 ],
                 "code_snippets": {
                     "python": "from markupsafe import escape\noutput = escape(user_input)",
                     "javascript": "const sanitized = DOMPurify.sanitize(userInput);",
-                    "java": "String encoded = StringEscapeUtils.escapeHtml4(userInput);"
+                    "java": "String encoded = StringEscapeUtils.escapeHtml4(userInput);",
                 },
                 "config_changes": [
                     "Add CSP header: Content-Security-Policy: default-src 'self'",
                     "Enable XSS protection: X-XSS-Protection: 1; mode=block",
-                    "Set X-Content-Type-Options: nosniff"
-                ]
+                    "Set X-Content-Type-Options: nosniff",
+                ],
             },
             "CSRF": {
                 "severity": "high",
@@ -64,18 +64,18 @@ class DefensiveAI:
                     "Use SameSite cookie attribute",
                     "Verify origin and referer headers",
                     "Implement double-submit cookie pattern",
-                    "Use framework-provided CSRF protection"
+                    "Use framework-provided CSRF protection",
                 ],
                 "code_snippets": {
                     "python": "@csrf_protect\ndef sensitive_action(request):\n    # Protected endpoint",
                     "nodejs": "app.use(csrf({ cookie: true }));",
-                    "java": "@EnableWebSecurity\npublic class SecurityConfig extends WebSecurityConfigurerAdapter"
+                    "java": "@EnableWebSecurity\npublic class SecurityConfig extends WebSecurityConfigurerAdapter",
                 },
                 "config_changes": [
                     "Set SameSite=Strict on session cookies",
                     "Enable CSRF middleware in framework",
-                    "Configure CORS properly"
-                ]
+                    "Configure CORS properly",
+                ],
             },
             "INSECURE_DESERIALIZATION": {
                 "severity": "critical",
@@ -84,18 +84,18 @@ class DefensiveAI:
                     "Use safe serialization formats (JSON, not pickle)",
                     "Implement integrity checks on serialized data",
                     "Use allow-list for deserializable classes",
-                    "Run deserialization in isolated sandbox"
+                    "Run deserialization in isolated sandbox",
                 ],
                 "code_snippets": {
                     "python": "data = json.loads(untrusted_input)  # Instead of pickle.loads",
                     "java": "// Use JSON instead of ObjectInputStream for untrusted data",
-                    "nodejs": "JSON.parse(data)  // Instead of eval() or node-serialize"
+                    "nodejs": "JSON.parse(data)  // Instead of eval() or node-serialize",
                 },
                 "config_changes": [
                     "Disable dangerous deserialization libraries",
                     "Configure serialization filters",
-                    "Enable deserialization attack detection"
-                ]
+                    "Enable deserialization attack detection",
+                ],
             },
             "WEAK_CRYPTOGRAPHY": {
                 "severity": "high",
@@ -104,18 +104,18 @@ class DefensiveAI:
                     "Implement bcrypt or Argon2 for password hashing",
                     "Use TLS 1.3 for transport security",
                     "Generate cryptographically secure random numbers",
-                    "Rotate encryption keys regularly"
+                    "Rotate encryption keys regularly",
                 ],
                 "code_snippets": {
                     "python": "from cryptography.fernet import Fernet\ncipher = Fernet.generate_key()",
                     "java": "Cipher cipher = Cipher.getInstance('AES/GCM/NoPadding');",
-                    "nodejs": "const crypto = require('crypto');\nconst key = crypto.randomBytes(32);"
+                    "nodejs": "const crypto = require('crypto');\nconst key = crypto.randomBytes(32);",
                 },
                 "config_changes": [
                     "Disable SSL/TLS < 1.2",
                     "Configure strong cipher suites",
-                    "Enable forward secrecy"
-                ]
+                    "Enable forward secrecy",
+                ],
             },
             "BROKEN_AUTHENTICATION": {
                 "severity": "critical",
@@ -124,18 +124,18 @@ class DefensiveAI:
                     "Use secure session management",
                     "Enforce strong password policies",
                     "Implement account lockout after failed attempts",
-                    "Use secure password reset mechanism"
+                    "Use secure password reset mechanism",
                 ],
                 "code_snippets": {
                     "python": "password_context = CryptContext(schemes=['bcrypt'])",
                     "java": "BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();",
-                    "nodejs": "const hash = await bcrypt.hash(password, 10);"
+                    "nodejs": "const hash = await bcrypt.hash(password, 10);",
                 },
                 "config_changes": [
                     "Set session timeout to 15-30 minutes",
                     "Enable secure and HTTPOnly cookie flags",
-                    "Implement rate limiting on auth endpoints"
-                ]
+                    "Implement rate limiting on auth endpoints",
+                ],
             },
             "SSRF": {
                 "severity": "high",
@@ -144,18 +144,18 @@ class DefensiveAI:
                     "Use allowlist for allowed domains",
                     "Disable redirects for outbound requests",
                     "Implement network segmentation",
-                    "Use DNS resolution filtering"
+                    "Use DNS resolution filtering",
                 ],
                 "code_snippets": {
                     "python": "allowed_domains = ['api.example.com']\nif urlparse(url).netloc not in allowed_domains:\n    raise ValueError('Invalid domain')",
                     "java": "// Validate URL against allowlist before making request",
-                    "nodejs": "const validDomains = ['api.example.com'];\nif (!validDomains.includes(new URL(url).hostname)) throw new Error();"
+                    "nodejs": "const validDomains = ['api.example.com'];\nif (!validDomains.includes(new URL(url).hostname)) throw new Error();",
                 },
                 "config_changes": [
                     "Configure egress firewall rules",
                     "Disable metadata service access (169.254.169.254)",
-                    "Implement URL validation proxy"
-                ]
+                    "Implement URL validation proxy",
+                ],
             },
             "COMMAND_INJECTION": {
                 "severity": "critical",
@@ -164,22 +164,24 @@ class DefensiveAI:
                     "Use parameterized APIs instead of shell commands",
                     "Implement strict input validation",
                     "Use allow-list for permitted characters",
-                    "Run commands in isolated containers"
+                    "Run commands in isolated containers",
                 ],
                 "code_snippets": {
                     "python": "subprocess.run(['ls', '-la', safe_path], shell=False)  # Never use shell=True",
                     "java": "ProcessBuilder pb = new ProcessBuilder('ls', '-la', safePath);",
-                    "nodejs": "execFile('ls', ['-la', safePath])  // Instead of exec()"
+                    "nodejs": "execFile('ls', ['-la', safePath])  // Instead of exec()",
                 },
                 "config_changes": [
                     "Run application with minimal privileges",
                     "Enable seccomp filters to restrict syscalls",
-                    "Configure SELinux/AppArmor policies"
-                ]
-            }
+                    "Configure SELinux/AppArmor policies",
+                ],
+            },
         }
 
-    def suggest_remediation(self, vulnerability_type: str, finding: Dict[str, Any]) -> Dict[str, Any]:
+    def suggest_remediation(
+        self, vulnerability_type: str, finding: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate AI-powered remediation suggestions for a vulnerability"""
         vuln_type = vulnerability_type.upper().replace(" ", "_")
 
@@ -194,11 +196,11 @@ class DefensiveAI:
                     "Consult OWASP Top 10 guidelines",
                     "Implement defense-in-depth security controls",
                     "Conduct security code review",
-                    "Apply security patches if available"
+                    "Apply security patches if available",
                 ],
                 "estimated_effort": "medium",
                 "priority": "medium",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
         kb_entry = self.remediation_db[vuln_type]
@@ -216,10 +218,10 @@ class DefensiveAI:
             "estimated_effort": self._estimate_effort(vuln_type),
             "priority": self._calculate_priority(kb_entry["severity"], finding),
             "affected_components": finding.get("affected_components", []),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
-    def _can_auto_remediate(self, vuln_type: str, finding: Dict[str, Any]) -> bool:
+    def _can_auto_remediate(self, vuln_type: str, finding: dict[str, Any]) -> bool:
         """Determine if vulnerability can be automatically remediated"""
         # Configuration-based vulnerabilities are often auto-remediable
         config_based = ["WEAK_CRYPTOGRAPHY", "BROKEN_AUTHENTICATION", "CSRF"]
@@ -241,7 +243,7 @@ class DefensiveAI:
             return "low"
         return "medium"
 
-    def _calculate_priority(self, severity: str, finding: Dict[str, Any]) -> str:
+    def _calculate_priority(self, severity: str, finding: dict[str, Any]) -> str:
         """Calculate remediation priority based on severity and context"""
         # Priority matrix
         if severity == "critical":
@@ -255,7 +257,7 @@ class DefensiveAI:
             return "medium"
         return "low"
 
-    def generate_security_hardening(self, system_type: str) -> Dict[str, Any]:
+    def generate_security_hardening(self, system_type: str) -> dict[str, Any]:
         """Generate security hardening recommendations for different system types"""
         hardening_guides = {
             "web_application": {
@@ -264,22 +266,22 @@ class DefensiveAI:
                     "Enable firewall with least-privilege rules",
                     "Configure fail2ban for intrusion prevention",
                     "Enable automatic security updates",
-                    "Implement rate limiting on all endpoints"
+                    "Implement rate limiting on all endpoints",
                 ],
                 "application_hardening": [
                     "Enable all security headers (CSP, HSTS, X-Frame-Options)",
                     "Implement input validation on all user inputs",
                     "Use parameterized queries for database access",
                     "Enable CSRF protection on all forms",
-                    "Implement proper session management"
+                    "Implement proper session management",
                 ],
                 "database_hardening": [
                     "Use least-privilege database accounts",
                     "Enable database encryption at rest",
                     "Implement database firewall rules",
                     "Enable query logging and monitoring",
-                    "Regular backup and recovery testing"
-                ]
+                    "Regular backup and recovery testing",
+                ],
             },
             "api": {
                 "authentication": [
@@ -287,22 +289,22 @@ class DefensiveAI:
                     "Use API keys with rate limiting",
                     "Enable mutual TLS for sensitive endpoints",
                     "Implement token rotation",
-                    "Add request signing for integrity"
+                    "Add request signing for integrity",
                 ],
                 "authorization": [
                     "Implement RBAC or ABAC",
                     "Validate permissions on every request",
                     "Use principle of least privilege",
                     "Implement resource-level authorization",
-                    "Log all authorization decisions"
+                    "Log all authorization decisions",
                 ],
                 "data_protection": [
                     "Encrypt sensitive data in transit and at rest",
                     "Implement field-level encryption for PII",
                     "Use data masking for logs",
                     "Implement data retention policies",
-                    "Enable HTTPS/TLS 1.3 only"
-                ]
+                    "Enable HTTPS/TLS 1.3 only",
+                ],
             },
             "cloud_infrastructure": {
                 "iam": [
@@ -310,23 +312,23 @@ class DefensiveAI:
                     "Use least-privilege IAM policies",
                     "Rotate access keys every 90 days",
                     "Enable CloudTrail/activity logging",
-                    "Implement role-based access control"
+                    "Implement role-based access control",
                 ],
                 "network": [
                     "Implement network segmentation (VPC/subnets)",
                     "Use security groups with least-privilege rules",
                     "Enable VPC flow logs",
                     "Implement WAF for public endpoints",
-                    "Use private subnets for sensitive resources"
+                    "Use private subnets for sensitive resources",
                 ],
                 "data": [
                     "Enable encryption at rest for all storage",
                     "Use KMS for key management",
                     "Implement bucket/blob policies",
                     "Enable versioning and lifecycle policies",
-                    "Regular backup and disaster recovery testing"
-                ]
-            }
+                    "Regular backup and disaster recovery testing",
+                ],
+            },
         }
 
         return {
@@ -337,12 +339,12 @@ class DefensiveAI:
                 "OWASP ZAP for security testing",
                 "ModSecurity for WAF",
                 "Fail2ban for intrusion prevention",
-                "Lynis for system hardening audit"
+                "Lynis for system hardening audit",
             ],
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
-    def generate_incident_response_plan(self, vulnerability: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_incident_response_plan(self, vulnerability: dict[str, Any]) -> dict[str, Any]:
         """Generate incident response plan for a discovered vulnerability"""
         severity = vulnerability.get("severity", "medium")
 
@@ -353,10 +355,10 @@ class DefensiveAI:
                     "Isolate affected systems if actively exploited",
                     "Notify security team and management",
                     "Begin evidence collection and preservation",
-                    "Implement temporary workarounds if possible"
+                    "Implement temporary workarounds if possible",
                 ],
                 "timeline": "0-1 hours",
-                "escalation_required": True
+                "escalation_required": True,
             },
             "high": {
                 "immediate_actions": [
@@ -364,10 +366,10 @@ class DefensiveAI:
                     "Assess risk and exploitation potential",
                     "Plan remediation timeline",
                     "Monitor for exploitation attempts",
-                    "Prepare patches or configuration changes"
+                    "Prepare patches or configuration changes",
                 ],
                 "timeline": "1-24 hours",
-                "escalation_required": True
+                "escalation_required": True,
             },
             "medium": {
                 "immediate_actions": [
@@ -375,11 +377,11 @@ class DefensiveAI:
                     "Add to remediation backlog",
                     "Assess business risk",
                     "Plan remediation in next sprint",
-                    "Implement monitoring if needed"
+                    "Implement monitoring if needed",
                 ],
                 "timeline": "1-7 days",
-                "escalation_required": False
-            }
+                "escalation_required": False,
+            },
         }
 
         plan = response_plans.get(severity, response_plans["medium"])
@@ -390,14 +392,14 @@ class DefensiveAI:
             "response_plan": plan,
             "communication_plan": {
                 "internal": ["Security team", "Development team", "Management"],
-                "external": ["Customers (if data breach)", "Regulators (if required)"]
+                "external": ["Customers (if data breach)", "Regulators (if required)"],
             },
             "recovery_steps": [
                 "Apply security patches",
                 "Verify remediation effectiveness",
                 "Update security documentation",
                 "Conduct lessons learned session",
-                "Update detection rules"
+                "Update detection rules",
             ],
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }

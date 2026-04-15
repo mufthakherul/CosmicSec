@@ -1,10 +1,12 @@
 """End-to-end test: CLI agent registration and task dispatch."""
+
 from __future__ import annotations
 
 import os
 import uuid
-import pytest
+
 import httpx
+import pytest
 
 BASE_URL = os.getenv("TEST_BASE_URL", "")
 API_KEY = os.getenv("TEST_API_KEY", "test-key")

@@ -1,4 +1,5 @@
 """Nikto output parser — parses nikto plain-text output."""
+
 from __future__ import annotations
 
 import re

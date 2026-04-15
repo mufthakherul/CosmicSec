@@ -1,4 +1,5 @@
 """Gobuster output parser — parses gobuster dir/dns plain-text output."""
+
 from __future__ import annotations
 
 import re

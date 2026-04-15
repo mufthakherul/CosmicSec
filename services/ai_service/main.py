@@ -5,27 +5,28 @@ Phase 1: LangChain + TF-IDF RAG, OpenAI chain, security analysis endpoints.
 Phase 2: ChromaDB vector store, MITRE ATT&CK, NL interface, autonomous agents.
 """
 
-import uuid
 import logging
+import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 import httpx
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-from .agent import run_security_agent
-from .mitre_attack import map_multiple, map_to_attack
-from .prompt_templates import SUMMARY_TEMPLATE
-from .rag_store import retrieve_guidance
-from .vector_store import chroma_search, collection_count, ingest_document
-from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
-from .ai_agents import get_exploit_guidance, run_autonomous_agent
-from .defensive_ai import DefensiveAI
-from .red_team import RedTeamScope, plan_attack_chain, select_exploit_logic, validate_safety
-from .zero_day_predictor import ZeroDayPredictor
-from .quantum_security import decrypt_payload, encrypt_payload, hybrid_key_exchange, list_algorithms
 from services.common.observability import setup_observability
+
+from .agent import run_security_agent
+from .ai_agents import get_exploit_guidance, run_autonomous_agent
+from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
+from .defensive_ai import DefensiveAI
+from .mitre_attack import map_multiple
+from .prompt_templates import SUMMARY_TEMPLATE
+from .quantum_security import decrypt_payload, encrypt_payload, hybrid_key_exchange, list_algorithms
+from .rag_store import retrieve_guidance
+from .red_team import RedTeamScope, plan_attack_chain, select_exploit_logic, validate_safety
+from .vector_store import chroma_search, collection_count, ingest_document
+from .zero_day_predictor import ZeroDayPredictor
 
 app = FastAPI(
     title="CosmicSec AI Service",
@@ -42,7 +43,6 @@ defensive_ai = DefensiveAI()
 zero_day_predictor = ZeroDayPredictor()
 
 
-
 class Finding(BaseModel):
     title: str
     severity: str = Field(default="medium")
@@ -51,20 +51,20 @@ class Finding(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     target: str
-    findings: List[Finding] = Field(default_factory=list)
+    findings: list[Finding] = Field(default_factory=list)
 
 
 class AnalyzeResponse(BaseModel):
     summary: str
     risk_score: int
-    recommendations: List[str]
+    recommendations: list[str]
 
 
 class AgentResponse(BaseModel):
     target: str
     strategy: str
-    actions: List[str]
-    rag_context: Optional[List[str]] = None
+    actions: list[str]
+    rag_context: Optional[list[str]] = None
 
 
 class NLQueryRequest(BaseModel):
@@ -73,7 +73,7 @@ class NLQueryRequest(BaseModel):
 
 
 class MitreRequest(BaseModel):
-    findings: List[str] = Field(..., description="List of finding titles or descriptions")
+    findings: list[str] = Field(..., description="List of finding titles or descriptions")
 
 
 class MitreEntry(BaseModel):
@@ -85,7 +85,7 @@ class MitreEntry(BaseModel):
 
 
 class MitreResponse(BaseModel):
-    mappings: List[MitreEntry]
+    mappings: list[MitreEntry]
     total: int
 
 
@@ -94,25 +94,32 @@ class IngestRequest(BaseModel):
     text: str = Field(..., description="Document text to embed and index")
 
 
-
 # Phase 2 — Anomaly detection models
 class AnomalyDetectRequest(BaseModel):
     scan_record: dict = Field(..., description="Single scan result record to score")
 
 
 class BatchAnomalyRequest(BaseModel):
-    scan_records: List[dict] = Field(..., description="List of scan records; first N-1 used as baseline if not pre-fitted")
+    scan_records: list[dict] = Field(
+        ..., description="List of scan records; first N-1 used as baseline if not pre-fitted"
+    )
 
 
 class FitBaselineRequest(BaseModel):
-    historical_scans: List[dict] = Field(..., description="Historical scan records used to fit the anomaly baseline")
+    historical_scans: list[dict] = Field(
+        ..., description="Historical scan records used to fit the anomaly baseline"
+    )
 
 
 # Phase 2 — Autonomous agent model
 class AutonomousAgentRequest(BaseModel):
     target: str = Field(..., description="Target system, URL, or domain")
-    findings: List[str] = Field(default_factory=list, description="Finding title strings for analysis")
-    query: Optional[str] = Field(default=None, description="Optional focused question for the agent")
+    findings: list[str] = Field(
+        default_factory=list, description="Finding title strings for analysis"
+    )
+    query: Optional[str] = Field(
+        default=None, description="Optional focused question for the agent"
+    )
 
 
 # Phase 2 — Exploit guidance model
@@ -124,11 +131,11 @@ class RedTeamRequest(BaseModel):
     target: str
     authorized: bool = False
     environment: str = Field(default="lab")
-    objectives: List[str] = Field(default_factory=list)
+    objectives: list[str] = Field(default_factory=list)
 
 
 class ZeroDayTrainRequest(BaseModel):
-    historical_records: List[dict] = Field(default_factory=list)
+    historical_records: list[dict] = Field(default_factory=list)
 
 
 class ZeroDayForecastRequest(BaseModel):
@@ -137,7 +144,7 @@ class ZeroDayForecastRequest(BaseModel):
 
 
 class ZeroDayPortfolioRequest(BaseModel):
-    portfolio: List[dict] = Field(default_factory=list)
+    portfolio: list[dict] = Field(default_factory=list)
 
 
 class QuantumKeyExchangeRequest(BaseModel):
@@ -155,6 +162,7 @@ class QuantumDecryptRequest(BaseModel):
     mac: str
     shared_secret: str
 
+
 @app.get("/health")
 async def health_check() -> dict:
     return {
@@ -166,7 +174,9 @@ async def health_check() -> dict:
 
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_findings(payload: AnalyzeRequest) -> AnalyzeResponse:
-    critical_count = sum(1 for finding in payload.findings if finding.severity.lower() == "critical")
+    critical_count = sum(
+        1 for finding in payload.findings if finding.severity.lower() == "critical"
+    )
     high_count = sum(1 for finding in payload.findings if finding.severity.lower() == "high")
     risk_score = min(100, critical_count * 35 + high_count * 20 + len(payload.findings) * 5)
 
@@ -252,6 +262,7 @@ async def kb_stats() -> dict:
 # Phase 2 endpoints
 # ==========================================================================
 
+
 @app.post("/agent/autonomous")
 async def autonomous_agent(payload: AutonomousAgentRequest) -> dict:
     """
@@ -321,10 +332,10 @@ async def anomaly_batch(payload: BatchAnomalyRequest) -> dict:
     }
 
 
-
 # ========================
 # Phase 4: Defensive AI Endpoints
 # ========================
+
 
 @app.post("/defensive/remediation")
 def get_remediation_guidance(vulnerability_type: str, finding: dict):
@@ -334,11 +345,7 @@ def get_remediation_guidance(vulnerability_type: str, finding: dict):
     Phase 4: Defensive AI - Auto-remediation suggestions
     """
     remediation = defensive_ai.suggest_remediation(vulnerability_type, finding)
-    return {
-        "success": True,
-        "remediation": remediation,
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    return {"success": True, "remediation": remediation, "timestamp": datetime.utcnow().isoformat()}
 
 
 @app.post("/defensive/hardening")
@@ -349,11 +356,7 @@ def get_hardening_recommendations(system_type: str):
     Phase 4: Defensive AI - System hardening guidance
     """
     hardening = defensive_ai.generate_security_hardening(system_type)
-    return {
-        "success": True,
-        "hardening": hardening,
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    return {"success": True, "hardening": hardening, "timestamp": datetime.utcnow().isoformat()}
 
 
 @app.post("/defensive/incident-response")
@@ -367,12 +370,12 @@ def generate_incident_response(vulnerability: dict):
     return {
         "success": True,
         "incident_response_plan": response_plan,
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat(),
     }
 
 
 @app.post("/defensive/batch-remediation")
-def batch_remediation(findings: List[dict]):
+def batch_remediation(findings: list[dict]):
     """
     Generate remediation guidance for multiple findings
 
@@ -385,12 +388,11 @@ def batch_remediation(findings: List[dict]):
         remediations.append(remediation)
 
     # Sort by priority
-    remediations.sort(key=lambda x: {
-        "critical": 0,
-        "high": 1,
-        "medium": 2,
-        "low": 3
-    }.get(x.get("priority", "low"), 3))
+    remediations.sort(
+        key=lambda x: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(
+            x.get("priority", "low"), 3
+        )
+    )
 
     return {
         "success": True,
@@ -401,15 +403,16 @@ def batch_remediation(findings: List[dict]):
             "high": sum(1 for r in remediations if r.get("priority") == "high"),
             "medium": sum(1 for r in remediations if r.get("priority") == "medium"),
             "low": sum(1 for r in remediations if r.get("priority") == "low"),
-            "auto_remediable": sum(1 for r in remediations if r.get("auto_remediable", False))
+            "auto_remediable": sum(1 for r in remediations if r.get("auto_remediable", False)),
         },
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat(),
     }
 
 
 # ========================
 # Phase 4: AI Red Team Endpoints
 # ========================
+
 
 @app.post("/red-team/safety-check")
 def red_team_safety_check(payload: RedTeamRequest) -> dict:
@@ -419,7 +422,11 @@ def red_team_safety_check(payload: RedTeamRequest) -> dict:
         environment=payload.environment,
         objectives=payload.objectives,
     )
-    return {"success": True, "safety": validate_safety(scope), "timestamp": datetime.utcnow().isoformat()}
+    return {
+        "success": True,
+        "safety": validate_safety(scope),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 
 @app.post("/red-team/plan")
@@ -430,7 +437,11 @@ def red_team_plan(payload: RedTeamRequest) -> dict:
         environment=payload.environment,
         objectives=payload.objectives,
     )
-    return {"success": True, "result": plan_attack_chain(scope), "timestamp": datetime.utcnow().isoformat()}
+    return {
+        "success": True,
+        "result": plan_attack_chain(scope),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 
 @app.post("/red-team/attack-sequence")
@@ -448,6 +459,7 @@ def red_team_attack_sequence(payload: RedTeamRequest) -> dict:
 # ========================
 # Phase 4: Zero-Day Prediction Endpoints
 # ========================
+
 
 @app.post("/zero-day/train")
 def zero_day_train(payload: ZeroDayTrainRequest) -> dict:
@@ -471,9 +483,14 @@ def zero_day_risk_trends(payload: ZeroDayPortfolioRequest) -> dict:
 # Phase 4: Quantum-ready Security Endpoints
 # ========================
 
+
 @app.get("/quantum/algorithms")
 def quantum_algorithms() -> dict:
-    return {"success": True, "catalog": list_algorithms(), "timestamp": datetime.utcnow().isoformat()}
+    return {
+        "success": True,
+        "catalog": list_algorithms(),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 
 @app.post("/quantum/key-exchange")
@@ -501,6 +518,7 @@ def quantum_decrypt(payload: QuantumDecryptRequest) -> dict:
 # Phase E — Cross-Layer Intelligence Correlation
 # ---------------------------------------------------------------------------
 
+
 class CorrelationFinding(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     title: str
@@ -512,8 +530,10 @@ class CorrelationFinding(BaseModel):
     source: str = Field(default="web_scan")
     tool: Optional[str] = None
 
+
 class CorrelationRequest(BaseModel):
-    findings: List[CorrelationFinding]
+    findings: list[CorrelationFinding]
+
 
 class CorrelationReport(BaseModel):
     risk_score: int
@@ -521,7 +541,8 @@ class CorrelationReport(BaseModel):
     grouped_by_target: dict
     grouped_by_cve: dict
     grouped_by_technique: dict
-    recommendations: List[str]
+    recommendations: list[str]
+
 
 class GraphNode(BaseModel):
     id: str
@@ -529,16 +550,19 @@ class GraphNode(BaseModel):
     label: str
     weight: int = 1
 
+
 class GraphEdge(BaseModel):
     source: str
     target: str
     edge_type: str
     weight: int = 1
 
+
 class CorrelationGraph(BaseModel):
-    nodes: List[GraphNode]
-    edges: List[GraphEdge]
+    nodes: list[GraphNode]
+    edges: list[GraphEdge]
     total_findings: int
+
 
 @app.post("/correlate", response_model=CorrelationReport, tags=["correlation"])
 async def correlate_findings(req: CorrelationRequest):
@@ -546,8 +570,11 @@ async def correlate_findings(req: CorrelationRequest):
     findings = req.findings
     if not findings:
         return CorrelationReport(
-            risk_score=0, total_findings=0,
-            grouped_by_target={}, grouped_by_cve={}, grouped_by_technique={},
+            risk_score=0,
+            total_findings=0,
+            grouped_by_target={},
+            grouped_by_cve={},
+            grouped_by_technique={},
             recommendations=["No findings to correlate."],
         )
 
@@ -574,7 +601,7 @@ async def correlate_findings(req: CorrelationRequest):
     risk_score = min(100, int(raw_score * 100 / max(len(findings) * 10, 1)))
 
     # Get recommendations from RAG
-    recommendations: List[str] = []
+    recommendations: list[str] = []
     try:
         for target in list(grouped_by_target.keys())[:3]:
             guidance = retrieve_guidance(f"security findings for {target}")
@@ -587,10 +614,16 @@ async def correlate_findings(req: CorrelationRequest):
         if "critical" in severities or "high" in severities:
             recommendations.append("Immediately patch critical and high severity vulnerabilities.")
         if grouped_by_cve:
-            recommendations.append(f"Address {len(grouped_by_cve)} unique CVEs found across sources.")
+            recommendations.append(
+                f"Address {len(grouped_by_cve)} unique CVEs found across sources."
+            )
         if grouped_by_technique:
-            recommendations.append(f"Review {len(grouped_by_technique)} MITRE ATT&CK techniques identified.")
-        recommendations.append("Correlate findings across all sources before prioritising remediation.")
+            recommendations.append(
+                f"Review {len(grouped_by_technique)} MITRE ATT&CK techniques identified."
+            )
+        recommendations.append(
+            "Correlate findings across all sources before prioritising remediation."
+        )
 
     return CorrelationReport(
         risk_score=risk_score,
@@ -621,9 +654,13 @@ async def correlate_graph(req: CorrelationRequest):
                 edges.append(GraphEdge(source=f.target, target=f.cve_id, edge_type="has_cve"))
         if f.mitre_technique:
             if f.mitre_technique not in nodes:
-                nodes[f.mitre_technique] = GraphNode(id=f.mitre_technique, node_type="technique", label=f.mitre_technique)
+                nodes[f.mitre_technique] = GraphNode(
+                    id=f.mitre_technique, node_type="technique", label=f.mitre_technique
+                )
             if f.target:
-                edges.append(GraphEdge(source=f.target, target=f.mitre_technique, edge_type="uses_technique"))
+                edges.append(
+                    GraphEdge(source=f.target, target=f.mitre_technique, edge_type="uses_technique")
+                )
 
     return CorrelationGraph(
         nodes=list(nodes.values()),
@@ -636,15 +673,19 @@ async def correlate_graph(req: CorrelationRequest):
 # Phase F — AI Workflow
 # ---------------------------------------------------------------------------
 
+
 class WorkflowStartRequest(BaseModel):
     target: str
-    async_mode: bool = Field(default=False, description="Run workflow in background (not yet implemented)")
+    async_mode: bool = Field(
+        default=False, description="Run workflow in background (not yet implemented)"
+    )
 
 
 @app.post("/ai/workflow/start", tags=["workflow"])
 async def start_workflow(req: WorkflowStartRequest):
     """Kick off a full automated multi-step security assessment workflow."""
     from .langgraph_flow import run_workflow
+
     result = await run_workflow(req.target)
     return {
         "target": result["target"],
@@ -659,7 +700,7 @@ async def start_workflow(req: WorkflowStartRequest):
 
 class DispatchTaskRequest(BaseModel):
     agent_id: str
-    findings: List[dict] = Field(default_factory=list)
+    findings: list[dict] = Field(default_factory=list)
     target: str
 
 
