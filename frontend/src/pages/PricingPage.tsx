@@ -1,5 +1,6 @@
-import { Check, Zap } from "lucide-react";
+import { Check, Shield, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PublicNav } from "../components/PublicNav";
 
 const TIERS = [
   {
@@ -61,25 +62,24 @@ const TIERS = [
 export function PricingPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
-      {/* Nav */}
-      <nav className="border-b border-slate-800 px-6 py-4">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold flex items-center gap-2">
-            <span className="text-cyan-400">⬡</span> CosmicSec
+      <PublicNav
+        brand={
+          <Link to="/" className="flex items-center gap-2 text-xl font-bold">
+            <Shield className="h-6 w-6 text-cyan-400" />
+            CosmicSec
           </Link>
-          <div className="flex items-center gap-4 text-sm">
-            <Link to="/auth/login" className="text-slate-400 hover:text-white transition-colors">
-              Sign In
-            </Link>
-            <Link
-              to="/auth/register"
-              className="rounded-lg bg-cyan-500 px-4 py-2 font-semibold text-slate-950 hover:bg-cyan-400 transition-colors"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+        }
+        links={[
+          { label: "Home", to: "/" },
+          { label: "Demo", to: "/demo" },
+          { label: "GitHub", to: "https://github.com/mufthakherul/CosmicSec", external: true },
+        ]}
+        actions={[
+          { label: "Sign In", to: "/auth/login", variant: "ghost" },
+          { label: "Get Started", to: "/auth/register", variant: "primary" },
+        ]}
+        sticky={false}
+      />
 
       {/* Header */}
       <div className="text-center py-20 px-6">

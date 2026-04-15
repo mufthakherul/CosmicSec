@@ -5,13 +5,13 @@
 
 ---
 
-> ### 📊 Overall Progress: **~35% Complete** (Phases K+L done, M advancing)
+> ### 📊 Overall Progress: **~42% Complete** (Phases K+L complete, Phase M near completion)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
 > | **K — Critical Security Hardening** | ✅ Complete | 100% |
 > | **L — Production Data Layer** | ✅ Complete | 100% |
-> | **M — Frontend Completion** | 🟡 In progress | ~65% |
+> | **M — Frontend Completion** | 🟡 In progress | ~90% |
 > | **N — Dependency Modernization** | ⬜ Not started | 0% |
 > | **O — Test Coverage** | ⬜ Not started | 0% |
 > | **P — Rust Ingest Engine** | ⬜ Not started | 0% |
@@ -677,7 +677,7 @@ pytest tests/ -v --cov=services
 
 ---
 
-## Phase M — Frontend Completion & Modernization 🟡 IN PROGRESS (~65%)
+## Phase M — Frontend Completion & Modernization 🟡 IN PROGRESS (~90%)
 
 > 🎯 **Goal**: Complete all incomplete frontend features, add centralized API client, code splitting, mobile responsive nav, and performance optimizations. After this phase, every page is fully functional.
 >
@@ -685,7 +685,7 @@ pytest tests/ -v --cov=services
 >
 > 🌐 **Languages**: TypeScript, CSS (Tailwind)
 >
-> 🟡 **In Progress**: M.1, M.3, M.6, M.7, M.8, M.9 complete; M.2 and M.5 remain; M.4 frontend UX completed (API-backed federated search pending)
+> 🟡 **In Progress**: M.1, M.2, M.3, M.5, M.6, M.7, M.8, M.9 complete; M.4 frontend UX completed (API-backed federated search pending)
 
 ### M.1 — Centralized API Client ✅
 
@@ -727,7 +727,14 @@ Migrate all inline fetch() calls in all pages to use these typed functions.
 
 ---
 
-### M.2 — Mobile Navigation
+### M.2 — Mobile Navigation ✅
+
+> ✅ **Update (2026-04-15)**:
+> - Added reusable mobile hamburger drawer navigation component (`frontend/src/components/PublicNav.tsx`).
+> - Integrated responsive drawer + backdrop + Escape/outside-click/link-click close behavior in:
+>   - `frontend/src/pages/LandingPage.tsx`
+>   - `frontend/src/pages/PricingPage.tsx`
+> - Desktop navigation remains unchanged; mobile behavior is additive (progressive enhancement).
 
 **What to do**: Add hamburger menu for mobile viewports. Currently, nav links disappear on mobile with no way to access them.
 
@@ -816,7 +823,18 @@ Target: initial bundle < 120KB, largest route chunk < 80KB
 
 ---
 
-### M.5 — Phase5 Operations Page Completion
+### M.5 — Phase5 Operations Page Completion ✅
+
+> ✅ **Update (2026-04-15)**:
+> - Rebuilt `frontend/src/pages/Phase5OperationsPage.tsx` into a full SOC operations dashboard with:
+>   - Executive risk posture gauge + 30-day trend visualization
+>   - SOC metrics table (MTTD, MTTR, open incidents, closed this week)
+>   - Active alerts feed with acknowledge/dismiss controls
+>   - Incident timeline with severity/status visualization
+>   - DevSecOps CI gate status table
+>   - Bug bounty monthly earnings chart + total payout panel
+> - Added typed Phase 5 API service methods and interfaces in `frontend/src/services/phase5Api.ts`.
+> - Implemented resilient mock-data fallback behavior when optional Phase 5 endpoints are unavailable.
 
 **What to do**: Build the full SOC operations dashboard (currently only loading/error states).
 
