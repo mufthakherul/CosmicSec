@@ -8,7 +8,6 @@ Phase 2: ChromaDB vector store, MITRE ATT&CK, NL interface, autonomous agents.
 import logging
 import uuid
 from datetime import datetime
-from typing import Optional
 
 import httpx
 from fastapi import FastAPI
@@ -64,12 +63,12 @@ class AgentResponse(BaseModel):
     target: str
     strategy: str
     actions: list[str]
-    rag_context: Optional[list[str]] = None
+    rag_context: list[str] | None = None
 
 
 class NLQueryRequest(BaseModel):
     query: str = Field(..., description="Natural language security query")
-    context: Optional[str] = Field(default=None, description="Optional additional context")
+    context: str | None = Field(default=None, description="Optional additional context")
 
 
 class MitreRequest(BaseModel):
@@ -117,7 +116,7 @@ class AutonomousAgentRequest(BaseModel):
     findings: list[str] = Field(
         default_factory=list, description="Finding title strings for analysis"
     )
-    query: Optional[str] = Field(
+    query: str | None = Field(
         default=None, description="Optional focused question for the agent"
     )
 
@@ -524,11 +523,11 @@ class CorrelationFinding(BaseModel):
     title: str
     severity: str = Field(default="medium")
     description: str = Field(default="")
-    target: Optional[str] = None
-    cve_id: Optional[str] = None
-    mitre_technique: Optional[str] = None
+    target: str | None = None
+    cve_id: str | None = None
+    mitre_technique: str | None = None
     source: str = Field(default="web_scan")
-    tool: Optional[str] = None
+    tool: str | None = None
 
 
 class CorrelationRequest(BaseModel):
