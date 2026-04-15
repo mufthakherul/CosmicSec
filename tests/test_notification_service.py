@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import smtplib
-
+import httpx
 from fastapi.testclient import TestClient
 
 from services.notification_service import main as notification_service_main
@@ -96,7 +95,7 @@ def test_send_notification_filters_channels(monkeypatch) -> None:
 
 def test_send_notification_records_delivery_error(monkeypatch) -> None:
     def fake_post(url: str, json: dict, timeout: int) -> object:
-        raise smtplib.SMTPException("delivery failed")
+        raise httpx.HTTPError("delivery failed")
 
     monkeypatch.setattr("services.notification_service.main.httpx.post", fake_post)
     created = client.post(
