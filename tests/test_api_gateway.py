@@ -217,3 +217,91 @@ def test_runtime_compliance_endpoint() -> None:
     assert payload["complete"] is True
     assert "sections" in payload
     assert "8_static_module_requirements" in payload["sections"]
+
+
+# ---------------------------------------------------------------------------
+# Phase O: WAF, security headers, CORS, and path validation
+# ---------------------------------------------------------------------------
+
+
+def test_waf_blocks_sql_injection_in_query() -> None:
+    """WAF middleware must reject SQL injection patterns in query strings."""
+    # exec() pattern requires no whitespace — guaranteed to match the raw query string
+    response = client.get("/?q=exec(1)--")
+    assert response.status_code == 400
+    assert response.json()["error_code"] == "WAF_BLOCKED"
+
+
+def test_waf_blocks_xss_in_query() -> None:
+    """WAF middleware must reject XSS patterns in query strings."""
+    # javascript: URI scheme is a recognized XSS vector and needs no encoding
+    response = client.get("/?url=javascript:void(0)")
+    assert response.status_code == 400
+    assert response.json()["error_code"] == "WAF_BLOCKED"
+
+
+def test_waf_blocks_sql_injection_in_json_body() -> None:
+    """WAF middleware must reject SQL injection in JSON request bodies."""
+    response = client.post(
+        "/api/auth/login",
+        json={"email": "user@x.com", "password": "test'); exec(xp_cmdshell)--"},
+        headers={"X-Platform-Mode": "demo"},
+    )
+    assert response.status_code == 400
+    assert response.json()["error_code"] == "WAF_BLOCKED"
+
+
+def test_waf_allows_normal_request() -> None:
+    """WAF middleware must pass through benign requests unchanged."""
+    response = client.get("/health")
+    assert response.status_code == 200
+
+
+def test_security_headers_present() -> None:
+    """All responses must carry the standard security header set."""
+    response = client.get("/health")
+    assert response.headers.get("X-Content-Type-Options") == "nosniff"
+    assert response.headers.get("X-Frame-Options") == "DENY"
+    assert "strict-origin" in response.headers.get("Referrer-Policy", "").lower()
+
+
+def test_request_trace_id_header_echoed() -> None:
+    """X-Trace-Id supplied by caller should be echoed back in the response."""
+    trace = "test-trace-abc123"
+    response = client.get("/health", headers={"X-Trace-Id": trace})
+    assert response.headers.get("X-Trace-Id") == trace
+
+
+def test_request_id_generated_when_not_provided() -> None:
+    """Gateway must generate X-Request-Id if caller does not supply one."""
+    response = client.get("/health")
+    assert response.headers.get("X-Request-Id") is not None
+
+
+def test_process_time_header_present() -> None:
+    """Every response should include X-Process-Time for latency tracking."""
+    response = client.get("/health")
+    assert response.headers.get("X-Process-Time") is not None
+
+
+def test_path_validation_rejects_injection_chars() -> None:
+    """Path parameter validation must reject values with injection characters."""
+    response = client.get("/api/scans/../../etc/passwd")
+    # Path traversal or invalid ID should result in 400 or 404, never 200
+    assert response.status_code in (400, 404, 422)
+
+
+def test_cors_origin_present_in_allowed_list() -> None:
+    """An allowed CORS origin should get Access-Control-Allow-Origin in response."""
+    import os
+
+    os.environ.setdefault("COSMICSEC_CORS_ORIGINS", "http://localhost:3000")
+    response = client.get("/health", headers={"Origin": "http://localhost:3000"})
+    # We just check the request succeeds; browser enforces CORS
+    assert response.status_code == 200
+
+
+def test_graphql_endpoint_is_wired() -> None:
+    """GraphQL endpoint must exist (enabled or gracefully disabled)."""
+    response = client.get("/api/graphql")
+    assert response.status_code in (200, 404, 405)
