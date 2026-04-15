@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from services.api_gateway.main import app
 
-
 client = TestClient(app)
 
 
@@ -33,7 +32,9 @@ def test_runtime_mode_endpoint() -> None:
 
 
 def test_recon_hybrid_fallback_response_shape() -> None:
-    response = client.post("/api/recon", json={"target": "example.com"}, headers={"X-Platform-Mode": "hybrid"})
+    response = client.post(
+        "/api/recon", json={"target": "example.com"}, headers={"X-Platform-Mode": "hybrid"}
+    )
     assert response.status_code == 200
     payload = response.json()
     assert "_runtime" in payload

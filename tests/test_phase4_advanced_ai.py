@@ -2,14 +2,18 @@ from fastapi.testclient import TestClient
 
 from services.ai_service.main import app
 
-
 client = TestClient(app)
 
 
 def test_red_team_safety_and_plan() -> None:
     blocked = client.post(
         "/red-team/plan",
-        json={"target": "corp.example", "authorized": False, "environment": "lab", "objectives": ["api validation"]},
+        json={
+            "target": "corp.example",
+            "authorized": False,
+            "environment": "lab",
+            "objectives": ["api validation"],
+        },
     )
     assert blocked.status_code == 200
     assert blocked.json()["result"]["status"] == "blocked"
@@ -60,8 +64,14 @@ def test_zero_day_training_and_forecast() -> None:
         "/zero-day/risk-trends",
         json={
             "portfolio": [
-                {"technology": "api-gateway", "telemetry": {"internet_exposure": 0.9, "patch_latency_days": 18}},
-                {"technology": "worker", "telemetry": {"internet_exposure": 0.2, "patch_latency_days": 4}},
+                {
+                    "technology": "api-gateway",
+                    "telemetry": {"internet_exposure": 0.9, "patch_latency_days": 18},
+                },
+                {
+                    "technology": "worker",
+                    "telemetry": {"internet_exposure": 0.2, "patch_latency_days": 4},
+                },
             ]
         },
     )

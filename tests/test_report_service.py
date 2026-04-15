@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from services.report_service.main import app
 
-
 client = TestClient(app)
 
 
@@ -28,7 +27,9 @@ def test_report_generate_json_and_compliance() -> None:
 
 
 def test_report_schedule() -> None:
-    response = client.post("/reports/schedule", json={"scan_id": "scan-123", "format": "pdf", "cron": "0 0 * * *"})
+    response = client.post(
+        "/reports/schedule", json={"scan_id": "scan-123", "format": "pdf", "cron": "0 0 * * *"}
+    )
     assert response.status_code == 200
     assert response.json()["status"] == "scheduled"
 
@@ -73,6 +74,8 @@ def test_visualization_topology_attack_path_and_heatmap() -> None:
     assert heatmap_resp.json()["group_by"] == "region"
     assert len(heatmap_resp.json()["heatmap"]) == 2
 
-    immersive_resp = client.post("/visualization/immersive", json={"mode": "vr", "scene_name": "blue-team"})
+    immersive_resp = client.post(
+        "/visualization/immersive", json={"mode": "vr", "scene_name": "blue-team"}
+    )
     assert immersive_resp.status_code == 200
     assert immersive_resp.json()["status"] == "configured"

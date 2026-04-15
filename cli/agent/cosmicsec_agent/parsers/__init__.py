@@ -1,4 +1,5 @@
 """Parser package — exposes all output parsers for supported tools."""
+
 from __future__ import annotations
 
 from .gobuster_parser import GobusterParser

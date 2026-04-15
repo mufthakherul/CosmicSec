@@ -1,23 +1,100 @@
 <svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="80" y1="40" x2="1200" y2="620" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0F172A"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#020617"/>
+      <stop offset="0.6" stop-color="#0F172A"/>
       <stop offset="1" stop-color="#1E1B4B"/>
     </linearGradient>
-    <linearGradient id="accent" x1="120" y1="120" x2="560" y2="520" gradientUnits="userSpaceOnUse">
+    <linearGradient id="accent" x1="80" y1="80" x2="540" y2="560" gradientUnits="userSpaceOnUse">
       <stop stop-color="#22D3EE"/>
+      <stop offset="0.5" stop-color="#3B82F6"/>
       <stop offset="1" stop-color="#8B5CF6"/>
     </linearGradient>
+    <linearGradient id="pill1" x1="0" y1="0" x2="160" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0EA5E9" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#38BDF8" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="pill2" x1="0" y1="0" x2="160" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#A78BFA" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="pill3" x1="0" y1="0" x2="160" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10B981" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#34D399" stop-opacity="0.08"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
   </defs>
-  <rect x="0" y="0" width="1280" height="640" rx="36" fill="url(#bg)"/>
-  <rect x="84" y="84" width="1112" height="472" rx="28" fill="#020617" fill-opacity="0.55" stroke="#334155"/>
-  <g>
-    <path d="M220 194L340 244V332C340 399 293 458 220 477C147 458 100 399 100 332V244L220 194Z" fill="#0B1220" stroke="url(#accent)" stroke-width="12"/>
-    <path d="M175 324L208 357L270 295" stroke="url(#accent)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Background -->
+  <rect width="1280" height="640" rx="0" fill="url(#bg)"/>
+
+  <!-- Glow blobs -->
+  <ellipse cx="200" cy="320" rx="260" ry="260" fill="#22D3EE" fill-opacity="0.04" filter="url(#glow)"/>
+  <ellipse cx="1080" cy="320" rx="220" ry="220" fill="#8B5CF6" fill-opacity="0.06" filter="url(#glow)"/>
+
+  <!-- Grid lines (subtle) -->
+  <line x1="0" y1="213" x2="1280" y2="213" stroke="#334155" stroke-opacity="0.25" stroke-width="1"/>
+  <line x1="0" y1="427" x2="1280" y2="427" stroke="#334155" stroke-opacity="0.25" stroke-width="1"/>
+  <line x1="427" y1="0" x2="427" y2="640" stroke="#334155" stroke-opacity="0.25" stroke-width="1"/>
+  <line x1="853" y1="0" x2="853" y2="640" stroke="#334155" stroke-opacity="0.25" stroke-width="1"/>
+
+  <!-- Shield logo (left) -->
+  <g transform="translate(80, 168)">
+    <path d="M152 12L272 62V152C272 220 224 278 152 298C80 278 32 220 32 152V62L152 12Z"
+      stroke="url(#accent)" stroke-width="14" fill="#0B1220" stroke-linejoin="round"/>
+    <path d="M109 155L141 187L210 118"
+      stroke="url(#accent)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="152" cy="155" r="88" stroke="url(#accent)" stroke-opacity="0.15" stroke-width="1.5"/>
   </g>
-  <text x="390" y="255" fill="#E2E8F0" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="78" font-weight="700">CosmicSec</text>
-  <text x="390" y="318" fill="#94A3B8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34">Universal Cybersecurity Intelligence Platform</text>
-  <text x="390" y="386" fill="#CBD5E1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="28">Hybrid API • AI Security Workflows • Local Agent • Enterprise-Ready</text>
-  <rect x="390" y="426" width="206" height="56" rx="16" fill="#0EA5E9" fill-opacity="0.18" stroke="#38BDF8"/>
-  <text x="420" y="462" fill="#7DD3FC" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="600">API + Dashboard</text>
+
+  <!-- Main title -->
+  <text x="380" y="240" fill="#F1F5F9" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="88" font-weight="800" letter-spacing="-2">CosmicSec</text>
+
+  <!-- Gradient stroke on title (overlay) -->
+  <text x="380" y="240" fill="none" stroke="url(#accent)" stroke-width="1" stroke-opacity="0.3"
+    font-family="Inter, Segoe UI, Arial, sans-serif" font-size="88" font-weight="800" letter-spacing="-2">CosmicSec</text>
+
+  <!-- Tagline -->
+  <text x="382" y="302" fill="#94A3B8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="400" letter-spacing="0.5">Universal Cybersecurity Intelligence Platform</text>
+
+  <!-- Sub-tagline -->
+  <text x="382" y="352" fill="#64748B" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="400">AI-Powered · Hybrid Architecture · Local Agent · Enterprise-Ready</text>
+
+  <!-- Feature pills -->
+  <rect x="382" y="388" width="162" height="44" rx="12" fill="url(#pill1)" stroke="#38BDF8" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="415" y="416" fill="#7DD3FC" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="600">🛡️ Scan Engine</text>
+
+  <rect x="560" y="388" width="152" height="44" rx="12" fill="url(#pill2)" stroke="#A78BFA" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="593" y="416" fill="#C4B5FD" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="600">🤖 AI Analysis</text>
+
+  <rect x="728" y="388" width="136" height="44" rx="12" fill="url(#pill3)" stroke="#34D399" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="756" y="416" fill="#6EE7B7" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="600">🔍 OSINT Recon</text>
+
+  <rect x="882" y="388" width="148" height="44" rx="12" fill="url(#pill1)" stroke="#38BDF8" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="913" y="416" fill="#7DD3FC" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="600">📊 Reporting</text>
+
+  <!-- Bottom separator line -->
+  <line x1="382" y1="460" x2="1060" y2="460" stroke="#334155" stroke-opacity="0.5" stroke-width="1"/>
+
+  <!-- Footer stats row -->
+  <text x="382" y="494" fill="#475569" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17">14 Microservices</text>
+  <circle cx="502" cy="488" r="3" fill="#334155"/>
+  <text x="516" y="494" fill="#475569" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17">4 SDKs</text>
+  <circle cx="586" cy="488" r="3" fill="#334155"/>
+  <text x="600" y="494" fill="#475569" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17">React 19 + FastAPI</text>
+  <circle cx="750" cy="488" r="3" fill="#334155"/>
+  <text x="764" y="494" fill="#475569" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17">MIT + Ethical Use</text>
+
+  <!-- Version badge -->
+  <rect x="382" y="520" width="80" height="30" rx="8" fill="#0EA5E9" fill-opacity="0.12" stroke="#0EA5E9" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="422" y="540" fill="#38BDF8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle">v1.0</text>
+
+  <rect x="476" y="520" width="120" height="30" rx="8" fill="#10B981" fill-opacity="0.10" stroke="#10B981" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="536" y="540" fill="#34D399" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" text-anchor="middle">Python 3.11+</text>
+
+  <rect x="612" y="520" width="120" height="30" rx="8" fill="#8B5CF6" fill-opacity="0.10" stroke="#8B5CF6" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="672" y="540" fill="#A78BFA" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" text-anchor="middle">TypeScript 5.9</text>
 </svg>
+

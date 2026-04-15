@@ -6,17 +6,18 @@ graceful template-based fallback otherwise.
 Phase 2 extension: add LangGraph multi-agent workflows.
 Phase F4: Ollama local LLM support via OLLAMA_BASE_URL env var.
 """
+
 from __future__ import annotations
 
+import importlib
 import logging
 import os
-import importlib
-from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
-from .prompt_templates import SYSTEM_PROMPT, SUMMARY_TEMPLATE
-from .rag_store import retrieve_guidance
+from .prompt_templates import SYSTEM_PROMPT  # noqa: E402
+from .rag_store import retrieve_guidance  # noqa: E402
+
 
 def _has_module(module_name: str) -> bool:
     """Return True when module can be imported at runtime."""
@@ -31,10 +32,10 @@ _LANGCHAIN_AVAILABLE = _has_module("langchain")
 _OPENAI_AVAILABLE = _has_module("langchain_openai") or _has_module("langchain")
 
 # Build LangChain chain lazily
-_chain: Optional[object] = None
+_chain: object | None = None
 
 
-def _build_chain() -> Optional[object]:
+def _build_chain() -> object | None:
     """Build a LangChain LLMChain if dependencies and API key are available."""
     global _chain
     if _chain is not None:
@@ -72,7 +73,7 @@ def _build_chain() -> Optional[object]:
     return None
 
 
-def _build_ollama_chain() -> Optional[object]:
+def _build_ollama_chain() -> object | None:
     """Build an Ollama LLM chain if OLLAMA_BASE_URL is set and langchain_community is available."""
     global _chain
     base_url = os.getenv("OLLAMA_BASE_URL")
@@ -92,6 +93,7 @@ def _build_ollama_chain() -> Optional[object]:
             chain = prompt | llm
         except Exception:
             from langchain.chains import LLMChain  # type: ignore[import]
+
             chain = LLMChain(llm=llm, prompt=prompt)
         _chain = chain
         return _chain
@@ -102,8 +104,8 @@ def _build_ollama_chain() -> Optional[object]:
 
 def run_security_agent(
     target: str,
-    finding_titles: List[str],
-    query: Optional[str] = None,
+    finding_titles: list[str],
+    query: str | None = None,
 ) -> dict:
     """
     Run Helix AI security agent.
@@ -132,7 +134,7 @@ def run_security_agent(
                 "actions": [line.strip() for line in str(result).splitlines() if line.strip()][:5],
                 "rag_context": rag_results,
             }
-        except Exception as exc:
+        except Exception:
             # Gracefully degrade on API errors
             pass
 

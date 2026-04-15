@@ -4,7 +4,6 @@ from fastapi.testclient import TestClient
 
 from services.auth_service.main import app
 
-
 client = TestClient(app)
 
 
@@ -43,7 +42,12 @@ def test_org_creation_and_retention_update() -> None:
     org_resp = client.post(
         "/orgs",
         headers=headers,
-        json={"name": "TestOrg", "slug": f"testorg-{secrets.token_urlsafe(4)}", "owner_email": email, "plan": "team"},
+        json={
+            "name": "TestOrg",
+            "slug": f"testorg-{secrets.token_urlsafe(4)}",
+            "owner_email": email,
+            "plan": "team",
+        },
     )
     assert org_resp.status_code == 201
     org_id = org_resp.json()["org_id"]

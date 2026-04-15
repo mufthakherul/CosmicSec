@@ -12,18 +12,20 @@ Usage::
     fit_global_baseline(historical_scan_list)
     result = detect_anomaly(new_scan_record)
 """
+
 from __future__ import annotations
 
 import logging
 import math
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 _SKLEARN_AVAILABLE = False
 try:
-    from sklearn.ensemble import IsolationForest  # type: ignore[import-not-found]
     import numpy as np  # type: ignore[import-not-found]
+    from sklearn.ensemble import IsolationForest  # type: ignore[import-not-found]
+
     _SKLEARN_AVAILABLE = True
 except Exception:
     pass
@@ -46,14 +48,14 @@ _FEATURE_NAMES = [
 ]
 
 
-def _extract_features(record: Dict[str, Any]) -> List[float]:
+def _extract_features(record: dict[str, Any]) -> list[float]:
     """
     Convert a scan record into a fixed-length numeric feature vector.
 
     Expected optional keys in record:
         findings (list), risk_score (int), duration_seconds (int)
     """
-    findings: List[Dict[str, Any]] = record.get("findings", [])
+    findings: list[dict[str, Any]] = record.get("findings", [])
     total = float(len(findings))
     critical = float(sum(1 for f in findings if f.get("severity") == "critical"))
     high = float(sum(1 for f in findings if f.get("severity") == "high"))
@@ -69,6 +71,7 @@ def _extract_features(record: Dict[str, Any]) -> List[float]:
 # Detector class
 # ---------------------------------------------------------------------------
 
+
 class AnomalyDetector:
     """
     Dual-mode anomaly detector (IsolationForest + z-score fallback).
@@ -78,15 +81,15 @@ class AnomalyDetector:
 
     def __init__(self, contamination: float = 0.1):
         self.contamination = contamination
-        self._model: Optional[Any] = None
-        self._baseline: Dict[str, List[float]] = {"mean": [0.0] * 8, "std": [1.0] * 8}
+        self._model: Any | None = None
+        self._baseline: dict[str, list[float]] = {"mean": [0.0] * 8, "std": [1.0] * 8}
         self._fitted = False
 
     # ------------------------------------------------------------------
     # Training
     # ------------------------------------------------------------------
 
-    def fit(self, scans: List[Dict[str, Any]]) -> None:
+    def fit(self, scans: list[dict[str, Any]]) -> None:
         """
         Train on a list of historical scan records.
 
@@ -107,24 +110,26 @@ class AnomalyDetector:
             # Also compute stats for feature-level anomaly explanation
             self._baseline = self._compute_stats(feature_matrix)
             self._fitted = True
-            logger.info("AnomalyDetector fitted (IsolationForest) on %d samples", len(feature_matrix))
+            logger.info(
+                "AnomalyDetector fitted (IsolationForest) on %d samples", len(feature_matrix)
+            )
         else:
             self._fit_zscore(feature_matrix)
 
-    def _fit_zscore(self, feature_matrix: List[List[float]]) -> None:
+    def _fit_zscore(self, feature_matrix: list[list[float]]) -> None:
         self._baseline = self._compute_stats(feature_matrix)
         self._fitted = True
         logger.info("AnomalyDetector fitted (z-score) on %d samples", len(feature_matrix))
 
     @staticmethod
-    def _compute_stats(matrix: List[List[float]]) -> Dict[str, List[float]]:
+    def _compute_stats(matrix: list[list[float]]) -> dict[str, list[float]]:
         if not matrix:
             dim = len(_FEATURE_NAMES)
             return {"mean": [0.0] * dim, "std": [1.0] * dim}
         n = len(matrix)
         dim = len(matrix[0])
         means = [sum(row[i] for row in matrix) / n for i in range(dim)]
-        stds: List[float] = []
+        stds: list[float] = []
         for i in range(dim):
             variance = sum((row[i] - means[i]) ** 2 for row in matrix) / max(1, n - 1)
             stds.append(math.sqrt(variance) or 1.0)
@@ -134,7 +139,7 @@ class AnomalyDetector:
     # Scoring
     # ------------------------------------------------------------------
 
-    def score(self, record: Dict[str, Any]) -> Dict[str, Any]:
+    def score(self, record: dict[str, Any]) -> dict[str, Any]:
         """
         Score a single scan record for anomalousness.
 
@@ -156,7 +161,7 @@ class AnomalyDetector:
         else:
             return self._score_zscore(features)
 
-    def _score_iforest(self, features: List[float]) -> Dict[str, Any]:
+    def _score_iforest(self, features: list[float]) -> dict[str, Any]:
         X = np.array([features], dtype=float)
         raw = float(self._model.decision_function(X)[0])  # type: ignore[index]
         label = int(self._model.predict(X)[0])  # type: ignore[index]
@@ -173,7 +178,7 @@ class AnomalyDetector:
             "method": "isolation_forest",
         }
 
-    def _score_zscore(self, features: List[float]) -> Dict[str, Any]:
+    def _score_zscore(self, features: list[float]) -> dict[str, Any]:
         mean = self._baseline["mean"]
         std = self._baseline["std"]
         z_scores = [(features[i] - mean[i]) / std[i] for i in range(len(features))]
@@ -190,7 +195,7 @@ class AnomalyDetector:
             "method": "z_score",
         }
 
-    def _anomalous_features(self, features: List[float]) -> List[str]:
+    def _anomalous_features(self, features: list[float]) -> list[str]:
         mean = self._baseline["mean"]
         std = self._baseline["std"]
         return [
@@ -202,29 +207,35 @@ class AnomalyDetector:
     @staticmethod
     def _explain(
         is_anomaly: bool,
-        anomalous: List[str],
-        features: List[float],
+        anomalous: list[str],
+        features: list[float],
     ) -> str:
         if not is_anomaly:
             return "Scan results are within normal baseline parameters."
         feat_map = dict(zip(_FEATURE_NAMES, features))
-        parts: List[str] = []
+        parts: list[str] = []
         if "critical_count" in anomalous:
             parts.append(f"critical findings spike ({int(feat_map['critical_count'])})")
         if "findings_per_minute" in anomalous:
             parts.append(f"abnormal finding rate ({feat_map['findings_per_minute']:.1f}/min)")
         if "total_findings" in anomalous:
-            parts.append(f"total finding volume ({int(feat_map['total_findings'])}) exceeds baseline")
+            parts.append(
+                f"total finding volume ({int(feat_map['total_findings'])}) exceeds baseline"
+            )
         if "unique_categories" in anomalous:
-            parts.append(f"unusually wide attack surface ({int(feat_map['unique_categories'])} categories)")
+            parts.append(
+                f"unusually wide attack surface ({int(feat_map['unique_categories'])} categories)"
+            )
         if "weighted_severity_sum" in anomalous:
-            parts.append(f"elevated severity weighted score ({int(feat_map['weighted_severity_sum'])})")
+            parts.append(
+                f"elevated severity weighted score ({int(feat_map['weighted_severity_sum'])})"
+            )
         if not parts:
             parts = ["multi-dimensional statistical deviation from baseline"]
         return "⚠ ANOMALY DETECTED: " + "; ".join(parts) + ". Immediate investigation recommended."
 
     @staticmethod
-    def _not_fitted_result() -> Dict[str, Any]:
+    def _not_fitted_result() -> dict[str, Any]:
         return {
             "anomaly_score": 0.0,
             "is_anomaly": False,
@@ -243,14 +254,14 @@ _global_detector = AnomalyDetector()
 _baseline_loaded = False
 
 
-def fit_global_baseline(scans: List[Dict[str, Any]]) -> None:
+def fit_global_baseline(scans: list[dict[str, Any]]) -> None:
     """Fit the module-level global detector on historical scan records."""
     global _baseline_loaded
     _global_detector.fit(scans)
     _baseline_loaded = True
 
 
-def detect_anomaly(record: Dict[str, Any]) -> Dict[str, Any]:
+def detect_anomaly(record: dict[str, Any]) -> dict[str, Any]:
     """
     Score a single scan record using the global detector.
 
@@ -261,7 +272,7 @@ def detect_anomaly(record: Dict[str, Any]) -> Dict[str, Any]:
     return _global_detector.score(record)
 
 
-def batch_detect(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def batch_detect(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     Score all records.  If no baseline loaded, fits on the first N-1 records.
     """
@@ -269,7 +280,4 @@ def batch_detect(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     if not _baseline_loaded and len(records) >= 2:
         _global_detector.fit(records[:-1])
         _baseline_loaded = True
-    return [
-        {"scan_id": r.get("id", ""), **_global_detector.score(r)}
-        for r in records
-    ]
+    return [{"scan_id": r.get("id", ""), **_global_detector.score(r)} for r in records]

@@ -1,8 +1,9 @@
 """
 Tests for Phase 4 Defensive AI features
 """
-import pytest
+
 from fastapi.testclient import TestClient
+
 from services.ai_service.main import app
 
 client = TestClient(app)
@@ -17,8 +18,8 @@ def test_defensive_remediation_endpoint():
             "id": "vuln-001",
             "severity": "critical",
             "affected_components": ["login_form"],
-            "internet_facing": True
-        }
+            "internet_facing": True,
+        },
     )
     assert response.status_code == 200
     data = response.json()
@@ -31,10 +32,7 @@ def test_defensive_remediation_endpoint():
 
 def test_defensive_hardening_endpoint():
     """Test security hardening recommendations endpoint"""
-    response = client.post(
-        "/defensive/hardening",
-        params={"system_type": "web_application"}
-    )
+    response = client.post("/defensive/hardening", params={"system_type": "web_application"})
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is True
@@ -47,11 +45,7 @@ def test_defensive_incident_response_endpoint():
     """Test incident response plan generation"""
     response = client.post(
         "/defensive/incident-response",
-        json={
-            "id": "vuln-002",
-            "severity": "critical",
-            "vulnerability_type": "XSS"
-        }
+        json={"id": "vuln-002", "severity": "critical", "vulnerability_type": "XSS"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -66,13 +60,10 @@ def test_defensive_batch_remediation_endpoint():
     findings = [
         {"vulnerability_type": "SQL_INJECTION", "severity": "critical"},
         {"vulnerability_type": "XSS", "severity": "high"},
-        {"vulnerability_type": "CSRF", "severity": "medium"}
+        {"vulnerability_type": "CSRF", "severity": "medium"},
     ]
 
-    response = client.post(
-        "/defensive/batch-remediation",
-        json=findings
-    )
+    response = client.post("/defensive/batch-remediation", json=findings)
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is True
@@ -89,7 +80,7 @@ def test_remediation_unknown_vulnerability():
     response = client.post(
         "/defensive/remediation",
         params={"vulnerability_type": "UNKNOWN_VULN"},
-        json={"id": "vuln-003", "severity": "medium"}
+        json={"id": "vuln-003", "severity": "medium"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -101,10 +92,7 @@ def test_remediation_unknown_vulnerability():
 
 def test_hardening_api_system():
     """Test hardening recommendations for API systems"""
-    response = client.post(
-        "/defensive/hardening",
-        params={"system_type": "api"}
-    )
+    response = client.post("/defensive/hardening", params={"system_type": "api"})
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is True
@@ -116,8 +104,7 @@ def test_hardening_api_system():
 def test_incident_response_high_severity():
     """Test incident response for high severity vulnerability"""
     response = client.post(
-        "/defensive/incident-response",
-        json={"id": "vuln-004", "severity": "high"}
+        "/defensive/incident-response", json={"id": "vuln-004", "severity": "high"}
     )
     assert response.status_code == 200
     data = response.json()

@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from services.ai_service.main import app
 
-
 client = TestClient(app)
 
 
@@ -42,7 +41,9 @@ def test_ai_mitre_endpoint() -> None:
     """Phase 2 — MITRE ATT&CK correlation."""
     response = client.post(
         "/analyze/mitre",
-        json={"findings": ["SQL Injection in login form", "Brute Force on /admin", "SSRF via webhook"]},
+        json={
+            "findings": ["SQL Injection in login form", "Brute Force on /admin", "SSRF via webhook"]
+        },
     )
     assert response.status_code == 200
     data = response.json()
@@ -63,7 +64,10 @@ def test_ai_kb_ingest_endpoint() -> None:
     """Phase 2 — ingest a new document into the knowledge base."""
     response = client.post(
         "/kb/ingest",
-        json={"doc_id": "test-cve-9999", "text": "Test CVE: critical RCE in test framework. Apply mitigation X."},
+        json={
+            "doc_id": "test-cve-9999",
+            "text": "Test CVE: critical RCE in test framework. Apply mitigation X.",
+        },
     )
     assert response.status_code == 200
     data = response.json()

@@ -3,10 +3,11 @@
 Manual one-shot KB loader script.
 Usage: python scripts/load_kb.py [--nvd] [--mitre] [--all]
 """
+
 import argparse
 import asyncio
-import sys
 import os
+import sys
 
 # Allow importing services from repo root
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,7 +25,7 @@ async def main() -> None:
         parser.print_help()
         sys.exit(1)
 
-    from services.ai_service.kb_loader import load_nvd_cves, load_mitre_attack, load_all
+    from services.ai_service.kb_loader import load_all, load_mitre_attack, load_nvd_cves
 
     if args.all:
         counts = await load_all()
