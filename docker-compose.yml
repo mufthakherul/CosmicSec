@@ -1,7 +1,7 @@
 services:
   # Traefik - edge API gateway / reverse proxy
   traefik:
-    image: traefik:v3.1
+    image: traefik:v3.4
     container_name: cosmicsec-traefik
     command: --configFile=/etc/traefik/traefik.yml
     ports:
@@ -29,7 +29,7 @@ services:
 
   # PostgreSQL - Primary database
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: cosmicsec-postgres
     environment:
       POSTGRES_DB: cosmicsec
@@ -68,7 +68,7 @@ services:
 
   # MongoDB - OSINT and unstructured data
   mongodb:
-    image: mongo:7
+    image: mongo:8
     container_name: cosmicsec-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: cosmicsec
@@ -88,7 +88,7 @@ services:
 
   # Elasticsearch - Logs and search
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.0
     container_name: cosmicsec-elasticsearch
     environment:
       - discovery.type=single-node
@@ -441,7 +441,7 @@ services:
 
   # Frontend dashboard
   frontend:
-    image: node:20-alpine
+    image: node:22-alpine
     container_name: cosmicsec-frontend
     working_dir: /app/frontend
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 3000"
@@ -459,7 +459,7 @@ services:
 
   # Prometheus — metrics collection
   prometheus:
-    image: prom/prometheus:v2.51.0
+    image: prom/prometheus:v2.55.0
     container_name: cosmicsec-prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yml
@@ -475,7 +475,7 @@ services:
 
   # Grafana — dashboards
   grafana:
-    image: grafana/grafana:10.4.2
+    image: grafana/grafana:11.6.0
     container_name: cosmicsec-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
@@ -495,7 +495,7 @@ services:
 
   # Loki — log aggregation
   loki:
-    image: grafana/loki:2.9.7
+    image: grafana/loki:3.5.0
     container_name: cosmicsec-loki
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
