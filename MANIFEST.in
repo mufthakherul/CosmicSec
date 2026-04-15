@@ -1,6 +1,0 @@
-include README.md
-include LICENSE
-include requirements.txt
-recursive-include services *
-global-exclude *.pyc
-global-exclude __pycache__/
