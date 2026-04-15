@@ -6,15 +6,33 @@ Mounts as a sub-application or standalone at port 8007.
 
 from __future__ import annotations
 
+import logging
 import os
 import secrets
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+logger = logging.getLogger(__name__)
 
+from fastapi import Depends, FastAPI, HTTPException
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from services.common.db import SessionLocal, get_db
+
+from .db_repository import (
+    avg_rating as db_avg_rating,
+    create_marketplace_entry,
+    create_repository as db_create_repository,
+    get_marketplace_entry,
+    get_ratings as db_get_ratings,
+    get_repository as db_get_repository,
+    list_marketplace as db_list_marketplace,
+    list_repositories as db_list_repositories,
+    update_repository_sync,
+    upsert_rating,
+)
 from .sdk.base import PluginContext
 from .sdk.loader import PluginLoader
 
@@ -197,7 +215,24 @@ async def marketplace_list(
     Browse available plugins in the community marketplace.
 
     Supports filtering by tag, author, and minimum average rating.
+    Uses DB persistence with in-memory fallback.
     """
+    # Try DB first
+    try:
+        db = SessionLocal()
+        plugins = db_list_marketplace(db, tag=tag, author=author)
+        if min_rating is not None:
+            plugins = [p for p in plugins if db_avg_rating(db, p["name"]) >= min_rating]
+        for p in plugins:
+            p["average_rating"] = db_avg_rating(db, p["name"])
+            p["rating_count"] = len(db_get_ratings(db, p["name"]))
+        plugins.sort(key=lambda p: p["average_rating"], reverse=True)
+        db.close()
+        return {"plugins": plugins, "total": len(plugins)}
+    except Exception:
+        logger.warning("DB marketplace query failed — using in-memory fallback", exc_info=True)
+
+    # In-memory fallback
     plugins = list(_marketplace.values())
     if tag:
         plugins = [p for p in plugins if tag in p.get("tags", [])]
@@ -205,7 +240,6 @@ async def marketplace_list(
         plugins = [p for p in plugins if p.get("author", "").lower() == author.lower()]
     if min_rating is not None:
         plugins = [p for p in plugins if _avg_rating(p["name"]) >= min_rating]
-    # Enrich with ratings
     for p in plugins:
         p["average_rating"] = _avg_rating(p["name"])
         p["rating_count"] = len(_ratings.get(p["name"], []))
@@ -220,6 +254,7 @@ async def publish_plugin(payload: PublishPluginRequest) -> dict:
 
     The download URL must be HTTPS (validated at submission).
     The SHA-256 checksum is stored for consumer verification.
+    Persists to DB with in-memory cache backup.
     """
     if not payload.download_url.startswith("https://"):
         raise HTTPException(status_code=400, detail="download_url must use HTTPS")
@@ -234,6 +269,16 @@ async def publish_plugin(payload: PublishPluginRequest) -> dict:
         "published_at": datetime.utcnow().isoformat(),
         "listing_id": secrets.token_urlsafe(10),
     }
+
+    # Persist to DB
+    try:
+        db = SessionLocal()
+        db_entry = create_marketplace_entry(db, entry)
+        db.close()
+        entry.update(db_entry)
+    except Exception:
+        logger.warning("DB persist failed for marketplace publish — in-memory only", exc_info=True)
+
     _marketplace[payload.name] = entry
     _ratings.setdefault(payload.name, [])
     return entry
@@ -245,8 +290,25 @@ async def rate_plugin(name: str, payload: RatePluginRequest) -> dict:
     meta = _loader.get_metadata(name)
     if meta is None and name not in _marketplace:
         raise HTTPException(status_code=404, detail=f"Plugin '{name}' not found")
+
+    # Persist to DB
+    try:
+        db = SessionLocal()
+        upsert_rating(db, name, payload.user, payload.rating, payload.review)
+        avg = db_avg_rating(db, name)
+        total = len(db_get_ratings(db, name))
+        db.close()
+        return {
+            "plugin": name,
+            "rating_submitted": payload.rating,
+            "average_rating": avg,
+            "total_ratings": total,
+        }
+    except Exception:
+        logger.warning("DB persist failed for plugin rating — using in-memory", exc_info=True)
+
+    # In-memory fallback
     _ratings.setdefault(name, [])
-    # One rating per user — update if exists
     existing = next((r for r in _ratings[name] if r["user"] == payload.user), None)
     entry = {
         "user": payload.user,
@@ -268,6 +330,21 @@ async def rate_plugin(name: str, payload: RatePluginRequest) -> dict:
 @app.get("/plugins/{name}/rating")
 async def get_plugin_rating(name: str) -> dict:
     """Get aggregated rating statistics for a plugin."""
+    # Try DB first
+    try:
+        db = SessionLocal()
+        reviews = db_get_ratings(db, name)
+        avg = db_avg_rating(db, name)
+        db.close()
+        return {
+            "plugin": name,
+            "average_rating": avg,
+            "total_ratings": len(reviews),
+            "reviews": reviews[-10:],
+        }
+    except Exception:
+        logger.warning("DB rating query failed — using in-memory", exc_info=True)
+
     reviews = _ratings.get(name, [])
     return {
         "plugin": name,
@@ -381,6 +458,14 @@ async def auto_update_plugin(name: str) -> dict:
 @app.get("/community/repositories")
 async def list_repositories() -> dict:
     """List configured community plugin repositories."""
+    # Try DB first
+    try:
+        db = SessionLocal()
+        repos = db_list_repositories(db)
+        db.close()
+        return {"repositories": repos, "total": len(repos)}
+    except Exception:
+        logger.warning("DB repository list failed — using in-memory", exc_info=True)
     return {"repositories": list(_repositories.values()), "total": len(_repositories)}
 
 
@@ -399,6 +484,16 @@ async def register_repository(payload: RegisterRepositoryRequest) -> dict:
         "last_sync": None,
         "imported_count": 0,
     }
+
+    # Persist to DB
+    try:
+        db = SessionLocal()
+        db_record = db_create_repository(db, record)
+        db.close()
+        record.update(db_record)
+    except Exception:
+        logger.warning("DB persist failed for repository — in-memory only", exc_info=True)
+
     _repositories[payload.repo_id] = record
     return record
 
@@ -411,7 +506,17 @@ async def sync_repository(repo_id: str) -> dict:
     Expects repository index JSON format:
     {"plugins": [{name, version, description, author, tags, download_url, checksum_sha256}, ...]}
     """
+    # Try DB first for repo lookup
     repo = _repositories.get(repo_id)
+    try:
+        db = SessionLocal()
+        db_repo = db_get_repository(db, repo_id)
+        if db_repo:
+            repo = db_repo
+        db.close()
+    except Exception:
+        pass
+
     if repo is None:
         raise HTTPException(status_code=404, detail="Repository not found")
     if not repo.get("enabled", True):
@@ -432,7 +537,7 @@ async def sync_repository(repo_id: str) -> dict:
         name = p.get("name")
         if not name:
             continue
-        _marketplace[name] = {
+        entry = {
             "name": name,
             "version": p.get("version", "0.0.0"),
             "description": p.get("description", ""),
@@ -444,11 +549,30 @@ async def sync_repository(repo_id: str) -> dict:
             "listing_id": secrets.token_urlsafe(10),
             "source_repo": repo_id,
         }
+        _marketplace[name] = entry
         _ratings.setdefault(name, [])
+
+        # Persist to DB
+        try:
+            db = SessionLocal()
+            create_marketplace_entry(db, entry)
+            db.close()
+        except Exception:
+            pass
+
         imported += 1
 
+    # Update repo sync metadata
     repo["last_sync"] = datetime.utcnow().isoformat()
     repo["imported_count"] = imported
+
+    try:
+        db = SessionLocal()
+        update_repository_sync(db, repo_id, imported)
+        db.close()
+    except Exception:
+        pass
+
     return {
         "repo_id": repo_id,
         "imported_count": imported,
