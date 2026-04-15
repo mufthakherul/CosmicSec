@@ -1,0 +1,71 @@
+# Development overlay — adds hot-reload and source mounts
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+services:
+  api-gateway:
+    volumes:
+      - ./:/app
+    command: uvicorn services.api_gateway.main:app --host 0.0.0.0 --port 8000 --reload
+
+  auth-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8001 --reload
+
+  scan-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.scan_service.main:app --host 0.0.0.0 --port 8002 --reload
+
+  ai-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.ai_service.main:app --host 0.0.0.0 --port 8003 --reload
+
+  recon-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.recon_service.main:app --host 0.0.0.0 --port 8004 --reload
+
+  report-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.report_service.main:app --host 0.0.0.0 --port 8005 --reload
+
+  collab-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.collab_service.main:app --host 0.0.0.0 --port 8006 --reload
+
+  plugin-registry:
+    volumes:
+      - ./:/app
+    command: uvicorn plugins.registry:app --host 0.0.0.0 --port 8007 --reload
+
+  integration-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.integration_service.main:app --host 0.0.0.0 --port 8008 --reload
+
+  bugbounty-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.bugbounty_service.main:app --host 0.0.0.0 --port 8009 --reload
+
+  phase5-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.phase5_service.main:app --host 0.0.0.0 --port 8010 --reload
+
+  agent-relay:
+    volumes:
+      - ./:/app
+    command: uvicorn services.agent_relay.main:app --host 0.0.0.0 --port 8011 --reload
+
+  notification-service:
+    volumes:
+      - ./:/app
+    command: uvicorn services.notification_service.main:app --host 0.0.0.0 --port 8012 --reload
+
+  celery-worker:
+    volumes:
+      - ./:/app
