@@ -31,9 +31,13 @@ export function useScanStream(scanId: string | undefined) {
       wsUrl = `${scheme}://${window.location.host}/ws/scans/${scanId}`;
     }
 
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    // Append auth token as query parameter for WebSocket authentication
+    const authToken = localStorage.getItem("cosmicsec_token");
+    const separator = wsUrl.includes("?") ? "&" : "?";
+    const authenticatedUrl = authToken ? `${wsUrl}${separator}token=${encodeURIComponent(authToken)}` : wsUrl;
 
+    const ws = new WebSocket(authenticatedUrl);
+    wsRef.current = ws;
     ws.onopen = () => {
       backoffRef.current = BASE_BACKOFF_MS;
     };
