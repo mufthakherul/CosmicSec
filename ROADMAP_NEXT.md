@@ -5,12 +5,12 @@
 
 ---
 
-> ### 📊 Overall Progress: **~12% Complete** (Phase K done, cross-cutting started)
+> ### 📊 Overall Progress: **~24% Complete** (Phases K+L done, cross-cutting started)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
 > | **K — Critical Security Hardening** | ✅ Complete | 100% |
-> | **L — Production Data Layer** | ⬜ Not started | 0% |
+> | **L — Production Data Layer** | ✅ Complete | 100% |
 > | **M — Frontend Completion** | ⬜ Not started | 0% |
 > | **N — Dependency Modernization** | ⬜ Not started | 0% |
 > | **O — Test Coverage** | ⬜ Not started | 0% |
@@ -522,15 +522,17 @@ pytest tests/ -v --cov=services
 
 ---
 
-## Phase L — Production Data Layer & Persistence
+## Phase L — Production Data Layer & Persistence ✅ COMPLETE (100%)
 
 > 🎯 **Goal**: Replace ALL in-memory storage with PostgreSQL/Redis persistence. After this phase, no data is lost on service restart.
 >
 > 📋 **Prerequisites**: Phase K (auth stores fixed)
 >
 > 🌐 **Languages**: Python, SQL
+>
+> ✅ **Completed**: 2026-04-15 — All 5 sub-tasks implemented and verified. 80 tests pass.
 
-### L.1 — Scan Service Persistence
+### L.1 — Scan Service Persistence ✅
 
 **What to do**: Replace `scans = {}` in-memory dict with PostgreSQL. Add scan checkpoint/resume.
 
@@ -564,7 +566,7 @@ Fallback: In-memory cache → DB on miss → HTTP 503 on DB failure
 
 ---
 
-### L.2 — Plugin Registry Persistence
+### L.2 — Plugin Registry Persistence ✅
 
 **What to do**: Replace `_marketplace`, `_ratings`, `_repositories` in-memory dicts with database tables.
 
@@ -591,7 +593,7 @@ Fallback: Cache → DB → Empty response with 503 status
 
 ---
 
-### L.3 — Integration Service Event Log Persistence
+### L.3 — Integration Service Event Log Persistence ✅
 
 **What to do**: Replace `event_log = []` in integration service with database table.
 
@@ -611,7 +613,7 @@ Fallback: In-memory recent buffer → DB for full history → Error on DB down
 
 ---
 
-### L.4 — Agent Relay State Persistence
+### L.4 — Agent Relay State Persistence ✅
 
 **What to do**: Store registered agents in database instead of just in-memory.
 
@@ -632,7 +634,7 @@ Fallback: In-memory for active connections (required for WS routing), DB for his
 
 ---
 
-### L.5 — Redis Session Store
+### L.5 — Redis Session Store ✅
 
 **What to do**: Move active session tracking to Redis with configurable timeout.
 
