@@ -5,15 +5,15 @@
 
 ---
 
-> ### 📊 Overall Progress: **~45% Complete** (Phases K+L+M complete, Phase N ready)
+> ### 📊 Overall Progress: **~56% Complete** (Phases K+L+M+N complete, Phase O started)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
 > | **K — Critical Security Hardening** | ✅ Complete | 100% |
 > | **L — Production Data Layer** | ✅ Complete | 100% |
 > | **M — Frontend Completion** | ✅ Complete | 100% |
-> | **N — Dependency Modernization** | ⬜ Not started | 0% |
-> | **O — Test Coverage** | ⬜ Not started | 0% |
+> | **N — Dependency Modernization** | ✅ Complete | 100% |
+> | **O — Test Coverage** | 🟡 In progress | 25% |
 > | **P — Rust Ingest Engine** | ⬜ Not started | 0% |
 > | **Q — AI/ML Workflows** | ⬜ Not started | 0% |
 > | **R — Enterprise Features** | ⬜ Not started | 0% |
@@ -1001,13 +1001,15 @@ cd frontend && npx playwright test
 
 ---
 
-## Phase N — Dependency Modernization & Upgrade Wave
+## Phase N — Dependency Modernization & Upgrade Wave ✅ COMPLETE (100%)
 
 > 🎯 **Goal**: Upgrade all dependencies to latest versions, remove deprecated packages, fix version mismatches. See [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md) for complete version comparison.
 >
 > 📋 **Prerequisites**: Phase K (security fixes avoid regressions during upgrades)
 >
 > 🌐 **Languages**: Python, TypeScript, Go, YAML
+>
+> ✅ **Completed**: 2026-04-15 — Deprecated packages removed, major dependency waves completed, runtime/tooling versions modernized.
 
 ### N.1 — Remove Deprecated Packages
 
@@ -1162,15 +1164,24 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 
 ---
 
-## Phase O — Test Coverage & Quality Gates
+## Phase O — Test Coverage & Quality Gates 🟡 IN PROGRESS (~25%)
 
 > 🎯 **Goal**: Reach 85%+ backend test coverage and 80%+ frontend test coverage. Add full E2E test suite. After this phase, every code change is validated by automated tests.
 >
 > 📋 **Prerequisites**: Phases K, L, M (test against working code, not stubs)
 >
 > 🌐 **Languages**: Python, TypeScript
+>
+> 🟡 **Current progress**: Initial backend expansion in progress (new notification service test suite added).
 
 ### O.1 — Backend Test Coverage
+
+**Progress update (completed so far):**
+- ✅ `tests/test_integration_service.py` implemented
+- ✅ `tests/test_collab_service.py` implemented
+- ✅ `tests/test_plugin_registry_official.py` implemented
+- ✅ `tests/test_notification_service.py` implemented (10 focused tests added)
+- ⏳ Next: `tests/test_admin_service.py` and deeper expansion of existing suites
 
 **AI Agent Prompt** (for each untested service):
 ```
