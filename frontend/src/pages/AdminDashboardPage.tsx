@@ -28,7 +28,7 @@ type AuditRecord = {
   detail: string;
 };
 
-const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL || "";
 
 export function AdminDashboardPage() {
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
@@ -53,7 +53,8 @@ export function AdminDashboardPage() {
   const chartHeight = useMemo(() => 140, []);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/ws/dashboard");
+    const wsBase = API.replace(/^http/, "ws") || `ws://${window.location.host}`;
+    const ws = new WebSocket(`${wsBase}/ws/dashboard`);
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data) as DashboardSnapshot;
@@ -92,16 +93,28 @@ export function AdminDashboardPage() {
   }, []);
 
   const createUser = async () => {
-    await fetch(`${API}/api/admin/users`, {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+    const buf = new Uint8Array(24);
+    crypto.getRandomValues(buf);
+    const tempPassword = Array.from(buf, (b) => alphabet[b % alphabet.length]).join("");
+
+    const res = await fetch(`${API}/api/admin/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: newUserEmail,
-        password: "ChangeMe123!",
+        password: tempPassword,
         full_name: newUserEmail.split("@")[0] || "user",
         role: newUserRole,
       }),
     });
+
+    if (res.ok) {
+      window.alert(
+        `User created!\n\nEmail: ${newUserEmail}\nTemporary password: ${tempPassword}\n\nPlease save this password — it will not be shown again.`,
+      );
+    }
+
     setNewUserEmail("");
     await loadAdminData();
   };
