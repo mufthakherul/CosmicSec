@@ -5,7 +5,7 @@
 
 ---
 
-> ### 📊 Overall Progress: **~56% Complete** (Phases K+L+M+N complete, Phase O started)
+> ### 📊 Overall Progress: **~58% Complete** (Phases K+L+M+N complete, Phase O advancing)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -13,7 +13,7 @@
 > | **L — Production Data Layer** | ✅ Complete | 100% |
 > | **M — Frontend Completion** | ✅ Complete | 100% |
 > | **N — Dependency Modernization** | ✅ Complete | 100% |
-> | **O — Test Coverage** | 🟡 In progress | 25% |
+> | **O — Test Coverage** | 🟡 In progress | 30% |
 > | **P — Rust Ingest Engine** | ⬜ Not started | 0% |
 > | **Q — AI/ML Workflows** | ⬜ Not started | 0% |
 > | **R — Enterprise Features** | ⬜ Not started | 0% |
@@ -1172,7 +1172,7 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 >
 > 🌐 **Languages**: Python, TypeScript
 >
-> 🟡 **Current progress**: Initial backend expansion in progress (new notification service test suite added).
+> 🟡 **Current progress**: Backend expansion progressing (notification + admin service state tests added).
 
 ### O.1 — Backend Test Coverage
 
@@ -1181,7 +1181,8 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 - ✅ `tests/test_collab_service.py` implemented
 - ✅ `tests/test_plugin_registry_official.py` implemented
 - ✅ `tests/test_notification_service.py` implemented (10 focused tests added)
-- ⏳ Next: `tests/test_admin_service.py` and deeper expansion of existing suites
+- ✅ `tests/test_admin_service.py` implemented (state persistence + backup/restore coverage)
+- ⏳ Next: deeper expansion of API Gateway/Auth/Scan suites and frontend test coverage
 
 **AI Agent Prompt** (for each untested service):
 ```
