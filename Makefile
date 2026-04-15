@@ -1,12 +1,15 @@
-.PHONY: install dev test build clean help
+COMPOSE_DEV = -f docker-compose.yml -f docker-compose.dev.yml
+
+.PHONY: install dev test build clean help up
 
 help:
 	@echo "CosmicSec — Universal Cybersecurity Intelligence Platform"
 	@echo ""
 	@echo "Development:"
 	@echo "  make install    - Install Python dependencies"
-	@echo "  make dev        - Start dev environment (Docker Compose)"
-	@echo "  make dev-build  - Rebuild & start all containers"
+	@echo "  make dev        - Start dev environment (with hot-reload)"
+	@echo "  make dev-build  - Rebuild & start dev containers"
+	@echo "  make up         - Start production containers"
 	@echo "  make stop       - Stop all containers"
 	@echo "  make restart    - Restart all containers"
 	@echo ""
@@ -37,8 +40,8 @@ install:
 	pip install -r requirements.txt
 
 dev:
-	docker-compose up -d
-	@echo "Services started:"
+	docker compose $(COMPOSE_DEV) up -d
+	@echo "Dev services started (hot-reload enabled):"
 	@echo "  API Gateway:  http://localhost:8000"
 	@echo "  Auth Service: http://localhost:8001"
 	@echo "  Scan Service: http://localhost:8002"
@@ -48,7 +51,10 @@ dev:
 	@echo "  API Docs:     http://localhost:8000/api/docs"
 
 dev-build:
-	docker-compose up --build -d
+	docker compose $(COMPOSE_DEV) up --build -d
+
+up:
+	docker compose up -d
 
 stop:
 	docker-compose down
