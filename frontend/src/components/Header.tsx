@@ -154,9 +154,11 @@ function GlobalSearch() {
       return quickLinks.slice(0, 8);
     }
     return quickLinks
-      .filter((item) =>
-        `${item.label} ${item.description} ${item.keywords ?? ""}`.toLowerCase().includes(normalized),
-      )
+      .filter((item) => {
+        const keywords = item.keywords?.toLowerCase() ?? "";
+        return `${item.label} ${item.description}`.toLowerCase().includes(normalized)
+          || keywords.includes(normalized);
+      })
       .slice(0, 8);
   }, [quickLinks, normalized]);
 
