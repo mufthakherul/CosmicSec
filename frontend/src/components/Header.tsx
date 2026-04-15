@@ -137,6 +137,12 @@ function GlobalSearch() {
       )
       .slice(0, 8);
   }, [entries, normalized]);
+  const shortcutLabel = useMemo(() => {
+    if (typeof navigator === "undefined") {
+      return "Ctrl+K";
+    }
+    return /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘K" : "Ctrl+K";
+  }, []);
 
   const goTo = (path: string) => {
     setOpen(false);
@@ -236,7 +242,7 @@ function GlobalSearch() {
           <div className="border-b border-slate-800 px-3 py-2 text-xs text-slate-500">
             Press{" "}
             <kbd className="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-300">
-              {navigator.platform.toUpperCase().includes("MAC") ? "⌘K" : "Ctrl+K"}
+              {shortcutLabel}
             </kbd>{" "}
             to focus, <kbd className="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-300">↑↓</kbd>{" "}
             to navigate
