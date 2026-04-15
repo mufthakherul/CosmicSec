@@ -734,7 +734,7 @@ async def dispatch_task(req: DispatchTaskRequest):
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             await client.post("http://agent-relay:8011/relay/dispatch-task", json=task_payload)
-    except Exception:
+    except httpx.HTTPError:
         pass  # Agent relay may not be running; task still returned
 
     return task_payload
