@@ -61,16 +61,16 @@ class ParsedIntent:
 
 _TARGET_PATTERN = re.compile(
     r"""
-    (?:(?:against|on|at|for|target|host|scan)\s+)?  # optional prefix
+    (?:(?:against|on|at|for|target|host|scan)\s+)?  # optional action prefix
     (
-        \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}         # IPv4
-        (?:/\d{1,2})?                                 # optional CIDR
+        \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}         # IPv4 address (e.g. 192.168.1.1)
+        (?:/\d{1,2})?                                 # optional CIDR notation (e.g. /24)
         |
-        (?:https?://)?                                # optional scheme
-        [a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?  # hostname
-        (?:\.[a-zA-Z]{2,})+                           # TLD
-        (?::\d+)?                                     # optional port
-        (?:/[^\s]*)?                                  # optional path
+        (?:https?://)?                                # optional URL scheme (http:// or https://)
+        [a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?  # hostname label (RFC 1123)
+        (?:\.[a-zA-Z]{2,})+                           # one or more TLD segments (e.g. .com, .co.uk)
+        (?::\d+)?                                     # optional port number (e.g. :8080)
+        (?:/[^\s]*)?                                  # optional URL path (e.g. /api/v1)
     )
     """,
     re.VERBOSE,

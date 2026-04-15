@@ -43,6 +43,9 @@ from .tool_registry import ToolInfo, ToolRegistry
 logger = logging.getLogger(__name__)
 console = Console()
 
+# Maximum characters of output to include in AI analysis context per step
+_MAX_CONTEXT_OUTPUT_LENGTH = 2000
+
 
 class ExecutionMode(str, Enum):
     """Execution mode for the hybrid engine."""
@@ -460,7 +463,7 @@ class HybridEngine:
         for dep_id in step.depends_on:
             dep_result = self._completed_steps.get(dep_id)
             if dep_result and dep_result.output:
-                context_outputs.append(f"[{dep_id}] {dep_result.output[:2000]}")
+                context_outputs.append(f"[{dep_id}] {dep_result.output[:_MAX_CONTEXT_OUTPUT_LENGTH]}")
 
         # For now, provide a structured summary
         summary = f"Analysis requested. Context from {len(context_outputs)} previous step(s)."

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -462,7 +463,7 @@ def status() -> None:
     console.print(f"  Unsynced findings: {len(unsynced)}")
 
     # AI provider status
-    has_openai = bool(cfg.get("openai_api_key") or __import__("os").environ.get("OPENAI_API_KEY"))
+    has_openai = bool(cfg.get("openai_api_key") or os.environ.get("OPENAI_API_KEY"))
     has_server = bool(cfg.get("server"))
     console.print(f"  OpenAI: {'[green]configured[/green]' if has_openai else '[dim]not configured[/dim]'}")
     console.print(f"  Cloud AI: {'[green]available[/green]' if has_server else '[dim]not connected[/dim]'}")
