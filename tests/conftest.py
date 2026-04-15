@@ -8,8 +8,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 # Ensure ORM models are imported so metadata includes all tables.
-from services.common import models  # noqa: E402, F401
+from services.common import models  # noqa: E402
 from services.common.db import Base, engine  # noqa: E402
+
+# Guard: verify that models module loaded at least one table into metadata.
+assert models.__name__, "models import needed for ORM table metadata registration"
 
 
 @pytest.fixture(scope="session", autouse=True)

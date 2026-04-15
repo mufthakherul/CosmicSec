@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 
 SAFE_TECHNIQUES = {
     "recon": ["asset_inventory", "attack_surface_mapping", "service_enumeration"],
@@ -34,7 +34,7 @@ def validate_safety(scope: RedTeamScope) -> dict[str, object]:
     return {
         "is_safe": len(issues) == 0,
         "issues": issues,
-        "checked_at": datetime.utcnow().isoformat(),
+        "checked_at": datetime.now(tz=UTC).isoformat(),
     }
 
 
@@ -89,5 +89,5 @@ def plan_attack_chain(scope: RedTeamScope) -> dict[str, object]:
         "objectives": scope.objectives,
         "safety": safety,
         "plan": chain,
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": datetime.now(tz=UTC).isoformat(),
     }
