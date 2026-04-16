@@ -85,7 +85,8 @@ Major recently completed items in this wave:
 - ✅ Auth service: DB-first API-key lookup/listing paths, encrypted 2FA persistence flow retained, enterprise OAuth/SAML exchange callback implementations expanded.
 - ✅ Scan service: dashboard materialized view refresh task/endpoints, authenticated scan WebSocket gate (`4001` reject), offline findings import endpoint with gzip support.
 - ✅ CLI agent: browser OAuth login option, `shell` REPL, `ask`/`chat`, plugin runtime loader + reload command, `sync resolve`, gzip batched `sync push` upload path.
-- ✅ CLI parser expansion: added native parsers for `sqlmap`, `ffuf`, `masscan`, `wpscan`, `hydra`, and `zaproxy` (in addition to existing `nmap`/`nikto`/`nuclei`/`gobuster`).
+- ✅ CLI parser expansion: full built-in parser parity for all 14 registered tools (`nmap`, `nikto`, `nuclei`, `gobuster`, `sqlmap`, `ffuf`, `masscan`, `wpscan`, `hydra`, `zaproxy`, `john`, `hashcat`, `metasploit`, `burpsuite`).
+- ✅ CLI capability closure: added guided `wizard`, top-level `share`/`pull`, `findings assign/status`, org-scoped `org members/invite/api-keys` suite, `report generate/send`, and `ci scan/gate/diff` surfaces for end-to-end automation parity.
 - ✅ Frontend UX/a11y: route transition focus management, global `aria-live` updates, skip-link target fix, localhost fallback removal from app pages.
 - ✅ CI/CD/security: SQL injection workflow, release automation, staging preview workflow, performance/visual/a11y experience gates, SAST/SBOM/Trivy/SRI checks.
 - ✅ Relay hardening + automation: agent relay now validates API keys by SHA-256 hash comparison (no permissive DB-down accept-any-key fallback) and supports bearer-token header parsing; optional auto refactor/re-commit GitHub workflow added.
