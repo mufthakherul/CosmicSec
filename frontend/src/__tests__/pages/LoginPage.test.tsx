@@ -28,6 +28,8 @@ vi.mock("../../context/AuthContext", async () => {
 vi.mock("axios");
 
 describe("LoginPage", () => {
+  const submitSignInButton = () => screen.getByRole("button", { name: /^sign in$/i });
+
   function renderPage() {
     render(
       <MemoryRouter>
@@ -44,12 +46,12 @@ describe("LoginPage", () => {
     renderPage();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
+    expect(submitSignInButton()).toBeInTheDocument();
   });
 
   it("shows validation errors on empty submit", async () => {
     renderPage();
-    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    fireEvent.click(submitSignInButton());
 
     expect(await screen.findByText("Email is required")).toBeInTheDocument();
     expect(await screen.findByText("Password is required")).toBeInTheDocument();
@@ -70,7 +72,7 @@ describe("LoginPage", () => {
     fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: "Password1" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    fireEvent.click(submitSignInButton());
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith("jwt-token", expect.objectContaining({ id: "u1" }));
@@ -97,7 +99,7 @@ describe("LoginPage", () => {
     fireEvent.change(screen.getByLabelText(/^password$/i), {
       target: { value: "Password1" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    fireEvent.click(submitSignInButton());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/invalid/i);
   });
