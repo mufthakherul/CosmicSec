@@ -32,8 +32,8 @@ def _requires_sri(tag: str, attrs: str) -> bool:
         return "src=" in attrs_lower
     if tag_lower != "link":
         return False
-    rel_match = re.search(r'rel\s*=\s*["\']([^"\']+)["\']', attrs, re.IGNORECASE)
-    rel_value = rel_match.group(1).lower() if rel_match else ""
+    rel_match = re.search(r'rel\s*=\s*["\']([^"\']+)["\']', attrs_lower)
+    rel_value = rel_match.group(1) if rel_match else ""
     return rel_value in {"stylesheet", "modulepreload"}
 
 
