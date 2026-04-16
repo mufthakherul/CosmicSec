@@ -169,6 +169,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run TruffleHog
+        if: github.event_name == 'pull_request' || github.event.before != '0000000000000000000000000000000000000000'
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
