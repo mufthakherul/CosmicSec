@@ -5,7 +5,7 @@
 
 ---
 
-> ### 📊 Overall Progress: **~58% Complete** (Phases K+L+M+N complete, Phase O advancing)
+> ### 📊 Overall Progress: **~61% Complete** (Phases K+L+M+N complete, Phase O advancing)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -13,7 +13,7 @@
 > | **L — Production Data Layer** | ✅ Complete | 100% |
 > | **M — Frontend Completion** | ✅ Complete | 100% |
 > | **N — Dependency Modernization** | ✅ Complete | 100% |
-> | **O — Test Coverage** | 🟢 In progress | 60% |
+> | **O — Test Coverage** | 🟢 In progress | 72% |
 > | **P — Rust Ingest Engine** | 🟢 In progress | 65% |
 > | **Q — AI/ML Workflows** | 🟡 In progress | 25% |
 > | **R — Enterprise Features** | ⬜ Not started | 0% |
@@ -1164,7 +1164,7 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 
 ---
 
-## Phase O — Test Coverage & Quality Gates 🟢 IN PROGRESS (~60%)
+## Phase O — Test Coverage & Quality Gates 🟢 IN PROGRESS (~72%)
 
 > 🎯 **Goal**: Reach 85%+ backend test coverage and 80%+ frontend test coverage. Add full E2E test suite. After this phase, every code change is validated by automated tests.
 >
@@ -1172,7 +1172,7 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 >
 > 🌐 **Languages**: Python, TypeScript
 >
-> 🟢 **Current progress**: Backend suites substantially expanded. Scan/Auth/API-Gateway/Recon all have comprehensive new tests covering WAF, quota enforcement, CRUD, OAuth, GDPR, security headers, and more.
+> 🟢 **Current progress**: Backend suites substantially expanded. Frontend test coverage was advanced with new unit tests for AuthContext, LoginPage, scan store persistence/actions, and WebSocket stream hooks, plus expanded Playwright auth/navigation/responsive coverage and CI quality-gate updates.
 
 ### O.1 — Backend Test Coverage
 
@@ -1237,6 +1237,13 @@ Run: pytest tests/ -v --cov=services --cov-fail-under=85
 
 ### O.2 — Frontend Unit Tests
 
+**Progress update (completed so far):**
+- ✅ `frontend/src/__tests__/context/AuthContext.test.tsx` added (hydration, login persistence, logout clearing)
+- ✅ `frontend/src/__tests__/pages/LoginPage.test.tsx` added (render, validation, successful sign-in flow, API error handling)
+- ✅ `frontend/src/__tests__/hooks/useScanStream.test.ts` added (WebSocket connect/auth URL, message handling, reconnect backoff)
+- ✅ `frontend/src/__tests__/stores/scanStore.test.ts` added (add/update flows, active scan sync, persistence shape)
+- ⏳ Next: page-level tests for Dashboard/Scan/Recon/AI/Settings/Admin and coverage run integration
+
 **AI Agent Prompt**:
 ```
 Create comprehensive frontend tests:
@@ -1280,6 +1287,13 @@ Run: cd frontend && npm run test -- --run --coverage
 
 ### O.3 — E2E Test Suite (Playwright)
 
+**Progress update (completed so far):**
+- ✅ `frontend/tests/e2e/auth-flow.spec.ts` added (protected-route redirect, auth-page navigation, login form validation)
+- ✅ `frontend/tests/e2e/navigation.spec.ts` added (landing navigation, pricing/register routing, 404 route handling)
+- ✅ `frontend/tests/e2e/responsive.spec.ts` added (mobile/tablet/desktop viewport checks)
+- ✅ `frontend/playwright.config.ts` updated (vite preview webServer, screenshot-on-failure, retained traces, retries=3)
+- ⏳ Next: scan-flow and accessibility-focused E2E scenarios
+
 **AI Agent Prompt**:
 ```
 Expand frontend/tests/e2e/ with comprehensive Playwright tests:
@@ -1321,6 +1335,12 @@ Configure in frontend/playwright.config.ts:
 ---
 
 ### O.4 — CI Quality Gates
+
+**Progress update (completed so far):**
+- ✅ `.github/workflows/test.yml` updated with backend coverage enforcement (`--cov-fail-under=80`)
+- ✅ `.github/workflows/test.yml` updated with dedicated Playwright E2E CI job (browser install + artifact upload on failure)
+- ✅ `frontend/vite.config.ts` updated with explicit frontend coverage thresholds (80% statements/branches/functions/lines)
+- ⏳ Next: mypy required-check wiring and bundle-size gate automation
 
 **AI Agent Prompt**:
 ```
