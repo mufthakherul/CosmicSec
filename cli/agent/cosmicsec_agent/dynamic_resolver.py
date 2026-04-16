@@ -227,13 +227,14 @@ class DynamicResolver:
         # 5) Try to find the executable on PATH
         path = shutil.which(base_cmd)
         if not path:
+            not_found_warnings = [*warnings, f"Command '{base_cmd}' not found on PATH"]
             return ResolvedCommand(
                 executable=base_cmd,
                 args=args,
                 is_registered_tool=False,
                 path="",
                 safety_score=0.0,
-                warnings=[f"Command '{base_cmd}' not found on PATH"],
+                warnings=not_found_warnings,
             )
 
         # 6) Calculate safety score

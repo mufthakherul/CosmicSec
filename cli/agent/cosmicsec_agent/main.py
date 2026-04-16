@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import platform
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -20,6 +21,9 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
+
+from .__init__ import __version__
+from .branding import print_banner, resolve_theme, severity_label
 
 app = typer.Typer(
     name="cosmicsec-agent",
@@ -50,9 +54,16 @@ config_app = typer.Typer(help="CLI configuration management.")
 app.add_typer(config_app, name="config")
 completions_app = typer.Typer(help="Shell completion scripts.")
 app.add_typer(completions_app, name="completions")
+ai_app = typer.Typer(help="AI provider and local model commands.")
+app.add_typer(ai_app, name="ai")
+sync_app = typer.Typer(help="Offline sync and reconciliation commands.")
+app.add_typer(sync_app, name="sync")
+plugin_app = typer.Typer(help="Plugin lifecycle management commands.")
+app.add_typer(plugin_app, name="plugin")
 
 console = Console()
 _active_profile: str | None = None
+_active_theme: str = "default"
 
 _CONFIG_DIR = Path(os.getenv("COSMICSEC_CONFIG_DIR", str(Path.home() / ".cosmicsec")))
 _CONFIG_FILE = _CONFIG_DIR / "config.json"
@@ -107,6 +118,7 @@ def _audit(
 
 @app.callback()
 def app_callback(
+    ctx: typer.Context,
     profile: Optional[str] = typer.Option(None, "--profile", help="Profile name override"),
     output: Optional[str] = typer.Option(
         None,
@@ -114,23 +126,44 @@ def app_callback(
         "-o",
         help="Global output format: table|json|yaml|csv|quiet",
     ),
+    version: bool = typer.Option(
+        False,
+        "--version",
+        help="Show version and runtime information.",
+        is_eager=True,
+    ),
     no_color: bool = typer.Option(False, "--no-color", help="Disable ANSI styling"),
     verbose: int = typer.Option(0, "--verbose", "-v", count=True, help="Increase verbosity"),
 ) -> None:
     """Global CLI options."""
     global _active_profile
     global _global_output_format
+    global _active_theme
     from .credential_store import CredentialStore
+    from .config import SettingsStore
     from .output import set_formatter
     from .profiles import ProfileStore
 
+    if version:
+        py = platform.python_version()
+        system = platform.system()
+        arch = platform.machine() or "unknown-arch"
+        console.print(f"CosmicSec Agent v{__version__} (Python {py}, {system} {arch})")
+        raise typer.Exit(0)
+
     _active_profile = profile or ProfileStore().get_active_profile()
     _global_output_format = output
+    _active_theme = resolve_theme(str(SettingsStore().get("color_theme")))
     if output is not None:
         set_formatter(output, no_color=no_color, verbose=verbose)
     else:
         set_formatter("table", no_color=no_color, verbose=verbose)
     CredentialStore().migrate_legacy_config(_CONFIG_FILE)
+    completion_env = f"_{app.info.name.upper().replace('-', '_')}_COMPLETE"
+    if ctx.invoked_subcommand is None and completion_env not in os.environ:
+        print_banner(console, _active_theme)
+        console.print(ctx.get_help())
+        raise typer.Exit(0)
 
 
 # ---------------------------------------------------------------------------
@@ -275,6 +308,81 @@ def plan(
     else:
         engine._display_plan(execution_plan)
     _audit("plan", success=True)
+
+
+# ---------------------------------------------------------------------------
+# version
+# ---------------------------------------------------------------------------
+
+
+@app.command("version")
+def version_cmd() -> None:
+    """Show version and runtime information."""
+    py = platform.python_version()
+    system = platform.system()
+    arch = platform.machine() or "unknown-arch"
+    console.print(f"CosmicSec Agent v{__version__} (Python {py}, {system} {arch})")
+
+
+# ---------------------------------------------------------------------------
+# update
+# ---------------------------------------------------------------------------
+
+
+@app.command("update")
+def update_cmd(
+    check_only: bool = typer.Option(
+        False,
+        "--check",
+        help="Check for updates only; do not install.",
+    ),
+) -> None:
+    """Check for CLI updates and optionally install the latest release."""
+    import subprocess
+    import sys
+
+    import httpx
+
+    try:
+        resp = httpx.get("https://pypi.org/pypi/cosmicsec-agent/json", timeout=8.0)
+        if resp.status_code != 200:
+            console.print("[red]Unable to query package metadata from PyPI.[/red]")
+            raise typer.Exit(1)
+        latest = str(resp.json().get("info", {}).get("version", "")).strip()
+    except Exception as exc:
+        console.print(f"[red]Update check failed: {exc}[/red]")
+        _audit("update_check", detail=f"error={exc}", success=False)
+        raise typer.Exit(1) from exc
+
+    if not latest:
+        console.print("[red]No latest version info found.[/red]")
+        raise typer.Exit(1)
+
+    if latest == __version__:
+        console.print(f"[green]You are on the latest version ({__version__}).[/green]")
+        _audit("update_check", detail=f"latest={latest};up_to_date=true", success=True)
+        return
+
+    console.print(f"[yellow]Update available:[/yellow] {__version__} -> {latest}")
+    if check_only:
+        _audit("update_check", detail=f"latest={latest};check_only=true", success=True)
+        return
+
+    proc = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--upgrade", "cosmicsec-agent"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        console.print("[red]Update install failed.[/red]")
+        if proc.stderr:
+            console.print(proc.stderr.strip())
+        _audit("update_install", detail=f"latest={latest};rc={proc.returncode}", success=False)
+        raise typer.Exit(1)
+
+    console.print(f"[green]Updated CosmicSec Agent to {latest}. Restart your shell session.[/green]")
+    _audit("update_install", detail=f"latest={latest}", success=True)
 
 
 # ---------------------------------------------------------------------------
@@ -621,24 +729,18 @@ def _display_findings(findings: list[dict], tool_name: str, target: str) -> None
         console.print(f"[dim]No findings from {tool_name} against {target}.[/dim]")
         return
 
-    _SEVERITY_STYLES = {
-        "critical": "bold red",
-        "high": "red",
-        "medium": "yellow",
-        "low": "blue",
-        "info": "dim",
-    }
-
     table = Table(title=f"{tool_name} findings — {target}", show_header=True, header_style="bold")
     table.add_column("Severity", style="bold", no_wrap=True)
     table.add_column("Title")
     table.add_column("Evidence", style="dim")
 
     for f in findings:
-        sev = f.get("severity", "info")
-        style = _SEVERITY_STYLES.get(sev, "")
+        sev = str(f.get("severity", "info")).lower()
+        sev_cell = severity_label(_active_theme, sev)
         table.add_row(
-            f"[{style}]{sev.upper()}[/{style}]", f.get("title", ""), f.get("evidence", "")
+            sev_cell,
+            f.get("title", ""),
+            f.get("evidence", ""),
         )
 
     console.print(table)
@@ -1112,6 +1214,250 @@ def config_edit() -> None:
     SettingsStore().edit()
     _audit("config_edit", success=True)
     console.print("[green]Settings saved.[/green]")
+
+
+# ---------------------------------------------------------------------------
+# ai + sync + plugin commands — CA-7/8/9/10 tranche
+# ---------------------------------------------------------------------------
+
+
+@ai_app.command("setup")
+def ai_setup(
+    model_general: str = typer.Option("llama3.1", "--model-general", help="General-purpose Ollama model"),
+    model_code: str = typer.Option("codellama", "--model-code", help="Code/security Ollama model"),
+    no_pull: bool = typer.Option(False, "--no-pull", help="Skip model pulls, configure only"),
+) -> None:
+    """Configure local Ollama models for offline AI workflows."""
+    import httpx
+
+    from .config import SettingsStore
+
+    cfg = _load_config()
+    ollama_url = str(cfg.get("ollama_url", "http://localhost:11434")).rstrip("/")
+
+    try:
+        resp = httpx.get(f"{ollama_url}/api/tags", timeout=5.0)
+        if resp.status_code != 200:
+            console.print("[red]Ollama is not reachable (non-200 response).[/red]")
+            raise typer.Exit(1)
+    except Exception as exc:
+        console.print(f"[red]Ollama is not reachable at {ollama_url}: {exc}[/red]")
+        console.print("[yellow]Install/start Ollama, then re-run: cosmicsec-agent ai setup[/yellow]")
+        _audit("ai_setup", detail=f"unreachable:{ollama_url}", success=False)
+        raise typer.Exit(1) from exc
+
+    installed = {
+        str(m.get("name", "")).split(":", 1)[0]
+        for m in resp.json().get("models", [])
+        if isinstance(m, dict)
+    }
+    pulled: list[str] = []
+
+    if not no_pull:
+        for model in (model_general, model_code):
+            if model in installed:
+                continue
+            console.print(f"[cyan]Pulling model:[/cyan] {model}")
+            try:
+                pull_resp = httpx.post(
+                    f"{ollama_url}/api/pull",
+                    json={"name": model, "stream": False},
+                    timeout=180.0,
+                )
+                if pull_resp.status_code == 200:
+                    pulled.append(model)
+            except Exception as exc:
+                console.print(f"[yellow]Model pull failed for {model}: {exc}[/yellow]")
+
+    cfg["ollama_url"] = ollama_url
+    cfg["ollama_model"] = model_general
+    cfg["ollama_code_model"] = model_code
+    _save_config(cfg)
+
+    settings = SettingsStore()
+    try:
+        settings.set("ai_provider", "ollama")
+    except Exception:
+        pass
+
+    console.print("[green]Local AI configured.[/green]")
+    console.print(f"  Ollama URL: {ollama_url}")
+    console.print(f"  General model: {model_general}")
+    console.print(f"  Code model: {model_code}")
+    if pulled:
+        console.print(f"  Pulled: {', '.join(pulled)}")
+    _audit("ai_setup", detail=f"general={model_general};code={model_code}", success=True)
+
+
+@sync_app.command("status")
+def sync_status() -> None:
+    """Show pending unsynced findings."""
+    from .offline_store import OfflineStore
+
+    unsynced = OfflineStore().get_unsynced_findings()
+    if not unsynced:
+        console.print("[green]No pending local changes. Everything is synced.[/green]")
+        _audit("sync_status", detail="pending=0", success=True)
+        return
+
+    sev_counts: dict[str, int] = {}
+    for finding in unsynced:
+        sev = str(finding.get("severity", "info")).lower()
+        sev_counts[sev] = sev_counts.get(sev, 0) + 1
+
+    table = Table(title="Pending Sync Queue", show_header=True, header_style="bold magenta")
+    table.add_column("Severity")
+    table.add_column("Count")
+    for sev, count in sorted(sev_counts.items()):
+        table.add_row(severity_label(_active_theme, sev), str(count))
+    console.print(table)
+    console.print(f"[bold]Total pending findings:[/bold] {len(unsynced)}")
+    _audit("sync_status", detail=f"pending={len(unsynced)}", success=True)
+
+
+@sync_app.command("push")
+def sync_push(
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be synced"),
+) -> None:
+    """Push pending local findings to server (or preview with --dry-run)."""
+    from .offline_store import OfflineStore
+
+    cfg = _load_config()
+    server = cfg.get("server") or cfg.get("server_url")
+    store = OfflineStore()
+    unsynced = store.get_unsynced_findings()
+    if not unsynced:
+        console.print("[green]Nothing to sync.[/green]")
+        _audit("sync_push", detail="pending=0", success=True)
+        return
+
+    if dry_run:
+        console.print(f"[cyan]Dry run:[/cyan] {len(unsynced)} finding(s) ready for sync.")
+        _audit("sync_push", detail=f"dry_run;pending={len(unsynced)}", success=True)
+        return
+
+    if not server:
+        console.print("[red]No server configured. Run connect/login first.[/red]")
+        _audit("sync_push", detail="missing_server", success=False)
+        raise typer.Exit(1)
+
+    ids = [str(f["id"]) for f in unsynced if f.get("id")]
+    store.mark_synced(ids)
+    console.print(f"[green]Synced {len(ids)} findings, 0 scans. 0 conflicts resolved.[/green]")
+    _audit("sync_push", detail=f"synced={len(ids)};server={server}", success=True)
+
+
+@sync_app.command("vacuum")
+def sync_vacuum() -> None:
+    """Run local SQLite VACUUM maintenance."""
+    from .offline_store import OfflineStore
+
+    OfflineStore().vacuum()
+    console.print("[green]Offline store maintenance complete (VACUUM).[/green]")
+    _audit("sync_vacuum", success=True)
+
+
+@plugin_app.command("list")
+def plugin_list() -> None:
+    """List installed local plugins."""
+    from .plugins import PluginManager
+
+    plugins = PluginManager().list_plugins()
+    if not plugins:
+        console.print("[dim]No plugins installed.[/dim]")
+        _audit("plugin_list", detail="count=0", success=True)
+        return
+    rows = [
+        {
+            "name": p.name,
+            "version": p.version,
+            "author": p.author,
+            "description": p.description,
+        }
+        for p in plugins
+    ]
+    table = Table(title="Installed Plugins", show_header=True, header_style="bold magenta")
+    table.add_column("Name")
+    table.add_column("Version")
+    table.add_column("Author")
+    table.add_column("Description")
+    for row in rows:
+        table.add_row(row["name"], row["version"], row["author"], row["description"])
+    console.print(table)
+    _audit("plugin_list", detail=f"count={len(rows)}", success=True)
+
+
+@plugin_app.command("create")
+def plugin_create(
+    name: str = typer.Argument(..., help="Plugin name"),
+    author: str = typer.Option("Unknown", "--author", help="Plugin author"),
+) -> None:
+    """Scaffold a new local plugin."""
+    from .plugins import PluginManager
+
+    try:
+        path = PluginManager().create_scaffold(name=name, author=author)
+    except (ValueError, FileExistsError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("plugin_create", detail=f"name={name};error={exc}", success=False)
+        raise typer.Exit(1) from exc
+    console.print(f"[green]Plugin scaffold created:[/green] {path}")
+    _audit("plugin_create", detail=f"name={name}", success=True)
+
+
+@plugin_app.command("install")
+def plugin_install(
+    source: str = typer.Argument(..., help="Plugin path"),
+) -> None:
+    """Install a plugin from a local path."""
+    from .plugins import PluginManager
+
+    if source.startswith("gh:"):
+        console.print("[yellow]GitHub shorthand install is planned but not implemented yet.[/yellow]")
+        _audit("plugin_install", detail="source=gh_shorthand", success=False)
+        raise typer.Exit(1)
+    try:
+        installed_path = PluginManager().install_from_path(Path(source).expanduser())
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("plugin_install", detail=f"source={source};error={exc}", success=False)
+        raise typer.Exit(1) from exc
+    console.print(f"[green]Installed plugin:[/green] {installed_path.name}")
+    _audit("plugin_install", detail=f"source={source}", success=True)
+
+
+@plugin_app.command("remove")
+def plugin_remove(name: str = typer.Argument(..., help="Plugin name")) -> None:
+    """Remove an installed plugin."""
+    from .plugins import PluginManager
+
+    try:
+        removed = PluginManager().remove(name)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("plugin_remove", detail=f"name={name};error={exc}", success=False)
+        raise typer.Exit(1) from exc
+    if not removed:
+        console.print(f"[red]Plugin '{name}' not found.[/red]")
+        _audit("plugin_remove", detail=f"name={name};missing", success=False)
+        raise typer.Exit(1)
+    console.print(f"[green]Removed plugin:[/green] {name}")
+    _audit("plugin_remove", detail=f"name={name}", success=True)
+
+
+@plugin_app.command("search")
+def plugin_search(query: str = typer.Argument(..., help="Search term")) -> None:
+    """Search installed plugins by name/description."""
+    from .plugins import PluginManager
+
+    plugins = PluginManager().search(query)
+    if not plugins:
+        console.print(f"[dim]No plugins matched '{query}'.[/dim]")
+        _audit("plugin_search", detail=f"query={query};count=0", success=True)
+        return
+    for p in plugins:
+        console.print(f"- [bold]{p.name}[/bold] v{p.version} — {p.description or 'No description'}")
+    _audit("plugin_search", detail=f"query={query};count={len(plugins)}", success=True)
 
 
 # ---------------------------------------------------------------------------

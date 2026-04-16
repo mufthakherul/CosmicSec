@@ -40,6 +40,14 @@ cosmicsec-agent connect --server wss://app.cosmicsec.io --api-key <API_KEY>
 cosmicsec-agent status
 ```
 
+### AI + sync + plugins
+
+```bash
+cosmicsec-agent ai setup
+cosmicsec-agent sync status
+cosmicsec-agent plugin create demo-plugin
+```
+
 ### Offline data export
 
 ```bash
@@ -61,6 +69,14 @@ cosmicsec-agent offline export --format csv --output-file findings.csv
 ```bash
 cosmicsec-agent completions install
 cosmicsec-agent completions show --shell bash
+```
+
+## Alternative command name
+
+You can invoke the same CLI as `cosmicsec` once installed:
+
+```bash
+cosmicsec --version
 ```
 
 ## Troubleshooting
