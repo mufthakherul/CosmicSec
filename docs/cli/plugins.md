@@ -27,10 +27,23 @@ cosmicsec-agent plugin create my-custom-plugin --author "Your Name"
 cosmicsec-agent plugin install ./my-custom-plugin
 ```
 
+## Install from GitHub shorthand
+
+```bash
+# owner/repo on default branch
+cosmicsec-agent plugin install gh:owner/repo
+
+# specific branch or tag
+cosmicsec-agent plugin install gh:owner/repo@main
+```
+
 ## Manage plugins
 
 ```bash
 cosmicsec-agent plugin list
+cosmicsec-agent plugin info my-custom-plugin
+cosmicsec-agent plugin disable my-custom-plugin
+cosmicsec-agent plugin enable my-custom-plugin
 cosmicsec-agent plugin search custom
 cosmicsec-agent plugin remove my-custom-plugin
 ```

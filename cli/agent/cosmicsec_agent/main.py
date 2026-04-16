@@ -12,6 +12,8 @@ import asyncio
 import json
 import os
 import platform
+import subprocess
+import tempfile
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -1411,6 +1413,71 @@ def sync_push(
     _audit("sync_push", detail=f"synced={len(ids)};server={server}", success=True)
 
 
+@sync_app.command("pull")
+def sync_pull(
+    from_file: Optional[str] = typer.Option(
+        None,
+        "--from-file",
+        help="Import findings from JSON file (array of findings) into offline store.",
+    ),
+    scan_id: Optional[str] = typer.Option(
+        None,
+        "--scan-id",
+        help="Optional scan id to attach imported findings to.",
+    ),
+) -> None:
+    """Pull/ingest findings into offline store for disconnected workflows."""
+    from .offline_store import OfflineStore
+
+    if not from_file:
+        console.print("[yellow]No pull source provided. Use --from-file <path>.[/yellow]")
+        _audit("sync_pull", detail="missing_source", success=False)
+        raise typer.Exit(1)
+
+    source = Path(from_file).expanduser()
+    if not source.exists():
+        console.print(f"[red]Source file not found:[/red] {source}")
+        _audit("sync_pull", detail=f"missing_file={source}", success=False)
+        raise typer.Exit(1)
+
+    try:
+        payload = json.loads(source.read_text(encoding="utf-8"))
+    except Exception as exc:
+        console.print(f"[red]Invalid JSON payload:[/red] {exc}")
+        _audit("sync_pull", detail=f"invalid_json={source}", success=False)
+        raise typer.Exit(1) from exc
+
+    if not isinstance(payload, list):
+        console.print("[red]Expected a JSON array of finding objects.[/red]")
+        _audit("sync_pull", detail=f"invalid_shape={source}", success=False)
+        raise typer.Exit(1)
+
+    store = OfflineStore()
+    assigned_scan = scan_id or f"import-{uuid.uuid4().hex[:8]}"
+    count = store.import_findings(payload, scan_id=assigned_scan)
+    console.print(f"[green]Imported {count} findings into scan '{assigned_scan}'.[/green]")
+    _audit("sync_pull", detail=f"source={source};count={count};scan={assigned_scan}", success=True)
+
+
+@sync_app.command("optimize")
+def sync_optimize() -> None:
+    """Run local database optimization and show compact storage stats."""
+    from .offline_store import OfflineStore
+
+    store = OfflineStore()
+    store.optimize()
+    stats = store.db_stats()
+    console.print(
+        "[green]Offline store optimized.[/green] "
+        f"(size={stats['file_size_bytes']} bytes, pages={stats['page_count']}, free={stats['freelist_count']})"
+    )
+    _audit(
+        "sync_optimize",
+        detail=f"size={stats['file_size_bytes']};pages={stats['page_count']};free={stats['freelist_count']}",
+        success=True,
+    )
+
+
 @sync_app.command("vacuum")
 def sync_vacuum() -> None:
     """Run local SQLite VACUUM maintenance."""
@@ -1435,7 +1502,9 @@ def plugin_list() -> None:
         {
             "name": p.name,
             "version": p.version,
+            "enabled": p.enabled,
             "author": p.author,
+            "source": p.source,
             "description": p.description,
         }
         for p in plugins
@@ -1443,10 +1512,19 @@ def plugin_list() -> None:
     table = Table(title="Installed Plugins", show_header=True, header_style="bold magenta")
     table.add_column("Name")
     table.add_column("Version")
+    table.add_column("Enabled")
     table.add_column("Author")
+    table.add_column("Source")
     table.add_column("Description")
     for row in rows:
-        table.add_row(row["name"], row["version"], row["author"], row["description"])
+        table.add_row(
+            row["name"],
+            row["version"],
+            "yes" if row.get("enabled", True) else "no",
+            row["author"],
+            row.get("source", "local"),
+            row["description"],
+        )
     console.print(table)
     _audit("plugin_list", detail=f"count={len(rows)}", success=True)
 
@@ -1477,9 +1555,31 @@ def plugin_install(
     from .plugins import PluginManager
 
     if source.startswith("gh:"):
-        console.print("[yellow]GitHub shorthand install is planned but not implemented yet.[/yellow]")
-        _audit("plugin_install", detail="source=gh_shorthand", success=False)
-        raise typer.Exit(1)
+        spec = source[3:]
+        repo_ref = spec.split("@", 1)
+        repo = repo_ref[0]
+        ref = repo_ref[1] if len(repo_ref) == 2 else "main"
+        if "/" not in repo:
+            console.print("[red]Invalid gh spec. Use gh:owner/repo[@ref][/red]")
+            _audit("plugin_install", detail=f"source={source};invalid_gh_spec", success=False)
+            raise typer.Exit(1)
+        with tempfile.TemporaryDirectory(prefix="cosmicsec-plugin-") as tmp_dir:
+            clone_dir = Path(tmp_dir) / repo.split("/")[-1]
+            try:
+                subprocess.run(
+                    ["git", "clone", "--depth", "1", "--branch", ref, f"https://github.com/{repo}.git", str(clone_dir)],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                installed_path = PluginManager().install_from_path(clone_dir)
+            except Exception as exc:
+                console.print(f"[red]Failed to install plugin from GitHub:[/red] {exc}")
+                _audit("plugin_install", detail=f"source={source};error={exc}", success=False)
+                raise typer.Exit(1) from exc
+        console.print(f"[green]Installed plugin from GitHub:[/green] {installed_path.name}")
+        _audit("plugin_install", detail=f"source={source}", success=True)
+        return
     try:
         installed_path = PluginManager().install_from_path(Path(source).expanduser())
     except (ValueError, FileNotFoundError) as exc:
@@ -1509,6 +1609,66 @@ def plugin_remove(name: str = typer.Argument(..., help="Plugin name")) -> None:
     _audit("plugin_remove", detail=f"name={name}", success=True)
 
 
+@plugin_app.command("info")
+def plugin_info(name: str = typer.Argument(..., help="Plugin name")) -> None:
+    """Show plugin metadata and install path."""
+    from .plugins import PluginManager
+
+    try:
+        plugin = PluginManager().get_plugin(name)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("plugin_info", detail=f"name={name};error={exc}", success=False)
+        raise typer.Exit(1) from exc
+
+    if not plugin:
+        console.print(f"[red]Plugin '{name}' not found.[/red]")
+        _audit("plugin_info", detail=f"name={name};missing", success=False)
+        raise typer.Exit(1)
+
+    table = Table(title=f"Plugin: {plugin.name}", show_header=False)
+    table.add_row("Version", plugin.version)
+    table.add_row("Enabled", "yes" if plugin.enabled else "no")
+    table.add_row("Author", plugin.author)
+    table.add_row("Source", plugin.source)
+    table.add_row("Homepage", plugin.homepage or "-")
+    table.add_row("Tags", plugin.tags or "-")
+    table.add_row("Path", plugin.path)
+    table.add_row("Description", plugin.description or "-")
+    console.print(table)
+    _audit("plugin_info", detail=f"name={name}", success=True)
+
+
+@plugin_app.command("enable")
+def plugin_enable(name: str = typer.Argument(..., help="Plugin name")) -> None:
+    """Enable an installed plugin."""
+    from .plugins import PluginManager
+
+    try:
+        plugin = PluginManager().set_enabled(name, True)
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("plugin_enable", detail=f"name={name};error={exc}", success=False)
+        raise typer.Exit(1) from exc
+    console.print(f"[green]Enabled plugin:[/green] {plugin.name}")
+    _audit("plugin_enable", detail=f"name={name}", success=True)
+
+
+@plugin_app.command("disable")
+def plugin_disable(name: str = typer.Argument(..., help="Plugin name")) -> None:
+    """Disable an installed plugin."""
+    from .plugins import PluginManager
+
+    try:
+        plugin = PluginManager().set_enabled(name, False)
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("plugin_disable", detail=f"name={name};error={exc}", success=False)
+        raise typer.Exit(1) from exc
+    console.print(f"[green]Disabled plugin:[/green] {plugin.name}")
+    _audit("plugin_disable", detail=f"name={name}", success=True)
+
+
 @plugin_app.command("search")
 def plugin_search(query: str = typer.Argument(..., help="Search term")) -> None:
     """Search installed plugins by name/description."""
@@ -1520,7 +1680,8 @@ def plugin_search(query: str = typer.Argument(..., help="Search term")) -> None:
         _audit("plugin_search", detail=f"query={query};count=0", success=True)
         return
     for p in plugins:
-        console.print(f"- [bold]{p.name}[/bold] v{p.version} — {p.description or 'No description'}")
+        status = "enabled" if p.enabled else "disabled"
+        console.print(f"- [bold]{p.name}[/bold] v{p.version} ({status}) — {p.description or 'No description'}")
     _audit("plugin_search", detail=f"query={query};count={len(plugins)}", success=True)
 
 

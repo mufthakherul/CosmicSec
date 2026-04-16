@@ -5,7 +5,7 @@
 
 ---
 
-> ### 📊 Overall Progress: **~91% Complete** (Phases K+L+M+N+O+P+T complete; Q 75%, R 80%, S 75%, U 60%, V 65%; CLI companion CA-1 80%, CA-2 90%)
+> ### 📊 Overall Progress: **~95% Complete** (Phases K+L+M+N+O+P+T+U+V complete; Q 75%, R 88%, S 75%; CLI companion CA-1 80%, CA-2 90%)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -16,11 +16,11 @@
 > | **O — Test Coverage** | ✅ Complete | 100% |
 > | **P — Rust Ingest Engine** | ✅ Complete | 100% |
 > | **Q — AI/ML Workflows** | 🟢 In progress | 75% |
-> | **R — Enterprise Features** | 🟢 In progress | 80% |
+> | **R — Enterprise Features** | 🟢 In progress | 88% |
 > | **S — Performance & Scale** | 🟢 In progress | 75% |
 > | **T — Go Event Broker** | ✅ Complete | 100% |
-> | **U — Mobile & PWA** | 🟢 In progress | 60% |
-> | **V — DX & Polish** | 🟢 In progress | 65% |
+> | **U — Mobile & PWA** | ✅ Complete | 100% |
+> | **V — DX & Polish** | ✅ Complete | 100% |
 > | **Cross-Cutting** | 🟡 In progress | ~50% |
 
 ---
@@ -74,7 +74,7 @@ Phase X — [Title]
 17. [Target Architecture (Post-Phase V)](#target-architecture-post-phase-v)
 18. [New File & Directory Map](#new-file--directory-map)
 
-> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update (2026-04-16): CA-1 ~80% complete; CA-2 ~90% complete (global output callback + progress-backed concurrent `scan` integration landed); R.4 RBAC engine ready for CLI `require_rbac_permission` adoption; R.5 branding headers available to CLI `cosmicsec connect` for theming.** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
+> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update (2026-04-16): CA-1 ~80%; CA-2 ~90%; CA-7 ~88%; CA-8 ~62%; CA-9 ~58%; CA-10 ~63%, including plugin lifecycle controls, GitHub shorthand plugin install, sync pull/import, and SQLite optimize/stats commands.** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
 
 ---
 
@@ -1678,7 +1678,7 @@ Minimum viable output: Triage only (always works — rule-based fallback).
 
 ---
 
-## Phase R — Enterprise, Multi-Tenancy & Premium Features 🟢 IN PROGRESS (~80%)
+## Phase R — Enterprise, Multi-Tenancy & Premium Features 🟢 IN PROGRESS (~88%)
 
 > 🎯 **Goal**: Add organization-scoped multi-tenancy, SSO, advanced RBAC, compliance automation, and white-label support. After this phase, CosmicSec is ready for enterprise customers.
 >
@@ -1693,6 +1693,8 @@ Minimum viable output: Triage only (always works — rule-based fallback).
 > ✅ **R.4 complete 2026-04-16**: `services/auth_service/rbac_engine.py` — full resource-level RBAC engine. 6 built-in roles (admin, manager, soc_analyst, pentester, auditor, viewer) with inheritance, custom role CRUD, `require_rbac_permission(resource, action)` FastAPI dependency. Extended Casbin policy with all roles/resources. RBAC API endpoints: `GET /rbac/roles`, `POST /rbac/roles`, `DELETE /rbac/roles/{name}`, `POST /rbac/check`, `GET /rbac/matrix`. 14 unit tests in `tests/test_phase_r4_rbac.py`.
 >
 > ✅ **R.5 complete 2026-04-16**: `services/api_gateway/white_label.py` — `WhiteLabelMiddleware` injects `X-Org-Name`, `X-Primary-Color`, `X-Logo-URL` headers from org branding cache. `GET /api/branding/{org_slug}` returns CSS variable block for frontend theming. `PUT /api/branding/{org_slug}` updates org branding. 11 tests in `tests/test_phase_r5_white_label.py`.
+>
+> ✅ **R.2 UX tranche 2026-04-16**: Added SSO entry UX on frontend login (`frontend/src/pages/LoginPage.tsx`) with organization slug input + `Sign in with SSO` flow that resolves org SSO config and redirects to provider authorization URL when configured.
 
 **Completed:**
 - ✅ `services/org_service/main.py` — Organization CRUD, member management, SSO config, branding, graceful DB fallback
@@ -1705,8 +1707,8 @@ Minimum viable output: Triage only (always works — rule-based fallback).
 - ✅ `tests/test_phase_r4_rbac.py` — 14 tests covering role matrix, custom roles, API auth
 - ✅ `tests/test_phase_r5_white_label.py` — 11 tests covering middleware headers, CSS generation, PUT/GET
 
-**Remaining (~20% of phase):**
-- ⏳ R.2 — SSO Integration (SAML 2.0 + OIDC endpoints, frontend "Sign in with SSO" button)
+**Remaining (~12% of phase):**
+- ⏳ R.2 partial — backend SAML/OIDC protocol endpoints and provider-specific callbacks remain
 
 ### R.1 — Multi-Tenancy
 

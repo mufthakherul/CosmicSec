@@ -330,3 +330,36 @@ class OfflineStore:
         """Run VACUUM to compact the local database."""
         with self._connect() as conn:
             conn.execute("VACUUM")
+
+    def optimize(self) -> None:
+        """Run SQLite optimizer and ANALYZE for better query plans."""
+        with self._connect() as conn:
+            conn.execute("PRAGMA optimize")
+            conn.execute("ANALYZE")
+            conn.commit()
+
+    def db_stats(self) -> dict[str, int]:
+        """Return lightweight local DB storage stats."""
+        file_size = self._db_path.stat().st_size if self._db_path.exists() else 0
+        with self._connect() as conn:
+            page_count = int(conn.execute("PRAGMA page_count").fetchone()[0])
+            freelist_count = int(conn.execute("PRAGMA freelist_count").fetchone()[0])
+            page_size = int(conn.execute("PRAGMA page_size").fetchone()[0])
+        return {
+            "file_size_bytes": file_size,
+            "page_count": page_count,
+            "freelist_count": freelist_count,
+            "page_size": page_size,
+        }
+
+    def import_findings(self, findings: list[dict], scan_id: str) -> int:
+        """Import external findings into local store under a synthetic scan id."""
+        if not findings:
+            return 0
+        self.save_scan(scan_id=scan_id, target="imported", tool="external", status="complete")
+        imported = 0
+        for finding in findings:
+            if isinstance(finding, dict):
+                self.save_finding(finding, scan_id=scan_id)
+                imported += 1
+        return imported

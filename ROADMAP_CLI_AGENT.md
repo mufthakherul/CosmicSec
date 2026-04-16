@@ -5,7 +5,7 @@
 > **Version**: 2.1 (2026-04-16) | **Parent Roadmap**: [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: `cli/agent/` module, related SDK integration, server-side agent relay, AI-driven CLI workflows
-> **Current State**: v0.3.0 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented**, plus active CA-7/CA-8/CA-9/CA-10 tranche (branding/version polish, plugin framework commands, offline AI setup + sync commands, SQLite WAL/index/vacuum optimization, expanded `docs/cli/*`).
+> **Current State**: v0.3.0 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented**, plus active CA-7/CA-8/CA-9/CA-10 tranche (branding/version polish, plugin lifecycle expansion, sync pull/import + optimize commands, SQLite optimization stats, expanded `docs/cli/*`).
 > **Progress Refresh (2026-04-16)**: Latest tranche focused on main-roadmap Phase U/V frontend execution; CA-7/CA-8/CA-9/CA-10 percentages remain as currently documented below.
 
 ---
@@ -1756,7 +1756,7 @@ ls docs/cli/
 
 ---
 
-## Phase CA-8 — Plugin System, Extensibility & Marketplace 🟢 IN PROGRESS (~40%)
+## Phase CA-8 — Plugin System, Extensibility & Marketplace 🟢 IN PROGRESS (~62%)
 
 > 🎯 **Goal**: Allow users to extend the CLI with custom tools, parsers, and workflows without modifying the core codebase.
 >
@@ -1767,6 +1767,8 @@ ls docs/cli/
 > ⏱️ **Estimated Duration**: 1–2 weeks
 >
 > ✅ **CA-8.1 partial complete 2026-04-16**: Added local plugin framework and command surface. `plugins.py` introduces plugin metadata parsing/scaffold/install/remove/search; `main.py` now includes `plugin create/install/list/remove/search`; coverage added in `cli/agent/tests/test_cli_phase_ca8_ca9_ca10.py`.
+>
+> ✅ **CA-8 lifecycle upgrade 2026-04-16**: Added plugin metadata lifecycle controls and richer install paths: `plugin info`, `plugin enable`, `plugin disable`, GitHub shorthand install support (`plugin install gh:owner/repo[@ref]`), and metadata fields (`enabled`, `source`, `homepage`, `tags`).
 
 ### CA-8.1 — CLI Plugin Framework
 
@@ -1818,7 +1820,7 @@ cosmicsec discover  # Should show custom scanner tool
 
 ---
 
-## Phase CA-9 — Offline-First Intelligence & Edge Computing 🟢 IN PROGRESS (~35%)
+## Phase CA-9 — Offline-First Intelligence & Edge Computing 🟢 IN PROGRESS (~58%)
 
 > 🎯 **Goal**: Make the CLI a fully autonomous security agent that can operate indefinitely offline with local AI, then intelligently sync when connectivity is restored.
 >
@@ -1829,6 +1831,8 @@ cosmicsec discover  # Should show custom scanner tool
 > ⏱️ **Estimated Duration**: 1–2 weeks
 >
 > ✅ **CA-9 partial complete 2026-04-16**: Added `ai setup` workflow for Ollama model configuration/pull + persisted model preferences, plus `sync status` and `sync push` commands for local queue visibility and manual reconciliation.
+>
+> ✅ **CA-9 sync ingestion tranche 2026-04-16**: Added `sync pull --from-file` for importing offline findings payloads into local store with synthetic scan grouping, enabling disconnected edge ingestion and later reconciliation.
 
 ### CA-9.1 — Local AI with Ollama Integration
 
@@ -1901,7 +1905,7 @@ cosmicsec sync push  # Upload offline data
 
 ---
 
-## Phase CA-10 — Performance, Cross-Platform & Rust Acceleration 🟢 IN PROGRESS (~45%)
+## Phase CA-10 — Performance, Cross-Platform & Rust Acceleration 🟢 IN PROGRESS (~63%)
 
 > 🎯 **Goal**: Optimize performance for large-scale scanning, ensure cross-platform compatibility, and explore Rust acceleration for parsing bottlenecks.
 >
@@ -1912,6 +1916,8 @@ cosmicsec sync push  # Upload offline data
 > ⏱️ **Estimated Duration**: 2 weeks
 >
 > ✅ **CA-10.1 partial complete 2026-04-16**: `offline_store.py` now enables SQLite WAL mode, creates query indexes, optimizes `list_scans()` aggregation to avoid N+1 DB reads, and adds `vacuum()` maintenance path (`sync vacuum` command).
+>
+> ✅ **CA-10.1 optimization follow-up 2026-04-16**: Added `sync optimize` command and SQLite `optimize()/ANALYZE` plus `db_stats()` reporting in offline store for practical local performance maintenance and visibility.
 
 ### CA-10.1 — Performance Optimization
 
@@ -2041,11 +2047,11 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 | 3rd 🟠 | **CA-4** — AI-Powered CLI (extends CA-4.5) | 2–3 weeks | CA-2, CA-4.5 ✅ | ⏳ Pending |
 | 4th 🟠 | **CA-3** — Interactive TUI | 2–3 weeks | CA-2 | ⏳ Pending |
 | 5th 🟠 | **CA-5** — Orchestration & Pipelines | 2 weeks | CA-2 | ⏳ Pending |
-| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 | 🟢 In progress (~82%) |
+| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 | 🟢 In progress (~88%) |
 | 7th 🟡 | **CA-6** — Enterprise Features | 1–2 weeks | CA-1, Main Phase R | ⏳ Pending |
-| 8th 🟡 | **CA-8** — Plugin System | 1–2 weeks | CA-5 | 🟢 In progress (~40%) |
-| 9th 🟢 | **CA-9** — Offline Intelligence | 1–2 weeks | CA-4, Main Phase Q | 🟢 In progress (~35%) |
-| 10th 🟢 | **CA-10** — Performance & Rust | 2 weeks | CA-2, CA-5 | 🟢 In progress (~45%) |
+| 8th 🟡 | **CA-8** — Plugin System | 1–2 weeks | CA-5 | 🟢 In progress (~62%) |
+| 9th 🟢 | **CA-9** — Offline Intelligence | 1–2 weeks | CA-4, Main Phase Q | 🟢 In progress (~58%) |
+| 10th 🟢 | **CA-10** — Performance & Rust | 2 weeks | CA-2, CA-5 | 🟢 In progress (~63%) |
 
 **Total estimated effort**: 14–22 weeks for 1–2 developers (Phase CA-4.5 complete)
 
