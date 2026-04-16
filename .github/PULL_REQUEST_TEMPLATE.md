@@ -4,6 +4,10 @@
 
 Closes #<!-- issue number -->
 
+Roadmap impact:
+- ROADMAP_NEXT phase: <!-- e.g., Phase V -->
+- ROADMAP_CLI_AGENT phase: <!-- e.g., CA-7 -->
+
 ---
 
 ## Type of Change
@@ -37,6 +41,7 @@ Closes #<!-- issue number -->
 
 ```bash
 pytest tests/ -v
+cd frontend && npm run lint && npm run test && npm run build
 ```
 
 ---

@@ -158,6 +158,16 @@ docker-compose up --build
 cd frontend
 npm install
 npm run dev
+# Optional: generate bundle report at frontend/dist/stats.html
+npm run analyze
+```
+
+### Run CLI Agent (Local Mode)
+
+```bash
+cd cli/agent
+pip install -e .
+cosmicsec --help
 ```
 
 ### Run Individual Backend Services
