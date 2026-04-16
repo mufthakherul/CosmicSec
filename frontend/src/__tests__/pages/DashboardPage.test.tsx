@@ -26,7 +26,7 @@ vi.mock("../../context/AuthContext", async () => {
 });
 
 // Silence fetch calls — the dashboard falls back to mock data when API is unavailable
-global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
@@ -46,7 +46,7 @@ describe("DashboardPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Re-apply fetch mock after clearAllMocks
-    global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
   });
 
   it("renders the main layout heading", async () => {

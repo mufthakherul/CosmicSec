@@ -30,7 +30,7 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
-global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
@@ -49,7 +49,7 @@ function renderPage() {
 describe("ScanPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
     useScanStore.setState({ scans: [], activeScan: null, _hydrated: true });
   });
 
@@ -83,7 +83,7 @@ describe("ScanPage", () => {
     fireEvent.click(submitBtn);
     // fetch should NOT be called since target is empty
     await vi.waitFor(() => {
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(globalThis.fetch).not.toHaveBeenCalled();
     });
   });
 
