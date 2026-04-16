@@ -6,6 +6,8 @@ import { SettingsPage } from "../../pages/SettingsPage";
 const addNotification = vi.fn();
 const logout = vi.fn();
 const setTheme = vi.fn();
+const setHighContrast = vi.fn();
+const setReducedMotion = vi.fn();
 
 vi.mock("../../components/AppLayout", () => ({
   AppLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
@@ -34,6 +36,10 @@ vi.mock("../../context/ThemeContext", () => ({
   useTheme: () => ({
     theme: "dark",
     setTheme,
+    highContrast: false,
+    reducedMotion: false,
+    setHighContrast,
+    setReducedMotion,
   }),
 }));
 
@@ -51,6 +57,16 @@ describe("SettingsPage", () => {
     render(<SettingsPage />);
     expect(screen.getByText(/demo user/i)).toBeInTheDocument();
     expect(screen.getAllByText(/user@cosmicsec\.dev/i).length).toBeGreaterThan(0);
+  });
+
+  it("updates accessibility appearance toggles", () => {
+    render(<SettingsPage />);
+    const switches = screen.getAllByRole("switch");
+    fireEvent.click(switches[0]);
+    fireEvent.click(switches[1]);
+
+    expect(setHighContrast).toHaveBeenCalledWith(true);
+    expect(setReducedMotion).toHaveBeenCalledWith(true);
   });
 
   it("saves scan defaults through API client", async () => {

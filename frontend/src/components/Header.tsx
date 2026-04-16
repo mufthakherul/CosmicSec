@@ -19,6 +19,7 @@ import {
   Zap,
   Shield,
   SlidersHorizontal,
+  Keyboard,
   type LucideIcon,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -558,31 +559,94 @@ function UserMenu() {
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  useEffect(() => {
+    const onShortcut = (event: KeyboardEvent) => {
+      if (event.key === "?" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        const target = event.target as HTMLElement | null;
+        const isTyping =
+          target?.tagName === "INPUT" ||
+          target?.tagName === "TEXTAREA" ||
+          target?.isContentEditable;
+        if (!isTyping) {
+          event.preventDefault();
+          setShortcutsOpen(true);
+        }
+      }
+      if (event.key === "Escape") {
+        setShortcutsOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onShortcut);
+    return () => document.removeEventListener("keydown", onShortcut);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-slate-800 bg-slate-950/95 px-4 backdrop-blur-md">
-      {/* Left — search */}
-      <div className="flex items-center">
-        <GlobalSearch />
-      </div>
+    <>
+      <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-slate-800 bg-slate-950/95 px-4 backdrop-blur-md">
+        {/* Left — search */}
+        <div className="flex items-center">
+          <GlobalSearch />
+        </div>
 
-      {/* Right — actions */}
-      <div className="flex items-center gap-1">
-        {/* Theme toggle */}
-        <button
-          onClick={toggleTheme}
-          className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        {/* Right — actions */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setShortcutsOpen(true)}
+            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
+            aria-label="Open keyboard shortcuts"
+            title="Keyboard shortcuts (?)"
+          >
+            <Keyboard className="h-5 w-5" />
+          </button>
+
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
+
+          {/* Notification bell */}
+          <NotificationBell />
+
+          {/* User menu */}
+          <UserMenu />
+        </div>
+      </header>
+
+      {shortcutsOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Keyboard shortcuts"
+          onClick={() => setShortcutsOpen(false)}
         >
-          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </button>
-
-        {/* Notification bell */}
-        <NotificationBell />
-
-        {/* User menu */}
-        <UserMenu />
-      </div>
-    </header>
+          <div
+            className="w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-100">Keyboard shortcuts</h2>
+              <button
+                onClick={() => setShortcutsOpen(false)}
+                className="rounded px-2 py-1 text-xs text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+              >
+                Esc
+              </button>
+            </div>
+            <div className="space-y-2 text-sm text-slate-300">
+              <p><kbd className="rounded bg-slate-800 px-1.5 py-0.5">Ctrl/⌘ + K</kbd> Focus global search</p>
+              <p><kbd className="rounded bg-slate-800 px-1.5 py-0.5">?</kbd> Open this shortcuts panel</p>
+              <p><kbd className="rounded bg-slate-800 px-1.5 py-0.5">Esc</kbd> Close dialogs and overlays</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
