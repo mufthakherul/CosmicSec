@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from services.common.observability import setup_observability
 
 from .agent import run_security_agent
+from .agents import run_assessment_workflow
 from .ai_agents import get_exploit_guidance, run_autonomous_agent
 from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
 from .defensive_ai import DefensiveAI
@@ -744,13 +745,9 @@ async def dispatch_task(req: DispatchTaskRequest):
 # Phase Q.4 — Multi-Agent Assessment Workflow endpoint
 # ---------------------------------------------------------------------------
 
-import uuid as _agent_uuid
-
-from services.ai_service.agents import run_assessment_workflow
-
 
 class WorkflowRequest(BaseModel):
-    scan_id: str = Field(default_factory=lambda: str(_agent_uuid.uuid4()))
+    scan_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     findings: list[dict] = Field(default_factory=list)
     provider: str = Field(default="")
 
