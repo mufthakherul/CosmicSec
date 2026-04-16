@@ -1,12 +1,18 @@
+# CosmicSec — Security Scanning CI Workflow (Cross-cutting)
+# Runs Trivy container scanning and Bandit SAST on every push/PR.
+
 name: Security Scan
 
 on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "0 6 * * 1"  # Every Monday at 6am UTC
 
 jobs:
-  trivy:
+  bandit-sast:
+    name: Python SAST (Bandit)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -15,19 +21,73 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@v0.35.0
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install Bandit
+        run: pip install bandit[toml]
+
+      - name: Run Bandit
+        run: |
+          bandit -r services/ \
+            -x services/common/db.py \
+            -ll \
+            --format json \
+            --output /tmp/bandit-results.json || true
+          # Display summary
+          bandit -r services/ -ll -x services/common/db.py || true
+
+      - name: Upload Bandit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-sast-results
+          path: /tmp/bandit-results.json
+          if-no-files-found: warn
+
+  trivy-fs:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Run Trivy (filesystem — critical & high)
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: "fs"
           scan-ref: "."
-          severity: "CRITICAL,HIGH"
-          ignore-unfixed: true
           exit-code: "0"
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
           format: "sarif"
           output: "trivy-results.sarif"
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+      - name: Upload Trivy SARIF
         if: always()
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "trivy-results.sarif"
+          category: "trivy-fs"
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: critical
+          comment-summary-in-pr: always

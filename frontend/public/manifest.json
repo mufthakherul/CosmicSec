@@ -3,16 +3,60 @@
   "short_name": "CosmicSec",
   "description": "Hybrid AI-powered cybersecurity intelligence platform. Unified scanning, recon, threat analysis, and team collaboration.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#020617",
   "theme_color": "#0EA5E9",
+  "categories": ["security", "productivity", "developer"],
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/favicon.svg",
       "type": "image/svg+xml",
       "sizes": "any",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
     }
   ],
-  "categories": ["security", "productivity", "developer"]
+  "shortcuts": [
+    {
+      "name": "New Scan",
+      "short_name": "Scan",
+      "description": "Launch a new security scan",
+      "url": "/scans",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Security posture overview",
+      "url": "/dashboard",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Recon",
+      "short_name": "Recon",
+      "description": "Reconnaissance tools",
+      "url": "/recon",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.svg",
+      "type": "image/svg+xml",
+      "sizes": "1200x630",
+      "form_factor": "wide",
+      "label": "CosmicSec Dashboard"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
 }

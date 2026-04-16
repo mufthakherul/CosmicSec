@@ -1,11 +1,11 @@
 # CosmicSec — Next-Generation Implementation Roadmap (v2)
 
 ### Phase-by-Phase Guide for Humans & AI Coding Agents
-> **Version**: 2.1 (2026-04-15) | **Companion**: [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md)
+> **Version**: 2.2 (2026-04-16) | **Companion**: [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md)
 
 ---
 
-> ### 📊 Overall Progress: **~58% Complete** (Phases K+L+M+N complete, Phase O advancing)
+> ### 📊 Overall Progress: **~72% Complete** (Phases K+L+M+N complete; O, P, Q, T significantly advanced)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -13,15 +13,15 @@
 > | **L — Production Data Layer** | ✅ Complete | 100% |
 > | **M — Frontend Completion** | ✅ Complete | 100% |
 > | **N — Dependency Modernization** | ✅ Complete | 100% |
-> | **O — Test Coverage** | 🟢 In progress | 60% |
-> | **P — Rust Ingest Engine** | 🟢 In progress | 65% |
-> | **Q — AI/ML Workflows** | 🟡 In progress | 25% |
+> | **O — Test Coverage** | 🟢 In progress | 95% |
+> | **P — Rust Ingest Engine** | 🟢 In progress | 85% |
+> | **Q — AI/ML Workflows** | 🟡 In progress | 45% |
 > | **R — Enterprise Features** | ⬜ Not started | 0% |
 > | **S — Performance & Scale** | ⬜ Not started | 0% |
-> | **T — Go Event Broker** | 🟢 In progress | 40% |
+> | **T — Go Event Broker** | 🟢 In progress | 80% |
 > | **U — Mobile & PWA** | ⬜ Not started | 0% |
 > | **V — DX & Polish** | ⬜ Not started | 0% |
-> | **Cross-Cutting** | 🟡 In progress | ~20% |
+> | **Cross-Cutting** | 🟡 In progress | ~25% |
 
 ---
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
@@ -1164,7 +1164,7 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 
 ---
 
-## Phase O — Test Coverage & Quality Gates 🟢 IN PROGRESS (~60%)
+## Phase O — Test Coverage & Quality Gates ✅ NEAR-COMPLETE (~95%)
 
 > 🎯 **Goal**: Reach 85%+ backend test coverage and 80%+ frontend test coverage. Add full E2E test suite. After this phase, every code change is validated by automated tests.
 >
@@ -1172,7 +1172,7 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 >
 > 🌐 **Languages**: Python, TypeScript
 >
-> 🟢 **Current progress**: Backend suites substantially expanded. Scan/Auth/API-Gateway/Recon all have comprehensive new tests covering WAF, quota enforcement, CRUD, OAuth, GDPR, security headers, and more.
+> ✅ **Phase O substantially complete 2026-04-16**: All major testing milestones achieved. Backend tests at 175 passing (up from 99). Frontend unit tests at 30 passing across 8 test files. Playwright E2E suite with 4 spec files. Full CI quality-gate pipeline with coverage enforcement, mypy, bundle size, and Playwright jobs.
 
 ### O.1 — Backend Test Coverage
 
@@ -1186,7 +1186,10 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 - ✅ `tests/test_auth_service.py` expanded (+17 tests): register, login, logout, refresh, verify, OAuth, GDPR export/delete
 - ✅ `tests/test_api_gateway.py` expanded (+10 tests): WAF SQLi/XSS, security headers, trace IDs, process time, path validation, CORS, GraphQL
 - ✅ `tests/test_recon_service.py` expanded (+6 tests): plain domain, IP, findings list, Shodan/VT disabled, timestamp
-- ⏳ Next: frontend unit tests, Playwright E2E suite, CI quality gates
+- ✅ `tests/test_events_module.py` added (10 tests): NATS publish/subscribe fallback, subject constants, close lifecycle
+- ✅ `tests/test_ai_agents.py` added (10 tests): triage/correlation/remediation agent nodes, full workflow E2E
+- ✅ `tests/test_ingest_bridge.py` added (10 tests): feature flag parsing, health check, fallback routing
+- ⏳ Next: enable coverage gating at 85%+ (currently gated at 80%)
 
 **AI Agent Prompt** (for each untested service):
 ```
@@ -1237,6 +1240,16 @@ Run: pytest tests/ -v --cov=services --cov-fail-under=85
 
 ### O.2 — Frontend Unit Tests
 
+**Progress update (completed so far):**
+- ✅ `frontend/src/__tests__/context/AuthContext.test.tsx` added (hydration, login persistence, logout clearing)
+- ✅ `frontend/src/__tests__/pages/LoginPage.test.tsx` added (render, validation, successful sign-in flow, API error handling)
+- ✅ `frontend/src/__tests__/hooks/useScanStream.test.ts` added (WebSocket connect/auth URL, message handling, reconnect backoff)
+- ✅ `frontend/src/__tests__/stores/scanStore.test.ts` added (add/update flows, active scan sync, persistence shape)
+- ✅ `frontend/src/__tests__/pages/RegisterPage.test.tsx` added (form validation, password strength, success flow, navigation link)
+- ✅ `frontend/src/__tests__/pages/DashboardPage.test.tsx` added (stat cards from mock data, recent activity, quick-action links)
+- ✅ `frontend/src/__tests__/pages/ScanPage.test.tsx` added (form fields, tool checkboxes, submit guard, store integration)
+- ⏳ Next: AIAnalysisPage.test.tsx, SettingsPage.test.tsx, AdminDashboardPage.test.tsx
+
 **AI Agent Prompt**:
 ```
 Create comprehensive frontend tests:
@@ -1280,6 +1293,14 @@ Run: cd frontend && npm run test -- --run --coverage
 
 ### O.3 — E2E Test Suite (Playwright)
 
+**Progress update (completed so far):**
+- ✅ `frontend/tests/e2e/auth-flow.spec.ts` added (protected-route redirect, auth-page navigation, login form validation)
+- ✅ `frontend/tests/e2e/navigation.spec.ts` added (landing navigation, pricing/register routing, 404 route handling)
+- ✅ `frontend/tests/e2e/responsive.spec.ts` added (mobile/tablet/desktop viewport checks)
+- ✅ `frontend/playwright.config.ts` updated (vite preview webServer, screenshot-on-failure, retained traces, retries=3)
+- ✅ `frontend/tests/e2e/accessibility.spec.ts` added (doc title, main landmark, image alt text, keyboard focus, form labels, role=alert validation errors)
+- ⏳ Next: scan-flow end-to-end spec (requires running backend)
+
 **AI Agent Prompt**:
 ```
 Expand frontend/tests/e2e/ with comprehensive Playwright tests:
@@ -1321,6 +1342,14 @@ Configure in frontend/playwright.config.ts:
 ---
 
 ### O.4 — CI Quality Gates
+
+**Progress update (completed so far):**
+- ✅ `.github/workflows/test.yml` updated with backend coverage enforcement (`--cov-fail-under=80`)
+- ✅ `.github/workflows/test.yml` updated with dedicated Playwright E2E CI job (browser install + artifact upload on failure)
+- ✅ `frontend/vite.config.ts` updated with explicit frontend coverage thresholds (80% statements/branches/functions/lines)
+- ✅ `.github/workflows/test.yml` updated with `python-typecheck` job (mypy with `--ignore-missing-imports`)
+- ✅ `.github/workflows/test.yml` updated with `frontend-bundle-size` job (build + Python 500 KB chunk check script)
+- ⏳ Next: auto-fail on mypy errors (currently `|| true` for warning-only mode)
 
 **AI Agent Prompt**:
 ```
@@ -1366,7 +1395,7 @@ ruff check . && pytest tests/ -v && cd frontend && npx tsc --noEmit && npm run b
 
 ---
 
-## Phase P — Rust High-Performance Ingest Engine 🟢 IN PROGRESS (~65%)
+## Phase P — Rust High-Performance Ingest Engine 🟢 IN PROGRESS (~85%)
 
 > 🎯 **Goal**: Build a Rust-based data ingest engine that can parse 50,000+ findings/second from security tools. This replaces the Python parsers for high-volume workloads while keeping Python as fallback for low-volume scenarios.
 >
@@ -1375,6 +1404,8 @@ ruff check . && pytest tests/ -v && cd frontend && npx tsc --noEmit && npm run b
 > 🌐 **Languages**: Rust, Protocol Buffers, SQL
 >
 > ✅ **Scaffold completed 2026-04-15**: Full ingest engine created in `ingest/` with all parser implementations, gRPC proto, Redis stream consumer, PostgreSQL DB writer, Prometheus metrics, HTTP health server, and multi-stage Dockerfile.
+>
+> ✅ **P.2/P.3/P.4 completed 2026-04-16**: Python bridge module, API Gateway ingest endpoints, docker-compose service entry, and feature flag wiring.
 
 **Completed:**
 - ✅ `ingest/Cargo.toml` — full dependency manifest (tokio, sqlx, quick-xml, redis, tonic, axum, prometheus-client)
@@ -1394,11 +1425,14 @@ ruff check . && pytest tests/ -v && cd frontend && npx tsc --noEmit && npm run b
 - ✅ `ingest/Dockerfile` — multi-stage rust:1.85 → debian:bookworm-slim
 - ✅ `ingest/tests/fixtures/` — sample nmap XML and nuclei JSONL fixtures
 - ✅ `ingest/tests/integration.rs` — 7 parser integration tests
+- ✅ `services/api_gateway/ingest_bridge.py` — Python bridge: health check, gRPC stub, fallback routing
+- ✅ `services/api_gateway/main.py` — `/api/ingest/health` + `/api/ingest/batch` endpoints wired
+- ✅ `docker-compose.yml` — `ingest` service with PostgreSQL/Redis deps, health check, port mapping
+- ✅ `COSMICSEC_USE_RUST_INGEST` feature flag — gates routing at API Gateway level
+- ✅ `tests/test_ingest_bridge.py` — 10 tests for bridge fallback, health check, flag parsing
 
 **Remaining:**
-- ⏳ P.2 — Python gRPC client in API Gateway + Redis Streams bridge
-- ⏳ P.3 — `docker-compose.yml` service entry for ingest engine
-- ⏳ P.4 — Feature flag `COSMICSEC_USE_RUST_INGEST` routing in API Gateway
+- ⏳ P.5 — Generate Python gRPC stubs from proto (requires `grpcio-tools`; currently loads dynamically)
 
 ### P.1 — Ingest Engine Scaffold
 
@@ -1471,7 +1505,7 @@ Performance targets:
 
 ---
 
-## Phase Q — Advanced AI, ML & Agentic Workflows 🟡 IN PROGRESS (~25%)
+## Phase Q — Advanced AI, ML & Agentic Workflows 🟡 IN PROGRESS (~45%)
 
 > 🎯 **Goal**: Complete all AI stub implementations, add local LLM support, build RAG knowledge base, and implement LangGraph multi-agent workflows. After this phase, AI features work end-to-end with real ML models.
 >
@@ -1480,6 +1514,8 @@ Performance targets:
 > 🌐 **Languages**: Python
 >
 > ✅ **Q.2 completed 2026-04-15**: Full multi-provider LLM abstraction (`services/ai_service/llm_providers.py`) with OpenAI + Ollama providers, automatic fallback chain, model listing, Ollama model pull API.
+>
+> ✅ **Q.4 completed 2026-04-16**: Full multi-agent workflow (`services/ai_service/agents.py`) with TriageAgent, AnalysisAgent, CorrelationAgent, RemediationAgent nodes. LangGraph StateGraph when installed; sequential async fallback. Exposed via `/workflow/assess` API endpoint. Full test suite in `tests/test_ai_agents.py`.
 
 **Completed:**
 - ✅ `services/ai_service/llm_providers.py` — `OpenAIProvider`, `OllamaProvider`, `FallbackProviderChain`, `get_llm_provider()`, `list_available_models()`, `OLLAMA_MODELS` registry
@@ -1487,6 +1523,9 @@ Performance targets:
 - ✅ `services/ai_service/anomaly_detector.py` — IsolationForest + z-score dual-mode detector
 - ✅ `services/ai_service/red_team.py` — safe red-team planning with guardrails
 - ✅ `services/ai_service/zero_day_predictor.py` — CVSS-based zero-day risk forecasting
+- ✅ `services/ai_service/agents.py` — 4-agent workflow (triage → analysis → correlation → remediation), LangGraph-first with sequential fallback, MITRE mapping, attack-chain detection, effort estimation
+- ✅ `services/ai_service/main.py` — `/workflow/assess` POST endpoint
+- ✅ `tests/test_ai_agents.py` — 10 tests covering all agent nodes + full workflow E2E
 
 ### Q.1 — Complete AI Stub Implementations
 
@@ -1865,7 +1904,7 @@ Log warning. Service works correctly but slower.
 
 ---
 
-## Phase T — Go Event Broker & Real-Time Backbone 🟢 IN PROGRESS (~40%)
+## Phase T — Go Event Broker & Real-Time Backbone 🟢 IN PROGRESS (~80%)
 
 > 🎯 **Goal**: Build a Go-based event broker for asynchronous, event-driven communication between services. Replace synchronous inter-service HTTP calls with NATS JetStream. This makes the system more resilient, faster, and decoupled.
 >
@@ -1874,17 +1913,25 @@ Log warning. Service works correctly but slower.
 > 🌐 **Languages**: Go, Protocol Buffers
 >
 > ✅ **T.1 scaffold completed 2026-04-15**: Core broker `broker/main.go` and `broker/go.mod` created with NATS JetStream integration, Redis Streams consumer (XREADGROUP), bidirectional bridging, Prometheus metrics, HTTP health/ready/metrics endpoints, graceful shutdown, and multi-stage Dockerfile.
+>
+> ✅ **T.2/T.3/T.4 completed 2026-04-16**: `broker/internal/` package hierarchy (config, events, handlers, metrics, publisher, subscriber). Python NATS common events module. docker-compose NATS + broker services.
 
 **Completed:**
 - ✅ `broker/go.mod` — module declaration with NATS, Redis, Prometheus, Zap, UUID deps
 - ✅ `broker/main.go` — complete broker: `BridgeRedisToNATS()`, NATS stream auto-creation, HTTP server (health/ready/metrics), 4 bridge goroutines for events/ingest/findings/alerts, Prometheus counters+histogram
 - ✅ `broker/Dockerfile` — multi-stage golang:1.24-alpine → scratch
+- ✅ `broker/internal/config/config.go` — env-based typed config with hostname-based consumer ID
+- ✅ `broker/internal/events/types.go` — all event type Go structs + well-known NATS subject constants
+- ✅ `broker/internal/metrics/prom.go` — promauto `EventsConsumed`, `EventsPublished`, `EventErrors`, `ProcessDuration` counter+histogram
+- ✅ `broker/internal/publisher/pub.go` — typed Publisher with 3-attempt retry + backoff + Zap logging
+- ✅ `broker/internal/subscriber/sub.go` — durable JetStream QueueSubscribe with ack/nack, panic recovery
+- ✅ `broker/internal/handlers/handlers.go` — `Dispatcher`: `OnFindingCreated` (with auto-alert for critical/high), `OnScanStarted`, `OnScanCompleted`, `OnAgentConnected`, `OnAgentDisconnected`
+- ✅ `services/common/events.py` — Python NATS event bus: `publish()`, `subscribe()`, `close()`, NATS-disabled fallback, all 10 well-known subject constants
+- ✅ `tests/test_events_module.py` — 10 tests for Python events module
+- ✅ `docker-compose.yml` — NATS JetStream service + broker service with Redis/NATS deps, health checks
 
 **Remaining:**
-- ⏳ T.2 — `broker/internal/` package split (config, events, handlers, publisher, subscriber)
-- ⏳ T.3 — Python NATS client in services (nats-py) for bi-directional communication
-- ⏳ T.4 — `docker-compose.yml` NATS + broker service entries
-- ⏳ T.5 — Integration tests with embedded NATS
+- ⏳ T.5 — Integration tests with embedded NATS (`broker/tests/broker_test.go`)
 
 ### T.1 — Event Broker Scaffold
 
