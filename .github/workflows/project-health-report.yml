@@ -1,0 +1,55 @@
+name: Project Health Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1"
+
+jobs:
+  health-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Collect repository health metrics
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          root = Path(".")
+          report = {
+              "python_files": len(list(root.rglob("*.py"))),
+              "typescript_files": len(list(root.rglob("*.ts"))) + len(list(root.rglob("*.tsx"))),
+              "workflow_files": len(list((root / ".github" / "workflows").glob("*.yml"))),
+              "alembic_migrations": len(list((root / "alembic" / "versions").glob("*.py"))),
+          }
+          try:
+              report["recent_commits"] = (
+                  subprocess.check_output(["git", "--no-pager", "log", "--oneline", "-15"], text=True)
+                  .strip()
+                  .splitlines()
+              )
+          except Exception:
+              report["recent_commits"] = []
+
+          out = Path(".artifacts")
+          out.mkdir(exist_ok=True)
+          (out / "project-health-report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+          print(json.dumps(report, indent=2))
+          PY
+
+      - name: Upload health report
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-health-report
+          path: .artifacts/project-health-report.json

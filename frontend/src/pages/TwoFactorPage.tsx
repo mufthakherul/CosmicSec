@@ -13,7 +13,7 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 const CODE_LENGTH = 6;
 const COUNTDOWN_SECONDS = 30;
 

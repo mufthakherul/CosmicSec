@@ -4,7 +4,7 @@ import { AppLayout } from "../components/AppLayout";
 import { useAuth } from "../context/AuthContext";
 import { useNotificationStore } from "../store/notificationStore";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 
 interface ApiKey {
   id: string;

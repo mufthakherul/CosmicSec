@@ -5,6 +5,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
+import security from "eslint-plugin-security";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config({ ignores: ["dist", "node_modules", "coverage", "storybook-static"] }, {
@@ -17,6 +18,7 @@ export default tseslint.config({ ignores: ["dist", "node_modules", "coverage", "
   plugins: {
     "react-hooks": reactHooks,
     "react-refresh": reactRefresh,
+    security,
   },
   rules: {
     "react-hooks/rules-of-hooks": "error",
@@ -25,5 +27,9 @@ export default tseslint.config({ ignores: ["dist", "node_modules", "coverage", "
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-unused-expressions": "warn",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-non-literal-fs-filename": "warn",
+    "security/detect-object-injection": "warn",
+    "security/detect-unsafe-regex": "warn",
   },
 }, storybook.configs["flat/recommended"]);

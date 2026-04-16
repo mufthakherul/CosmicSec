@@ -1,0 +1,54 @@
+name: SQL Injection Dynamic Scan
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  sqlmap:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Start stack
+        run: docker compose up -d api-gateway auth-service scan-service redis postgres
+
+      - name: Wait for API gateway
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:8000/api/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Gateway not healthy in time" >&2
+          exit 1
+
+      - name: Run sqlmap smoke scan
+        run: |
+          docker run --rm --network host \
+            -v "$PWD:/workdir" \
+            mrxpalmeiras/sqlmap \
+            -u "http://localhost:8000/api/auth/login" \
+            --method POST \
+            --data "email=test@example.com&password=test123" \
+            --batch \
+            --level=2 \
+            --risk=1 \
+            --random-agent \
+            --output-dir=/workdir/.artifacts/sqlmap
+
+      - name: Upload sqlmap artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sqlmap-report
+          path: .artifacts/sqlmap
+          if-no-files-found: warn
+
+      - name: Shutdown stack
+        if: always()
+        run: docker compose down -v
