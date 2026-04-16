@@ -6,7 +6,7 @@
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: `cli/agent/` module, related SDK integration, server-side agent relay, AI-driven CLI workflows
 > **Current State**: v0.3.0+ — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented**, plus expanded CA-7/CA-8/CA-9/CA-10 tranche (plugin runtime loading, shell/ask/chat workflows, sync conflict controls, gzip batched sync push, Rust parser acceleration scaffold, offline-store utility commands).
-> **Progress Refresh (2026-04-16)**: CA-1 **96%**, CA-2 **97%**, CA-7 **90%**, CA-8 **86%**, CA-9 **82%**, CA-10 **84%**. New completion items include plugin auto-load/reload, browser OAuth login path, authenticated server sync upload, and richer interactive CLI surfaces.
+> **Progress Refresh (2026-04-16)**: CA-1 **97%**, CA-2 **97%**, CA-7 **91%**, CA-8 **90%**, CA-9 **84%**, CA-10 **87%**. New completion items include plugin auto-load/reload, browser OAuth login path, authenticated server sync upload, expanded parser coverage (`nmap`, `nikto`, `nuclei`, `gobuster`, `sqlmap`, `ffuf`, `masscan`, `wpscan`, `hydra`, `zaproxy`), and automation recommit workflow support.
 
 ---
 
@@ -115,7 +115,7 @@ This document is a **companion to [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)** and d
 | CG-12 | ~~No profile/workspace support~~ → `profile list/add/use/delete/show` + global `--profile` | ~~Single-context only~~ | ✅ **Fixed** (v0.2.1) |
 | CG-13 | ~~No output formatting options~~ → **OutputFormatter** (table/json/yaml/csv/quiet, TTY detect) | ~~Not scriptable~~ | ✅ **Fixed** (v0.3.0) |
 | CG-14 | ~~No scan history~~ → **`history` commands** (list/show/findings/diff/stats/delete) | ~~Data not accessible~~ | ✅ **Fixed** (v0.3.0) |
-| CG-15 | **Parser coverage expanded via plugin parser runtime + Rust accel scaffold, but not yet full 14-tool parity** | Incomplete coverage | 🟡 Partial |
+| CG-15 | **Parser coverage expanded to 10 built-in parsers + plugin parser runtime + Rust accel scaffold, but not yet full 14-tool parity** | Incomplete coverage | 🟡 Partial |
 | CG-16 | ~~Tool selection is static/registry-only~~ → **Hybrid dynamic/static engine** | ~~Not competitive with Copilot/Gemini CLI~~ | ✅ **Fixed** (v0.2.0) |
 
 ### 🟡 What Dependencies Already Exist

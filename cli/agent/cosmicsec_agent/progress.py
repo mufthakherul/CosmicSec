@@ -285,13 +285,30 @@ async def run_tools_with_progress(
     Returns (all_findings, state).
     """
     from .executor import run_tool_complete
-    from .parsers import GobusterParser, NiktoParser, NmapParser, NucleiParser
+    from .parsers import (
+        FfufParser,
+        GobusterParser,
+        HydraParser,
+        MasscanParser,
+        NiktoParser,
+        NmapParser,
+        NucleiParser,
+        SqlmapParser,
+        WpscanParser,
+        ZaproxyParser,
+    )
 
     _PARSERS = {
         "nmap": NmapParser(),
         "nikto": NiktoParser(),
         "nuclei": NucleiParser(),
         "gobuster": GobusterParser(),
+        "sqlmap": SqlmapParser(),
+        "ffuf": FfufParser(),
+        "masscan": MasscanParser(),
+        "wpscan": WpscanParser(),
+        "hydra": HydraParser(),
+        "zaproxy": ZaproxyParser(),
     }
 
     state = ScanProgressState(tools_total=len(tools))
