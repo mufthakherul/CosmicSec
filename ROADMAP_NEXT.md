@@ -5,7 +5,7 @@
 
 ---
 
-> ### 📊 Overall Progress: **~72% Complete** (Phases K+L+M+N complete; O, P, Q, T significantly advanced)
+> ### 📊 Overall Progress: **~74% Complete** (Phases K+L+M+N complete; O, P, Q, T significantly advanced)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -13,7 +13,7 @@
 > | **L — Production Data Layer** | ✅ Complete | 100% |
 > | **M — Frontend Completion** | ✅ Complete | 100% |
 > | **N — Dependency Modernization** | ✅ Complete | 100% |
-> | **O — Test Coverage** | 🟢 In progress | 95% |
+> | **O — Test Coverage** | 🟢 In progress | 98% |
 > | **P — Rust Ingest Engine** | 🟢 In progress | 85% |
 > | **Q — AI/ML Workflows** | 🟡 In progress | 45% |
 > | **R — Enterprise Features** | ⬜ Not started | 0% |
@@ -1164,7 +1164,7 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 
 ---
 
-## Phase O — Test Coverage & Quality Gates ✅ NEAR-COMPLETE (~95%)
+## Phase O — Test Coverage & Quality Gates ✅ NEAR-COMPLETE (~98%)
 
 > 🎯 **Goal**: Reach 85%+ backend test coverage and 80%+ frontend test coverage. Add full E2E test suite. After this phase, every code change is validated by automated tests.
 >
@@ -1248,7 +1248,11 @@ Run: pytest tests/ -v --cov=services --cov-fail-under=85
 - ✅ `frontend/src/__tests__/pages/RegisterPage.test.tsx` added (form validation, password strength, success flow, navigation link)
 - ✅ `frontend/src/__tests__/pages/DashboardPage.test.tsx` added (stat cards from mock data, recent activity, quick-action links)
 - ✅ `frontend/src/__tests__/pages/ScanPage.test.tsx` added (form fields, tool checkboxes, submit guard, store integration)
-- ⏳ Next: AIAnalysisPage.test.tsx, SettingsPage.test.tsx, AdminDashboardPage.test.tsx
+- ✅ `frontend/src/__tests__/pages/AIAnalysisPage.test.tsx` added (scan-load path, submit flow, success/error notifications, result rendering)
+- ✅ `frontend/src/__tests__/pages/SettingsPage.test.tsx` added (account rendering, save defaults API, delete guard, 2FA toggle API)
+- ✅ `frontend/src/__tests__/pages/AdminDashboardPage.test.tsx` added (admin data load, create-user flow, module toggle behavior)
+- ✅ Frontend test typing reliability improved (`global` → `globalThis` in existing tests)
+- ⏳ Next: add `ReconPage.test.tsx`, then push frontend coverage to 80%+ with targeted component/hook tests
 
 **AI Agent Prompt**:
 ```
