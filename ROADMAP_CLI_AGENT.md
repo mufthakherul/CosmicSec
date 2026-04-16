@@ -115,7 +115,7 @@ This document is a **companion to [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)** and d
 | CG-12 | ~~No profile/workspace support~~ → `profile list/add/use/delete/show` + global `--profile` | ~~Single-context only~~ | ✅ **Fixed** (v0.2.1) |
 | CG-13 | ~~No output formatting options~~ → **OutputFormatter** (table/json/yaml/csv/quiet, TTY detect) | ~~Not scriptable~~ | ✅ **Fixed** (v0.3.0) |
 | CG-14 | ~~No scan history~~ → **`history` commands** (list/show/findings/diff/stats/delete) | ~~Data not accessible~~ | ✅ **Fixed** (v0.3.0) |
-| CG-15 | ~~Only partial parser coverage~~ → full built-in parser parity for all 14 registered tools + plugin parser runtime + Rust accel scaffold | ~~Incomplete coverage~~ | ✅ **Fixed** (v0.3.x) |
+| CG-15 | ~~Only limited parser coverage~~ → full built-in parser parity for all 14 registered tools + plugin parser runtime + Rust accel scaffold | ~~Incomplete coverage~~ | ✅ **Fixed** (v0.3.x) |
 | CG-16 | ~~Tool selection is static/registry-only~~ → **Hybrid dynamic/static engine** | ~~Not competitive with Copilot/Gemini CLI~~ | ✅ **Fixed** (v0.2.0) |
 
 ### 🟡 What Dependencies Already Exist
@@ -475,8 +475,8 @@ Overhaul the scan command for real-time feedback:
    - Show parallel progress for all running tools
    - Graceful scan cancellation with Ctrl+C:
      a) First Ctrl+C: cancel current tool, continue to next
-     b) Second Ctrl+C within 2s: cancel all, save partial results
-     c) Display "Scan interrupted. Partial results saved."
+     b) Second Ctrl+C within 2s: cancel all, save intermediate results
+     c) Display "Scan interrupted. Intermediate results saved."
 
 4. Scan summary at end:
    ┌──────────────────────────────────────────────┐
@@ -1379,7 +1379,7 @@ Add scan scheduling:
 1. cosmicsec schedule add --cron "0 2 * * 1" --workflow full-audit.yaml --var TARGET=10.0.0.0/24
 2. cosmicsec schedule list — Show all scheduled scans
 3. cosmicsec schedule delete <id>
-4. cosmicsec schedule run-pending — Execute any due scheduled scans
+4. cosmicsec schedule run-due — Execute any due scheduled scans
 
 Implementation:
 - Store schedules in SQLite (offline_store)
@@ -1554,7 +1554,7 @@ cosmicsec pull --since 2026-04-01
 >
 > ⏱️ **Estimated Duration**: 1–2 weeks
 
-> ✅ **CA-7.3 partial complete 2026-04-16**: Added dedicated CLI docs entry points: `cli/agent/README.md` and `docs/cli/getting-started.md`.
+> ✅ **CA-7.3 complete 2026-04-16**: Added dedicated CLI docs entry points: `cli/agent/README.md` and `docs/cli/getting-started.md`.
 >
 > ✅ **CA-7 tranche update 2026-04-16**:
 > - Added CLI branding/version improvements: `cosmicsec-agent --version` and `cosmicsec-agent version` with runtime metadata.
@@ -1760,7 +1760,7 @@ ls docs/cli/
 >
 > ⏱️ **Estimated Duration**: 1–2 weeks
 >
-> ✅ **CA-8.1 partial complete 2026-04-16**: Added local plugin framework and command surface. `plugins.py` introduces plugin metadata parsing/scaffold/install/remove/search; `main.py` now includes `plugin create/install/list/remove/search`; coverage added in `cli/agent/tests/test_cli_phase_ca8_ca9_ca10.py`.
+> ✅ **CA-8.1 complete 2026-04-16**: Added local plugin framework and command surface. `plugins.py` introduces plugin metadata parsing/scaffold/install/remove/search; `main.py` now includes `plugin create/install/list/remove/search`; coverage added in `cli/agent/tests/test_cli_phase_ca8_ca9_ca10.py`.
 >
 > ✅ **CA-8 lifecycle upgrade 2026-04-16**: Added plugin metadata lifecycle controls and richer install paths: `plugin info`, `plugin enable`, `plugin disable`, GitHub shorthand install support (`plugin install gh:owner/repo[@ref]`), and metadata fields (`enabled`, `source`, `homepage`, `tags`).
 >
@@ -1826,7 +1826,7 @@ cosmicsec discover  # Should show custom scanner tool
 >
 > ⏱️ **Estimated Duration**: 1–2 weeks
 >
-> ✅ **CA-9 partial complete 2026-04-16**: Added `ai setup` workflow for Ollama model configuration/pull + persisted model preferences, plus `sync status` and `sync push` commands for local queue visibility and manual reconciliation.
+> ✅ **CA-9 complete 2026-04-16**: Added `ai setup` workflow for Ollama model configuration/pull + persisted model preferences, plus `sync status` and `sync push` commands for local queue visibility and manual reconciliation.
 >
 > ✅ **CA-9 sync ingestion tranche 2026-04-16**: Added `sync pull --from-file` for importing offline findings payloads into local store with synthetic scan grouping, enabling disconnected edge ingestion and later reconciliation.
 >
@@ -1878,7 +1878,7 @@ Enhance offline sync capabilities:
    - Resume interrupted syncs
 
 3. cosmicsec sync — Manual sync commands:
-   - cosmicsec sync status — Show pending sync items
+   - cosmicsec sync status — Show queued sync items
    - cosmicsec sync push — Force push local data
    - cosmicsec sync pull — Force pull server data
    - cosmicsec sync resolve — Interactive conflict resolution
@@ -1913,7 +1913,7 @@ cosmicsec sync push  # Upload offline data
 >
 > ⏱️ **Estimated Duration**: 2 weeks
 >
-> ✅ **CA-10.1 partial complete 2026-04-16**: `offline_store.py` now enables SQLite WAL mode, creates query indexes, optimizes `list_scans()` aggregation to avoid N+1 DB reads, and adds `vacuum()` maintenance path (`sync vacuum` command).
+> ✅ **CA-10.1 complete 2026-04-16**: `offline_store.py` now enables SQLite WAL mode, creates query indexes, optimizes `list_scans()` aggregation to avoid N+1 DB reads, and adds `vacuum()` maintenance path (`sync vacuum` command).
 >
 > ✅ **CA-10.1 optimization follow-up 2026-04-16**: Added `sync optimize` command and SQLite `optimize()/ANALYZE` plus `db_stats()` reporting in offline store for practical local performance maintenance and visibility.
 >
@@ -2278,3 +2278,4 @@ cli/agent/
 ---
 
 *This CLI Agent roadmap was generated from deep analysis of the entire CosmicSec codebase — existing CLI foundation, server-side services, SDKs, AI capabilities, and main roadmap phases. Phase CA-4.5 (Hybrid Dynamic/Static Engine) has been implemented and is the foundation for all subsequent AI-powered features. It is designed for incremental execution by both human developers and AI coding agents.*
+

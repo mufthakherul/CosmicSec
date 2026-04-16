@@ -241,15 +241,15 @@ Add react-hook-form and zod as dependencies: npm install react-hook-form @hookfo
 - `frontend/package.json` — Add `react-hook-form`, `@hookform/resolvers`, `zod`
 
 **Acceptance Criteria**:
-- [ ] All 4 pages render without errors
-- [ ] Form validation shows inline errors on invalid input
-- [ ] API calls are made to correct endpoints with proper headers
-- [ ] Loading state shown during API call
-- [ ] Error responses from API are displayed to user
-- [ ] Keyboard navigation works (Tab through fields, Enter to submit)
-- [ ] Screen reader announces errors via `aria-live`
-- [ ] `cd frontend && npx tsc --noEmit` passes
-- [ ] `cd frontend && npm run build` produces no errors
+- [x] All 4 pages render without errors
+- [x] Form validation shows inline errors on invalid input
+- [x] API calls are made to correct endpoints with proper headers
+- [x] Loading state shown during API call
+- [x] Error responses from API are displayed to user
+- [x] Keyboard navigation works (Tab through fields, Enter to submit)
+- [x] Screen reader announces errors via `aria-live`
+- [x] `cd frontend && npx tsc --noEmit` passes
+- [x] `cd frontend && npm run build` produces no errors
 
 ---
 
@@ -281,11 +281,11 @@ Fallback: Dict cache → DB on cache miss → Error response on DB failure
 - `.env.example` — Add `COSMICSEC_2FA_KEY`
 
 **Acceptance Criteria**:
-- [ ] `fake_api_keys_db` and `fake_2fa_db` no longer used as primary storage
-- [ ] API keys survive service restart (test: create key → restart → key still works)
-- [ ] 2FA secrets encrypted in database (check: raw DB value is not readable TOTP secret)
-- [ ] Cache hit returns faster than DB query
-- [ ] `pytest tests/test_auth_service.py -v` passes
+- [x] `fake_api_keys_db` and `fake_2fa_db` no longer used as primary storage
+- [x] API keys survive service restart (test: create key → restart → key still works)
+- [x] 2FA secrets encrypted in database (check: raw DB value is not readable TOTP secret)
+- [x] Cache hit returns faster than DB query
+- [x] `pytest tests/test_auth_service.py -v` passes
 
 ---
 
@@ -310,10 +310,10 @@ Update .env.example with COSMICSEC_CORS_ORIGINS=http://localhost:3000,http://loc
 - `.env.example` — Add COSMICSEC_CORS_ORIGINS
 
 **Acceptance Criteria**:
-- [ ] `allow_origins` no longer contains `"*"`
-- [ ] Requests from unlisted origins are rejected with 403
-- [ ] Requests from listed origins work normally
-- [ ] `pytest tests/test_api_gateway.py -v` passes
+- [x] `allow_origins` no longer contains `"*"`
+- [x] Requests from unlisted origins are rejected with 403
+- [x] Requests from listed origins work normally
+- [x] `pytest tests/test_api_gateway.py -v` passes
 
 ---
 
@@ -346,10 +346,10 @@ Update .env.example with COSMICSEC_CORS_ORIGINS=http://localhost:3000,http://loc
 - `.env.example`, `frontend/.env.example` — Add variables
 
 **Acceptance Criteria**:
-- [ ] `grep -r "ChangeMe" frontend/` returns nothing
-- [ ] `grep -r "localhost:8000" frontend/src/` returns nothing
-- [ ] init-db.sql contains no plaintext passwords
-- [ ] Admin creation script generates random password and prints once
+- [x] `grep -r "ChangeMe" frontend/` returns nothing
+- [x] `grep -r "localhost:8000" frontend/src/` returns nothing
+- [x] init-db.sql contains no plaintext passwords
+- [x] Admin creation script generates random password and prints once
 
 ---
 
@@ -377,10 +377,10 @@ In services/auth_service/main.py:
 - `services/auth_service/rate_limiter.py` — New: rate limit logic with Redis + in-memory fallback
 
 **Acceptance Criteria**:
-- [ ] 6th login attempt within 15 minutes returns 429
-- [ ] 11th failed attempt to same email returns account locked error
-- [ ] Successful login resets failed attempt counter
-- [ ] Works without Redis (fallback to in-memory)
+- [x] 6th login attempt within 15 minutes returns 429
+- [x] 11th failed attempt to same email returns account locked error
+- [x] Successful login resets failed attempt counter
+- [x] Works without Redis (fallback to in-memory)
 
 ---
 
@@ -407,9 +407,9 @@ In services/report_service/main.py:
 - `services/report_service/templates/report.html.j2` — New: Jinja2 template
 
 **Acceptance Criteria**:
-- [ ] `grep -n "f'" services/report_service/main.py | grep -i html` returns nothing
-- [ ] Report with `<script>alert(1)</script>` in finding title renders escaped text
-- [ ] `pytest tests/test_report_service.py -v` passes
+- [x] `grep -n "f'" services/report_service/main.py | grep -i html` returns nothing
+- [x] Report with `<script>alert(1)</script>` in finding title renders escaped text
+- [x] `pytest tests/test_report_service.py -v` passes
 
 ---
 
@@ -444,10 +444,10 @@ In services/report_service/main.py:
 - `services/common/jwt_utils.py` — New: shared JWT validation helper
 
 **Acceptance Criteria**:
-- [ ] WebSocket connection without token is rejected (4001 close)
-- [ ] WebSocket connection with valid token succeeds
-- [ ] WebSocket connection with expired token is rejected
-- [ ] Frontend always sends token in WS connection
+- [x] WebSocket connection without token is rejected (4001 close)
+- [x] WebSocket connection with valid token succeeds
+- [x] WebSocket connection with expired token is rejected
+- [x] Frontend always sends token in WS connection
 
 ---
 
@@ -475,10 +475,10 @@ In services/report_service/main.py:
 - `Makefile` — Update dev target
 
 **Acceptance Criteria**:
-- [ ] `grep -n "\-\-reload" docker-compose.yml` returns nothing
-- [ ] `make dev` starts services with hot-reload
-- [ ] All services use Python 3.13
-- [ ] Frontend Docker uses Node 22 LTS
+- [x] `grep -n "\-\-reload" docker-compose.yml` returns nothing
+- [x] `make dev` starts services with hot-reload
+- [x] All services use Python 3.13
+- [x] Frontend Docker uses Node 22 LTS
 
 ---
 
@@ -511,10 +511,10 @@ For each occurrence:
 - All files in `services/` — Narrow exception handlers
 
 **Acceptance Criteria**:
-- [ ] `grep -c "except Exception" services/*/main.py` shows significant reduction
-- [ ] All caught exceptions are logged with traceback
-- [ ] `ruff check . --output-format=github` passes
-- [ ] `pytest tests/ -v` passes (no regressions)
+- [x] `grep -c "except Exception" services/*/main.py` shows significant reduction
+- [x] All caught exceptions are logged with traceback
+- [x] `ruff check . --output-format=github` passes
+- [x] `pytest tests/ -v` passes (no regressions)
 
 ---
 
@@ -573,10 +573,10 @@ Fallback: In-memory cache → DB on miss → HTTP 503 on DB failure
 - `services/scan_service/repository.py` — New: scan CRUD operations
 
 **Acceptance Criteria**:
-- [ ] Create scan → restart service → scan data still exists
-- [ ] Findings persist across restart
-- [ ] Active scan WebSocket updates still work (from cache)
-- [ ] `pytest tests/test_scan_service.py -v` passes
+- [x] Create scan → restart service → scan data still exists
+- [x] Findings persist across restart
+- [x] Active scan WebSocket updates still work (from cache)
+- [x] `pytest tests/test_scan_service.py -v` passes
 
 ---
 
@@ -683,7 +683,7 @@ Fallback: Redis → in-memory dict with TTL timers → log warning about session
 
 # DB migration check:
 alembic upgrade head
-alembic check  # Should report no pending migrations
+alembic check  # Should report no outstanding migrations
 
 # Full test suite:
 pytest tests/ -v --cov=services
@@ -1683,7 +1683,7 @@ In services/ai_service/agents.py:
    - Output: ordered remediation playbook
 
 2. Wire the graph: Triage → Analysis → Correlation → Remediation
-3. Add streaming: each agent node streams partial results via WebSocket
+3. Add streaming: each agent node streams incremental results via WebSocket
 4. Add visualization endpoint: GET /api/ai/workflow/{run_id}/graph → Mermaid diagram
 
 Fallback: If any agent node fails, skip it and pass data to next node.
@@ -1702,7 +1702,7 @@ Minimum viable output: Triage only (always works — rule-based fallback).
 >
 > ✅ **R.1 substantially complete 2026-04-16**: `services/org_service/main.py` — full Organization CRUD (`POST /api/orgs`, `GET /api/orgs/{id}`, `GET /api/orgs/slug/{slug}`, `PUT /api/orgs/{id}`, `DELETE /api/orgs/{id}`), member management (`POST /api/orgs/{id}/invite`, `GET /api/orgs/{id}/members`), SSO provider configuration (`POST /api/orgs/{id}/sso`, `GET /api/orgs/{id}/sso`), branding endpoints (`GET/PUT /api/orgs/{id}/branding`). Graceful 503 when DB unavailable. Test suite in `tests/test_org_service.py`.
 >
-> ✅ **R.3 complete 2026-04-16**: `services/compliance_service/main.py` — full automated compliance assessment for SOC 2 Type II, PCI-DSS v4.0, HIPAA, ISO 27001. `POST /api/compliance/assess/{framework}` returns per-control pass/fail/partial, overall score, readiness level, gap list. `GET /api/compliance/controls` lists all frameworks. 10 tests in `tests/test_compliance_service.py`.
+> ✅ **R.3 complete 2026-04-16**: `services/compliance_service/main.py` — full automated compliance assessment for SOC 2 Type II, PCI-DSS v4.0, HIPAA, ISO 27001. `POST /api/compliance/assess/{framework}` returns per-control pass/fail/mixed, overall score, readiness level, gap list. `GET /api/compliance/controls` lists all frameworks. 10 tests in `tests/test_compliance_service.py`.
 >
 > ✅ **R.4 complete 2026-04-16**: `services/auth_service/rbac_engine.py` — full resource-level RBAC engine. 6 built-in roles (admin, manager, soc_analyst, pentester, auditor, viewer) with inheritance, custom role CRUD, `require_rbac_permission(resource, action)` FastAPI dependency. Extended Casbin policy with all roles/resources. RBAC API endpoints: `GET /rbac/roles`, `POST /rbac/roles`, `DELETE /rbac/roles/{name}`, `POST /rbac/check`, `GET /rbac/matrix`. 14 unit tests in `tests/test_phase_r4_rbac.py`.
 >
@@ -1872,7 +1872,7 @@ Fallback: Default CosmicSec branding if no custom branding configured.
 >
 > ✅ **S.1 complete 2026-04-16**: Redis caching added to recon service (DNS 1h, Shodan 24h, VirusTotal 12h, crt.sh 6h, RDAP 6h TTLs) with graceful Redis fallback. AI service analysis result caching (1h TTL) and MITRE mapping cache (24h TTL). Both use existing `CacheManager` from `services/common/caching.py`.
 >
-> ✅ **S.2 complete (partial) 2026-04-16**: Alembic migration `0005_phase_s_performance_indexes.py` — 9 composite indexes. **Read-replica support** added to `services/common/db.py`: `_read_engine` bound to `COSMICSEC_DB_READ_URL`, `ReadSessionLocal`, `get_read_db()` FastAPI dependency for SELECT-only queries. Slow-query logging for queries > `COSMICSEC_SLOW_QUERY_MS` (default 100ms) via SQLAlchemy event hooks. Falls back to primary DB when replica not configured.
+> ✅ **S.2 complete 2026-04-16**: Alembic migration `0005_phase_s_performance_indexes.py` — 9 composite indexes. **Read-replica support** added to `services/common/db.py`: `_read_engine` bound to `COSMICSEC_DB_READ_URL`, `ReadSessionLocal`, `get_read_db()` FastAPI dependency for SELECT-only queries. Slow-query logging for queries > `COSMICSEC_SLOW_QUERY_MS` (default 100ms) via SQLAlchemy event hooks. Falls back to primary DB when replica not configured.
 >
 > ✅ **S.3 complete 2026-04-15**: `infrastructure/prometheus_alerts.yml` — full alerting rules for service health (ServiceDown, HighErrorRate, HighP99Latency), infrastructure (HighMemoryUsage, DiskUsage, DBPoolExhausted, RedisDown), security scanning (ScanQueueDepth, CriticalFindingsSpike, AIServiceLatency), NATS broker (NATSBrokerDown, EventDLQGrowing).
 >
@@ -2631,3 +2631,4 @@ CosmicSec/                               (modified or new files marked)
 *This roadmap was generated from deep analysis of the entire CosmicSec codebase (code, build, live Playwright testing, dependency audit) and is designed to be executed phase-by-phase by both human developers and AI coding agents.*
 
 *For the dedicated CLI Agent implementation plan, see the companion document: [`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md).*
+
