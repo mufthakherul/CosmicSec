@@ -1547,7 +1547,7 @@ cosmicsec pull --since 2026-04-01
 
 ---
 
-## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~82%)
+## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~86%)
 
 > 🎯 **Goal**: Polish the CLI for release — branded experience, professional packaging, comprehensive documentation, and easy installation.
 >
@@ -1576,6 +1576,9 @@ cosmicsec pull --since 2026-04-01
 > - Added Homebrew formula template (`cli/agent/homebrew/cosmicsec-agent.rb`) for release-tap publishing workflow.
 > - Added installation/distribution guide (`docs/cli/installation.md`) including pipx/Homebrew paths.
 > - Added CLI man page generation script (`scripts/generate-cli-manpage.py`) and generated man page artifact (`docs/cli/cosmicsec-agent.1`).
+>
+> ✅ **CA-7.3 release automation follow-up 2026-04-16**:
+> - Added `--check` mode to man page generator and wired publish pipeline validation (`.github/workflows/publish-agent.yml`) to prevent stale man page releases.
 
 **Completed:**
 - ✅ `cli/agent/README.md` — dedicated agent quick start, command workflows, configuration, and troubleshooting
@@ -1587,11 +1590,12 @@ cosmicsec pull --since 2026-04-01
 - ✅ Theme customization commands (`theme list/set/current/preview`) with canonical alias handling and preview rendering
 - ✅ Distribution starter assets (Homebrew formula template + installation guide)
 - ✅ CLI man page generation and checked-in man page artifact
+- ✅ Release pipeline man-page sync guard (`scripts/generate-cli-manpage.py --check` in `publish-agent.yml`)
 - ✅ CLI test suite stable on current environment (`pytest cli/agent/tests` → 83 passed)
 
-**Remaining (~18%):**
+**Remaining (~14%):**
 - ⏳ CA-7.2 partial — publish and maintain live Homebrew tap + standalone binary packaging
-- ⏳ CA-7.3 partial — screenshots/examples polish and ongoing man-page sync automation in release pipeline
+- ⏳ CA-7.3 partial — screenshots/examples polish for docs
 - ⏳ CA-7.4 — comprehensive CLI test expansion to 90%+ coverage
 
 ### CA-7.1 — Branding & Visual Identity
