@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import argparse
+import sys
 from pathlib import Path
 
 try:
@@ -108,9 +110,26 @@ docs/cli/installation.md
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Generate cosmicsec-agent man page.")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Fail if generated output differs from the checked-in man page.",
+    )
+    args = parser.parse_args()
+
     version = cli_version()
+    rendered = build_manpage(version)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(build_manpage(version), encoding="utf-8")
+
+    if args.check:
+        if not OUTPUT.exists() or OUTPUT.read_text(encoding="utf-8") != rendered:
+            print(f"{OUTPUT} is out of date. Run scripts/generate-cli-manpage.py", file=sys.stderr)
+            raise SystemExit(1)
+        print(f"{OUTPUT} is up to date")
+        return
+
+    OUTPUT.write_text(rendered, encoding="utf-8")
     print(f"Wrote {OUTPUT}")
 
 
