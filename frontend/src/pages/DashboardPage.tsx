@@ -253,7 +253,7 @@ function QuickActions() {
           <Link
             key={a.label}
             to={a.to}
-            className="group flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950 p-3 transition-all hover:border-slate-700 hover:bg-slate-800"
+            className="group flex min-h-12 items-center gap-3 rounded-lg border border-slate-800 bg-slate-950 p-3 transition-all hover:border-slate-700 hover:bg-slate-800"
           >
             <div className={`rounded-lg bg-gradient-to-br p-2 ${a.color}`}>
               <a.icon className="h-4 w-4 text-white" />
@@ -364,7 +364,7 @@ export function DashboardPage() {
           </div>
           <Link
             to="/scans"
-            className="flex items-center gap-2 self-start rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-cyan-400 sm:self-auto"
+            className="flex min-h-11 items-center gap-2 self-start rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-cyan-400 sm:self-auto"
           >
             <Play className="h-4 w-4" />
             New Scan
@@ -372,7 +372,7 @@ export function DashboardPage() {
         </div>
 
         {/* Top row — Security Score + Stats */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
           {/* Security Score card (spans 1 column on lg) */}
           <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900 p-5 sm:col-span-1 lg:col-span-1">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -382,36 +382,44 @@ export function DashboardPage() {
           </div>
 
           {/* Stats cards (4 cols) */}
-          <div className="grid grid-cols-2 gap-4 sm:col-span-1 lg:col-span-4">
-            <StatCard
-              label="Total Scans"
-              value={loading ? "…" : stats.total_scans}
-              icon={Radar}
-              iconClass="bg-cyan-500/10 text-cyan-400"
-              trend={{ value: stats.scans_today, label: "today" }}
-              to="/scans"
-            />
-            <StatCard
-              label="Critical Findings"
-              value={loading ? "…" : stats.critical_findings}
-              icon={AlertTriangle}
-              iconClass="bg-rose-500/10 text-rose-400"
-              trend={{ value: stats.findings_last_7d, label: "last 7d" }}
-              to="/timeline"
-            />
-            <StatCard
-              label="Active Agents"
-              value={loading ? "…" : stats.active_agents}
-              icon={Zap}
-              iconClass="bg-emerald-500/10 text-emerald-400"
-            />
-            <StatCard
-              label="Open Bug Reports"
-              value={loading ? "…" : stats.open_bugs}
-              icon={Bug}
-              iconClass="bg-orange-500/10 text-orange-400"
-              to="/bugbounty"
-            />
+          <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:col-span-4">
+            <div className="min-w-[220px] snap-start sm:min-w-0">
+              <StatCard
+                label="Total Scans"
+                value={loading ? "…" : stats.total_scans}
+                icon={Radar}
+                iconClass="bg-cyan-500/10 text-cyan-400"
+                trend={{ value: stats.scans_today, label: "today" }}
+                to="/scans"
+              />
+            </div>
+            <div className="min-w-[220px] snap-start sm:min-w-0">
+              <StatCard
+                label="Critical Findings"
+                value={loading ? "…" : stats.critical_findings}
+                icon={AlertTriangle}
+                iconClass="bg-rose-500/10 text-rose-400"
+                trend={{ value: stats.findings_last_7d, label: "last 7d" }}
+                to="/timeline"
+              />
+            </div>
+            <div className="min-w-[220px] snap-start sm:min-w-0">
+              <StatCard
+                label="Active Agents"
+                value={loading ? "…" : stats.active_agents}
+                icon={Zap}
+                iconClass="bg-emerald-500/10 text-emerald-400"
+              />
+            </div>
+            <div className="min-w-[220px] snap-start sm:min-w-0">
+              <StatCard
+                label="Open Bug Reports"
+                value={loading ? "…" : stats.open_bugs}
+                icon={Bug}
+                iconClass="bg-orange-500/10 text-orange-400"
+                to="/bugbounty"
+              />
+            </div>
           </div>
         </div>
 
