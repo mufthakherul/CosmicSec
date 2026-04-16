@@ -5,7 +5,7 @@
 
 ---
 
-> ### 📊 Overall Progress: **~90% Complete** (Phases K+L+M+N+O+P+T complete; Q 75%, R 80%, S 75%, U 60%, V 65%; CLI companion CA-1 80%, CA-2 70%)
+> ### 📊 Overall Progress: **~91% Complete** (Phases K+L+M+N+O+P+T complete; Q 75%, R 80%, S 75%, U 60%, V 65%; CLI companion CA-1 80%, CA-2 90%)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -74,7 +74,7 @@ Phase X — [Title]
 17. [Target Architecture (Post-Phase V)](#target-architecture-post-phase-v)
 18. [New File & Directory Map](#new-file--directory-map)
 
-> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update (2026-04-16): CA-1 ~80% complete; R.4 RBAC engine ready for CLI `require_rbac_permission` adoption; R.5 branding headers available to CLI `cosmicsec connect` for theming.** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
+> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update (2026-04-16): CA-1 ~80% complete; CA-2 ~90% complete (global output callback + progress-backed concurrent `scan` integration landed); R.4 RBAC engine ready for CLI `require_rbac_permission` adoption; R.5 branding headers available to CLI `cosmicsec connect` for theming.** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
 
 ---
 

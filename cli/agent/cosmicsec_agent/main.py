@@ -56,6 +56,7 @@ _active_profile: str | None = None
 
 _CONFIG_DIR = Path(os.getenv("COSMICSEC_CONFIG_DIR", str(Path.home() / ".cosmicsec")))
 _CONFIG_FILE = _CONFIG_DIR / "config.json"
+_global_output_format: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -107,13 +108,28 @@ def _audit(
 @app.callback()
 def app_callback(
     profile: Optional[str] = typer.Option(None, "--profile", help="Profile name override"),
+    output: Optional[str] = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Global output format: table|json|yaml|csv|quiet",
+    ),
+    no_color: bool = typer.Option(False, "--no-color", help="Disable ANSI styling"),
+    verbose: int = typer.Option(0, "--verbose", "-v", count=True, help="Increase verbosity"),
 ) -> None:
     """Global CLI options."""
     global _active_profile
+    global _global_output_format
     from .credential_store import CredentialStore
+    from .output import set_formatter
     from .profiles import ProfileStore
 
     _active_profile = profile or ProfileStore().get_active_profile()
+    _global_output_format = output
+    if output is not None:
+        set_formatter(output, no_color=no_color, verbose=verbose)
+    else:
+        set_formatter("table", no_color=no_color, verbose=verbose)
     CredentialStore().migrate_legacy_config(_CONFIG_FILE)
 
 
@@ -527,11 +543,11 @@ def scan(
     flags: str = typer.Option("", "--flags", help="Extra flags to pass to the tool"),
     output_format: str = typer.Option("text", "--output-format", help="xml or text"),
     all_tools: bool = typer.Option(False, "--all", help="Run all available tools"),
+    parallel: int = typer.Option(3, "--parallel", min=1, max=8, help="Concurrent tools for --all"),
 ) -> None:
     """Run a security scan against *target*."""
-    from .executor import run_tool_complete
     from .offline_store import OfflineStore
-    from .parsers import GobusterParser, NiktoParser, NmapParser, NucleiParser
+    from .progress import run_tools_with_progress
     from .tool_registry import ToolRegistry
 
     if not tool and not all_tools:
@@ -543,13 +559,6 @@ def scan(
     discovered = {t.name: t for t in registry.discover()}
     store = OfflineStore()
 
-    _PARSERS = {
-        "nmap": NmapParser(),
-        "nikto": NiktoParser(),
-        "nuclei": NucleiParser(),
-        "gobuster": GobusterParser(),
-    }
-
     tools_to_run = list(discovered.values()) if all_tools else []
     if tool:
         if tool not in discovered:
@@ -558,49 +567,53 @@ def scan(
             raise typer.Exit(1)
         tools_to_run = [discovered[tool]]
 
+    tool_payloads: list[dict] = []
+    scan_ids: dict[str, str] = {}
     for tool_info in tools_to_run:
         scan_id = str(uuid.uuid4())
+        scan_ids[tool_info.name] = scan_id
         store.save_scan(scan_id, target, tool_info.name, "running")
         _audit("scan_start", target=target, detail=f"tool={tool_info.name}", success=True)
-        console.print(f"\n[bold cyan]Running {tool_info.name} against {target}…[/bold cyan]")
 
         extra_args = flags.split() if flags else []
         if output_format == "xml" and tool_info.name == "nmap":
             extra_args = ["-oX", "-"] + extra_args
 
-        result = asyncio.run(run_tool_complete(tool_info.path, extra_args + [target]))
+        tool_payloads.append({"name": tool_info.name, "path": tool_info.path, "args": extra_args})
 
-        store.update_scan_status(scan_id, "complete" if result.exit_code == 0 else "error")
+    tool_results, _ = asyncio.run(
+        run_tools_with_progress(tool_payloads, target=target, max_parallel=parallel if all_tools else 1)
+    )
 
-        parser = _PARSERS.get(tool_info.name)
-        if parser:
-            output_to_parse = result.stdout if output_format != "xml" else result.stdout
-            findings = parser.parse(output_to_parse)
-        else:
-            findings = []
-
-        for f in findings:
-            store.save_finding(f, scan_id)
-
-        _display_findings(findings, tool_info.name, target)
-
-        if result.exit_code != 0:
-            console.print(f"[yellow]Tool exited with code {result.exit_code}[/yellow]")
+    for result in tool_results:
+        tool_name = result["name"]
+        scan_id = scan_ids.get(tool_name)
+        if not scan_id:
+            continue
+        findings = result["findings"]
+        exit_code = result["exit_code"]
+        store.update_scan_status(scan_id, "complete" if exit_code == 0 else "error")
+        for finding in findings:
+            store.save_finding(finding, scan_id)
+        _display_findings(findings, tool_name, target)
+        if exit_code != 0:
+            console.print(f"[yellow]Tool exited with code {exit_code}[/yellow]")
             _audit(
                 "scan_complete",
                 target=target,
-                detail=f"tool={tool_info.name};exit_code={result.exit_code}",
+                detail=f"tool={tool_name};exit_code={exit_code}",
                 success=False,
             )
         else:
             _audit(
                 "scan_complete",
                 target=target,
-                detail=f"tool={tool_info.name};findings={len(findings)}",
+                detail=f"tool={tool_name};findings={len(findings)}",
                 success=True,
             )
 
-    console.print("\n[green]Scan complete. Results saved to offline store.[/green]")
+    if any(r["exit_code"] != 0 for r in tool_results):
+        raise typer.Exit(5)
 
 
 def _display_findings(findings: list[dict], tool_name: str, target: str) -> None:
@@ -820,7 +833,7 @@ def history_list(
     since: Optional[str] = typer.Option(None, "--since", help="ISO date filter, e.g. 2026-01-01"),
     tool: Optional[str] = typer.Option(None, "--tool", help="Filter by tool name"),
     target: Optional[str] = typer.Option(None, "--target", help="Filter by target (partial match)"),
-    output_format: str = typer.Option("table", "--output", "-o", help="table|json|yaml|csv"),
+    output_format: Optional[str] = typer.Option(None, "--output", "-o", help="table|json|yaml|csv"),
 ) -> None:
     """List past scans with finding counts.
 
@@ -834,8 +847,9 @@ def history_list(
 
     scans = OfflineStore().list_scans(limit=limit, since=since, tool=tool, target=target)
     _audit("history_list", detail=f"limit={limit}", success=True)
-    fmt = get_formatter(fmt=output_format)
-    if output_format == "table":
+    selected_format = output_format or _global_output_format
+    fmt = get_formatter(fmt=selected_format)
+    if fmt.fmt == "table":
         rows = [
             {
                 "ID": s["id"][:8] + "…",
@@ -855,7 +869,7 @@ def history_list(
 @history_app.command("show")
 def history_show(
     scan_id: str = typer.Argument(..., help="Scan ID (or prefix)"),
-    output_format: str = typer.Option("table", "--output", "-o", help="table|json"),
+    output_format: Optional[str] = typer.Option(None, "--output", "-o", help="table|json"),
 ) -> None:
     """Show full scan details including all findings."""
     from .offline_store import OfflineStore
@@ -873,8 +887,9 @@ def history_show(
         console.print(f"[red]Scan '{scan_id}' not found.[/red]")
         raise typer.Exit(1)
     _audit("history_show", target=scan.get("target"), success=True)
-    fmt = get_formatter(fmt=output_format)
-    if output_format == "table":
+    selected_format = output_format or _global_output_format
+    fmt = get_formatter(fmt=selected_format)
+    if fmt.fmt == "table":
         console.print(f"\n[bold]Scan:[/bold] {scan['id']}")
         console.print(f"[bold]Target:[/bold] {scan['target']}")
         console.print(f"[bold]Tool:[/bold] {scan['tool']}  |  [bold]Status:[/bold] {scan['status']}")
@@ -895,7 +910,7 @@ def history_findings(
     tool: Optional[str] = typer.Option(None, "--tool", help="Filter by tool"),
     search: Optional[str] = typer.Option(None, "--search", help="Text search in title/description"),
     limit: int = typer.Option(50, "--limit", "-n", help="Max results"),
-    output_format: str = typer.Option("table", "--output", "-o", help="table|json|csv"),
+    output_format: Optional[str] = typer.Option(None, "--output", "-o", help="table|json|csv"),
 ) -> None:
     """Search across all findings with filters.
 
@@ -909,7 +924,7 @@ def history_findings(
 
     findings = OfflineStore().search_findings(severity=severity, tool=tool, search=search, limit=limit)
     _audit("history_findings", detail=f"n={len(findings)}", success=True)
-    fmt = get_formatter(fmt=output_format)
+    fmt = get_formatter(fmt=output_format or _global_output_format)
     if not findings:
         console.print("[dim]No findings match your filters.[/dim]")
         return
@@ -924,7 +939,7 @@ def history_findings(
 def history_diff(
     scan_a: str = typer.Argument(..., help="First scan ID"),
     scan_b: str = typer.Argument(..., help="Second scan ID"),
-    output_format: str = typer.Option("table", "--output", "-o", help="table|json"),
+    output_format: Optional[str] = typer.Option(None, "--output", "-o", help="table|json"),
 ) -> None:
     """Compare two scans: show new, resolved, and changed-severity findings."""
     from .offline_store import OfflineStore
@@ -932,8 +947,8 @@ def history_diff(
 
     diff = OfflineStore().diff_scans(scan_a, scan_b)
     _audit("history_diff", detail=f"a={scan_a[:8]};b={scan_b[:8]}", success=True)
-    fmt = get_formatter(fmt=output_format)
-    if output_format == "json":
+    fmt = get_formatter(fmt=output_format or _global_output_format)
+    if fmt.fmt == "json":
         fmt.json(diff)
         return
     console.print(f"\n[bold]Comparing scans[/bold] {scan_a[:8]}… → {scan_b[:8]}…")
@@ -951,7 +966,7 @@ def history_diff(
 
 @history_app.command("stats")
 def history_stats(
-    output_format: str = typer.Option("table", "--output", "-o", help="table|json"),
+    output_format: Optional[str] = typer.Option(None, "--output", "-o", help="table|json"),
 ) -> None:
     """Show aggregate scan and finding statistics."""
     from .offline_store import OfflineStore
@@ -959,8 +974,8 @@ def history_stats(
 
     stats = OfflineStore().stats()
     _audit("history_stats", success=True)
-    fmt = get_formatter(fmt=output_format)
-    if output_format == "json":
+    fmt = get_formatter(fmt=output_format or _global_output_format)
+    if fmt.fmt == "json":
         fmt.json(stats)
         return
     console.print(f"\n[bold]Total scans:[/bold] {stats['total_scans']}")
@@ -1043,7 +1058,7 @@ def config_set(
 
 @config_app.command("list")
 def config_list(
-    output_format: str = typer.Option("table", "--output", "-o", help="table|json"),
+    output_format: Optional[str] = typer.Option(None, "--output", "-o", help="table|json"),
     show_defaults: bool = typer.Option(False, "--all", help="Show all settings including unmodified"),
 ) -> None:
     """List all configuration settings.
@@ -1062,7 +1077,7 @@ def config_list(
     if not rows:
         console.print("[dim]All settings are at their default values. Use --all to show.[/dim]")
         return
-    fmt = get_formatter(fmt=output_format)
+    fmt = get_formatter(fmt=output_format or _global_output_format)
     fmt.render(
         rows,
         columns=["key", "value", "default", "description"],
