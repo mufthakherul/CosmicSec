@@ -2149,7 +2149,7 @@ Without service worker: app works normally (just no offline/push).
 
 ---
 
-## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~50%)
+## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~70%)
 
 > 🎯 **Goal**: Make CosmicSec a joy to develop on and a premium-feeling product. Add developer documentation, component library, animation polish, and branding refinements.
 >
@@ -2162,6 +2162,12 @@ Without service worker: app works normally (just no offline/push).
 > ✅ **V.4 complete (prior session)**: `scripts/seed-dev-data.py` — full dev seed with org, 5 users, 10 scans, 50+ findings, recon data, AI analysis results.
 >
 > ✅ **V.3 DX quality uplift 2026-04-16**: Frontend ESLint + Prettier tooling added (`frontend/eslint.config.js`, `frontend/.prettierrc.json`) and integrated into pre-commit local hooks.
+>
+> ✅ **V.3 documentation expansion 2026-04-16**: Added complete CLI documentation surface under `docs/cli/` (`authentication.md`, `scanning.md`, `ai-features.md`, `workflows.md`, `ci-cd.md`, `plugins.md`, `troubleshooting.md`) and refreshed `docs/cli/getting-started.md`.
+>
+> ✅ **V.2 accessibility polish tranche 2026-04-16**: Added keyboard shortcuts help panel (`?` key), high-contrast mode toggle, and reduced-motion preference toggle in frontend settings/theme context; wired CSS-level high-contrast and reduced-motion behavior.
+>
+> ✅ **V.3 CI quality uplift 2026-04-16**: Expanded test workflow to Python 3.11/3.12/3.13 matrix and added Alembic migration SQL validation job.
 
 **Completed:**
 - ✅ `docs/adr/ADR-001` through `ADR-005` — Architecture Decision Records
@@ -2174,11 +2180,15 @@ Without service worker: app works normally (just no offline/push).
 - ✅ Frontend linting baseline with `eslint` + `@typescript-eslint` (`frontend/package.json`, `frontend/eslint.config.js`)
 - ✅ Frontend formatting baseline with `prettier` (`frontend/.prettierrc.json`, `frontend/package.json`)
 - ✅ Pre-commit local frontend checks for ESLint + Prettier (`.pre-commit-config.yaml`)
+- ✅ CLI documentation suite expansion under `docs/cli/` (auth/scanning/AI/workflows/CI-CD/plugins/troubleshooting)
+- ✅ Keyboard shortcuts help panel (`?` key) in app header modal
+- ✅ High contrast mode toggle (ThemeContext + Settings page + CSS)
+- ✅ Reduced motion mode toggle (ThemeContext + Settings page + CSS)
 
-**Remaining (~50%):**
+**Remaining (~30%):**
 - ⏳ V.1 — Storybook component library
-- ⏳ V.2 — Animation & micro-interactions (Framer Motion, Tailwind transitions)
-- ⏳ V.3 partial — CONTRIBUTING.md update, PR template, README quick-start
+- ⏳ V.2 — Remaining animation/micro-interaction polish (dashboard counters/charts/stagger tuning)
+- ⏳ V.3 partial — CONTRIBUTING.md update, PR template, README quick-start + screenshots/examples
 
 ### V.1 — Component Library (Storybook)
 
@@ -2328,10 +2338,10 @@ These improvements span multiple phases and should be applied continuously:
 - [ ] Add bundle analysis (vite-plugin-visualizer)
 
 ### CI/CD Pipeline
-- [ ] Add GitHub Actions matrix for Python 3.11/3.12/3.13
+- [x] Add GitHub Actions matrix for Python 3.11/3.12/3.13 ✅ *(`.github/workflows/test.yml` Python test matrix)*
 - [ ] Add release automation (semantic-release or changesets)
 - [ ] Add staging deployment (preview per PR)
-- [ ] Add database migration check in CI (alembic check)
+- [x] Add database migration check in CI (alembic check) ✅ *(`.github/workflows/test.yml` alembic offline SQL render check)*
 - [ ] Add performance benchmarks in CI (fail if regression > 10%)
 - [ ] Add visual regression testing (Playwright screenshot comparison)
 
@@ -2340,11 +2350,11 @@ These improvements span multiple phases and should be applied continuously:
 - [ ] Add `aria-live="polite"` for dynamic content updates
 - [ ] Add `aria-invalid` and `aria-describedby` for form validation
 - [ ] Add focus management for modal dialogs and route transitions
-- [ ] Add keyboard shortcuts documentation panel (? key)
+- [x] Add keyboard shortcuts documentation panel (? key) ✅ *(Header shortcuts modal + global `?` hotkey)*
 - [ ] Run axe-core audit in CI and fail on violations
 - [ ] Add skip-to-content link (already exists — verify works)
-- [ ] Add high contrast mode toggle
-- [ ] Add reduced motion mode (prefers-reduced-motion media query)
+- [x] Add high contrast mode toggle ✅ *(ThemeContext + SettingsPage + CSS high-contrast overrides)*
+- [x] Add reduced motion mode (prefers-reduced-motion media query) ✅ *(existing media-query support + explicit app-level toggle via ThemeContext)*
 
 ---
 
