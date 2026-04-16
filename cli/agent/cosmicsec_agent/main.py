@@ -77,8 +77,16 @@ team_app = typer.Typer(help="Enterprise team and organization commands.")
 app.add_typer(team_app, name="team")
 org_app = typer.Typer(help="Organization-scoped enterprise commands.")
 app.add_typer(org_app, name="org")
+org_api_keys_app = typer.Typer(help="Organization API key management.")
+org_app.add_typer(org_api_keys_app, name="api-keys")
 schedule_app = typer.Typer(help="Recurring scan schedules.")
 app.add_typer(schedule_app, name="schedule")
+findings_app = typer.Typer(help="Finding collaboration commands.")
+app.add_typer(findings_app, name="findings")
+report_app = typer.Typer(help="Report generation and distribution.")
+app.add_typer(report_app, name="report")
+ci_app = typer.Typer(help="CI/CD and policy gate commands.")
+app.add_typer(ci_app, name="ci")
 
 console = Console()
 _active_profile: str | None = None
@@ -1609,6 +1617,40 @@ def dashboard(
     watch(interval=interval, cycles=cycles)
 
 
+@app.command("wizard")
+def wizard() -> None:
+    """Interactive guided scan setup for beginner-friendly workflows."""
+    console.print("[bold cyan]CosmicSec Scan Wizard[/bold cyan]")
+    target = typer.prompt("Target host/IP/CIDR", default="127.0.0.1").strip()
+    mode = typer.prompt("Mode (quick/full/custom)", default="quick").strip().lower()
+    if mode not in {"quick", "full", "custom"}:
+        console.print("[yellow]Unknown mode, defaulting to quick.[/yellow]")
+        mode = "quick"
+    if mode == "quick":
+        selected_tools = ["nmap", "nuclei"]
+    elif mode == "full":
+        selected_tools = ["nmap", "gobuster", "nikto", "nuclei", "sqlmap"]
+    else:
+        raw = typer.prompt("Comma-separated tools", default="nmap,nuclei")
+        selected_tools = [t.strip() for t in raw.split(",") if t.strip()]
+    parallel = int(typer.prompt("Parallel tool count", default="3"))
+    confirm = typer.confirm(
+        f"Run scan on {target} with tools {', '.join(selected_tools)} and parallel={parallel}?",
+        default=True,
+    )
+    if not confirm:
+        console.print("[yellow]Wizard cancelled.[/yellow]")
+        _audit("wizard", detail="cancelled", success=False)
+        raise typer.Exit(0)
+    for tool_name in selected_tools:
+        try:
+            scan(target=target, tool=tool_name, all_tools=False, parallel=max(1, parallel))
+        except typer.Exit:
+            # Continue running remaining tools to preserve wizard batch semantics.
+            pass
+    _audit("wizard", detail=f"target={target};tools={len(selected_tools)}", success=True)
+
+
 @app.command("analyze")
 def analyze(
     scan_id: Optional[str] = typer.Option(None, "--scan-id", help="Scan ID to analyze"),
@@ -1897,6 +1939,79 @@ def schedule_run(
     _audit("schedule_run", detail=f"name={name}", success=True)
 
 
+@schedule_app.command("delete")
+def schedule_delete(
+    name: str = typer.Option(..., "--name", help="Schedule name"),
+) -> None:
+    """Delete a schedule definition."""
+    schedules_file = _CONFIG_DIR / "schedules.json"
+    if not schedules_file.exists():
+        console.print("[red]No schedules configured.[/red]")
+        _audit("schedule_delete", detail=f"missing_schedule={name}", success=False)
+        raise typer.Exit(1)
+    data = json.loads(schedules_file.read_text(encoding="utf-8"))
+    schedules = data if isinstance(data, list) else []
+    new_schedules = [s for s in schedules if s.get("name") != name]
+    if len(new_schedules) == len(schedules):
+        console.print(f"[red]Schedule not found:[/red] {name}")
+        _audit("schedule_delete", detail=f"missing_schedule={name}", success=False)
+        raise typer.Exit(1)
+    schedules_file.write_text(json.dumps(new_schedules, indent=2), encoding="utf-8")
+    console.print(f"[green]Deleted schedule:[/green] {name}")
+    _audit("schedule_delete", detail=f"name={name}", success=True)
+
+
+@schedule_app.command("run-due")
+def schedule_run_due(
+    target: Optional[str] = typer.Option(None, "--target", help="Optional target override"),
+) -> None:
+    """Execute all enabled schedules once (best-effort due-run emulation)."""
+    schedules_file = _CONFIG_DIR / "schedules.json"
+    if not schedules_file.exists():
+        console.print("[yellow]No schedules configured.[/yellow]")
+        _audit("schedule_run_due", detail="count=0", success=True)
+        return
+    data = json.loads(schedules_file.read_text(encoding="utf-8"))
+    schedules = data if isinstance(data, list) else []
+    ran = 0
+    failed = 0
+    for item in schedules:
+        if not item.get("enabled", True):
+            continue
+        name = str(item.get("name", ""))
+        try:
+            schedule_run(name=name, target=target)
+            ran += 1
+        except typer.Exit:
+            failed += 1
+    console.print(f"[green]run-due complete:[/green] ran={ran} failed={failed}")
+    _audit("schedule_run_due", detail=f"ran={ran};failed={failed}", success=failed == 0)
+    if failed:
+        raise typer.Exit(1)
+
+
+@schedule_app.command("daemon")
+def schedule_daemon(
+    interval: int = typer.Option(60, "--interval", min=10, max=3600, help="Polling interval seconds"),
+) -> None:
+    """Run schedule due-check loop in foreground."""
+    import time
+
+    console.print(f"[cyan]Schedule daemon started[/cyan] (interval={interval}s). Ctrl+C to stop.")
+    loops = 0
+    try:
+        while True:
+            loops += 1
+            try:
+                schedule_run_due()
+            except typer.Exit:
+                pass
+            time.sleep(interval)
+    except KeyboardInterrupt:
+        console.print("[yellow]Schedule daemon stopped.[/yellow]")
+    _audit("schedule_daemon", detail=f"loops={loops};interval={interval}", success=True)
+
+
 @team_app.command("invite")
 def team_invite(
     org_id: str = typer.Option(..., "--org-id", help="Organization ID"),
@@ -1986,6 +2101,426 @@ def org_switch(
     updated = store.upsert_profile(profile, server_url=server, org_id=org_id)
     console.print(f"[green]Active org switched:[/green] profile={profile} org={updated.get('org_id')}")
     _audit("org_switch", profile=profile, detail=f"org_id={org_id}", success=True)
+
+
+@org_app.command("members")
+def org_members(
+    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+) -> None:
+    """List organization members."""
+    from .profiles import ProfileStore
+
+    profile = _resolve_profile()
+    if not org_id:
+        current = ProfileStore().get_profile(profile) or {}
+        org_id = str(current.get("org_id") or "")
+    if not org_id:
+        console.print("[red]No org selected. Use --org-id or `org switch` first.[/red]")
+        _audit("org_members", profile=profile, detail="missing_org", success=False)
+        raise typer.Exit(1)
+    team_members(org_id=org_id)
+
+
+@org_app.command("invite")
+def org_invite(
+    email: str = typer.Option(..., "--email", help="Member email"),
+    role: str = typer.Option("viewer", "--role", help="Role to assign"),
+    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+) -> None:
+    """Invite a member to the active organization."""
+    from .profiles import ProfileStore
+
+    profile = _resolve_profile()
+    if not org_id:
+        current = ProfileStore().get_profile(profile) or {}
+        org_id = str(current.get("org_id") or "")
+    if not org_id:
+        console.print("[red]No org selected. Use --org-id or `org switch` first.[/red]")
+        _audit("org_invite", profile=profile, detail="missing_org", success=False)
+        raise typer.Exit(1)
+    team_invite(org_id=org_id, email=email, role=role)
+
+
+@org_api_keys_app.command("list")
+def org_api_keys_list(
+    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+) -> None:
+    """List organization API keys."""
+    import httpx
+    from .profiles import ProfileStore
+
+    profile = _resolve_profile()
+    if not org_id:
+        current = ProfileStore().get_profile(profile) or {}
+        org_id = str(current.get("org_id") or "")
+    if not org_id:
+        console.print("[red]No org selected. Use --org-id or `org switch` first.[/red]")
+        _audit("org_api_keys_list", profile=profile, detail="missing_org", success=False)
+        raise typer.Exit(1)
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("org_api_keys_list", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    resp = httpx.get(f"{server.rstrip('/')}/api/orgs/{org_id}/api-keys", headers=headers, timeout=15.0)
+    if resp.status_code >= 400:
+        console.print(f"[red]Failed to list API keys:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("org_api_keys_list", profile=profile, detail=f"org={org_id}", success=False)
+        raise typer.Exit(1)
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("org_api_keys_list", profile=profile, detail=f"org={org_id}", success=True)
+
+
+@org_api_keys_app.command("create")
+def org_api_keys_create(
+    name: str = typer.Option(..., "--name", help="Key name"),
+    scopes: str = typer.Option("read", "--scopes", help="Comma separated scopes"),
+    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+) -> None:
+    """Create an organization API key."""
+    import httpx
+    from .profiles import ProfileStore
+
+    profile = _resolve_profile()
+    if not org_id:
+        current = ProfileStore().get_profile(profile) or {}
+        org_id = str(current.get("org_id") or "")
+    if not org_id:
+        console.print("[red]No org selected. Use --org-id or `org switch` first.[/red]")
+        _audit("org_api_keys_create", profile=profile, detail="missing_org", success=False)
+        raise typer.Exit(1)
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("org_api_keys_create", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    payload = {"name": name, "scopes": [s.strip() for s in scopes.split(",") if s.strip()]}
+    resp = httpx.post(
+        f"{server.rstrip('/')}/api/orgs/{org_id}/api-keys",
+        headers=headers,
+        json=payload,
+        timeout=15.0,
+    )
+    if resp.status_code >= 400:
+        console.print(f"[red]Failed to create API key:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("org_api_keys_create", profile=profile, detail=f"org={org_id};name={name}", success=False)
+        raise typer.Exit(1)
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("org_api_keys_create", profile=profile, detail=f"org={org_id};name={name}", success=True)
+
+
+@org_api_keys_app.command("revoke")
+def org_api_keys_revoke(
+    key_id: str = typer.Argument(..., help="API key identifier"),
+    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+) -> None:
+    """Revoke an organization API key."""
+    import httpx
+    from .profiles import ProfileStore
+
+    profile = _resolve_profile()
+    if not org_id:
+        current = ProfileStore().get_profile(profile) or {}
+        org_id = str(current.get("org_id") or "")
+    if not org_id:
+        console.print("[red]No org selected. Use --org-id or `org switch` first.[/red]")
+        _audit("org_api_keys_revoke", profile=profile, detail="missing_org", success=False)
+        raise typer.Exit(1)
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("org_api_keys_revoke", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    resp = httpx.delete(f"{server.rstrip('/')}/api/orgs/{org_id}/api-keys/{key_id}", headers=headers, timeout=15.0)
+    if resp.status_code >= 400:
+        console.print(f"[red]Failed to revoke API key:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("org_api_keys_revoke", profile=profile, detail=f"org={org_id};key={key_id}", success=False)
+        raise typer.Exit(1)
+    if resp.text.strip():
+        console.print_json(json.dumps(resp.json(), indent=2))
+    else:
+        console.print(f"[green]API key revoked:[/green] {key_id}")
+    _audit("org_api_keys_revoke", profile=profile, detail=f"org={org_id};key={key_id}", success=True)
+
+
+@findings_app.command("assign")
+def findings_assign(
+    finding_id: str = typer.Argument(..., help="Finding ID"),
+    assignee: str = typer.Option(..., "--assignee", help="Assignee email or user ID"),
+) -> None:
+    """Assign finding ownership."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("findings_assign", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    resp = httpx.post(
+        f"{server.rstrip('/')}/api/findings/{finding_id}/assign",
+        headers=headers,
+        json={"assignee": assignee},
+        timeout=15.0,
+    )
+    if resp.status_code >= 400:
+        console.print(f"[red]Assignment failed:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("findings_assign", profile=profile, detail=f"id={finding_id}", success=False)
+        raise typer.Exit(1)
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("findings_assign", profile=profile, detail=f"id={finding_id};assignee={assignee}", success=True)
+
+
+@findings_app.command("status")
+def findings_status(
+    finding_id: str = typer.Argument(..., help="Finding ID"),
+    status: str = typer.Option(..., "--status", help="Status value"),
+) -> None:
+    """Update finding state."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("findings_status", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    resp = httpx.patch(
+        f"{server.rstrip('/')}/api/findings/{finding_id}",
+        headers=headers,
+        json={"status": status},
+        timeout=15.0,
+    )
+    if resp.status_code >= 400:
+        console.print(f"[red]Status update failed:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("findings_status", profile=profile, detail=f"id={finding_id};status={status}", success=False)
+        raise typer.Exit(1)
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("findings_status", profile=profile, detail=f"id={finding_id};status={status}", success=True)
+
+
+@app.command("share")
+def share(
+    finding_id: str = typer.Argument(..., help="Finding ID"),
+    with_user: str = typer.Option(..., "--with", help="Recipient user/email"),
+) -> None:
+    """Share a finding with another user."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("share", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    resp = httpx.post(
+        f"{server.rstrip('/')}/api/findings/{finding_id}/share",
+        headers=headers,
+        json={"with": with_user},
+        timeout=15.0,
+    )
+    if resp.status_code >= 400:
+        console.print(f"[red]Share failed:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("share", profile=profile, detail=f"id={finding_id}", success=False)
+        raise typer.Exit(1)
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("share", profile=profile, detail=f"id={finding_id};with={with_user}", success=True)
+
+
+@app.command("pull")
+def pull(
+    include_shared: bool = typer.Option(True, "--include-shared/--no-include-shared", help="Include shared findings"),
+) -> None:
+    """Pull remote findings updates into local cache."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("pull", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    params = {"shared": "true" if include_shared else "false"}
+    resp = httpx.get(f"{server.rstrip('/')}/api/findings/pull", headers=headers, params=params, timeout=30.0)
+    if resp.status_code >= 400:
+        console.print(f"[red]Pull failed:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("pull", profile=profile, detail="api_error", success=False)
+        raise typer.Exit(1)
+    payload = resp.json()
+    cache_dir = _CONFIG_DIR / "cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    pull_file = cache_dir / "pulled_findings.json"
+    pull_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    count = len(payload) if isinstance(payload, list) else 1
+    console.print(f"[green]Pulled findings:[/green] {count} -> {pull_file}")
+    _audit("pull", profile=profile, detail=f"count={count}", success=True)
+
+
+@report_app.command("generate")
+def report_generate(
+    format: str = typer.Option("html", "--format", help="Output format: html|json|sarif|pdf"),
+    output: Optional[str] = typer.Option(None, "--output", help="Destination file path"),
+    profile: Optional[str] = typer.Option(None, "--profile", help="Profile override"),
+) -> None:
+    """Generate a local report from findings history."""
+    selected_profile = profile or _resolve_profile()
+    history_file = _CONFIG_DIR / "scan_history.json"
+    findings = json.loads(history_file.read_text(encoding="utf-8")) if history_file.exists() else []
+    payload = {
+        "profile": selected_profile,
+        "total_findings": len(findings),
+        "critical": sum(1 for f in findings if str(f.get("severity", "")).lower() == "critical"),
+        "high": sum(1 for f in findings if str(f.get("severity", "")).lower() == "high"),
+        "medium": sum(1 for f in findings if str(f.get("severity", "")).lower() == "medium"),
+        "low": sum(1 for f in findings if str(f.get("severity", "")).lower() == "low"),
+        "findings": findings,
+    }
+    dest = Path(output) if output else Path.cwd() / f"cosmicsec-report.{format}"
+    if format.lower() == "json":
+        dest.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    elif format.lower() == "html":
+        html = [
+            "<html><head><title>CosmicSec Report</title></head><body>",
+            f"<h1>CosmicSec Report ({selected_profile})</h1>",
+            f"<p>Total findings: {payload['total_findings']}</p>",
+            f"<p>Critical: {payload['critical']} | High: {payload['high']} | Medium: {payload['medium']} | Low: {payload['low']}</p>",
+            "</body></html>",
+        ]
+        dest.write_text("\n".join(html), encoding="utf-8")
+    elif format.lower() == "sarif":
+        sarif = {
+            "version": "2.1.0",
+            "runs": [{"tool": {"driver": {"name": "CosmicSec Agent"}}, "results": findings}],
+        }
+        dest.write_text(json.dumps(sarif, indent=2), encoding="utf-8")
+    else:
+        dest.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    console.print(f"[green]Report generated:[/green] {dest}")
+    _audit("report_generate", profile=selected_profile, detail=f"format={format};path={dest}", success=True)
+
+
+@report_app.command("send")
+def report_send(
+    file: str = typer.Option(..., "--file", help="Report file path"),
+    destination: str = typer.Option(..., "--to", help="Webhook/email/API destination"),
+) -> None:
+    """Send an existing report to a webhook endpoint."""
+    import httpx
+
+    report_path = Path(file)
+    if not report_path.exists():
+        console.print(f"[red]Report file not found:[/red] {report_path}")
+        _audit("report_send", detail=f"missing={report_path}", success=False)
+        raise typer.Exit(1)
+    try:
+        with report_path.open("rb") as fh:
+            resp = httpx.post(
+                destination,
+                files={"report": (report_path.name, fh.read(), "application/octet-stream")},
+                timeout=30.0,
+            )
+    except Exception as exc:
+        console.print(f"[red]Failed to send report:[/red] {exc}")
+        _audit("report_send", detail=f"file={report_path};dest={destination}", success=False)
+        raise typer.Exit(1) from exc
+    if resp.status_code >= 400:
+        console.print(f"[red]Destination rejected report:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("report_send", detail=f"file={report_path};dest={destination}", success=False)
+        raise typer.Exit(1)
+    console.print("[green]Report sent successfully.[/green]")
+    _audit("report_send", detail=f"file={report_path};dest={destination}", success=True)
+
+
+@ci_app.command("scan")
+def ci_scan(
+    path: str = typer.Option(".", "--path", help="Repository path"),
+    output: str = typer.Option("ci-scan-results.json", "--output", help="Result output file"),
+) -> None:
+    """Run local static scan command used by CI pipelines."""
+    root = Path(path)
+    if not root.exists():
+        console.print(f"[red]Path not found:[/red] {root}")
+        _audit("ci_scan", detail=f"missing={root}", success=False)
+        raise typer.Exit(1)
+    file_count = 0
+    by_ext: dict[str, int] = {}
+    for file in root.rglob("*"):
+        if not file.is_file():
+            continue
+        file_count += 1
+        ext = file.suffix.lower() or "<none>"
+        by_ext[ext] = by_ext.get(ext, 0) + 1
+    findings = []
+    if (root / ".env").exists():
+        findings.append({"id": "ci-env-file", "severity": "high", "title": ".env file present in repository root"})
+    if (root / ".git" / "hooks").exists():
+        findings.append({"id": "ci-hooks-exist", "severity": "low", "title": "Local git hooks directory present"})
+    payload = {"path": str(root), "summary": {"files": file_count, "extensions": by_ext}, "findings": findings}
+    out = Path(output)
+    out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    console.print(f"[green]CI scan complete:[/green] {out}")
+    _audit("ci_scan", detail=f"path={path};output={output};findings={len(findings)}", success=True)
+
+
+@ci_app.command("gate")
+def ci_gate(
+    input_file: str = typer.Option("ci-scan-results.json", "--input", help="Scan results file"),
+    max_critical: int = typer.Option(0, "--max-critical", min=0, help="Allowed critical findings"),
+    max_high: int = typer.Option(5, "--max-high", min=0, help="Allowed high findings"),
+) -> None:
+    """Evaluate policy gates from a findings file."""
+    result_file = Path(input_file)
+    if not result_file.exists():
+        console.print(f"[red]Input not found:[/red] {result_file}")
+        _audit("ci_gate", detail=f"missing={result_file}", success=False)
+        raise typer.Exit(1)
+    data = json.loads(result_file.read_text(encoding="utf-8"))
+    findings = data if isinstance(data, list) else data.get("findings", [])
+    critical = sum(1 for f in findings if str(f.get("severity", "")).lower() == "critical")
+    high = sum(1 for f in findings if str(f.get("severity", "")).lower() == "high")
+    passed = critical <= max_critical and high <= max_high
+    console.print(
+        f"[bold]{'PASS' if passed else 'FAIL'}[/bold] critical={critical}/{max_critical} high={high}/{max_high}"
+    )
+    _audit("ci_gate", detail=f"critical={critical};high={high};passed={passed}", success=passed)
+    if not passed:
+        raise typer.Exit(1)
+
+
+@ci_app.command("diff")
+def ci_diff(
+    baseline: str = typer.Option(..., "--baseline", help="Baseline findings file"),
+    current: str = typer.Option(..., "--current", help="Current findings file"),
+) -> None:
+    """Compare baseline and current findings and print deltas."""
+    baseline_path = Path(baseline)
+    current_path = Path(current)
+    if not baseline_path.exists() or not current_path.exists():
+        console.print("[red]Baseline or current file not found.[/red]")
+        _audit("ci_diff", detail="missing_input", success=False)
+        raise typer.Exit(1)
+    base_data = json.loads(baseline_path.read_text(encoding="utf-8"))
+    curr_data = json.loads(current_path.read_text(encoding="utf-8"))
+    base_findings = base_data if isinstance(base_data, list) else base_data.get("findings", [])
+    curr_findings = curr_data if isinstance(curr_data, list) else curr_data.get("findings", [])
+    base_keys = {str(f.get("fingerprint") or f.get("id") or f.get("title")) for f in base_findings}
+    curr_keys = {str(f.get("fingerprint") or f.get("id") or f.get("title")) for f in curr_findings}
+    introduced = sorted([k for k in curr_keys if k not in base_keys])
+    fixed = sorted([k for k in base_keys if k not in curr_keys])
+    table = Table(title="Findings Diff")
+    table.add_column("Type", style="cyan")
+    table.add_column("Count", style="magenta")
+    table.add_row("Introduced", str(len(introduced)))
+    table.add_row("Fixed", str(len(fixed)))
+    console.print(table)
+    _audit("ci_diff", detail=f"introduced={len(introduced)};fixed={len(fixed)}", success=True)
 
 
 # ---------------------------------------------------------------------------
