@@ -41,9 +41,11 @@ cosmicsec-agent sync status
 ## Documentation map
 
 - `docs/cli/authentication.md`
+- `docs/cli/installation.md`
 - `docs/cli/scanning.md`
 - `docs/cli/ai-features.md`
 - `docs/cli/workflows.md`
 - `docs/cli/ci-cd.md`
 - `docs/cli/plugins.md`
 - `docs/cli/troubleshooting.md`
+- `docs/cli/cosmicsec-agent.1`

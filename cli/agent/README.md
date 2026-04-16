@@ -11,6 +11,17 @@ cosmicsec-agent discover
 cosmicsec-agent scan --target 127.0.0.1 --tool nmap
 ```
 
+## Installation Options
+
+```bash
+# pipx (recommended for end users)
+pipx install cosmicsec-agent
+
+# editable (contributors)
+cd cli/agent
+pip install -e .
+```
+
 ## Core Commands
 
 ### Discovery
@@ -78,6 +89,12 @@ You can invoke the same CLI as `cosmicsec` once installed:
 ```bash
 cosmicsec --version
 ```
+
+## Distribution Assets
+
+- Homebrew formula template: `cli/agent/homebrew/cosmicsec-agent.rb`
+- Man page source: `docs/cli/cosmicsec-agent.1`
+- Regenerate man page: `python scripts/generate-cli-manpage.py`
 
 ## Troubleshooting
 
