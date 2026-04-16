@@ -73,7 +73,7 @@ CosmicSec serves **three kinds of visitors** with fundamentally different needs:
 > **Implementation refresh 2026-04-16 (post-Phase-J expansion):**
 > - Overall platform delivery is now tracked as **100% completed** against roadmap scope.
 > - Companion execution roadmap (`ROADMAP_NEXT.md`) now tracks **100%** aggregate completion, including Q/R/S and cross-cutting modernization closure.
-> - CLI companion roadmap (`ROADMAP_CLI_AGENT.md`) advanced to: **CA-1 96%, CA-2 97%, CA-7 90%, CA-8 86%, CA-9 82%, CA-10 84%**.
+> - CLI companion roadmap (`ROADMAP_CLI_AGENT.md`) now tracks **CA-1/CA-2/CA-7/CA-8/CA-9/CA-10 at 100%**.
 > - New implementation highlights: strict CORS allowlist enforcement, authenticated scan websocket gate, offline findings import/sync path (gateway + scan service + CLI), expanded enterprise OAuth/SAML exchange flows, plugin runtime auto-load/reload, Rust parser acceleration scaffold, expanded built-in CLI parser coverage (10 tools), relay API-key hash validation hardening, and CI expansion (SAST/SBOM/Trivy/SRI/sqlmap/perf/visual/a11y/release/staging + automation recommit workflows).
 
 ### ✅ What Is Built
