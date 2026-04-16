@@ -86,3 +86,19 @@ def test_ai_agent_endpoint() -> None:
     data = response.json()
     assert "strategy" in data
     assert "actions" in data
+
+
+def test_ai_kb_refresh_endpoint() -> None:
+    """Q.3 — POST /kb/refresh triggers KB reload and returns counts."""
+    response = client.post("/kb/refresh")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] in ("refreshed", "fallback")
+    assert "nvd_cves" in data
+    assert "mitre_techniques" in data
+    assert "total_ingested" in data
+    assert "timestamp" in data
+    # counts must be non-negative integers
+    assert data["nvd_cves"] >= 0
+    assert data["mitre_techniques"] >= 0
+    assert data["total_ingested"] == data["nvd_cves"] + data["mitre_techniques"]
