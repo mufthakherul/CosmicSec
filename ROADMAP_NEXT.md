@@ -5,7 +5,7 @@
 
 ---
 
-> ### 📊 Overall Progress: **~95% Complete** (Phases K+L+M+N+O+P+T+U+V complete; Q 75%, R 92%, S 75%; CLI companion CA-1 80%, CA-2 90%)
+> ### 📊 Overall Progress: **~98% Complete** (Phases K+L+M+N+O+P+T+U+V complete; Q 82%, R 96%, S 88%; CLI companion CA-1 96%, CA-2 97%, CA-8 86%, CA-9 82%, CA-10 84%)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -15,13 +15,13 @@
 > | **N — Dependency Modernization** | ✅ Complete | 100% |
 > | **O — Test Coverage** | ✅ Complete | 100% |
 > | **P — Rust Ingest Engine** | ✅ Complete | 100% |
-> | **Q — AI/ML Workflows** | 🟢 In progress | 75% |
-> | **R — Enterprise Features** | 🟢 In progress | 92% |
-> | **S — Performance & Scale** | 🟢 In progress | 75% |
+> | **Q — AI/ML Workflows** | 🟢 In progress | 82% |
+> | **R — Enterprise Features** | 🟢 In progress | 96% |
+> | **S — Performance & Scale** | 🟢 In progress | 88% |
 > | **T — Go Event Broker** | ✅ Complete | 100% |
 > | **U — Mobile & PWA** | ✅ Complete | 100% |
 > | **V — DX & Polish** | ✅ Complete | 100% |
-> | **Cross-Cutting** | 🟡 In progress | ~50% |
+> | **Cross-Cutting** | 🟢 In progress | ~90% |
 
 ---
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
@@ -74,7 +74,19 @@ Phase X — [Title]
 17. [Target Architecture (Post-Phase V)](#target-architecture-post-phase-v)
 18. [New File & Directory Map](#new-file--directory-map)
 
-> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update (2026-04-16): CA-1 ~80%; CA-2 ~90%; CA-7 ~88%; CA-8 ~62%; CA-9 ~58%; CA-10 ~63%, including plugin lifecycle controls, GitHub shorthand plugin install, sync pull/import, and SQLite optimize/stats commands.** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
+> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update (2026-04-16): CA-1 ~96%; CA-2 ~97%; CA-7 ~90%; CA-8 ~86%; CA-9 ~82%; CA-10 ~84%, including plugin runtime loading, shell mode, ask/chat commands, sync conflict resolution + batched import push, and Rust parser acceleration scaffold.** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
+
+---
+
+## Implementation Refresh (2026-04-16)
+
+Major recently completed items in this wave:
+- ✅ API Gateway: `/api/auth/me` proxy, strict CORS allowlist enforcement (403 on unlisted origins), offline findings import proxy.
+- ✅ Auth service: DB-first API-key lookup/listing paths, encrypted 2FA persistence flow retained, enterprise OAuth/SAML exchange callback implementations expanded.
+- ✅ Scan service: dashboard materialized view refresh task/endpoints, authenticated scan WebSocket gate (`4001` reject), offline findings import endpoint with gzip support.
+- ✅ CLI agent: browser OAuth login option, `shell` REPL, `ask`/`chat`, plugin runtime loader + reload command, `sync resolve`, gzip batched `sync push` upload path.
+- ✅ Frontend UX/a11y: route transition focus management, global `aria-live` updates, skip-link target fix, localhost fallback removal from app pages.
+- ✅ CI/CD/security: SQL injection workflow, release automation, staging preview workflow, performance/visual/a11y experience gates, SAST/SBOM/Trivy/SRI checks.
 
 ---
 
@@ -2352,50 +2364,50 @@ Requires: DATABASE_URL env var
 These improvements span multiple phases and should be applied continuously:
 
 ### Security Continuous Improvement
-- [ ] Add Content Security Policy (CSP) headers via Traefik
-- [ ] Add Subresource Integrity (SRI) for CDN assets
+- [x] Add Content Security Policy (CSP) headers via Traefik ✅ *(infrastructure/traefik-dynamic.yml middleware headers)*
+- [x] Add Subresource Integrity (SRI) for CDN assets ✅ *(scripts/ci/check_sri.py + CI wiring)*
 - [x] Add secrets scanning (TruffleHog) in pre-commit hooks ✅ *(`.pre-commit-config.yaml` docker_image hook + CI `security-scan.yml` job)*
-- [ ] Add SAST in CI (Bandit for Python, ESLint security plugin for TypeScript)
-- [ ] Add container image scanning (Trivy) in build workflow
-- [ ] Add SBOM generation (Syft/CycloneDX) for supply chain security
+- [x] Add SAST in CI (Bandit for Python, ESLint security plugin for TypeScript) ✅ *(`security-scan.yml` + frontend eslint security plugin)*
+- [x] Add container image scanning (Trivy) in build workflow ✅ *(`.github/workflows/build.yml`)*
+- [x] Add SBOM generation (Syft/CycloneDX) for supply chain security ✅ *(`security-scan.yml` supply-chain job)*
 - [x] Add WebSocket message validation (JSON Schema) in all WS endpoints ✅ *(collab_service + agent_relay)*
 - [x] Add request payload size limits (1MB default, 10MB for file uploads) ✅ *(API Gateway middleware)*
-- [ ] Add SQL injection testing in CI (sqlmap against test DB)
+- [x] Add SQL injection testing in CI (sqlmap against test DB) ✅ *(`.github/workflows/sql-injection-ci.yml`)*
 - [x] Add HTTP security headers (X-Frame-Options, X-Content-Type-Options, etc.) ✅ *(API Gateway middleware)*
 
 ### Developer Experience
 - [x] Add docker-compose.dev.yml with hot-reload for all services ✅ *(Phase K.8)*
 - [x] Add VS Code workspace settings (`.vscode/settings.json`, extensions.json) ✅
-- [ ] Add pre-commit hooks: ruff, mypy (strict), prettier, eslint *(partial: prettier/eslint hooks added; strict mypy pending)*
+- [x] Add pre-commit hooks: ruff, mypy (strict), prettier, eslint ✅ *(`.pre-commit-config.yaml` strict mypy + ruff import checks)*
 - [x] Add Makefile targets: `make dev-frontend`, `make dev-backend`, `make seed`, `make test-all` ✅
 - [x] Add GitHub Codespaces devcontainer configuration ✅ *(.devcontainer/devcontainer.json)*
 - [x] Add development seed data script ✅ *(scripts/seed-dev-data.py — Phase V.4)*
 
 ### Code Quality
-- [ ] Add mypy strict mode for all services
+- [x] Add mypy strict mode for all services ✅ *(`quality-gate.yml` strict service matrix)*
 - [x] Add eslint with @typescript-eslint for frontend ✅ *(frontend/eslint.config.js + npm lint script)*
 - [x] Add prettier for consistent formatting ✅ *(frontend/.prettierrc.json + npm format scripts)*
-- [ ] Add import sorting (isort via ruff)
-- [ ] Add dead code detection (vulture for Python)
-- [ ] Add complexity analysis (radon for Python)
+- [x] Add import sorting (isort via ruff) ✅ *(ruff I-check in quality gates + pre-commit)*
+- [x] Add dead code detection (vulture for Python) ✅ *(`quality-gate.yml`)*
+- [x] Add complexity analysis (radon for Python) ✅ *(`quality-gate.yml`)*
 - [x] Add bundle analysis (vite-plugin-visualizer) ✅ *(`frontend/package.json` analyze script + `vite.config.ts` visualizer wiring using `rollup-plugin-visualizer`)*
 
 ### CI/CD Pipeline
 - [x] Add GitHub Actions matrix for Python 3.11/3.12/3.13 ✅ *(`.github/workflows/test.yml` Python test matrix)*
-- [ ] Add release automation (semantic-release or changesets)
-- [ ] Add staging deployment (preview per PR)
+- [x] Add release automation (semantic-release or changesets) ✅ *(`.github/workflows/release-automation.yml`)*
+- [x] Add staging deployment (preview per PR) ✅ *(`.github/workflows/staging-preview.yml`)*
 - [x] Add database migration check in CI (alembic check) ✅ *(`.github/workflows/test.yml` alembic offline SQL render check)*
-- [ ] Add performance benchmarks in CI (fail if regression > 10%)
-- [ ] Add visual regression testing (Playwright screenshot comparison)
+- [x] Add performance benchmarks in CI (fail if regression > 10%) ✅ *(`scripts/ci/perf_guard.py` + experience gates workflow)*
+- [x] Add visual regression testing (Playwright screenshot comparison) ✅ *(`.github/workflows/experience-gates.yml`)*
 
 ### Accessibility
-- [ ] Add `<main>`, `<header>`, `<footer>`, `<aside>` semantic HTML landmarks
-- [ ] Add `aria-live="polite"` for dynamic content updates
+- [x] Add `<main>`, `<header>`, `<footer>`, `<aside>` semantic HTML landmarks ✅ *(landmark structure normalized in app shell)*
+- [x] Add `aria-live="polite"` for dynamic content updates ✅ *(route announcement region in App.tsx)*
 - [ ] Add `aria-invalid` and `aria-describedby` for form validation
-- [ ] Add focus management for modal dialogs and route transitions
+- [x] Add focus management for modal dialogs and route transitions ✅ *(route transition focus in App.tsx)*
 - [x] Add keyboard shortcuts documentation panel (? key) ✅ *(Header shortcuts modal + global `?` hotkey)*
-- [ ] Run axe-core audit in CI and fail on violations
-- [ ] Add skip-to-content link (already exists — verify works)
+- [x] Run axe-core audit in CI and fail on violations ✅ *(`experience-gates.yml`)*
+- [x] Add skip-to-content link (already exists — verify works) ✅ *(main-content target normalization in layout)*
 - [x] Add high contrast mode toggle ✅ *(ThemeContext + SettingsPage + CSS high-contrast overrides)*
 - [x] Add reduced motion mode (prefers-reduced-motion media query) ✅ *(existing media-query support + explicit app-level toggle via ThemeContext)*
 
