@@ -19,29 +19,41 @@ import {
   Zap,
   Shield,
   SlidersHorizontal,
+  type LucideIcon,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { useNotificationStore } from "../store/notificationStore";
+import { useSearch } from "../hooks/useSearch";
 
 // ---------------------------------------------------------------------------
 // Search bar
 // ---------------------------------------------------------------------------
 
 function GlobalSearch() {
+  type SearchRow = {
+    id: string;
+    label: string;
+    description: string;
+    path: string;
+    icon: LucideIcon;
+    keywords?: string;
+  };
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [query, setQuery] = useState("");
+  const { query, setQuery, results: apiResults, isLoading, error } = useSearch();
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const entries = useMemo(() => {
-    const baseEntries = [
+  const quickLinks = useMemo(() => {
+    const baseEntries: SearchRow[] = [
       {
+        id: "link-dashboard",
         label: "Dashboard",
         description: "Overview, metrics, and activity",
         path: "/dashboard",
@@ -49,6 +61,7 @@ function GlobalSearch() {
         keywords: "home overview stats summary",
       },
       {
+        id: "link-scans",
         label: "Scans",
         description: "Run and manage security scans",
         path: "/scans",
@@ -56,6 +69,7 @@ function GlobalSearch() {
         keywords: "scan target tools findings",
       },
       {
+        id: "link-recon",
         label: "Recon",
         description: "Reconnaissance workflows and results",
         path: "/recon",
@@ -63,6 +77,7 @@ function GlobalSearch() {
         keywords: "recon osint domain subdomain",
       },
       {
+        id: "link-ai",
         label: "AI Analysis",
         description: "AI-assisted threat and finding analysis",
         path: "/ai",
@@ -70,6 +85,7 @@ function GlobalSearch() {
         keywords: "ai analysis explain remediation",
       },
       {
+        id: "link-timeline",
         label: "Timeline",
         description: "Events and incident timeline",
         path: "/timeline",
@@ -77,6 +93,7 @@ function GlobalSearch() {
         keywords: "events activity incident history",
       },
       {
+        id: "link-reports",
         label: "Reports",
         description: "Generate and export reports",
         path: "/reports",
@@ -84,6 +101,7 @@ function GlobalSearch() {
         keywords: "pdf report export compliance",
       },
       {
+        id: "link-bugbounty",
         label: "Bug Bounty",
         description: "Bounty programs and submissions",
         path: "/bugbounty",
@@ -91,6 +109,7 @@ function GlobalSearch() {
         keywords: "bounty submissions rewards",
       },
       {
+        id: "link-phase5",
         label: "SOC / Phase5",
         description: "SOC and advanced operations center",
         path: "/phase5",
@@ -98,6 +117,7 @@ function GlobalSearch() {
         keywords: "soc phase5 operations alerts",
       },
       {
+        id: "link-agents",
         label: "Agents",
         description: "Agent fleet and execution status",
         path: "/agents",
@@ -105,6 +125,7 @@ function GlobalSearch() {
         keywords: "agents autonomous runtime",
       },
       {
+        id: "link-settings",
         label: "Settings",
         description: "Preferences and account defaults",
         path: "/settings",
@@ -115,6 +136,7 @@ function GlobalSearch() {
 
     if (user?.role === "admin") {
       baseEntries.push({
+        id: "link-admin",
         label: "Admin",
         description: "Administrative controls and users",
         path: "/admin",
@@ -127,16 +149,74 @@ function GlobalSearch() {
   }, [user?.role]);
 
   const normalized = query.trim().toLowerCase();
-  const results = useMemo(() => {
+  const fallbackLinks = useMemo(() => {
     if (!normalized) {
-      return entries.slice(0, 8);
+      return quickLinks.slice(0, 8);
     }
-    return entries
+    return quickLinks
       .filter((item) =>
-        `${item.label} ${item.description} ${item.keywords}`.toLowerCase().includes(normalized),
+        [item.label, item.description, item.keywords]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(normalized),
       )
       .slice(0, 8);
-  }, [entries, normalized]);
+  }, [quickLinks, normalized]);
+
+  const sections = useMemo(() => {
+    if (!normalized) {
+      return [{ title: "Quick links", items: fallbackLinks }];
+    }
+
+    if (error) {
+      return [{ title: "Quick links", items: fallbackLinks }];
+    }
+
+    const scanItems: SearchRow[] = apiResults.scans.map((scan) => ({
+      id: `scan-${scan.id}`,
+      label: scan.target || scan.id,
+      description: `Scan ${scan.id} • ${scan.status}`,
+      path: `/scans/${scan.id}`,
+      icon: Radar,
+    }));
+
+    const findingItems: SearchRow[] = apiResults.findings.map((finding) => ({
+      id: `finding-${finding.id}`,
+      label: finding.title || finding.id,
+      description: `${finding.severity} finding • scan ${finding.scan_id}`,
+      path: `/scans/${finding.scan_id}`,
+      icon: Bug,
+    }));
+
+    const agentItems: SearchRow[] = apiResults.agents.map((agent) => ({
+      id: `agent-${agent.id}`,
+      label: agent.name || agent.id,
+      description: `${agent.status} • ${agent.id}`,
+      path: "/agents",
+      icon: Zap,
+    }));
+
+    const reportItems: SearchRow[] = apiResults.reports.map((report) => ({
+      id: `report-${report.id}`,
+      label: report.id,
+      description: `${report.format.toUpperCase()} • ${report.status}`,
+      path: "/reports",
+      icon: FileText,
+    }));
+
+    return [
+      { title: "Scans", items: scanItems },
+      { title: "Findings", items: findingItems },
+      { title: "Agents", items: agentItems },
+      { title: "Reports", items: reportItems },
+    ].filter((section) => section.items.length > 0);
+  }, [apiResults, error, fallbackLinks, normalized]);
+
+  const resultItems: SearchRow[] = useMemo(
+    () => sections.flatMap((section) => section.items),
+    [sections],
+  );
   const shortcutLabel = useMemo(() => {
     if (typeof navigator === "undefined") {
       return "Ctrl+K";
@@ -188,23 +268,25 @@ function GlobalSearch() {
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((idx) => (results.length ? (idx + 1) % results.length : 0));
-      return;
-    }
+       setActiveIndex((idx) => (resultItems.length ? (idx + 1) % resultItems.length : 0));
+       return;
+     }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActiveIndex((idx) => (results.length ? (idx - 1 + results.length) % results.length : 0));
-      return;
-    }
+       setActiveIndex((idx) =>
+         resultItems.length ? (idx - 1 + resultItems.length) % resultItems.length : 0,
+       );
+       return;
+     }
 
-    if (event.key === "Enter") {
-      event.preventDefault();
-      if (results[activeIndex]) {
-        goTo(results[activeIndex].path);
-      }
-      return;
-    }
+     if (event.key === "Enter") {
+       event.preventDefault();
+       if (resultItems[activeIndex]) {
+         goTo(resultItems[activeIndex].path);
+       }
+       return;
+     }
 
     if (event.key === "Escape") {
       setOpen(false);
@@ -248,35 +330,52 @@ function GlobalSearch() {
             to navigate
           </div>
 
-          {results.length === 0 ? (
-            <div className="px-4 py-6 text-sm text-slate-400">No matching pages found.</div>
+          {error && normalized && (
+            <div className="border-b border-amber-700/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+              Search unavailable — showing quick links.
+            </div>
+          )}
+
+          {isLoading && normalized ? (
+            <div className="px-4 py-6 text-sm text-slate-400">Searching…</div>
+          ) : resultItems.length === 0 ? (
+            <div className="px-4 py-6 text-sm text-slate-400">No matching results found.</div>
           ) : (
             <ul className="max-h-80 overflow-y-auto py-1" role="listbox" aria-label="Search results">
-              {results.map((item, index) => {
-                const Icon = item.icon;
-                const isActive = index === activeIndex;
-                return (
-                  <li key={item.path}>
-                    <button
-                      type="button"
-                      onMouseEnter={() => setActiveIndex(index)}
-                      onClick={() => goTo(item.path)}
-                      className={[
-                        "flex w-full items-start gap-3 px-3 py-2 text-left transition-colors",
-                        isActive ? "bg-cyan-500/10" : "hover:bg-slate-800/80",
-                      ].join(" ")}
-                    >
-                      <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-cyan-400" />
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-slate-100">
-                          {item.label}
+              {sections.map((section) => (
+                <li key={section.title}>
+                  <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    {section.title}
+                  </p>
+                  {section.items.map((item) => {
+                    const itemIndex = resultItems.findIndex((entry) => entry.id === item.id);
+                    const Icon = item.icon;
+                    const isActive = itemIndex === activeIndex;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onMouseEnter={() => setActiveIndex(itemIndex)}
+                        onClick={() => goTo(item.path)}
+                        className={[
+                          "flex w-full items-start gap-3 px-3 py-2 text-left transition-colors",
+                          isActive ? "bg-cyan-500/10" : "hover:bg-slate-800/80",
+                        ].join(" ")}
+                      >
+                        <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-cyan-400" />
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-slate-100">
+                            {item.label}
+                          </span>
+                          <span className="block truncate text-xs text-slate-400">
+                            {item.description}
+                          </span>
                         </span>
-                        <span className="block truncate text-xs text-slate-400">{item.description}</span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
+                      </button>
+                    );
+                  })}
+                </li>
+              ))}
             </ul>
           )}
         </div>

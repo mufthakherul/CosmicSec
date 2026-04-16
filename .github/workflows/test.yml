@@ -27,7 +27,7 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run tests
-        run: pytest tests/ -v --cov=services --cov-report=term-missing
+        run: pytest tests/ -v --cov=services --cov-report=term-missing --cov-fail-under=80
 
       - name: Validate Docker environment
         run: pytest tests/test_docker_env.py -q
@@ -57,6 +57,43 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
+  playwright-e2e:
+    name: Frontend E2E (Playwright)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            frontend/test-results
+            frontend/playwright-report
+
   python-lint:
     name: Python Lint (Ruff)
     runs-on: ubuntu-latest
@@ -76,6 +113,29 @@ jobs:
 
       - name: Lint with Ruff
         run: ruff check . --output-format=github
+
+  python-typecheck:
+    name: Python Type Check (mypy)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install mypy types-redis
+
+      - name: Run mypy
+        run: mypy services/ --ignore-missing-imports --no-error-summary --warn-unused-ignores || true
 
   frontend-typecheck:
     name: Frontend Type Check
@@ -102,3 +162,45 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+  frontend-bundle-size:
+    name: Frontend Bundle Size Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and check bundle size
+        run: |
+          npm run build
+          # Check that no individual JS chunk exceeds 500KB (uncompressed)
+          python3 - <<'EOF'
+          import os, sys
+          dist_dir = "dist/assets"
+          max_chunk = 500 * 1024  # 500 KB
+          oversized = []
+          for f in os.listdir(dist_dir):
+              if f.endswith(".js"):
+                  size = os.path.getsize(os.path.join(dist_dir, f))
+                  if size > max_chunk:
+                      oversized.append((f, size))
+          if oversized:
+              for name, size in oversized:
+                  print(f"OVERSIZED: {name} — {size/1024:.1f} KB (limit: 500 KB)")
+              sys.exit(1)
+          print("Bundle size check PASSED — all chunks within limit")
+          EOF

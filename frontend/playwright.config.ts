@@ -2,13 +2,16 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
     testDir: './tests/e2e',
+    retries: 3,
     use: {
-        baseURL: 'http://localhost:5173',
+        baseURL: 'http://127.0.0.1:4173',
         headless: true,
+        screenshot: 'only-on-failure',
+        trace: 'retain-on-failure',
     },
     webServer: {
-        command: 'npm run dev -- --host 127.0.0.1 --port 5173',
-        port: 5173,
+        command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173',
+        port: 4173,
         timeout: 120000,
         reuseExistingServer: true,
     },

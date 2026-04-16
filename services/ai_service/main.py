@@ -3,9 +3,15 @@ CosmicSec AI Service — Helix AI engine.
 
 Phase 1: LangChain + TF-IDF RAG, OpenAI chain, security analysis endpoints.
 Phase 2: ChromaDB vector store, MITRE ATT&CK, NL interface, autonomous agents.
+Phase S.1: Redis caching for analysis results (1 hour TTL) and MITRE mappings (24 hour TTL).
 """
 
+import asyncio
+import contextlib
+import hashlib
+import json as _json_module
 import logging
+import os as _os_module
 import uuid
 from datetime import UTC, datetime
 
@@ -16,9 +22,11 @@ from pydantic import BaseModel, Field
 from services.common.observability import setup_observability
 
 from .agent import run_security_agent
+from .agents import run_assessment_workflow
 from .ai_agents import get_exploit_guidance, run_autonomous_agent
 from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
 from .defensive_ai import DefensiveAI
+from .kb_loader import load_all as kb_load_all
 from .mitre_attack import map_multiple
 from .prompt_templates import SUMMARY_TEMPLATE
 from .quantum_security import decrypt_payload, encrypt_payload, hybrid_key_exchange, list_algorithms
@@ -171,8 +179,54 @@ async def health_check() -> dict:
     }
 
 
+
+# ---------------------------------------------------------------------------
+# Phase S.1 — AI result caching (Redis, graceful fallback)
+# ---------------------------------------------------------------------------
+try:
+    import redis as _ai_redis_module
+    _ai_redis = _ai_redis_module.from_url(
+        f"redis://{_os_module.getenv('REDIS_HOST', 'localhost')}:{_os_module.getenv('REDIS_PORT', '6379')}/0",
+        decode_responses=True,
+        socket_connect_timeout=2,
+    )
+    _ai_redis.ping()
+    _AI_CACHE_ENABLED = True
+except Exception:
+    _ai_redis = None
+    _AI_CACHE_ENABLED = False
+
+
+def _ai_cache_key(namespace: str, data: str) -> str:
+    return f"ai:{namespace}:{hashlib.sha256(data.encode()).hexdigest()}"
+
+
+def _ai_cache_get(key: str) -> dict | None:
+    if not _AI_CACHE_ENABLED or _ai_redis is None:
+        return None
+    try:
+        raw = _ai_redis.get(key)
+        return _json_module.loads(raw) if raw else None
+    except Exception:
+        return None
+
+
+def _ai_cache_set(key: str, value: dict, ttl: int) -> None:
+    if not _AI_CACHE_ENABLED or _ai_redis is None:
+        return
+    with contextlib.suppress(Exception):
+        _ai_redis.setex(key, ttl, _json_module.dumps(value, default=str))
+
+
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_findings(payload: AnalyzeRequest) -> AnalyzeResponse:
+    # Cache key: hash of target + sorted finding titles
+    cache_input = payload.target + "|" + "|".join(sorted(f.title for f in payload.findings))
+    cache_key = _ai_cache_key("analyze", cache_input)
+    cached = _ai_cache_get(cache_key)
+    if cached:
+        return AnalyzeResponse(**cached)
+
     critical_count = sum(
         1 for finding in payload.findings if finding.severity.lower() == "critical"
     )
@@ -193,7 +247,9 @@ async def analyze_findings(payload: AnalyzeRequest) -> AnalyzeResponse:
         high=high_count,
     )
 
-    return AnalyzeResponse(summary=summary, risk_score=risk_score, recommendations=recommendations)
+    result = AnalyzeResponse(summary=summary, risk_score=risk_score, recommendations=recommendations)
+    _ai_cache_set(cache_key, result.model_dump(), ttl=3600)  # 1 hour
+    return result
 
 
 @app.post("/analyze/agent", response_model=AgentResponse)
@@ -232,9 +288,17 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
 @app.post("/analyze/mitre", response_model=MitreResponse)
 async def analyze_mitre(payload: MitreRequest) -> MitreResponse:
     """Map a list of findings to MITRE ATT&CK tactics and techniques."""
+    cache_key = _ai_cache_key("mitre", "|".join(sorted(payload.findings)))
+    cached = _ai_cache_get(cache_key)
+    if cached:
+        entries = [MitreEntry(**m) for m in cached.get("mappings", [])]
+        return MitreResponse(mappings=entries, total=len(entries))
+
     raw_mappings = map_multiple(payload.findings)
     entries = [MitreEntry(**m) for m in raw_mappings]
-    return MitreResponse(mappings=entries, total=len(entries))
+    response = MitreResponse(mappings=entries, total=len(entries))
+    _ai_cache_set(cache_key, response.model_dump(), ttl=86400)  # 24 hours
+    return response
 
 
 @app.post("/kb/ingest")
@@ -255,6 +319,39 @@ async def kb_stats() -> dict:
         "chromadb_documents": collection_count(),
         "timestamp": datetime.now(tz=UTC).isoformat(),
     }
+
+
+@app.post("/kb/refresh")
+async def kb_refresh() -> dict:
+    """
+    Trigger a fresh download and re-ingestion of the RAG knowledge base.
+
+    Re-downloads NVD CVE feeds and MITRE ATT&CK STIX data, then ingests
+    all documents into ChromaDB.  Returns counts for each data source.
+
+    Fallback: If ChromaDB or the network is unavailable the counts will be 0
+    and the response will include a ``message`` explaining the situation.
+    """
+    try:
+        counts = await kb_load_all()
+        total = sum(counts.values())
+        return {
+            "status": "refreshed",
+            "nvd_cves": counts.get("nvd_cves", 0),
+            "mitre_techniques": counts.get("mitre_techniques", 0),
+            "total_ingested": total,
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+        }
+    except Exception as exc:
+        logger.warning("KB refresh failed: %s", exc)
+        return {
+            "status": "fallback",
+            "nvd_cves": 0,
+            "mitre_techniques": 0,
+            "total_ingested": 0,
+            "message": "KB refresh unavailable — check service logs for details.",
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+        }
 
 
 # ==========================================================================
@@ -738,3 +835,127 @@ async def dispatch_task(req: DispatchTaskRequest):
         pass  # Agent relay may not be running; task still returned
 
     return task_payload
+
+
+# ---------------------------------------------------------------------------
+# Phase Q.4 — Multi-Agent Assessment Workflow endpoint
+# ---------------------------------------------------------------------------
+
+
+class WorkflowRequest(BaseModel):
+    scan_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    findings: list[dict] = Field(default_factory=list)
+    provider: str = Field(default="")
+
+
+class WorkflowResponse(BaseModel):
+    scan_id: str
+    triaged_count: int
+    groups_count: int
+    plan_steps: int
+    remediation_plan: list[dict]
+    errors: list[str]
+    timing: dict
+
+
+@app.post("/workflow/assess", response_model=WorkflowResponse)
+async def run_workflow(req: WorkflowRequest):
+    """
+    Run the full multi-agent triage → analysis → correlation → remediation pipeline.
+
+    Uses LangGraph StateGraph when installed; falls back to a sequential
+    async pipeline with identical semantics.
+    """
+    result = await run_assessment_workflow(
+        findings=req.findings,
+        scan_id=req.scan_id,
+        provider=req.provider,
+    )
+    return WorkflowResponse(
+        scan_id=result["scan_id"],
+        triaged_count=len(result["triaged_findings"]),
+        groups_count=len(result["correlation_groups"]),
+        plan_steps=len(result["remediation_plan"]),
+        remediation_plan=result["remediation_plan"],
+        errors=result["errors"],
+        timing=result["timing"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase Q.5 — Workflow graph visualization + AI model listing
+# ---------------------------------------------------------------------------
+
+
+@app.get("/workflow/{run_id}/graph")
+async def workflow_graph(run_id: str) -> dict:
+    """Return a Mermaid diagram of the multi-agent workflow graph for a given run.
+
+    If the run is not tracked (or LangGraph is not installed), returns the
+    static workflow topology diagram instead.
+    """
+    # Static topology — always available even without LangGraph state tracking
+    static_diagram = (
+        "graph TD\n"
+        "  A([Start]) --> T[TriageAgent]\n"
+        "  T -->|triaged findings| N[AnalysisAgent]\n"
+        "  N -->|enriched findings| C[CorrelationAgent]\n"
+        "  C -->|correlation groups| R[RemediationAgent]\n"
+        "  R --> E([End])\n"
+        "  T -.->|fallback: rule-based triage| C\n"
+        "  N -.->|LLM unavailable: skip| C\n"
+        "  R -.->|error: return partial plan| E\n"
+        "  style T fill:#1e40af,color:#fff\n"
+        "  style N fill:#7c3aed,color:#fff\n"
+        "  style C fill:#0f766e,color:#fff\n"
+        "  style R fill:#b45309,color:#fff\n"
+    )
+    return {
+        "run_id": run_id,
+        "format": "mermaid",
+        "diagram": static_diagram,
+        "nodes": [
+            {"id": "triage", "label": "TriageAgent", "description": "Classify findings by severity & confidence"},
+            {"id": "analysis", "label": "AnalysisAgent", "description": "Deep analysis with RAG context"},
+            {"id": "correlation", "label": "CorrelationAgent", "description": "Group related findings & detect attack chains"},
+            {"id": "remediation", "label": "RemediationAgent", "description": "Prioritized remediation playbook"},
+        ],
+        "edges": [
+            {"from": "triage", "to": "analysis", "label": "triaged findings"},
+            {"from": "analysis", "to": "correlation", "label": "enriched findings"},
+            {"from": "correlation", "to": "remediation", "label": "correlation groups"},
+        ],
+        "timestamp": datetime.now(tz=UTC).isoformat(),
+    }
+
+
+@app.get("/ai/models")
+async def list_models() -> dict:
+    """List all available AI models (local Ollama + configured cloud providers)."""
+    from .llm_providers import list_available_models
+
+    models = await asyncio.to_thread(list_available_models)
+    return {
+        "models": models,
+        "default_provider": _os_module.getenv("COSMICSEC_DEFAULT_LLM_PROVIDER", "auto"),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
+    }
+
+
+@app.post("/ai/models/pull")
+async def pull_model(payload: dict) -> dict:
+    """Trigger Ollama model download. Returns immediately; download runs in background."""
+    model_name = payload.get("model", "")
+    if not model_name:
+        return {"error": "model name required"}
+    ollama_url = _os_module.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(f"{ollama_url}/api/pull", json={"name": model_name})
+            return {"model": model_name, "status": "pulling" if resp.status_code == 200 else "error", "ollama_response": resp.status_code}
+    except Exception as exc:
+        logger.warning("Ollama pull failed for %s: %s", model_name, exc)
+        return {"model": model_name, "status": "error", "detail": "Ollama unavailable"}
+
+
+
