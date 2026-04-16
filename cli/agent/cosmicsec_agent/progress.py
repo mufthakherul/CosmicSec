@@ -297,7 +297,7 @@ async def run_tools_with_progress(
     state = ScanProgressState(tools_total=len(tools))
     token = CancellationToken()
     token.install()
-    all_findings: list[dict] = []
+    tool_results: list[dict] = []
     display = ScanProgressDisplay(state)
 
     semaphore = asyncio.Semaphore(max_parallel)
@@ -316,12 +316,30 @@ async def run_tools_with_progress(
                 parser = _PARSERS.get(name)
                 findings = parser.parse(result.stdout) if parser else []
                 for f in findings:
-                    all_findings.append(f)
                     state.add_finding(f.get("severity", "info"))
                     display.refresh()
-                display.tool_done(name, len(findings))
+                if result.exit_code == 0:
+                    display.tool_done(name, len(findings))
+                else:
+                    display.tool_error(name, f"exit {result.exit_code}")
+                tool_results.append(
+                    {
+                        "name": name,
+                        "exit_code": result.exit_code,
+                        "findings": findings,
+                        "stderr": result.stderr,
+                    }
+                )
             except Exception as exc:
                 display.tool_error(name, str(exc))
+                tool_results.append(
+                    {
+                        "name": name,
+                        "exit_code": 1,
+                        "findings": [],
+                        "stderr": str(exc),
+                    }
+                )
 
     with display:
         tasks = [asyncio.create_task(_run_one(t)) for t in tools]
@@ -329,4 +347,4 @@ async def run_tools_with_progress(
 
     token.uninstall()
     display.print_summary(target)
-    return all_findings, state
+    return tool_results, state
