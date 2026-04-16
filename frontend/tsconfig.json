@@ -12,8 +12,10 @@
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "skipLibCheck": true,
     "noEmit": true,
     "types": [
+      "node",
       "vite/client",
       "vitest/globals"
     ]

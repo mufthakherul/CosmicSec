@@ -60,3 +60,6 @@ logbook.md
 *.sqlite3
 nohup.out
 .coverage
+
+*storybook.log
+storybook-static
