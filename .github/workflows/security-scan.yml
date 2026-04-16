@@ -172,6 +172,7 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
+          # PRs scan introduced commit range; pushes scan from previous commit to current commit.
           base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           head: ${{ github.sha }}
           extra_args: --results=verified,unknown

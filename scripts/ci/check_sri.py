@@ -26,10 +26,11 @@ def _has_integrity(attrs: str) -> bool:
 
 
 def _requires_sri(tag: str, attrs: str) -> bool:
+    tag_lower = tag.lower()
     attrs_lower = attrs.lower()
-    if tag.lower() == "script":
+    if tag_lower == "script":
         return "src=" in attrs_lower
-    if tag.lower() != "link":
+    if tag_lower != "link":
         return False
     rel_match = re.search(r'rel\s*=\s*["\']([^"\']+)["\']', attrs, re.IGNORECASE)
     rel_value = rel_match.group(1).lower() if rel_match else ""
