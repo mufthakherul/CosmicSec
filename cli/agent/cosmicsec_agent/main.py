@@ -1252,6 +1252,15 @@ def theme_set(
     print_banner(console, selected, subtitle="Theme preview")
 
 
+@theme_app.command("current")
+def theme_current() -> None:
+    """Show the currently configured theme."""
+    from .config import SettingsStore
+
+    selected = canonical_theme(str(SettingsStore().get("color_theme"))) or "default"
+    console.print(f"Current theme: [bold]{selected}[/bold]")
+
+
 @theme_app.command("preview")
 def theme_preview(
     name: Optional[str] = typer.Option(None, "--theme", help="Theme name to preview"),
