@@ -5,7 +5,7 @@
 > **Version**: 2.1 (2026-04-16) | **Parent Roadmap**: [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: `cli/agent/` module, related SDK integration, server-side agent relay, AI-driven CLI workflows
-> **Current State**: v0.2.1 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation implemented** (secure credential store, auth/profile/audit commands), tool discovery, scan execution, offline store, WebSocket streaming
+> **Current State**: v0.3.1 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented** (global output callback options, live concurrent scan progress wired into `scan`, history/config/completions), tool discovery, offline store, WebSocket streaming
 
 ---
 
@@ -377,7 +377,7 @@ cosmicsec audit list --limit 5
 
 ---
 
-## Phase CA-2 — Core CLI Overhaul & Modern UX 🟢 IN PROGRESS (~70%)
+## Phase CA-2 — Core CLI Overhaul & Modern UX 🟢 IN PROGRESS (~90%)
 
 > 🎯 **Goal**: Transform the CLI from basic one-shot commands into a polished, modern experience with real-time feedback, output formatting, and scriptability.
 >
@@ -397,16 +397,16 @@ cosmicsec audit list --limit 5
 > - Added `completions` command group (2 commands: `install`, `show`) to `main.py`.
 > - Added 29 tests in `cli/agent/tests/test_cli_phase_ca2.py`.
 
-**Completed in CA-2 (~70%):**
+**Completed in CA-2 (~90%):**
 - ✅ CA-2.1 — `output.py` OutputFormatter (table/json/yaml/csv/quiet, TTY detect, exit codes)
 - ✅ CA-2.2 — `progress.py` Rich Live scan progress + `run_tools_with_progress()` concurrent executor
 - ✅ CA-2.3 — Scan history + findings search/diff/stats (`offline_store.py` + `history` commands)
 - ✅ CA-2.4 — `config.py` TOML settings manager + `config` commands
 - ✅ CA-2.5 — `completions install/show` shell completion script generator
+- ✅ 2026-04-16 follow-up — global callback `--output/-o`, `--no-color`, `--verbose/-v` wired via `set_formatter()`
+- ✅ 2026-04-16 follow-up — `scan` now executes through `run_tools_with_progress()` with `--parallel` control and persisted per-tool status/findings
 
-**Remaining in CA-2 (~30%):**
-- ⏳ Wire `--output/-o` as a global Typer callback option (currently per-command)
-- ⏳ Apply `run_tools_with_progress()` in the `scan` command (replaces current sequential loop)
+**Remaining in CA-2 (~10%):**
 - ⏳ `cosmicsec-agent shell` interactive REPL (CA-3 dependency)
 
 ### CA-2.1 — Global Output Formatting
@@ -1985,7 +1985,7 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 |-------|-------|--------------|--------------|--------|
 | ✅ | **CA-4.5** — Hybrid Dynamic/Static Engine | Done | None | ✅ **Complete** |
 | 1st 🔴 | **CA-1** — Security & Auth | 1 week | Main Phase K | 🟢 In progress (~80%) |
-| 2nd 🔴 | **CA-2** — Core CLI Overhaul | 1–2 weeks | CA-1 | ⏳ Pending |
+| 2nd 🔴 | **CA-2** — Core CLI Overhaul | 1–2 weeks | CA-1 | 🟢 In progress (~90%) |
 | 3rd 🟠 | **CA-4** — AI-Powered CLI (extends CA-4.5) | 2–3 weeks | CA-2, CA-4.5 ✅ | ⏳ Pending |
 | 4th 🟠 | **CA-3** — Interactive TUI | 2–3 weeks | CA-2 | ⏳ Pending |
 | 5th 🟠 | **CA-5** — Orchestration & Pipelines | 2 weeks | CA-2 | ⏳ Pending |
