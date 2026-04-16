@@ -2160,7 +2160,7 @@ Without service worker: app works normally (just no offline/push).
 
 ---
 
-## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~95%)
+## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~97%)
 
 > 🎯 **Goal**: Make CosmicSec a joy to develop on and a premium-feeling product. Add developer documentation, component library, animation polish, and branding refinements.
 >
@@ -2191,6 +2191,8 @@ Without service worker: app works normally (just no offline/push).
 > ✅ **V.2 animation polish tranche 2026-04-16**: Wired dashboard micro-interactions including animated stat counters, staggered activity feed entrance, compliance bar growth transitions, and stronger visual signal for critical finding count updates.
 >
 > ✅ **V.1/V.2 follow-up tranche 2026-04-16**: Added Storybook GitHub Pages deployment workflow (`.github/workflows/storybook.yml`), expanded story coverage (`MobileBottomNav`, `SkipLink`, `SWUpdateBanner`), and shipped app-wide route transition + top navigation progress bar + modal/input/button interaction polish.
+>
+> ✅ **V.1/V.2 final polish tranche 2026-04-16**: Added `PublicNav` Storybook coverage and report-surface chart grow animations (`ReportsPage` report health bars), with consistent input glow and ripple interaction feedback.
 
 **Completed:**
 - ✅ `docs/adr/ADR-001` through `ADR-005` — Architecture Decision Records
@@ -2213,11 +2215,12 @@ Without service worker: app works normally (just no offline/push).
 - ✅ Dashboard animation/micro-interaction improvements (stat count-up, activity staggered slide-in, compliance progress grow animation)
 - ✅ Storybook CI/CD deployment workflow to GitHub Pages (`.github/workflows/storybook.yml`)
 - ✅ Expanded component story coverage (navigation/accessibility/PWA banners)
+- ✅ Additional Storybook coverage for public navigation (`PublicNav`)
 - ✅ Route/page transition and interaction polish (route fade-in, top progress bar, modal slide-in, input glow, ripple feedback)
+- ✅ Report visualization micro-interaction polish (animated report health bars)
 
-**Remaining (~5%):**
-- ⏳ V.1 partial — broader story coverage for remaining complex auth/layout surfaces
-- ⏳ V.2 partial — chart-level grow animations in report visualizations
+**Remaining (~3%):**
+- ⏳ V.1 partial — broader story coverage for remaining complex auth/layout surfaces (header/sidebar/profile menus)
 - ⏳ V.3 partial — screenshots/examples polish in README and docs
 
 ### V.1 — Component Library (Storybook)
