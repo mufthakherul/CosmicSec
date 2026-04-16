@@ -5,20 +5,20 @@
 
 ---
 
-> ### 📊 Overall Progress: **~45% Complete** (Phases K+L+M complete, Phase N ready)
+> ### 📊 Overall Progress: **~58% Complete** (Phases K+L+M+N complete, Phase O advancing)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
 > | **K — Critical Security Hardening** | ✅ Complete | 100% |
 > | **L — Production Data Layer** | ✅ Complete | 100% |
 > | **M — Frontend Completion** | ✅ Complete | 100% |
-> | **N — Dependency Modernization** | ⬜ Not started | 0% |
-> | **O — Test Coverage** | ⬜ Not started | 0% |
-> | **P — Rust Ingest Engine** | ⬜ Not started | 0% |
-> | **Q — AI/ML Workflows** | ⬜ Not started | 0% |
+> | **N — Dependency Modernization** | ✅ Complete | 100% |
+> | **O — Test Coverage** | 🟢 In progress | 60% |
+> | **P — Rust Ingest Engine** | 🟢 In progress | 65% |
+> | **Q — AI/ML Workflows** | 🟡 In progress | 25% |
 > | **R — Enterprise Features** | ⬜ Not started | 0% |
 > | **S — Performance & Scale** | ⬜ Not started | 0% |
-> | **T — Go Event Broker** | ⬜ Not started | 0% |
+> | **T — Go Event Broker** | 🟢 In progress | 40% |
 > | **U — Mobile & PWA** | ⬜ Not started | 0% |
 > | **V — DX & Polish** | ⬜ Not started | 0% |
 > | **Cross-Cutting** | 🟡 In progress | ~20% |
@@ -1001,13 +1001,15 @@ cd frontend && npx playwright test
 
 ---
 
-## Phase N — Dependency Modernization & Upgrade Wave
+## Phase N — Dependency Modernization & Upgrade Wave ✅ COMPLETE (100%)
 
 > 🎯 **Goal**: Upgrade all dependencies to latest versions, remove deprecated packages, fix version mismatches. See [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md) for complete version comparison.
 >
 > 📋 **Prerequisites**: Phase K (security fixes avoid regressions during upgrades)
 >
 > 🌐 **Languages**: Python, TypeScript, Go, YAML
+>
+> ✅ **Completed**: 2026-04-15 — Deprecated packages removed, major dependency waves completed, runtime/tooling versions modernized.
 
 ### N.1 — Remove Deprecated Packages
 
@@ -1162,15 +1164,29 @@ curl -sf http://localhost:8000/api/health && echo "Gateway OK"
 
 ---
 
-## Phase O — Test Coverage & Quality Gates
+## Phase O — Test Coverage & Quality Gates 🟢 IN PROGRESS (~60%)
 
 > 🎯 **Goal**: Reach 85%+ backend test coverage and 80%+ frontend test coverage. Add full E2E test suite. After this phase, every code change is validated by automated tests.
 >
 > 📋 **Prerequisites**: Phases K, L, M (test against working code, not stubs)
 >
 > 🌐 **Languages**: Python, TypeScript
+>
+> 🟢 **Current progress**: Backend suites substantially expanded. Scan/Auth/API-Gateway/Recon all have comprehensive new tests covering WAF, quota enforcement, CRUD, OAuth, GDPR, security headers, and more.
 
 ### O.1 — Backend Test Coverage
+
+**Progress update (completed so far):**
+- ✅ `tests/test_integration_service.py` implemented
+- ✅ `tests/test_collab_service.py` implemented
+- ✅ `tests/test_plugin_registry_official.py` implemented
+- ✅ `tests/test_notification_service.py` implemented (10 focused tests)
+- ✅ `tests/test_admin_service.py` implemented (state persistence + backup/restore coverage)
+- ✅ `tests/test_scan_service.py` expanded (+14 tests): list/get/delete scans, stats, quotas, enqueue, workspace header
+- ✅ `tests/test_auth_service.py` expanded (+17 tests): register, login, logout, refresh, verify, OAuth, GDPR export/delete
+- ✅ `tests/test_api_gateway.py` expanded (+10 tests): WAF SQLi/XSS, security headers, trace IDs, process time, path validation, CORS, GraphQL
+- ✅ `tests/test_recon_service.py` expanded (+6 tests): plain domain, IP, findings list, Shodan/VT disabled, timestamp
+- ⏳ Next: frontend unit tests, Playwright E2E suite, CI quality gates
 
 **AI Agent Prompt** (for each untested service):
 ```
@@ -1350,13 +1366,39 @@ ruff check . && pytest tests/ -v && cd frontend && npx tsc --noEmit && npm run b
 
 ---
 
-## Phase P — Rust High-Performance Ingest Engine
+## Phase P — Rust High-Performance Ingest Engine 🟢 IN PROGRESS (~65%)
 
 > 🎯 **Goal**: Build a Rust-based data ingest engine that can parse 50,000+ findings/second from security tools. This replaces the Python parsers for high-volume workloads while keeping Python as fallback for low-volume scenarios.
 >
 > 📋 **Prerequisites**: Phase L (database schema stable)
 >
 > 🌐 **Languages**: Rust, Protocol Buffers, SQL
+>
+> ✅ **Scaffold completed 2026-04-15**: Full ingest engine created in `ingest/` with all parser implementations, gRPC proto, Redis stream consumer, PostgreSQL DB writer, Prometheus metrics, HTTP health server, and multi-stage Dockerfile.
+
+**Completed:**
+- ✅ `ingest/Cargo.toml` — full dependency manifest (tokio, sqlx, quick-xml, redis, tonic, axum, prometheus-client)
+- ✅ `ingest/src/main.rs` — async main, HTTP health/metrics/ready server (axum)
+- ✅ `ingest/src/config.rs` — env-based configuration
+- ✅ `ingest/src/normalizer.rs` — canonical `Finding` struct + `Severity` enum
+- ✅ `ingest/src/parsers/mod.rs` + `parser_for_tool()` factory
+- ✅ `ingest/src/parsers/nmap.rs` — streaming SAX-style Nmap XML parser
+- ✅ `ingest/src/parsers/nuclei.rs` — Nuclei JSONL streaming parser
+- ✅ `ingest/src/parsers/nikto.rs` — Nikto JSON report parser
+- ✅ `ingest/src/parsers/zap.rs` — OWASP ZAP XML alert parser
+- ✅ `ingest/src/parsers/generic.rs` — generic JSON array/object parser
+- ✅ `ingest/src/db.rs` — PostgreSQL bulk-insert writer (COPY-style batching)
+- ✅ `ingest/src/stream.rs` — Redis Streams consumer (XREADGROUP + XACK)
+- ✅ `ingest/src/metrics.rs` — Prometheus metrics registry
+- ✅ `ingest/proto/ingest.proto` — gRPC IngestService definition
+- ✅ `ingest/Dockerfile` — multi-stage rust:1.85 → debian:bookworm-slim
+- ✅ `ingest/tests/fixtures/` — sample nmap XML and nuclei JSONL fixtures
+- ✅ `ingest/tests/integration.rs` — 7 parser integration tests
+
+**Remaining:**
+- ⏳ P.2 — Python gRPC client in API Gateway + Redis Streams bridge
+- ⏳ P.3 — `docker-compose.yml` service entry for ingest engine
+- ⏳ P.4 — Feature flag `COSMICSEC_USE_RUST_INGEST` routing in API Gateway
 
 ### P.1 — Ingest Engine Scaffold
 
@@ -1429,13 +1471,22 @@ Performance targets:
 
 ---
 
-## Phase Q — Advanced AI, ML & Agentic Workflows
+## Phase Q — Advanced AI, ML & Agentic Workflows 🟡 IN PROGRESS (~25%)
 
 > 🎯 **Goal**: Complete all AI stub implementations, add local LLM support, build RAG knowledge base, and implement LangGraph multi-agent workflows. After this phase, AI features work end-to-end with real ML models.
 >
 > 📋 **Prerequisites**: Phase L (vector store needs persistent data), Phase N (updated langchain/openai)
 >
 > 🌐 **Languages**: Python
+>
+> ✅ **Q.2 completed 2026-04-15**: Full multi-provider LLM abstraction (`services/ai_service/llm_providers.py`) with OpenAI + Ollama providers, automatic fallback chain, model listing, Ollama model pull API.
+
+**Completed:**
+- ✅ `services/ai_service/llm_providers.py` — `OpenAIProvider`, `OllamaProvider`, `FallbackProviderChain`, `get_llm_provider()`, `list_available_models()`, `OLLAMA_MODELS` registry
+- ✅ `services/ai_service/vector_store.py` — ChromaDB persistent collection with MITRE/CVE/OWASP corpus
+- ✅ `services/ai_service/anomaly_detector.py` — IsolationForest + z-score dual-mode detector
+- ✅ `services/ai_service/red_team.py` — safe red-team planning with guardrails
+- ✅ `services/ai_service/zero_day_predictor.py` — CVSS-based zero-day risk forecasting
 
 ### Q.1 — Complete AI Stub Implementations
 
@@ -1814,13 +1865,26 @@ Log warning. Service works correctly but slower.
 
 ---
 
-## Phase T — Go Event Broker & Real-Time Backbone
+## Phase T — Go Event Broker & Real-Time Backbone 🟢 IN PROGRESS (~40%)
 
 > 🎯 **Goal**: Build a Go-based event broker for asynchronous, event-driven communication between services. Replace synchronous inter-service HTTP calls with NATS JetStream. This makes the system more resilient, faster, and decoupled.
 >
 > 📋 **Prerequisites**: Phase S (observability to monitor event flow)
 >
 > 🌐 **Languages**: Go, Protocol Buffers
+>
+> ✅ **T.1 scaffold completed 2026-04-15**: Core broker `broker/main.go` and `broker/go.mod` created with NATS JetStream integration, Redis Streams consumer (XREADGROUP), bidirectional bridging, Prometheus metrics, HTTP health/ready/metrics endpoints, graceful shutdown, and multi-stage Dockerfile.
+
+**Completed:**
+- ✅ `broker/go.mod` — module declaration with NATS, Redis, Prometheus, Zap, UUID deps
+- ✅ `broker/main.go` — complete broker: `BridgeRedisToNATS()`, NATS stream auto-creation, HTTP server (health/ready/metrics), 4 bridge goroutines for events/ingest/findings/alerts, Prometheus counters+histogram
+- ✅ `broker/Dockerfile` — multi-stage golang:1.24-alpine → scratch
+
+**Remaining:**
+- ⏳ T.2 — `broker/internal/` package split (config, events, handlers, publisher, subscriber)
+- ⏳ T.3 — Python NATS client in services (nats-py) for bi-directional communication
+- ⏳ T.4 — `docker-compose.yml` NATS + broker service entries
+- ⏳ T.5 — Integration tests with embedded NATS
 
 ### T.1 — Event Broker Scaffold
 
