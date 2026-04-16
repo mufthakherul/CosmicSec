@@ -6,6 +6,7 @@
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: `cli/agent/` module, related SDK integration, server-side agent relay, AI-driven CLI workflows
 > **Current State**: v0.3.0 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented**, plus active CA-7/CA-8/CA-9/CA-10 tranche (branding/version polish, plugin framework commands, offline AI setup + sync commands, SQLite WAL/index/vacuum optimization, expanded `docs/cli/*`).
+> **Progress Refresh (2026-04-16)**: Latest tranche focused on main-roadmap Phase U/V frontend execution; CA-7/CA-8/CA-9/CA-10 percentages remain as currently documented below.
 
 ---
 
