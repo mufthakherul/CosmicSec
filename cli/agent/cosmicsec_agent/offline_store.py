@@ -36,6 +36,15 @@ CREATE TABLE IF NOT EXISTS findings (
 )
 """
 
+_CREATE_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_findings_synced ON findings(synced)",
+    "CREATE INDEX IF NOT EXISTS idx_findings_scan_id ON findings(scan_id)",
+    "CREATE INDEX IF NOT EXISTS idx_findings_severity ON findings(severity)",
+    "CREATE INDEX IF NOT EXISTS idx_findings_tool ON findings(tool)",
+    "CREATE INDEX IF NOT EXISTS idx_scans_created_at ON scans(created_at)",
+    "CREATE INDEX IF NOT EXISTS idx_scans_tool ON scans(tool)",
+]
+
 
 class OfflineStore:
     """SQLite-backed store for offline scan data and findings.
@@ -64,8 +73,12 @@ class OfflineStore:
     def init_db(self) -> None:
         """Create database tables if they do not exist."""
         with self._connect() as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
             conn.execute(_CREATE_SCANS)
             conn.execute(_CREATE_FINDINGS)
+            for statement in _CREATE_INDEXES:
+                conn.execute(statement)
             conn.commit()
 
     def save_scan(self, scan_id: str, target: str, tool: str, status: str) -> None:
@@ -185,15 +198,27 @@ class OfflineStore:
         params.append(limit)
         with self._connect() as conn:
             rows = conn.execute(sql, params).fetchall()
+            if not rows:
+                return []
+            scan_ids = [r["id"] for r in rows]
+            placeholders = ",".join("?" for _ in scan_ids)
+            counts_rows = conn.execute(
+                (
+                    "SELECT scan_id, severity, COUNT(*) AS cnt FROM findings "
+                    f"WHERE scan_id IN ({placeholders}) GROUP BY scan_id, severity"
+                ),
+                scan_ids,
+            ).fetchall()
+
+        counts_by_scan: dict[str, dict[str, int]] = {}
+        for r in counts_rows:
+            scan_counts = counts_by_scan.setdefault(r["scan_id"], {})
+            scan_counts[r["severity"]] = r["cnt"]
+
         result = []
         for row in rows:
             d = dict(row)
-            with self._connect() as conn2:
-                counts_rows = conn2.execute(
-                    "SELECT severity, COUNT(*) AS cnt FROM findings WHERE scan_id=? GROUP BY severity",
-                    (d["id"],),
-                ).fetchall()
-            d["finding_counts"] = {r["severity"]: r["cnt"] for r in counts_rows}
+            d["finding_counts"] = counts_by_scan.get(d["id"], {})
             d["total_findings"] = sum(d["finding_counts"].values())
             result.append(d)
         return result
@@ -300,3 +325,8 @@ class OfflineStore:
             conn.execute("DELETE FROM scans WHERE id=?", (scan_id,))
             conn.commit()
         return True
+
+    def vacuum(self) -> None:
+        """Run VACUUM to compact the local database."""
+        with self._connect() as conn:
+            conn.execute("VACUUM")

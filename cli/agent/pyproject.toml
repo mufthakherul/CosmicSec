@@ -1,6 +1,6 @@
 [project]
 name = "cosmicsec-agent"
-version = "0.2.0"
+version = "0.3.0"
 description = "CosmicSec AI-powered security agent — hybrid dynamic/static tool execution, AI planning, and cloud streaming"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -33,6 +33,7 @@ all = [
 
 [project.scripts]
 cosmicsec-agent = "cosmicsec_agent.main:app"
+cosmicsec = "cosmicsec_agent.main:app"
 
 [build-system]
 requires = ["hatchling"]

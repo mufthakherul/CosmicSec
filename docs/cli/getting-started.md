@@ -33,4 +33,17 @@ cosmicsec-agent offline export --format json --output-file findings.json
 ```bash
 cosmicsec-agent history list --limit 20
 cosmicsec-agent completions install --shell bash
+cosmicsec-agent ai setup
+cosmicsec-agent plugin list
+cosmicsec-agent sync status
 ```
+
+## Documentation map
+
+- `docs/cli/authentication.md`
+- `docs/cli/scanning.md`
+- `docs/cli/ai-features.md`
+- `docs/cli/workflows.md`
+- `docs/cli/ci-cd.md`
+- `docs/cli/plugins.md`
+- `docs/cli/troubleshooting.md`

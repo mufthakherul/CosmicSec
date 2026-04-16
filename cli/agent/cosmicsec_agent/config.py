@@ -38,7 +38,7 @@ DESCRIPTIONS: dict[str, str] = {
     "default_parallel": "Max tools to run in parallel during --all scans",
     "scan_timeout": "Seconds before a running tool is killed",
     "auto_sync": "Automatically sync findings to server when connected",
-    "color_theme": "Terminal color theme: default | monokai | solarized | minimal",
+    "color_theme": "Terminal color theme: default | dark | light | minimal | neon",
     "log_level": "Logging verbosity: debug | info | warning | error",
     "proxy": "HTTP proxy URL for all outbound connections (empty = none)",
     "tls_verify": "Verify TLS certificates on HTTPS requests",

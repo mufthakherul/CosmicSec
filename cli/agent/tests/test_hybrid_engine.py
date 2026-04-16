@@ -23,6 +23,10 @@ from cosmicsec_agent.intent_parser import (
 )
 
 
+def _run(coro):
+    return asyncio.run(coro)
+
+
 # ---------------------------------------------------------------------------
 # Intent Parser tests
 # ---------------------------------------------------------------------------
@@ -183,7 +187,7 @@ class TestAITaskPlanner:
         self.planner = AITaskPlanner()
 
     def test_static_plan_scan(self) -> None:
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             self.planner.plan("scan 192.168.1.1 with nmap", force_mode="static")
         )
         assert plan.source == "static"
@@ -191,7 +195,7 @@ class TestAITaskPlanner:
         assert plan.steps[0].tool == "nmap"
 
     def test_static_plan_workflow(self) -> None:
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             self.planner.plan(
                 "scan 192.168.1.1 with nmap then analyze the results",
                 force_mode="static",
@@ -200,13 +204,13 @@ class TestAITaskPlanner:
         assert len(plan.steps) >= 2
 
     def test_static_plan_all_tools(self) -> None:
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             self.planner.plan("scan with all tools", force_mode="static")
         )
         assert any(s.tool == "__all__" for s in plan.steps)
 
     def test_dynamic_plan_no_providers(self) -> None:
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             self.planner.plan("scan something", force_mode="dynamic")
         )
         # No providers → empty plan
@@ -215,7 +219,7 @@ class TestAITaskPlanner:
 
     def test_hybrid_plan_high_confidence(self) -> None:
         """With a high-confidence local parse, hybrid should use static."""
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             self.planner.plan("scan 192.168.1.1 with nmap")
         )
         # Local parser confidence >= 0.8 → hybrid-static
@@ -223,7 +227,7 @@ class TestAITaskPlanner:
         assert len(plan.steps) > 0
 
     def test_plan_serialization(self) -> None:
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             self.planner.plan("scan 192.168.1.1 with nmap", force_mode="static")
         )
         d = plan.to_dict()
@@ -232,13 +236,13 @@ class TestAITaskPlanner:
         assert isinstance(d["steps"], list)
 
     def test_plan_analyze_intent(self) -> None:
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             self.planner.plan("analyze the scan results", force_mode="static")
         )
         assert any(s.step_type == StepType.AI_ANALYSIS for s in plan.steps)
 
     def test_plan_report_intent(self) -> None:
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             self.planner.plan("generate an html report", force_mode="static")
         )
         assert any(s.step_type == StepType.REPORT for s in plan.steps)
@@ -266,7 +270,7 @@ class TestHybridEngine:
 
     def test_plan_in_static_mode(self) -> None:
         engine = HybridEngine(mode=ExecutionMode.STATIC)
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             engine.plan("scan 192.168.1.1 with nmap")
         )
         assert len(plan.steps) > 0
@@ -274,14 +278,14 @@ class TestHybridEngine:
 
     def test_plan_in_hybrid_mode(self) -> None:
         engine = HybridEngine(mode=ExecutionMode.HYBRID)
-        plan = asyncio.get_event_loop().run_until_complete(
+        plan = _run(
             engine.plan("scan 192.168.1.1 with nmap")
         )
         assert len(plan.steps) > 0
 
     def test_dry_run_no_execution(self) -> None:
         engine = HybridEngine(mode=ExecutionMode.STATIC)
-        result = asyncio.get_event_loop().run_until_complete(
+        result = _run(
             engine.execute("scan 192.168.1.1 with nmap", interactive=False, dry_run=True)
         )
         assert result.plan.steps  # Plan exists
