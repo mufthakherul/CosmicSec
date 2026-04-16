@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      REDIS_PASSWORD: ci-redis-password
     steps:
       - name: Checkout
         uses: actions/checkout@v5
