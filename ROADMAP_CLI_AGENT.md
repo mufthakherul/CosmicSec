@@ -1546,7 +1546,7 @@ cosmicsec pull --since 2026-04-01
 
 ---
 
-## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~77%)
+## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~82%)
 
 > 🎯 **Goal**: Polish the CLI for release — branded experience, professional packaging, comprehensive documentation, and easy installation.
 >
@@ -1570,6 +1570,11 @@ cosmicsec pull --since 2026-04-01
 > - Added dedicated `theme` command group (`theme list`, `theme set`, `theme preview`) for direct theme discovery and preview UX.
 > - Added canonical theme resolution helpers (`canonical_theme`, `available_themes`) and branding utility tests (`tests/test_branding.py`).
 > - Added `theme current` command for fast active-theme introspection in scripts and troubleshooting sessions.
+>
+> ✅ **CA-7.2/7.3 distribution-docs tranche 2026-04-16**:
+> - Added Homebrew formula template (`cli/agent/homebrew/cosmicsec-agent.rb`) for release-tap publishing workflow.
+> - Added installation/distribution guide (`docs/cli/installation.md`) including pipx/Homebrew paths.
+> - Added CLI man page generation script (`scripts/generate-cli-manpage.py`) and generated man page artifact (`docs/cli/cosmicsec-agent.1`).
 
 **Completed:**
 - ✅ `cli/agent/README.md` — dedicated agent quick start, command workflows, configuration, and troubleshooting
@@ -1579,11 +1584,13 @@ cosmicsec pull --since 2026-04-01
 - ✅ `update` and `update --check` command path in CLI
 - ✅ Theme-aware severity formatting and branded startup/version output
 - ✅ Theme customization commands (`theme list/set/current/preview`) with canonical alias handling and preview rendering
+- ✅ Distribution starter assets (Homebrew formula template + installation guide)
+- ✅ CLI man page generation and checked-in man page artifact
 - ✅ CLI test suite stable on current environment (`pytest cli/agent/tests` → 83 passed)
 
-**Remaining (~23%):**
-- ⏳ CA-7.2 — distribution channels (Homebrew/standalone binaries; update command now partially implemented)
-- ⏳ CA-7.3 remaining docs (screenshots/examples/man-page generation)
+**Remaining (~18%):**
+- ⏳ CA-7.2 partial — publish and maintain live Homebrew tap + standalone binary packaging
+- ⏳ CA-7.3 partial — screenshots/examples polish and ongoing man-page sync automation in release pipeline
 - ⏳ CA-7.4 — comprehensive CLI test expansion to 90%+ coverage
 
 ### CA-7.1 — Branding & Visual Identity
@@ -2025,7 +2032,7 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 | 3rd 🟠 | **CA-4** — AI-Powered CLI (extends CA-4.5) | 2–3 weeks | CA-2, CA-4.5 ✅ | ⏳ Pending |
 | 4th 🟠 | **CA-3** — Interactive TUI | 2–3 weeks | CA-2 | ⏳ Pending |
 | 5th 🟠 | **CA-5** — Orchestration & Pipelines | 2 weeks | CA-2 | ⏳ Pending |
-| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 | 🟢 In progress (~77%) |
+| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 | 🟢 In progress (~82%) |
 | 7th 🟡 | **CA-6** — Enterprise Features | 1–2 weeks | CA-1, Main Phase R | ⏳ Pending |
 | 8th 🟡 | **CA-8** — Plugin System | 1–2 weeks | CA-5 | 🟢 In progress (~40%) |
 | 9th 🟢 | **CA-9** — Offline Intelligence | 1–2 weeks | CA-4, Main Phase Q | 🟢 In progress (~35%) |
