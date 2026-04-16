@@ -61,10 +61,13 @@ describe("AdminDashboardPage", () => {
     });
   });
 
-  it("toggles module state labels", () => {
+  it("toggles module state labels", async () => {
     render(<AdminDashboardPage />);
+    await screen.findByText(/admin@cosmicsec\.dev/i);
     const aiToggle = screen.getByRole("button", { name: /ai: enabled/i });
     fireEvent.click(aiToggle);
-    expect(screen.getByRole("button", { name: /ai: disabled/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /ai: disabled/i })).toBeInTheDocument();
+    });
   });
 });
