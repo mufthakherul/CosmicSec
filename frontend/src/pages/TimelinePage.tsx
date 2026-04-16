@@ -326,7 +326,7 @@ export const TimelinePage: React.FC = () => {
             <button
               onClick={() => void fetchData()}
               disabled={isLoading}
-              className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:text-white disabled:opacity-50"
+              className="flex min-h-10 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-300 transition-colors hover:border-slate-600 hover:text-white disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
               Refresh
@@ -334,7 +334,7 @@ export const TimelinePage: React.FC = () => {
             <button
               onClick={handleExport}
               disabled={filtered.length === 0}
-              className="flex items-center gap-2 rounded-lg bg-cyan-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-500 disabled:opacity-50"
+              className="flex min-h-10 items-center gap-2 rounded-lg bg-cyan-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-500 disabled:opacity-50"
             >
               <Download className="h-4 w-4" />
               Export JSON
@@ -357,7 +357,7 @@ export const TimelinePage: React.FC = () => {
           <select
             value={filterSource}
             onChange={(e) => setFilterSource(e.target.value as FilterSource)}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-cyan-500/50"
+            className="min-h-10 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-cyan-500/50"
           >
             <option value="all">All Sources</option>
             <option value="web_scan">Web Scan</option>
@@ -370,7 +370,7 @@ export const TimelinePage: React.FC = () => {
           <select
             value={filterSeverity}
             onChange={(e) => setFilterSeverity(e.target.value as FilterSeverity)}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-cyan-500/50"
+            className="min-h-10 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-cyan-500/50"
           >
             <option value="all">All Severities</option>
             <option value="critical">Critical</option>
@@ -384,7 +384,7 @@ export const TimelinePage: React.FC = () => {
           <select
             value={filterDateRange}
             onChange={(e) => setFilterDateRange(e.target.value as FilterDateRange)}
-            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-cyan-500/50"
+            className="min-h-10 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-cyan-500/50"
           >
             <option value="all">All Time</option>
             <option value="today">Today</option>
@@ -400,7 +400,7 @@ export const TimelinePage: React.FC = () => {
               value={filterTarget}
               onChange={(e) => setFilterTarget(e.target.value)}
               placeholder="Filter by target…"
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 py-1.5 pl-8 pr-3 text-sm text-slate-300 placeholder-slate-600 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20"
+              className="min-h-10 w-full rounded-lg border border-slate-700 bg-slate-900 py-1.5 pl-8 pr-3 text-sm text-slate-300 placeholder-slate-600 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20"
             />
           </div>
 
@@ -421,7 +421,40 @@ export const TimelinePage: React.FC = () => {
             <p className="text-sm text-slate-500">No events match the current filters.</p>
           </div>
         ) : (
-          <div className="relative space-y-0">
+          <>
+            <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 md:hidden">
+              {filtered.map((ev) => (
+                <div
+                  key={`mobile-${ev.id}`}
+                  className="min-w-[84%] snap-start rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${SOURCE_BADGE[ev.source]}`}>
+                      {SOURCE_LABELS[ev.source]}
+                    </span>
+                    <span className={`text-xs font-semibold capitalize ${SEVERITY_TEXT[ev.severity]}`}>
+                      {ev.severity}
+                    </span>
+                    <span className="ml-auto flex items-center gap-1 text-xs text-slate-500">
+                      <Clock className="h-3 w-3" />
+                      {relativeTime(ev.timestamp)}
+                    </span>
+                  </div>
+                  <h3 className="mt-2 text-sm font-semibold text-slate-200">{ev.title}</h3>
+                  {ev.description && <p className="mt-1 text-xs text-slate-400">{ev.description}</p>}
+                  {ev.target && (
+                    <button
+                      onClick={() => (ev.scan_id ? navigate(`/scans/${ev.scan_id}`) : navigate("/scans"))}
+                      className="mt-2 inline-flex min-h-8 items-center gap-1 rounded bg-slate-800 px-2 py-1 font-mono text-xs text-cyan-400 transition-colors hover:bg-slate-700"
+                    >
+                      {ev.target}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="relative hidden space-y-0 md:block">
             {/* Vertical line */}
             <div className="absolute left-[22px] top-0 bottom-0 w-px bg-slate-800" />
 
@@ -476,7 +509,8 @@ export const TimelinePage: React.FC = () => {
                 </li>
               ))}
             </ul>
-          </div>
+            </div>
+          </>
         )}
       </div>
     </AppLayout>

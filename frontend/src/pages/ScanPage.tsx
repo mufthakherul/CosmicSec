@@ -115,7 +115,7 @@ export function ScanPage() {
                     value={target}
                     onChange={(e) => setTarget(e.target.value)}
                     placeholder="e.g. 192.168.1.1 or https://example.com"
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
                     required
                   />
                 </div>
@@ -125,7 +125,7 @@ export function ScanPage() {
                   <select
                     value={scanType}
                     onChange={(e) => setScanType(e.target.value as typeof scanType)}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500/50"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-cyan-500/50"
                   >
                     <option value="quick">Quick Scan</option>
                     <option value="full">Full Scan</option>
@@ -135,14 +135,14 @@ export function ScanPage() {
 
                 <div>
                   <label className="mb-2 block text-xs text-slate-400">Tools</label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                     {TOOLS.map((tool) => (
                       <button
                         key={tool}
                         type="button"
                         onClick={() => toggleTool(tool)}
                         className={[
-                          "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                          "min-h-10 rounded-md px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors",
                           selectedTools.has(tool)
                             ? "bg-cyan-500/20 text-cyan-400 ring-1 ring-cyan-500/40"
                             : "bg-slate-800 text-slate-400 hover:bg-slate-700",
