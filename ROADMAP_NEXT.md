@@ -2070,7 +2070,7 @@ Each service checks NATS health on startup and uses appropriate transport.
 
 ---
 
-## Phase U — Mobile, PWA & Cross-Platform Clients 🟢 IN PROGRESS (~74%)
+## Phase U — Mobile, PWA & Cross-Platform Clients ✅ COMPLETE (100%)
 
 > 🎯 **Goal**: Make CosmicSec work as a Progressive Web App with offline support, push notifications, and mobile-optimized experience. Optionally add React Native mobile app.
 >
@@ -2085,14 +2085,20 @@ Each service checks NATS health on startup and uses appropriate transport.
 > ✅ **U.2 mobile UX tranche 2026-04-16**: Added mobile bottom navigation (`frontend/src/components/MobileBottomNav.tsx` + AppLayout integration), swipeable dashboard stat cards, larger touch targets on scan/timeline controls, and mobile swipeable timeline event cards.
 >
 > ✅ **U.2 gesture follow-up 2026-04-16**: Added mobile pull-to-refresh behavior on timeline card lanes and swipe-left quick actions (open/filter/dismiss) for timeline mobile cards.
+>
+> ✅ **U.2 completion tranche 2026-04-16**: Added pull-to-refresh and swipe quick actions on scan list cards, aligned timeline quick actions to assign/flag/dismiss flow, and added pinch-zoom network topology interaction on mobile in Phase 5 operations surface.
+>
+> ✅ **U.3 companion app 2026-04-16**: Added optional React Native companion skeleton under `mobile/` (Expo + TypeScript baseline app, configs, and quick-start docs).
 
 **Completed:**
 - ✅ `frontend/public/service-worker.js` — cache-first + network-first strategies, background sync, push notifications, IDB scan queue
 - ✅ `frontend/public/manifest.json` — standalone PWA manifest with shortcuts and screenshots
+- ✅ Mobile bottom navigation + swipeable dashboard/timeline card layouts
+- ✅ Mobile gesture support: pull-to-refresh + swipe quick actions across timeline and scan list surfaces
+- ✅ Pinch zoom interaction support for topology visualization surface (`Phase5OperationsPage`)
+- ✅ Optional React Native companion app scaffold (`mobile/`)
 
-**Remaining (~26%):**
-- ⏳ U.2 partial — remaining gesture coverage (pinch-to-zoom topology, pull-to-refresh beyond timeline, scan-card swipe actions)
-- ⏳ U.3 — Optional React Native companion app
+**Remaining:** None — Phase U complete.
 
 ### U.1 — Progressive Web App
 
@@ -2154,7 +2160,7 @@ Without service worker: app works normally (just no offline/push).
 
 ---
 
-## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~81%)
+## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~88%)
 
 > 🎯 **Goal**: Make CosmicSec a joy to develop on and a premium-feeling product. Add developer documentation, component library, animation polish, and branding refinements.
 >
@@ -2179,6 +2185,8 @@ Without service worker: app works normally (just no offline/push).
 > ✅ **V.3 contribution workflow uplift 2026-04-16**: Refreshed `CONTRIBUTING.md` (Python 3.11–3.13, modern Ruff/ESLint/Prettier workflow), expanded PR template roadmap/testing sections, and updated README quick-start with frontend analyzer + CLI local mode commands.
 >
 > ✅ **V.3 distribution/docs uplift 2026-04-16**: Added CLI installation/distribution documentation (`docs/cli/installation.md`), generated man page support (`scripts/generate-cli-manpage.py` + `docs/cli/cosmicsec-agent.1`), and Homebrew formula template (`cli/agent/homebrew/cosmicsec-agent.rb`).
+>
+> ✅ **V.1 Storybook foundation tranche 2026-04-16**: Initialized Storybook (`frontend/.storybook/*`), added reusable component stories (`UiButton`, `Toast`, `Pagination`, `PageSkeleton`, `FormInput`, `ScanCard`) and a design tokens docs page (`frontend/src/stories/DesignTokens.mdx`), with successful `build-storybook` output.
 
 **Completed:**
 - ✅ `docs/adr/ADR-001` through `ADR-005` — Architecture Decision Records
@@ -2197,9 +2205,10 @@ Without service worker: app works normally (just no offline/push).
 - ✅ Reduced motion mode toggle (ThemeContext + Settings page + CSS)
 - ✅ Updated contribution workflow docs (`CONTRIBUTING.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `README.md` quick-start additions)
 - ✅ CLI distribution/manpage assets (`docs/cli/installation.md`, `docs/cli/cosmicsec-agent.1`, `scripts/generate-cli-manpage.py`, Homebrew formula template)
+- ✅ Storybook baseline and docs (`frontend/.storybook/*`, `frontend/src/stories/*.stories.tsx`, `frontend/src/stories/DesignTokens.mdx`)
 
-**Remaining (~19%):**
-- ⏳ V.1 — Storybook component library
+**Remaining (~12%):**
+- ⏳ V.1 partial — broader story coverage across all frontend components + optional Storybook publish workflow
 - ⏳ V.2 — Remaining animation/micro-interaction polish (dashboard counters/charts/stagger tuning)
 - ⏳ V.3 partial — screenshots/examples polish in README and docs
 
