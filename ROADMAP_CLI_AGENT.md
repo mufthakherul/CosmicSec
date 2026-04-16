@@ -5,7 +5,7 @@
 > **Version**: 2.1 (2026-04-16) | **Parent Roadmap**: [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: `cli/agent/` module, related SDK integration, server-side agent relay, AI-driven CLI workflows
-> **Current State**: v0.3.2 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented** (global output callback options, live concurrent scan progress wired into `scan`, history/config/completions), plus CA-7 documentation bootstrap (`cli/agent/README.md`, `docs/cli/getting-started.md`)
+> **Current State**: v0.3.0 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented**, plus active CA-7/CA-8/CA-9/CA-10 tranche (branding/version polish, plugin framework commands, offline AI setup + sync commands, SQLite WAL/index/vacuum optimization, expanded `docs/cli/*`).
 
 ---
 
@@ -1546,7 +1546,7 @@ cosmicsec pull --since 2026-04-01
 
 ---
 
-## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~30%)
+## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~70%)
 
 > 🎯 **Goal**: Polish the CLI for release — branded experience, professional packaging, comprehensive documentation, and easy installation.
 >
@@ -1557,15 +1557,28 @@ cosmicsec pull --since 2026-04-01
 > ⏱️ **Estimated Duration**: 1–2 weeks
 
 > ✅ **CA-7.3 partial complete 2026-04-16**: Added dedicated CLI docs entry points: `cli/agent/README.md` and `docs/cli/getting-started.md`.
+>
+> ✅ **CA-7 tranche update 2026-04-16**:
+> - Added CLI branding/version improvements: `cosmicsec-agent --version` and `cosmicsec-agent version` with runtime metadata.
+> - Added `cosmicsec-agent update` / `cosmicsec-agent update --check` command path (PyPI metadata + upgrade flow).
+> - Added theme-aware severity formatting + startup banner plumbing (`branding.py`, `main.py`).
+> - Added command alias entry point `cosmicsec` in `cli/agent/pyproject.toml`.
+> - Expanded CLI docs set: `docs/cli/authentication.md`, `scanning.md`, `ai-features.md`, `workflows.md`, `ci-cd.md`, `plugins.md`, `troubleshooting.md`.
+> - Added CA-8/9/10 tranche regression tests and updated async test execution compatibility for modern Python runtime behavior.
 
 **Completed:**
 - ✅ `cli/agent/README.md` — dedicated agent quick start, command workflows, configuration, and troubleshooting
 - ✅ `docs/cli/getting-started.md` — first-scan setup guide
+- ✅ `docs/cli/*.md` expanded documentation set (auth/scanning/AI/workflows/CI-CD/plugins/troubleshooting)
+- ✅ `cosmicsec` alias entry point in package scripts
+- ✅ `update` and `update --check` command path in CLI
+- ✅ Theme-aware severity formatting and branded startup/version output
+- ✅ CLI test suite stable on current environment (`pytest cli/agent/tests` → 79 passed)
 
-**Remaining (~70%):**
-- ⏳ CA-7.1 — branding themes/banner refinements
-- ⏳ CA-7.2 — distribution channels (PyPI/Homebrew/standalone/update command)
-- ⏳ CA-7.3 remaining docs (authentication/scanning/ai/workflows/ci-cd/plugins/troubleshooting)
+**Remaining (~30%):**
+- ⏳ CA-7.1 — finalize help-banner rendering + polish theme customization UX
+- ⏳ CA-7.2 — distribution channels (Homebrew/standalone binaries; update command now partially implemented)
+- ⏳ CA-7.3 remaining docs (screenshots/examples/man-page generation)
 - ⏳ CA-7.4 — comprehensive CLI test expansion to 90%+ coverage
 
 ### CA-7.1 — Branding & Visual Identity
@@ -1722,7 +1735,7 @@ ls docs/cli/
 
 ---
 
-## Phase CA-8 — Plugin System, Extensibility & Marketplace
+## Phase CA-8 — Plugin System, Extensibility & Marketplace 🟢 IN PROGRESS (~40%)
 
 > 🎯 **Goal**: Allow users to extend the CLI with custom tools, parsers, and workflows without modifying the core codebase.
 >
@@ -1731,6 +1744,8 @@ ls docs/cli/
 > 🌐 **Languages**: Python
 >
 > ⏱️ **Estimated Duration**: 1–2 weeks
+>
+> ✅ **CA-8.1 partial complete 2026-04-16**: Added local plugin framework and command surface. `plugins.py` introduces plugin metadata parsing/scaffold/install/remove/search; `main.py` now includes `plugin create/install/list/remove/search`; coverage added in `cli/agent/tests/test_cli_phase_ca8_ca9_ca10.py`.
 
 ### CA-8.1 — CLI Plugin Framework
 
@@ -1782,7 +1797,7 @@ cosmicsec discover  # Should show custom scanner tool
 
 ---
 
-## Phase CA-9 — Offline-First Intelligence & Edge Computing
+## Phase CA-9 — Offline-First Intelligence & Edge Computing 🟢 IN PROGRESS (~35%)
 
 > 🎯 **Goal**: Make the CLI a fully autonomous security agent that can operate indefinitely offline with local AI, then intelligently sync when connectivity is restored.
 >
@@ -1791,6 +1806,8 @@ cosmicsec discover  # Should show custom scanner tool
 > 🌐 **Languages**: Python
 >
 > ⏱️ **Estimated Duration**: 1–2 weeks
+>
+> ✅ **CA-9 partial complete 2026-04-16**: Added `ai setup` workflow for Ollama model configuration/pull + persisted model preferences, plus `sync status` and `sync push` commands for local queue visibility and manual reconciliation.
 
 ### CA-9.1 — Local AI with Ollama Integration
 
@@ -1863,7 +1880,7 @@ cosmicsec sync push  # Upload offline data
 
 ---
 
-## Phase CA-10 — Performance, Cross-Platform & Rust Acceleration
+## Phase CA-10 — Performance, Cross-Platform & Rust Acceleration 🟢 IN PROGRESS (~45%)
 
 > 🎯 **Goal**: Optimize performance for large-scale scanning, ensure cross-platform compatibility, and explore Rust acceleration for parsing bottlenecks.
 >
@@ -1872,6 +1889,8 @@ cosmicsec sync push  # Upload offline data
 > 🌐 **Languages**: Python, Rust (optional acceleration)
 >
 > ⏱️ **Estimated Duration**: 2 weeks
+>
+> ✅ **CA-10.1 partial complete 2026-04-16**: `offline_store.py` now enables SQLite WAL mode, creates query indexes, optimizes `list_scans()` aggregation to avoid N+1 DB reads, and adds `vacuum()` maintenance path (`sync vacuum` command).
 
 ### CA-10.1 — Performance Optimization
 
@@ -2001,11 +2020,11 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 | 3rd 🟠 | **CA-4** — AI-Powered CLI (extends CA-4.5) | 2–3 weeks | CA-2, CA-4.5 ✅ | ⏳ Pending |
 | 4th 🟠 | **CA-3** — Interactive TUI | 2–3 weeks | CA-2 | ⏳ Pending |
 | 5th 🟠 | **CA-5** — Orchestration & Pipelines | 2 weeks | CA-2 | ⏳ Pending |
-| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 | ⏳ Pending |
+| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 | 🟢 In progress (~70%) |
 | 7th 🟡 | **CA-6** — Enterprise Features | 1–2 weeks | CA-1, Main Phase R | ⏳ Pending |
-| 8th 🟡 | **CA-8** — Plugin System | 1–2 weeks | CA-5 | ⏳ Pending |
-| 9th 🟢 | **CA-9** — Offline Intelligence | 1–2 weeks | CA-4, Main Phase Q | ⏳ Pending |
-| 10th 🟢 | **CA-10** — Performance & Rust | 2 weeks | CA-2, CA-5 | ⏳ Pending |
+| 8th 🟡 | **CA-8** — Plugin System | 1–2 weeks | CA-5 | 🟢 In progress (~40%) |
+| 9th 🟢 | **CA-9** — Offline Intelligence | 1–2 weeks | CA-4, Main Phase Q | 🟢 In progress (~35%) |
+| 10th 🟢 | **CA-10** — Performance & Rust | 2 weeks | CA-2, CA-5 | 🟢 In progress (~45%) |
 
 **Total estimated effort**: 14–22 weeks for 1–2 developers (Phase CA-4.5 complete)
 
