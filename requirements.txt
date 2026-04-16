@@ -42,6 +42,8 @@ passlib[bcrypt]>=1.7.4
 # FastAPI and web services
 fastapi>=0.135.3
 uvicorn[standard]>=0.44.0
+grpcio>=1.80.0
+grpcio-tools>=1.80.0
 asyncssh>=2.22.0
 python-multipart>=0.0.26
 slowapi>=0.1.9

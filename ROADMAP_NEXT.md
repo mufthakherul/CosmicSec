@@ -1400,7 +1400,7 @@ ruff check . && pytest tests/ -v && cd frontend && npx tsc --noEmit && npm run b
 
 ---
 
-## Phase P — Rust High-Performance Ingest Engine 🟢 IN PROGRESS (~85%)
+## Phase P — Rust High-Performance Ingest Engine ✅ COMPLETE (100%)
 
 > 🎯 **Goal**: Build a Rust-based data ingest engine that can parse 50,000+ findings/second from security tools. This replaces the Python parsers for high-volume workloads while keeping Python as fallback for low-volume scenarios.
 >
@@ -1411,6 +1411,8 @@ ruff check . && pytest tests/ -v && cd frontend && npx tsc --noEmit && npm run b
 > ✅ **Scaffold completed 2026-04-15**: Full ingest engine created in `ingest/` with all parser implementations, gRPC proto, Redis stream consumer, PostgreSQL DB writer, Prometheus metrics, HTTP health server, and multi-stage Dockerfile.
 >
 > ✅ **P.2/P.3/P.4 completed 2026-04-16**: Python bridge module, API Gateway ingest endpoints, docker-compose service entry, and feature flag wiring.
+>
+> ✅ **P.5 completed 2026-04-16**: Generated and committed Python gRPC stubs from `ingest/proto/ingest.proto` (`services/api_gateway/ingest_pb2.py`, `services/api_gateway/ingest_pb2_grpc.py`), wired typed enum mapping + stats response in `ingest_bridge.py`, and added grpc runtime/tooling dependencies (`grpcio`, `grpcio-tools`) plus gRPC-route tests.
 
 **Completed:**
 - ✅ `ingest/Cargo.toml` — full dependency manifest (tokio, sqlx, quick-xml, redis, tonic, axum, prometheus-client)
@@ -1434,10 +1436,11 @@ ruff check . && pytest tests/ -v && cd frontend && npx tsc --noEmit && npm run b
 - ✅ `services/api_gateway/main.py` — `/api/ingest/health` + `/api/ingest/batch` endpoints wired
 - ✅ `docker-compose.yml` — `ingest` service with PostgreSQL/Redis deps, health check, port mapping
 - ✅ `COSMICSEC_USE_RUST_INGEST` feature flag — gates routing at API Gateway level
-- ✅ `tests/test_ingest_bridge.py` — 10 tests for bridge fallback, health check, flag parsing
+- ✅ `services/api_gateway/ingest_pb2.py` + `services/api_gateway/ingest_pb2_grpc.py` — generated Python gRPC stubs committed
+- ✅ `requirements.txt` + `pyproject.toml` — `grpcio` and `grpcio-tools` added for runtime + stub generation
+- ✅ `tests/test_ingest_bridge.py` — 12 tests for fallback, health checks, flag parsing, and gRPC enum-routing behavior
 
-**Remaining:**
-- ⏳ P.5 — Generate Python gRPC stubs from proto (requires `grpcio-tools`; currently loads dynamically)
+**Remaining:** None — Phase P complete.
 
 ### P.1 — Ingest Engine Scaffold
 
