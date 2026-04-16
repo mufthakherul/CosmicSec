@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cosmicsec"
 version = "1.0.0"
-description = "CosmicSec - Universal Cybersecurity Intelligence Platform"
+description = "AI-native hybrid cybersecurity intelligence platform for recon, scanning, analysis, reporting, and local-agent orchestration"
 authors = ["Mufthakherul Islam Miraz <mufthakherul_cybersec@s6742.me>"]
 readme = "README.md"
 packages = [{ include = "services" }, { include = "cosmicsec_platform" }]

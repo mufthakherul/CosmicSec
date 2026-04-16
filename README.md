@@ -6,6 +6,8 @@
 
 ### Universal Cybersecurity Intelligence Platform
 
+AI-native hybrid cybersecurity platform unifying recon, scanning, AI analysis, reporting, collaboration, and local-agent execution across STATIC, DYNAMIC, and LOCAL operation modes.
+
 <img src="docs/assets/banner.svg" alt="CosmicSec Banner" width="100%" />
 
 <br/>
