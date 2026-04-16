@@ -480,6 +480,93 @@ services:
     networks:
       - cosmicsec-network
 
+  # -------------------------------------------------------------------------
+  # Phase P — Rust High-Performance Ingest Engine
+  # -------------------------------------------------------------------------
+  ingest:
+    build:
+      context: ./ingest
+      dockerfile: Dockerfile
+    container_name: cosmicsec-ingest
+    environment:
+      - DATABASE_URL=postgresql://cosmicsec:${POSTGRES_PASSWORD:-cosmicsec_dev_password}@postgres:5432/cosmicsec
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-cosmicsec_redis_password}@redis:6379/0
+      - GRPC_PORT=50051
+      - HTTP_PORT=8099
+      - LOG_LEVEL=info
+      - COSMICSEC_USE_RUST_INGEST=${COSMICSEC_USE_RUST_INGEST:-false}
+    ports:
+      - "50051:50051"   # gRPC — IngestService
+      - "8099:8099"     # HTTP  — /health /metrics /ready
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8099/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cosmicsec-network
+    restart: unless-stopped
+
+  # -------------------------------------------------------------------------
+  # Phase T — NATS JetStream message broker
+  # -------------------------------------------------------------------------
+  nats:
+    image: nats:2.10-alpine
+    container_name: cosmicsec-nats
+    command:
+      - "--jetstream"
+      - "--store_dir=/data"
+      - "--http_port=8222"
+      - "--max_payload=4MB"
+    ports:
+      - "4222:4222"   # Client connections
+      - "8222:8222"   # HTTP monitoring
+    volumes:
+      - nats_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8222/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cosmicsec-network
+    restart: unless-stopped
+
+  # -------------------------------------------------------------------------
+  # Phase T — Go Event Broker (Redis Streams ↔ NATS JetStream bridge)
+  # -------------------------------------------------------------------------
+  broker:
+    build:
+      context: ./broker
+      dockerfile: Dockerfile
+    container_name: cosmicsec-broker
+    environment:
+      - NATS_URL=nats://nats:4222
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-cosmicsec_redis_password}
+      - BROKER_HTTP_PORT=8090
+      - LOG_LEVEL=info
+    ports:
+      - "8090:8090"   # HTTP — /health /ready /metrics
+    depends_on:
+      nats:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cosmicsec-network
+    restart: unless-stopped
+
 networks:
   cosmicsec-network:
     driver: bridge
@@ -497,3 +584,4 @@ volumes:
   prometheus_data:
   grafana_data:
   loki_data:
+  nats_data:

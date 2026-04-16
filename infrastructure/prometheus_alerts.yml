@@ -1,0 +1,168 @@
+# CosmicSec — Prometheus Alerting Rules (Phase S.3)
+# Load with: rule_files: [prometheus_alerts.yml] in prometheus.yml
+
+groups:
+  - name: cosmicsec.service_health
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} on {{ $labels.instance }} has been down for more than 30 seconds."
+          runbook: "https://docs.cosmicsec.dev/runbooks/incident-response"
+
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{status=~"5.."}[5m])
+            /
+            rate(http_requests_total[5m])
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }} (threshold: 5%)."
+
+      - alert: HighP99Latency
+        expr: |
+          histogram_quantile(0.99,
+            rate(http_request_duration_seconds_bucket[5m])
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High P99 latency on {{ $labels.job }}"
+          description: "P99 latency is {{ $value }}s on {{ $labels.job }} (threshold: 2s)."
+
+  - name: cosmicsec.infrastructure
+    interval: 60s
+    rules:
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            container_memory_usage_bytes
+            / container_spec_memory_limit_bytes
+          ) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High memory usage in {{ $labels.name }}"
+          description: "Container {{ $labels.name }} is using {{ $value | humanizePercentage }} of its memory limit."
+
+      - alert: DiskUsageHigh
+        expr: |
+          (
+            node_filesystem_size_bytes - node_filesystem_avail_bytes
+          ) / node_filesystem_size_bytes > 0.80
+        for: 10m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "Disk usage above 80% on {{ $labels.instance }}"
+          description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full."
+
+      - alert: DiskUsageCritical
+        expr: |
+          (
+            node_filesystem_size_bytes - node_filesystem_avail_bytes
+          ) / node_filesystem_size_bytes > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "CRITICAL disk usage on {{ $labels.instance }}"
+          description: "Filesystem {{ $labels.mountpoint }} is {{ $value | humanizePercentage }} full — immediate action required."
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: cosmicsec_db_pool_exhausted_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "DB connection pool exhausted on {{ $labels.service }}"
+          description: "Service {{ $labels.service }} cannot acquire a DB connection. Investigate pool size and slow queries."
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance is unreachable. Caching and session storage are unavailable."
+
+  - name: cosmicsec.security_scanning
+    interval: 60s
+    rules:
+      - alert: ScanQueueDepthHigh
+        expr: cosmicsec_scan_queue_depth > 100
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Scan queue depth is high ({{ $value }})"
+          description: "The scan processing queue has {{ $value }} pending scans. Check scanner worker health."
+
+      - alert: CriticalFindingsSpike
+        expr: |
+          rate(cosmicsec_findings_total{severity="critical"}[10m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Spike in critical findings"
+          description: "{{ $value }} critical findings per minute in the last 10 minutes."
+
+      - alert: AIServiceLatencyHigh
+        expr: |
+          histogram_quantile(0.95,
+            rate(cosmicsec_ai_inference_duration_seconds_bucket[5m])
+          ) > 30
+        for: 5m
+        labels:
+          severity: warning
+          team: ai
+        annotations:
+          summary: "AI inference latency is high"
+          description: "P95 AI inference latency is {{ $value }}s (threshold: 30s)."
+
+  - name: cosmicsec.nats_broker
+    interval: 30s
+    rules:
+      - alert: NATSBrokerDown
+        expr: nats_up == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "NATS broker is down"
+          description: "The NATS JetStream broker is unreachable. Event-driven services will fall back to HTTP."
+
+      - alert: EventDLQGrowing
+        expr: cosmicsec_event_dlq_size > 100
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Dead letter queue growing ({{ $value }} messages)"
+          description: "The event DLQ has {{ $value }} unprocessed messages. Check broker logs."
