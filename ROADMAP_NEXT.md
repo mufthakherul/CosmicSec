@@ -2160,7 +2160,7 @@ Without service worker: app works normally (just no offline/push).
 
 ---
 
-## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~97%)
+## Phase V — Developer Experience, Branding & Polish ✅ COMPLETE (100%)
 
 > 🎯 **Goal**: Make CosmicSec a joy to develop on and a premium-feeling product. Add developer documentation, component library, animation polish, and branding refinements.
 >
@@ -2193,6 +2193,8 @@ Without service worker: app works normally (just no offline/push).
 > ✅ **V.1/V.2 follow-up tranche 2026-04-16**: Added Storybook GitHub Pages deployment workflow (`.github/workflows/storybook.yml`), expanded story coverage (`MobileBottomNav`, `SkipLink`, `SWUpdateBanner`), and shipped app-wide route transition + top navigation progress bar + modal/input/button interaction polish.
 >
 > ✅ **V.1/V.2 final polish tranche 2026-04-16**: Added `PublicNav` Storybook coverage and report-surface chart grow animations (`ReportsPage` report health bars), with consistent input glow and ripple interaction feedback.
+>
+> ✅ **V.1/V.3 closure tranche 2026-04-16**: Added Storybook coverage for complex layout/auth surfaces (`Header`, `Sidebar`) and expanded CLI getting-started examples for clearer operator workflows.
 
 **Completed:**
 - ✅ `docs/adr/ADR-001` through `ADR-005` — Architecture Decision Records
@@ -2216,12 +2218,12 @@ Without service worker: app works normally (just no offline/push).
 - ✅ Storybook CI/CD deployment workflow to GitHub Pages (`.github/workflows/storybook.yml`)
 - ✅ Expanded component story coverage (navigation/accessibility/PWA banners)
 - ✅ Additional Storybook coverage for public navigation (`PublicNav`)
+- ✅ Storybook coverage for layout/auth surfaces (`Header`, `Sidebar`)
 - ✅ Route/page transition and interaction polish (route fade-in, top progress bar, modal slide-in, input glow, ripple feedback)
 - ✅ Report visualization micro-interaction polish (animated report health bars)
+- ✅ Expanded CLI usage examples in docs (`docs/cli/getting-started.md`)
 
-**Remaining (~3%):**
-- ⏳ V.1 partial — broader story coverage for remaining complex auth/layout surfaces (header/sidebar/profile menus)
-- ⏳ V.3 partial — screenshots/examples polish in README and docs
+**Remaining:** None — Phase V complete.
 
 ### V.1 — Component Library (Storybook)
 

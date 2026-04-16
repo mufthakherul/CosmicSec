@@ -1547,7 +1547,7 @@ cosmicsec pull --since 2026-04-01
 
 ---
 
-## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~86%)
+## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~88%)
 
 > 🎯 **Goal**: Polish the CLI for release — branded experience, professional packaging, comprehensive documentation, and easy installation.
 >
@@ -1579,6 +1579,9 @@ cosmicsec pull --since 2026-04-01
 >
 > ✅ **CA-7.3 release automation follow-up 2026-04-16**:
 > - Added `--check` mode to man page generator and wired publish pipeline validation (`.github/workflows/publish-agent.yml`) to prevent stale man page releases.
+>
+> ✅ **CA-7.3 docs examples follow-up 2026-04-16**:
+> - Expanded operator examples in `docs/cli/getting-started.md` with explicit first-scan workflow and critical-finding history commands.
 
 **Completed:**
 - ✅ `cli/agent/README.md` — dedicated agent quick start, command workflows, configuration, and troubleshooting
@@ -1591,9 +1594,10 @@ cosmicsec pull --since 2026-04-01
 - ✅ Distribution starter assets (Homebrew formula template + installation guide)
 - ✅ CLI man page generation and checked-in man page artifact
 - ✅ Release pipeline man-page sync guard (`scripts/generate-cli-manpage.py --check` in `publish-agent.yml`)
+- ✅ Improved quick-start command examples (`docs/cli/getting-started.md`)
 - ✅ CLI test suite stable on current environment (`pytest cli/agent/tests` → 83 passed)
 
-**Remaining (~14%):**
+**Remaining (~12%):**
 - ⏳ CA-7.2 partial — publish and maintain live Homebrew tap + standalone binary packaging
 - ⏳ CA-7.3 partial — screenshots/examples polish for docs
 - ⏳ CA-7.4 — comprehensive CLI test expansion to 90%+ coverage
