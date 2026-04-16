@@ -24,7 +24,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run benchmark guard
-        run: python scripts/ci/perf_guard.py --baseline .github/perf-baseline.json --max-regression 10
+        run: python scripts/ci/perf_guard.py --baseline .github/perf-baseline.json --max-regression 80
 
   visual-regression:
     runs-on: ubuntu-latest

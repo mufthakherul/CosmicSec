@@ -25,6 +25,17 @@ def _has_integrity(attrs: str) -> bool:
     return "integrity=" in attrs.lower()
 
 
+def _requires_sri(tag: str, attrs: str) -> bool:
+    attrs_lower = attrs.lower()
+    if tag.lower() == "script":
+        return "src=" in attrs_lower
+    if tag.lower() != "link":
+        return False
+    rel_match = re.search(r'rel\s*=\s*["\']([^"\']+)["\']', attrs, re.IGNORECASE)
+    rel_value = rel_match.group(1).lower() if rel_match else ""
+    return rel_value in {"stylesheet", "modulepreload"}
+
+
 def main() -> int:
     missing: list[str] = []
     for html_path in HTML_FILES:
@@ -33,9 +44,10 @@ def main() -> int:
         text = html_path.read_text(encoding="utf-8")
         for i, line in enumerate(text.splitlines(), start=1):
             for match in TAG_RE.finditer(line):
+                tag = match.group("tag")
                 attrs = match.group("attrs")
-                if _is_external(attrs) and not _has_integrity(attrs):
-                    missing.append(f"{html_path}:{i}:{match.group('tag')}")
+                if _requires_sri(tag, attrs) and _is_external(attrs) and not _has_integrity(attrs):
+                    missing.append(f"{html_path}:{i}:{tag}")
     if missing:
         print("Missing SRI integrity attributes for external assets:")
         for item in missing:
