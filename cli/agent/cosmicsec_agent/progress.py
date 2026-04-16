@@ -286,10 +286,14 @@ async def run_tools_with_progress(
     """
     from .executor import run_tool_complete
     from .parsers import (
+        BurpsuiteParser,
         FfufParser,
         GobusterParser,
+        HashcatParser,
         HydraParser,
+        JohnParser,
         MasscanParser,
+        MetasploitParser,
         NiktoParser,
         NmapParser,
         NucleiParser,
@@ -309,6 +313,10 @@ async def run_tools_with_progress(
         "wpscan": WpscanParser(),
         "hydra": HydraParser(),
         "zaproxy": ZaproxyParser(),
+        "john": JohnParser(),
+        "hashcat": HashcatParser(),
+        "metasploit": MetasploitParser(),
+        "burpsuite": BurpsuiteParser(),
     }
 
     state = ScanProgressState(tools_total=len(tools))

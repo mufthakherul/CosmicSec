@@ -437,10 +437,16 @@ def update_cmd(
         "--check",
         help="Check for updates only; do not install.",
     ),
+    strategy: str = typer.Option(
+        "auto",
+        "--strategy",
+        help="Install strategy: auto|pip|pipx|brew|winget",
+    ),
 ) -> None:
     """Check for CLI updates and optionally install the latest release."""
-    import subprocess
+    import shutil
     import sys
+    import subprocess
 
     import httpx
 
@@ -469,21 +475,44 @@ def update_cmd(
         _audit("update_check", detail=f"latest={latest};check_only=true", success=True)
         return
 
-    proc = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--upgrade", "cosmicsec-agent"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if proc.returncode != 0:
-        console.print("[red]Update install failed.[/red]")
-        if proc.stderr:
-            console.print(proc.stderr.strip())
-        _audit("update_install", detail=f"latest={latest};rc={proc.returncode}", success=False)
+    strategy = strategy.lower().strip()
+    if strategy not in {"auto", "pip", "pipx", "brew", "winget"}:
+        console.print("[red]Invalid strategy. Use: auto|pip|pipx|brew|winget[/red]")
+        _audit("update_install", detail=f"latest={latest};invalid_strategy={strategy}", success=False)
         raise typer.Exit(1)
 
+    candidates: list[list[str]] = []
+    if strategy in {"auto", "pipx"} and shutil.which("pipx"):
+        candidates.append(["pipx", "upgrade", "cosmicsec-agent"])
+    if strategy in {"auto", "brew"} and shutil.which("brew"):
+        candidates.append(["brew", "upgrade", "cosmicsec-agent"])
+    if strategy in {"auto", "winget"} and platform.system().lower() == "windows" and shutil.which("winget"):
+        candidates.append(["winget", "upgrade", "--id", "CosmicSec.Agent", "--silent"])
+    if strategy in {"auto", "pip"} or not candidates:
+        candidates.append([sys.executable, "-m", "pip", "install", "--upgrade", "cosmicsec-agent"])
+
+    last_error = ""
+    proc = None
+    used_cmd = ""
+    for cmd in candidates:
+        used_cmd = " ".join(cmd)
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        if proc.returncode == 0:
+            break
+        last_error = (proc.stderr or proc.stdout or "").strip()[:1000]
+
+    if proc is None or proc.returncode != 0:
+        console.print("[red]Update install failed.[/red]")
+        if last_error:
+            console.print(last_error)
+        _audit(
+            "update_install",
+            detail=f"latest={latest};strategy={strategy};cmd={used_cmd};rc={(proc.returncode if proc else -1)}",
+            success=False,
+        )
+        raise typer.Exit(1)
     console.print(f"[green]Updated CosmicSec Agent to {latest}. Restart your shell session.[/green]")
-    _audit("update_install", detail=f"latest={latest}", success=True)
+    _audit("update_install", detail=f"latest={latest};strategy={strategy};cmd={used_cmd}", success=True)
 
 
 # ---------------------------------------------------------------------------
