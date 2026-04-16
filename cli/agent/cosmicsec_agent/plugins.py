@@ -20,6 +20,10 @@ class PluginMetadata:
     author: str = "Unknown"
     description: str = ""
     path: str = ""
+    enabled: bool = True
+    source: str = "local"
+    homepage: str = ""
+    tags: str = ""
 
 
 def _validate_plugin_name(name: str) -> None:
@@ -40,6 +44,33 @@ def _parse_simple_yaml(path: Path) -> dict[str, str]:
         key, _, value = line.partition(":")
         result[key.strip()] = value.strip().strip('"').strip("'")
     return result
+
+
+def _to_bool(value: str | bool | None, default: bool = True) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).strip().lower() not in {"0", "false", "no", "off"}
+
+
+def _write_plugin_yaml(path: Path, metadata: PluginMetadata) -> None:
+    path.write_text(
+        "\n".join(
+            [
+                f"name: {metadata.name}",
+                f"version: {metadata.version}",
+                f"author: {metadata.author}",
+                f"description: {metadata.description}",
+                f"enabled: {'true' if metadata.enabled else 'false'}",
+                f"source: {metadata.source}",
+                f"homepage: {metadata.homepage}",
+                f"tags: {metadata.tags}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
 
 
 class PluginManager:
@@ -65,9 +96,20 @@ class PluginManager:
                     author=meta.get("author", "Unknown"),
                     description=meta.get("description", ""),
                     path=str(entry),
+                    enabled=_to_bool(meta.get("enabled"), default=True),
+                    source=meta.get("source", "local"),
+                    homepage=meta.get("homepage", ""),
+                    tags=meta.get("tags", ""),
                 )
             )
         return plugins
+
+    def get_plugin(self, name: str) -> PluginMetadata | None:
+        _validate_plugin_name(name)
+        for plugin in self.list_plugins():
+            if plugin.name == name:
+                return plugin
+        return None
 
     def search(self, query: str) -> list[PluginMetadata]:
         needle = query.lower().strip()
@@ -86,17 +128,15 @@ class PluginManager:
             raise FileExistsError(f"Plugin '{name}' already exists.")
         plugin_dir.mkdir(parents=True, exist_ok=False)
 
-        (plugin_dir / "plugin.yaml").write_text(
-            "\n".join(
-                [
-                    f"name: {name}",
-                    "version: 0.1.0",
-                    f"author: {author}",
-                    "description: Custom CosmicSec plugin",
-                    "",
-                ]
+        _write_plugin_yaml(
+            plugin_dir / "plugin.yaml",
+            PluginMetadata(
+                name=name,
+                version="0.1.0",
+                author=author,
+                description="Custom CosmicSec plugin",
+                path=str(plugin_dir),
             ),
-            encoding="utf-8",
         )
         (plugin_dir / "__init__.py").write_text(
             f'"""Plugin package: {name}."""\n',
@@ -131,6 +171,18 @@ class PluginManager:
         if dest.exists():
             shutil.rmtree(dest)
         shutil.copytree(source, dest)
+        meta_path = dest / "plugin.yaml"
+        if not meta_path.exists():
+            _write_plugin_yaml(
+                meta_path,
+                PluginMetadata(
+                    name=dest.name,
+                    version="0.1.0",
+                    author="Unknown",
+                    description="Installed plugin",
+                    path=str(dest),
+                ),
+            )
         return dest
 
     def remove(self, name: str) -> bool:
@@ -140,3 +192,24 @@ class PluginManager:
             return False
         shutil.rmtree(plugin_dir)
         return True
+
+    def set_enabled(self, name: str, enabled: bool) -> PluginMetadata:
+        _validate_plugin_name(name)
+        plugin_dir = self._root / name
+        if not plugin_dir.exists():
+            raise FileNotFoundError(f"Plugin '{name}' not found.")
+
+        existing = self.get_plugin(name) or PluginMetadata(name=name, path=str(plugin_dir))
+        updated = PluginMetadata(
+            name=existing.name,
+            version=existing.version,
+            author=existing.author,
+            description=existing.description,
+            path=str(plugin_dir),
+            enabled=enabled,
+            source=existing.source,
+            homepage=existing.homepage,
+            tags=existing.tags,
+        )
+        _write_plugin_yaml(plugin_dir / "plugin.yaml", updated)
+        return updated

@@ -19,6 +19,8 @@ cosmicsec-agent history findings --severity critical --output json
 cosmicsec-agent scan --target 192.168.1.20 --tool nmap
 cosmicsec-agent sync status
 cosmicsec-agent sync push
+cosmicsec-agent sync pull --from-file findings.json
+cosmicsec-agent sync optimize
 ```
 
 ## Team profile workflow
@@ -27,4 +29,14 @@ cosmicsec-agent sync push
 cosmicsec-agent profile add dev --server https://dev.cosmicsec.io
 cosmicsec-agent profile add prod --server https://app.cosmicsec.io
 cosmicsec-agent profile use prod
+```
+
+## Plugin lifecycle workflow
+
+```bash
+cosmicsec-agent plugin create acme-custom --author "Acme Security"
+cosmicsec-agent plugin install ./acme-custom
+cosmicsec-agent plugin info acme-custom
+cosmicsec-agent plugin disable acme-custom
+cosmicsec-agent plugin enable acme-custom
 ```

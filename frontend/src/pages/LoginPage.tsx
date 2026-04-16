@@ -30,6 +30,8 @@ export function LoginPage() {
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [orgSlug, setOrgSlug] = useState("");
+    const [ssoLoading, setSsoLoading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
@@ -69,6 +71,33 @@ export function LoginPage() {
             }
         } finally {
             setIsLoading(false);
+        }
+    }
+
+    async function handleSsoSignIn() {
+        setError(null);
+        const slug = orgSlug.trim().toLowerCase();
+        if (!slug) {
+            setError("Organization slug is required for SSO");
+            return;
+        }
+        setSsoLoading(true);
+        try {
+            const { data } = await axios.get(`${API}/api/orgs/slug/${encodeURIComponent(slug)}/sso`);
+            const redirectUrl = data?.authorization_url ?? data?.authorize_url ?? data?.sso_url;
+            if (!redirectUrl || typeof redirectUrl !== "string") {
+                setError("SSO is not configured for this organization.");
+                return;
+            }
+            window.location.assign(redirectUrl);
+        } catch (err) {
+            if (err instanceof AxiosError) {
+                setError(err.response?.data?.detail ?? "Unable to start SSO sign-in.");
+            } else {
+                setError("Unable to start SSO sign-in.");
+            }
+        } finally {
+            setSsoLoading(false);
         }
     }
 
@@ -175,6 +204,34 @@ export function LoginPage() {
                         )}
                     </Button>
                 </form>
+
+                <div className="space-y-3 rounded-md border border-slate-800 bg-slate-950/50 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Single Sign-On</p>
+                    <input
+                        type="text"
+                        value={orgSlug}
+                        onChange={(e) => setOrgSlug(e.target.value)}
+                        placeholder="Organization slug (e.g. acme-sec)"
+                        className="input-glow w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:ring-2 focus:ring-cyan-500"
+                        aria-label="Organization slug for SSO"
+                        disabled={ssoLoading || isLoading}
+                    />
+                    <Button
+                        type="button"
+                        onClick={() => void handleSsoSignIn()}
+                        className="w-full bg-slate-700 hover:bg-slate-600"
+                        disabled={ssoLoading || isLoading}
+                    >
+                        {ssoLoading ? (
+                            <span className="flex items-center justify-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Redirecting to SSO…
+                            </span>
+                        ) : (
+                            "Sign in with SSO"
+                        )}
+                    </Button>
+                </div>
 
                 <p className="text-center text-sm text-slate-400">
                     Don&apos;t have an account?{" "}
