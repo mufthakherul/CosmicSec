@@ -282,6 +282,42 @@ def test_oauth_start_invalid_provider() -> None:
     assert resp.status_code == 400
 
 
+def test_org_sso_discovery_by_slug() -> None:
+    email = f"admin+{secrets.token_urlsafe(4)}@example.com"
+    password = "StrongPass123!"
+    slug = f"acme-{secrets.token_urlsafe(3).lower()}"
+
+    client.post(
+        "/register",
+        json={"email": email, "password": password, "full_name": "Org Admin", "role": "admin"},
+    )
+    login_resp = client.post("/login", json={"email": email, "password": password})
+    assert login_resp.status_code == 200
+    token = login_resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    create_org_resp = client.post(
+        "/orgs",
+        headers=headers,
+        json={"name": "Acme Security", "slug": slug, "owner_email": email, "plan": "enterprise"},
+    )
+    assert create_org_resp.status_code == 201
+
+    configure_sso_resp = client.post(
+        f"/orgs/{create_org_resp.json()['org_id']}/sso",
+        headers=headers,
+        json={"provider": "microsoft", "enabled": True, "client_id": "ms-client-test"},
+    )
+    assert configure_sso_resp.status_code == 200
+
+    discovery_resp = client.get(f"/orgs/slug/{slug}/sso")
+    assert discovery_resp.status_code == 200
+    payload = discovery_resp.json()
+    assert payload["organization_slug"] == slug
+    assert payload["provider"] == "microsoft"
+    assert "authorization_url" in payload
+
+
 def test_gdpr_export_returns_user_data() -> None:
     email = _unique_email()
     _register(email)

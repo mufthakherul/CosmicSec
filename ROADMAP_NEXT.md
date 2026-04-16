@@ -5,7 +5,7 @@
 
 ---
 
-> ### 📊 Overall Progress: **~95% Complete** (Phases K+L+M+N+O+P+T+U+V complete; Q 75%, R 88%, S 75%; CLI companion CA-1 80%, CA-2 90%)
+> ### 📊 Overall Progress: **~95% Complete** (Phases K+L+M+N+O+P+T+U+V complete; Q 75%, R 92%, S 75%; CLI companion CA-1 80%, CA-2 90%)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -16,7 +16,7 @@
 > | **O — Test Coverage** | ✅ Complete | 100% |
 > | **P — Rust Ingest Engine** | ✅ Complete | 100% |
 > | **Q — AI/ML Workflows** | 🟢 In progress | 75% |
-> | **R — Enterprise Features** | 🟢 In progress | 88% |
+> | **R — Enterprise Features** | 🟢 In progress | 92% |
 > | **S — Performance & Scale** | 🟢 In progress | 75% |
 > | **T — Go Event Broker** | ✅ Complete | 100% |
 > | **U — Mobile & PWA** | ✅ Complete | 100% |
@@ -1678,7 +1678,7 @@ Minimum viable output: Triage only (always works — rule-based fallback).
 
 ---
 
-## Phase R — Enterprise, Multi-Tenancy & Premium Features 🟢 IN PROGRESS (~88%)
+## Phase R — Enterprise, Multi-Tenancy & Premium Features 🟢 IN PROGRESS (~92%)
 
 > 🎯 **Goal**: Add organization-scoped multi-tenancy, SSO, advanced RBAC, compliance automation, and white-label support. After this phase, CosmicSec is ready for enterprise customers.
 >
@@ -1695,6 +1695,8 @@ Minimum viable output: Triage only (always works — rule-based fallback).
 > ✅ **R.5 complete 2026-04-16**: `services/api_gateway/white_label.py` — `WhiteLabelMiddleware` injects `X-Org-Name`, `X-Primary-Color`, `X-Logo-URL` headers from org branding cache. `GET /api/branding/{org_slug}` returns CSS variable block for frontend theming. `PUT /api/branding/{org_slug}` updates org branding. 11 tests in `tests/test_phase_r5_white_label.py`.
 >
 > ✅ **R.2 UX tranche 2026-04-16**: Added SSO entry UX on frontend login (`frontend/src/pages/LoginPage.tsx`) with organization slug input + `Sign in with SSO` flow that resolves org SSO config and redirects to provider authorization URL when configured.
+>
+> ✅ **R.2 backend protocol tranche 2026-04-16**: Added enterprise SSO protocol and discovery routes in `services/auth_service/main.py` and `services/api_gateway/main.py`, including org-scoped SSO configuration/discovery (`/orgs/{org_id}/sso`, `/orgs/slug/{slug}/sso`), gateway SSO entry points (`/api/auth/sso/{provider}/authorize`, `/api/auth/sso/{provider}/callback`), and SAML proxy routes (`/api/auth/sso/saml/metadata`, `/api/auth/sso/saml/acs`). Added coverage in `tests/test_auth_service.py` and route wiring checks in `tests/test_api_gateway.py`.
 
 **Completed:**
 - ✅ `services/org_service/main.py` — Organization CRUD, member management, SSO config, branding, graceful DB fallback
@@ -1702,13 +1704,17 @@ Minimum viable output: Triage only (always works — rule-based fallback).
 - ✅ `services/auth_service/rbac_engine.py` — Resource-level RBAC engine + `require_rbac_permission` decorator
 - ✅ `services/auth_service/rbac/policy.csv` — Expanded Casbin policy for all 6 roles × all resources
 - ✅ `services/api_gateway/white_label.py` — WhiteLabelMiddleware + `/api/branding/{slug}` endpoints
+- ✅ `services/auth_service/main.py` — Org-scoped SSO config/discovery routes + provider authorization URL generation
+- ✅ `services/api_gateway/main.py` — SSO authorize/callback + SAML metadata/ACS + org slug SSO discovery proxy routes
 - ✅ `tests/test_org_service.py` — 9 tests covering health, CRUD, SSO, branding, member management
 - ✅ `tests/test_compliance_service.py` — 10 tests covering all 4 frameworks, gap detection, report generation
 - ✅ `tests/test_phase_r4_rbac.py` — 14 tests covering role matrix, custom roles, API auth
 - ✅ `tests/test_phase_r5_white_label.py` — 11 tests covering middleware headers, CSS generation, PUT/GET
+- ✅ `tests/test_auth_service.py` — Added org slug SSO discovery flow coverage
+- ✅ `tests/test_api_gateway.py` — Added SSO route wiring checks (org slug SSO + SAML metadata)
 
-**Remaining (~12% of phase):**
-- ⏳ R.2 partial — backend SAML/OIDC protocol endpoints and provider-specific callbacks remain
+**Remaining (~8% of phase):**
+- ⏳ R.2 partial — full production-grade token exchange/validation (OIDC JWKS, signed SAML assertion verification) remains
 
 ### R.1 — Multi-Tenancy
 
