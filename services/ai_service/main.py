@@ -287,7 +287,7 @@ async def kb_refresh() -> dict:
             "nvd_cves": 0,
             "mitre_techniques": 0,
             "total_ingested": 0,
-            "message": str(exc),
+            "message": "KB refresh unavailable — check service logs for details.",
             "timestamp": datetime.now(tz=UTC).isoformat(),
         }
 
