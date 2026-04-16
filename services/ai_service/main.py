@@ -20,6 +20,7 @@ from .agents import run_assessment_workflow
 from .ai_agents import get_exploit_guidance, run_autonomous_agent
 from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
 from .defensive_ai import DefensiveAI
+from .kb_loader import load_all as kb_load_all
 from .mitre_attack import map_multiple
 from .prompt_templates import SUMMARY_TEMPLATE
 from .quantum_security import decrypt_payload, encrypt_payload, hybrid_key_exchange, list_algorithms
@@ -256,6 +257,39 @@ async def kb_stats() -> dict:
         "chromadb_documents": collection_count(),
         "timestamp": datetime.now(tz=UTC).isoformat(),
     }
+
+
+@app.post("/kb/refresh")
+async def kb_refresh() -> dict:
+    """
+    Trigger a fresh download and re-ingestion of the RAG knowledge base.
+
+    Re-downloads NVD CVE feeds and MITRE ATT&CK STIX data, then ingests
+    all documents into ChromaDB.  Returns counts for each data source.
+
+    Fallback: If ChromaDB or the network is unavailable the counts will be 0
+    and the response will include a ``message`` explaining the situation.
+    """
+    try:
+        counts = await kb_load_all()
+        total = sum(counts.values())
+        return {
+            "status": "refreshed",
+            "nvd_cves": counts.get("nvd_cves", 0),
+            "mitre_techniques": counts.get("mitre_techniques", 0),
+            "total_ingested": total,
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+        }
+    except Exception as exc:
+        logger.warning("KB refresh failed: %s", exc)
+        return {
+            "status": "fallback",
+            "nvd_cves": 0,
+            "mitre_techniques": 0,
+            "total_ingested": 0,
+            "message": "KB refresh unavailable — check service logs for details.",
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+        }
 
 
 # ==========================================================================
