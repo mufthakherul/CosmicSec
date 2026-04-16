@@ -2070,7 +2070,7 @@ Each service checks NATS health on startup and uses appropriate transport.
 
 ---
 
-## Phase U — Mobile, PWA & Cross-Platform Clients 🟢 IN PROGRESS (~60%)
+## Phase U — Mobile, PWA & Cross-Platform Clients 🟢 IN PROGRESS (~66%)
 
 > 🎯 **Goal**: Make CosmicSec work as a Progressive Web App with offline support, push notifications, and mobile-optimized experience. Optionally add React Native mobile app.
 >
@@ -2078,14 +2078,15 @@ Each service checks NATS health on startup and uses appropriate transport.
 >
 > 🌐 **Languages**: TypeScript, JavaScript, HTML, CSS
 >
-> ✅ **U.1 complete 2026-04-16**: Full PWA implementation. `frontend/public/service-worker.js` — cache-first for static assets, network-first for API, background sync queue for scan submissions (`cosmicsec-scan-submit` tag), push notifications with critical-finding `requireInteraction`, two-stage click-to-navigate, IndexedDB scan queue, `notifyClients` broadcast. `frontend/public/manifest.json` — standalone display, shortcuts (New Scan, Dashboard, Recon), OG screenshots, categories, language. All PWA install lifecycle hooks available.
+> ✅ **U.1 complete 2026-04-16**: Full PWA implementation. `frontend/public/service-worker.js` — cache-first for static assets, network-first for API, background sync queue for scan submissions (`cosmicsec-scan-submit` tag), push notifications with critical-finding `requireInteraction`, two-stage click-to-navigate, IndexedDB scan queue, `notifyClients` broadcast. `frontend/public/manifest.json` — standalone display, shortcuts (New Scan, Dashboard, Recon), OG screenshots, categories, language.
+>
+> ✅ **U.1 install UX tranche 2026-04-16**: Added `usePWA` install hook (`frontend/src/hooks/usePWA.ts`) and integrated install/update banners globally in `App.tsx` (`PWAInstallBanner`, `SWUpdateBanner`) with test coverage.
 
 **Completed:**
 - ✅ `frontend/public/service-worker.js` — cache-first + network-first strategies, background sync, push notifications, IDB scan queue
 - ✅ `frontend/public/manifest.json` — standalone PWA manifest with shortcuts and screenshots
 
-**Remaining (~40%):**
-- ⏳ U.1 partial — Register service worker in `frontend/src/main.tsx` + `usePWA` hook for install prompt
+**Remaining (~34%):**
 - ⏳ U.2 — Mobile-optimized dashboard layouts (swipeable card carousel, touch targets)
 - ⏳ U.3 — Optional React Native companion app
 
@@ -2149,7 +2150,7 @@ Without service worker: app works normally (just no offline/push).
 
 ---
 
-## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~74%)
+## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~78%)
 
 > 🎯 **Goal**: Make CosmicSec a joy to develop on and a premium-feeling product. Add developer documentation, component library, animation polish, and branding refinements.
 >
@@ -2170,6 +2171,8 @@ Without service worker: app works normally (just no offline/push).
 > ✅ **V.3 CI quality uplift 2026-04-16**: Expanded test workflow to Python 3.11/3.12/3.13 matrix and added Alembic migration SQL validation job.
 >
 > ✅ **V.3 security/dev tooling uplift 2026-04-16**: Added TruffleHog secrets scan in CI (`security-scan.yml`) and pre-commit hook, plus frontend bundle analysis support via `rollup-plugin-visualizer` (`npm run analyze` + `vite.config.ts` analyzer mode).
+>
+> ✅ **V.3 contribution workflow uplift 2026-04-16**: Refreshed `CONTRIBUTING.md` (Python 3.11–3.13, modern Ruff/ESLint/Prettier workflow), expanded PR template roadmap/testing sections, and updated README quick-start with frontend analyzer + CLI local mode commands.
 
 **Completed:**
 - ✅ `docs/adr/ADR-001` through `ADR-005` — Architecture Decision Records
@@ -2186,11 +2189,12 @@ Without service worker: app works normally (just no offline/push).
 - ✅ Keyboard shortcuts help panel (`?` key) in app header modal
 - ✅ High contrast mode toggle (ThemeContext + Settings page + CSS)
 - ✅ Reduced motion mode toggle (ThemeContext + Settings page + CSS)
+- ✅ Updated contribution workflow docs (`CONTRIBUTING.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `README.md` quick-start additions)
 
-**Remaining (~26%):**
+**Remaining (~22%):**
 - ⏳ V.1 — Storybook component library
 - ⏳ V.2 — Remaining animation/micro-interaction polish (dashboard counters/charts/stagger tuning)
-- ⏳ V.3 partial — CONTRIBUTING.md update, PR template, README quick-start + screenshots/examples
+- ⏳ V.3 partial — screenshots/examples polish in README and docs
 
 ### V.1 — Component Library (Storybook)
 

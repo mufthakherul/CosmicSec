@@ -35,7 +35,7 @@ For significant features or design changes, **open an issue first** to discuss t
 
 ### Requirements
 
-- Python 3.9–3.12
+- Python 3.11–3.13
 - Docker & Docker Compose
 - `git`
 
@@ -154,19 +154,21 @@ security(api_gateway): enforce rate limit on unauthenticated endpoints
 
 ## Code Style & Quality
 
-We enforce consistent style using the following tools (all configured in `pyproject.toml`):
+We enforce consistent style with the repository tooling:
 
-| Tool | Purpose | Command |
+| Area | Tooling | Command |
 |------|---------|---------|
-| [Black](https://black.readthedocs.io) | Code formatting | `black .` |
-| [isort](https://pycqa.github.io/isort/) | Import ordering | `isort .` |
-| [Flake8](https://flake8.pycqa.org) | Linting | `flake8 .` |
-| [mypy](https://mypy.readthedocs.io) | Type checking | `mypy .` |
+| Python lint/format | [Ruff](https://docs.astral.sh/ruff/) | `ruff check . && ruff format .` |
+| Python typing | [mypy](https://mypy.readthedocs.io) | `mypy .` |
+| Frontend lint | ESLint | `cd frontend && npm run lint` |
+| Frontend format | Prettier | `cd frontend && npm run format:check` |
+| Frontend bundle audit | Visualizer build | `cd frontend && npm run analyze` |
 
-**Run all checks at once:**
+**Run common checks before opening a PR:**
 
 ```bash
-black . && isort . && flake8 . && mypy .
+ruff check . && ruff format . && mypy .
+cd frontend && npm run lint && npm run test && npm run build
 ```
 
 Pre-commit hooks (`.pre-commit-config.yaml`) run these checks automatically before each commit.
@@ -174,7 +176,7 @@ Pre-commit hooks (`.pre-commit-config.yaml`) run these checks automatically befo
 **Key conventions:**
 
 - Line length: **100 characters** (Black/isort configured)
-- Target Python versions: 3.9, 3.10, 3.11, 3.12
+- Target Python versions: 3.11, 3.12, 3.13
 - Use type annotations on all public functions and methods
 - Do not commit secrets, credentials, API keys, or private data
 - Keep microservices self-contained — avoid cross-service imports outside `cosmicsec_platform/`
