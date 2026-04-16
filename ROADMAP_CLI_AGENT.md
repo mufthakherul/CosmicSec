@@ -1546,7 +1546,7 @@ cosmicsec pull --since 2026-04-01
 
 ---
 
-## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~70%)
+## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~72%)
 
 > 🎯 **Goal**: Polish the CLI for release — branded experience, professional packaging, comprehensive documentation, and easy installation.
 >
@@ -1575,7 +1575,7 @@ cosmicsec pull --since 2026-04-01
 - ✅ Theme-aware severity formatting and branded startup/version output
 - ✅ CLI test suite stable on current environment (`pytest cli/agent/tests` → 79 passed)
 
-**Remaining (~30%):**
+**Remaining (~28%):**
 - ⏳ CA-7.1 — finalize help-banner rendering + polish theme customization UX
 - ⏳ CA-7.2 — distribution channels (Homebrew/standalone binaries; update command now partially implemented)
 - ⏳ CA-7.3 remaining docs (screenshots/examples/man-page generation)
@@ -2020,7 +2020,7 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 | 3rd 🟠 | **CA-4** — AI-Powered CLI (extends CA-4.5) | 2–3 weeks | CA-2, CA-4.5 ✅ | ⏳ Pending |
 | 4th 🟠 | **CA-3** — Interactive TUI | 2–3 weeks | CA-2 | ⏳ Pending |
 | 5th 🟠 | **CA-5** — Orchestration & Pipelines | 2 weeks | CA-2 | ⏳ Pending |
-| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 | 🟢 In progress (~70%) |
+| 6th 🟡 | **CA-7** — DX & Distribution | 1–2 weeks | CA-1 through CA-4 | 🟢 In progress (~72%) |
 | 7th 🟡 | **CA-6** — Enterprise Features | 1–2 weeks | CA-1, Main Phase R | ⏳ Pending |
 | 8th 🟡 | **CA-8** — Plugin System | 1–2 weeks | CA-5 | 🟢 In progress (~40%) |
 | 9th 🟢 | **CA-9** — Offline Intelligence | 1–2 weeks | CA-4, Main Phase Q | 🟢 In progress (~35%) |

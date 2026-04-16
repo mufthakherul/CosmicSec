@@ -2149,7 +2149,7 @@ Without service worker: app works normally (just no offline/push).
 
 ---
 
-## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~70%)
+## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~74%)
 
 > 🎯 **Goal**: Make CosmicSec a joy to develop on and a premium-feeling product. Add developer documentation, component library, animation polish, and branding refinements.
 >
@@ -2168,6 +2168,8 @@ Without service worker: app works normally (just no offline/push).
 > ✅ **V.2 accessibility polish tranche 2026-04-16**: Added keyboard shortcuts help panel (`?` key), high-contrast mode toggle, and reduced-motion preference toggle in frontend settings/theme context; wired CSS-level high-contrast and reduced-motion behavior.
 >
 > ✅ **V.3 CI quality uplift 2026-04-16**: Expanded test workflow to Python 3.11/3.12/3.13 matrix and added Alembic migration SQL validation job.
+>
+> ✅ **V.3 security/dev tooling uplift 2026-04-16**: Added TruffleHog secrets scan in CI (`security-scan.yml`) and pre-commit hook, plus frontend bundle analysis support via `rollup-plugin-visualizer` (`npm run analyze` + `vite.config.ts` analyzer mode).
 
 **Completed:**
 - ✅ `docs/adr/ADR-001` through `ADR-005` — Architecture Decision Records
@@ -2185,7 +2187,7 @@ Without service worker: app works normally (just no offline/push).
 - ✅ High contrast mode toggle (ThemeContext + Settings page + CSS)
 - ✅ Reduced motion mode toggle (ThemeContext + Settings page + CSS)
 
-**Remaining (~30%):**
+**Remaining (~26%):**
 - ⏳ V.1 — Storybook component library
 - ⏳ V.2 — Remaining animation/micro-interaction polish (dashboard counters/charts/stagger tuning)
 - ⏳ V.3 partial — CONTRIBUTING.md update, PR template, README quick-start + screenshots/examples
@@ -2311,7 +2313,7 @@ These improvements span multiple phases and should be applied continuously:
 ### Security Continuous Improvement
 - [ ] Add Content Security Policy (CSP) headers via Traefik
 - [ ] Add Subresource Integrity (SRI) for CDN assets
-- [ ] Add secrets scanning (TruffleHog) in pre-commit hooks
+- [x] Add secrets scanning (TruffleHog) in pre-commit hooks ✅ *(`.pre-commit-config.yaml` docker_image hook + CI `security-scan.yml` job)*
 - [ ] Add SAST in CI (Bandit for Python, ESLint security plugin for TypeScript)
 - [ ] Add container image scanning (Trivy) in build workflow
 - [ ] Add SBOM generation (Syft/CycloneDX) for supply chain security
@@ -2335,7 +2337,7 @@ These improvements span multiple phases and should be applied continuously:
 - [ ] Add import sorting (isort via ruff)
 - [ ] Add dead code detection (vulture for Python)
 - [ ] Add complexity analysis (radon for Python)
-- [ ] Add bundle analysis (vite-plugin-visualizer)
+- [x] Add bundle analysis (vite-plugin-visualizer) ✅ *(`frontend/package.json` analyze script + `vite.config.ts` visualizer wiring using `rollup-plugin-visualizer`)*
 
 ### CI/CD Pipeline
 - [x] Add GitHub Actions matrix for Python 3.11/3.12/3.13 ✅ *(`.github/workflows/test.yml` Python test matrix)*
