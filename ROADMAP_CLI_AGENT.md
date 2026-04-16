@@ -2,10 +2,10 @@
 
 ### From Local Scanner to AI-Powered Security Command Center
 
-> **Version**: 2.0 (2026-04-15) | **Parent Roadmap**: [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)
+> **Version**: 2.1 (2026-04-16) | **Parent Roadmap**: [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: `cli/agent/` module, related SDK integration, server-side agent relay, AI-driven CLI workflows
-> **Current State**: v0.2.0 — **hybrid dynamic/static execution engine implemented** (Phase CA-4.5 ✅), tool discovery, basic scan execution, offline store, WebSocket streaming
+> **Current State**: v0.2.1 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation implemented** (secure credential store, auth/profile/audit commands), tool discovery, scan execution, offline store, WebSocket streaming
 
 ---
 
@@ -62,12 +62,17 @@ This document is a **companion to [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)** and d
 | **Dynamic command resolver** | `cli/agent/cosmicsec_agent/dynamic_resolver.py` | ✅ **NEW** | 210+ |
 | Async subprocess executor | `cli/agent/cosmicsec_agent/executor.py` | ✅ Working | 95 |
 | SQLite offline store | `cli/agent/cosmicsec_agent/offline_store.py` | ✅ Working | 159 |
+| Secure credential store | `cli/agent/cosmicsec_agent/credential_store.py` | ✅ **NEW (CA-1)** | 200+ |
+| Auth flow manager | `cli/agent/cosmicsec_agent/auth.py` | ✅ **NEW (CA-1)** | 190+ |
+| Profile/workspace store | `cli/agent/cosmicsec_agent/profiles.py` | ✅ **NEW (CA-1)** | 120+ |
+| CLI audit store | `cli/agent/cosmicsec_agent/audit_log.py` | ✅ **NEW (CA-1)** | 130+ |
 | WebSocket stream client | `cli/agent/cosmicsec_agent/stream.py` | ✅ Working | 131 |
 | Nmap parser (XML + text) | `cli/agent/cosmicsec_agent/parsers/nmap_parser.py` | ✅ Working | 154 |
 | Nikto parser | `cli/agent/cosmicsec_agent/parsers/nikto_parser.py` | ✅ Working | 92 |
 | Nuclei parser (JSONL) | `cli/agent/cosmicsec_agent/parsers/nuclei_parser.py` | ✅ Working | 72 |
 | Gobuster parser | `cli/agent/cosmicsec_agent/parsers/gobuster_parser.py` | ✅ Working | 80 |
 | **Hybrid engine tests (42)** | `cli/agent/tests/test_hybrid_engine.py` | ✅ **NEW** | 320+ |
+| **CA-1 security/auth tests (2)** | `cli/agent/tests/test_cli_security_phase_ca1.py` | ✅ **NEW** | 70+ |
 | Server-side agent relay | `services/agent_relay/main.py` | ✅ Basic | ~200 |
 | TypeScript Agent SDK | `sdk/typescript/src/agent.ts` | ✅ Basic | 72 |
 | Go SDK agent methods | `sdk/go/client.go` | ✅ Basic | 220 |
@@ -93,8 +98,8 @@ This document is a **companion to [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)** and d
 
 | ID | Gap | Impact | Status |
 |----|-----|--------|--------|
-| CG-01 | **No authentication flow** — API key stored as plaintext in `~/.cosmicsec/config.json` | Security vulnerability | 🔴 Open |
-| CG-02 | **No `login` command** — users must manually provide `--api-key` every time | Terrible UX | 🔴 Open |
+| CG-01 | ~~No authentication flow~~ → secure `CredentialStore` (keyring + AES-GCM fallback) with config migration | ~~Security vulnerability~~ | ✅ **Fixed** (v0.2.1) |
+| CG-02 | ~~No `login` command~~ → `auth login/logout/status/refresh` + token refresh path | ~~Terrible UX~~ | ✅ **Fixed** (v0.2.1) |
 | CG-03 | ~~No interactive/conversational mode~~ → **`run` command** accepts natural language | ~~Not competitive~~ | 🟡 Partial (v0.2.0) |
 | CG-04 | ~~No AI integration~~ → **Hybrid engine** with OpenAI/Ollama/Cloud providers | ~~Missing differentiator~~ | 🟡 Partial (v0.2.0) |
 | CG-05 | **No progress indicators during scans** — output only after completion | Bad UX for long-running tools | 🔴 Open |
@@ -104,7 +109,7 @@ This document is a **companion to [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)** and d
 | CG-09 | **Agent relay uses in-memory dict** — all connections lost on restart | Data loss | 🔴 Open |
 | CG-10 | **No shell completions** — no tab completion for commands or tool names | Missing standard feature | 🔴 Open |
 | CG-11 | **No update mechanism** — no `cosmicsec update` or version checking | Manual updates only | 🔴 Open |
-| CG-12 | **No profile/workspace support** — cannot manage multiple targets/servers | Single-context only | 🔴 Open |
+| CG-12 | ~~No profile/workspace support~~ → `profile list/add/use/delete/show` + global `--profile` | ~~Single-context only~~ | ✅ **Fixed** (v0.2.1) |
 | CG-13 | **No output formatting options** — only Rich tables, no `--json` or `--quiet` flags | Not scriptable | 🔴 Open |
 | CG-14 | **No scan history** — cannot list, search, or revisit previous scans | Data not accessible | 🔴 Open |
 | CG-15 | **Only 4 parsers** — 10 of 14 supported tools have no output parsing | Incomplete coverage | 🔴 Open |
@@ -175,7 +180,7 @@ cosmicsec — The AI-powered security command center for your terminal
 
 ---
 
-## Phase CA-1 — Security, Auth & Configuration Hardening
+## Phase CA-1 — Security, Auth & Configuration Hardening 🟢 IN PROGRESS (~80%)
 
 > 🎯 **Goal**: Secure credential management, proper auth flow, encrypted config. After this phase, the CLI agent is safe for production use.
 >
@@ -184,6 +189,24 @@ cosmicsec — The AI-powered security command center for your terminal
 > 🌐 **Languages**: Python
 >
 > ⏱️ **Estimated Duration**: 1 week
+>
+> ✅ **CA-1 implementation wave completed 2026-04-16**:
+> - Added `credential_store.py` with keyring-first storage and AES-256-GCM encrypted fallback file.
+> - Added secure plaintext-config migration (`config.json` → `config.json.bak`) on startup.
+> - Added `auth`, `profile`, and `audit` command groups in `main.py`.
+> - Added `auth.py` and `profiles.py` with profile-scoped login/logout/status/refresh workflows.
+> - Added `audit_log.py` and command-level audit event logging.
+> - Added regression tests in `cli/agent/tests/test_cli_security_phase_ca1.py`.
+
+**Completed in CA-1:**
+- ✅ CA-1.1 — Secure Credential Store
+- ✅ CA-1.2 — Login/Auth Commands (API key + token flow; OAuth device flow remains)
+- ✅ CA-1.3 — Profile & Workspace Management
+- ✅ CA-1.4 — Audit Logging + audit subcommands
+
+**Remaining in CA-1 (~20%):**
+- ⏳ Add full OAuth2 device/browser flow implementation
+- ⏳ Expand auto-refresh coverage across every outbound API call path
 
 ### CA-1.1 — Secure Credential Store
 
@@ -1937,7 +1960,7 @@ cosmicsec scan -t 192.168.1.1 --tool nmap  # Automatically uses Rust parser
 | Order | Phase | Est. Duration | Dependencies | Status |
 |-------|-------|--------------|--------------|--------|
 | ✅ | **CA-4.5** — Hybrid Dynamic/Static Engine | Done | None | ✅ **Complete** |
-| 1st 🔴 | **CA-1** — Security & Auth | 1 week | Main Phase K | ⏳ Next |
+| 1st 🔴 | **CA-1** — Security & Auth | 1 week | Main Phase K | 🟢 In progress (~80%) |
 | 2nd 🔴 | **CA-2** — Core CLI Overhaul | 1–2 weeks | CA-1 | ⏳ Pending |
 | 3rd 🟠 | **CA-4** — AI-Powered CLI (extends CA-4.5) | 2–3 weeks | CA-2, CA-4.5 ✅ | ⏳ Pending |
 | 4th 🟠 | **CA-3** — Interactive TUI | 2–3 weeks | CA-2 | ⏳ Pending |
