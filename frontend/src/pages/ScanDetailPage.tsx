@@ -15,7 +15,7 @@ import { AppLayout } from "../components/AppLayout";
 import { useScanStore, type Finding, type FindingSeverity } from "../store/scanStore";
 import { useScanStream } from "../hooks/useScanStream";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 
 const SEV_STYLES: Record<FindingSeverity, { label: string; className: string; icon: React.ElementType }> = {
   critical: { label: "Critical", className: "bg-red-500/20 text-red-400 border-red-500/30", icon: ShieldAlert },

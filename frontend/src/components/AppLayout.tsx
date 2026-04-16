@@ -39,7 +39,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <Header />
         </div>
 
-        <main id="main-content" role="main" className="flex-1 overflow-y-auto p-4 pb-24 md:p-6 md:pb-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 pb-24 md:p-6 md:pb-6">{children}</main>
       </div>
 
       <MobileBottomNav />

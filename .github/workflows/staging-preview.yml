@@ -1,0 +1,44 @@
+name: Staging Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build preview images
+        run: |
+          docker build -t cosmicsec-preview:${{ github.sha }} .
+
+      - name: Preview deployment scaffold
+        run: |
+          echo "Configure cloud provider CLI here (Azure/AWS/GCP)."
+          echo "Deploy image cosmicsec-preview:${{ github.sha }} to staging namespace."
+          echo "Emit preview URL as workflow output."
+
+      - name: Comment PR with preview status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              "✅ Staging preview workflow executed.",
+              "",
+              "This repository is configured with a deployment scaffold.",
+              "Wire provider-specific deployment commands in `.github/workflows/staging-preview.yml` to publish per-PR preview URLs."
+            ].join("\n");
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body
+            });

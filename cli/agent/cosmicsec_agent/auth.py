@@ -135,10 +135,7 @@ class AuthManager:
         if not profile_data:
             return {}
         if auto_refresh and self._expires_soon(profile):
-            try:
-                self.refresh(profile)
-            except Exception:
-                pass
+            self.refresh(profile)
 
         token = self.credentials.retrieve(profile, "access_token")
         api_key = self.credentials.retrieve(profile, "api_key")
@@ -147,6 +144,14 @@ class AuthManager:
         if api_key:
             return {"X-API-Key": api_key}
         return {}
+
+    def require_auth_headers(self, profile: str, auto_refresh: bool = True) -> dict[str, str]:
+        headers = self.auth_headers(profile, auto_refresh=auto_refresh)
+        if not headers:
+            raise ValueError(
+                f"Profile '{profile}' has no stored credentials. Run 'cosmicsec-agent auth login'."
+            )
+        return headers
 
     def _health(self, server_url: str, profile: str) -> dict:
         headers = self.auth_headers(profile, auto_refresh=False)
