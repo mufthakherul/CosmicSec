@@ -1,0 +1,30 @@
+name: Homebrew Tap Sync
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "agent/v*"
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Render formula placeholder
+        run: |
+          VERSION="${GITHUB_REF_NAME#agent/v}"
+          echo "Preparing Homebrew formula for version ${VERSION}"
+          cp cli/agent/homebrew/cosmicsec-agent.rb /tmp/cosmicsec-agent.rb
+          sed -i "s/version \".*\"/version \"${VERSION}\"/g" /tmp/cosmicsec-agent.rb || true
+          cat /tmp/cosmicsec-agent.rb
+
+      - name: Upload formula artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: homebrew-formula
+          path: /tmp/cosmicsec-agent.rb

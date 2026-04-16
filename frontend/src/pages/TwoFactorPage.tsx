@@ -13,7 +13,7 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 const CODE_LENGTH = 6;
 const COUNTDOWN_SECONDS = 30;
 
@@ -26,6 +26,7 @@ export function TwoFactorPage() {
     const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(""));
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [codeError, setCodeError] = useState<string | null>(null);
     const [useBackup, setUseBackup] = useState(false);
     const [backupCode, setBackupCode] = useState("");
     const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
@@ -55,6 +56,7 @@ export function TwoFactorPage() {
     function handleDigitChange(index: number, value: string) {
         if (!/^\d?$/.test(value)) return;
         setError(null);
+        setCodeError(null);
         setDigit(index, value);
         if (value && index < CODE_LENGTH - 1) {
             inputRefs.current[index + 1]?.focus();
@@ -79,6 +81,7 @@ export function TwoFactorPage() {
         const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, CODE_LENGTH);
         if (!pasted) return;
         setError(null);
+        setCodeError(null);
         const newDigits = Array(CODE_LENGTH).fill("");
         for (let i = 0; i < pasted.length; i++) {
             newDigits[i] = pasted[i];
@@ -91,15 +94,16 @@ export function TwoFactorPage() {
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
         setError(null);
+        setCodeError(null);
 
         const code = useBackup ? backupCode.trim() : digits.join("");
 
         if (!useBackup && code.length !== CODE_LENGTH) {
-            setError("Please enter all 6 digits");
+            setCodeError("Please enter all 6 digits");
             return;
         }
         if (useBackup && !code) {
-            setError("Please enter your backup code");
+            setCodeError("Please enter your backup code");
             return;
         }
 
@@ -171,13 +175,16 @@ export function TwoFactorPage() {
                                 id="backup-code"
                                 type="text"
                                 value={backupCode}
-                                onChange={(e) => { setBackupCode(e.target.value); setError(null); }}
+                                onChange={(e) => { setBackupCode(e.target.value); setError(null); setCodeError(null); }}
                                 className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-center font-mono text-lg tracking-widest text-slate-100 placeholder-slate-500 outline-none transition focus:ring-2 focus:ring-cyan-500"
                                 placeholder="xxxx-xxxx-xxxx"
                                 aria-label="Backup code"
+                                aria-invalid={useBackup && !!codeError}
+                                aria-describedby={useBackup && codeError ? "twofa-code-error" : undefined}
                                 autoComplete="one-time-code"
                                 disabled={isLoading}
                             />
+                            {useBackup && codeError && <p id="twofa-code-error" className="text-xs text-rose-400">{codeError}</p>}
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -198,11 +205,14 @@ export function TwoFactorPage() {
                                         onPaste={i === 0 ? handlePaste : undefined}
                                         className="h-12 w-12 rounded-md border border-slate-700 bg-slate-950 text-center font-mono text-xl text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500"
                                         aria-label={`Digit ${i + 1} of ${CODE_LENGTH}`}
+                                        aria-invalid={!useBackup && !!codeError}
+                                        aria-describedby={!useBackup && codeError ? "twofa-code-error" : undefined}
                                         autoComplete={i === 0 ? "one-time-code" : "off"}
                                         disabled={isLoading}
                                     />
                                 ))}
                             </div>
+                            {!useBackup && codeError && <p id="twofa-code-error" className="text-center text-xs text-rose-400">{codeError}</p>}
                         </div>
                     )}
 
@@ -237,7 +247,7 @@ export function TwoFactorPage() {
 
                     <button
                         type="button"
-                        onClick={() => { setUseBackup((v) => !v); setError(null); }}
+                        onClick={() => { setUseBackup((v) => !v); setError(null); setCodeError(null); }}
                         className="text-cyan-400 hover:text-cyan-300 transition"
                     >
                         {useBackup ? "Use authenticator code instead" : "Use a backup code"}

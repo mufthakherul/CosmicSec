@@ -1,0 +1,92 @@
+name: Auto Refactor & Re-Commit
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope_path:
+        description: "Repository path to refactor (default: full repo)"
+        required: false
+        default: "."
+      run_precommit:
+        description: "Run pre-commit auto-fixes"
+        required: false
+        type: boolean
+        default: true
+      run_frontend_format:
+        description: "Run frontend format script when available"
+        required: false
+        type: boolean
+        default: true
+  schedule:
+    - cron: "0 3 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  recommit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Auto-fix with pre-commit
+        if: ${{ github.event_name == 'schedule' || inputs.run_precommit }}
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip pre-commit
+          pre-commit run --all-files || true
+
+      - name: Frontend formatting
+        if: ${{ github.event_name == 'schedule' || inputs.run_frontend_format }}
+        shell: bash
+        run: |
+          if [ -f frontend/package.json ]; then
+            cd frontend
+            npm ci
+            npm run format || true
+          fi
+
+      - name: Generate recommit metadata
+        shell: bash
+        run: |
+          mkdir -p .github/recommit
+          {
+            echo "run_id=${GITHUB_RUN_ID}"
+            echo "actor=${GITHUB_ACTOR}"
+            echo "sha=${GITHUB_SHA}"
+            echo "scope=${{ inputs.scope_path || '.' }}"
+            echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > .github/recommit/last-run.env
+
+      - name: Create pull request with automated refactors
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: automation/recommit-${{ github.run_id }}
+          commit-message: "chore: automated refactor/re-commit wave"
+          title: "chore: automated refactor/re-commit wave"
+          body: |
+            This PR was generated automatically by the **Auto Refactor & Re-Commit** workflow.
+
+            Included actions:
+            - pre-commit autofix passes (best effort)
+            - frontend formatting pass (best effort)
+            - recommit run metadata capture
+          labels: |
+            automation
+            refactor
+          add-paths: |
+            .

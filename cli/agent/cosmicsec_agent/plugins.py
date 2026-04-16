@@ -5,8 +5,12 @@ from __future__ import annotations
 import os
 import re
 import shutil
+import sys
 from dataclasses import dataclass
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
+from types import ModuleType
+from typing import Callable
 
 
 _NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_-]{1,63}$")
@@ -213,3 +217,43 @@ class PluginManager:
         )
         _write_plugin_yaml(plugin_dir / "plugin.yaml", updated)
         return updated
+
+    def _load_module(self, module_file: Path, module_name: str) -> ModuleType:
+        spec = spec_from_file_location(module_name, str(module_file))
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Could not load module spec for {module_file}")
+        module = module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        return module
+
+    def load_command_plugins(self, app) -> list[str]:
+        """Load and register enabled command plugins."""
+        loaded: list[str] = []
+        for plugin in self.list_plugins():
+            if not plugin.enabled:
+                continue
+            module_file = Path(plugin.path) / "commands.py"
+            if not module_file.exists():
+                continue
+            module = self._load_module(module_file, f"cosmicsec_plugin_{plugin.name}_commands")
+            register = getattr(module, "register", None)
+            if callable(register):
+                register(app)
+                loaded.append(plugin.name)
+        return loaded
+
+    def load_parser_plugins(self) -> dict[str, Callable[[str], list[dict]]]:
+        """Load parse_tool_output hooks from enabled plugins."""
+        parsers: dict[str, Callable[[str], list[dict]]] = {}
+        for plugin in self.list_plugins():
+            if not plugin.enabled:
+                continue
+            module_file = Path(plugin.path) / "parser.py"
+            if not module_file.exists():
+                continue
+            module = self._load_module(module_file, f"cosmicsec_plugin_{plugin.name}_parser")
+            parser_fn = getattr(module, "parse_tool_output", None)
+            if callable(parser_fn):
+                parsers[plugin.name] = parser_fn
+        return parsers

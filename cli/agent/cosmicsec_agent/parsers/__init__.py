@@ -2,9 +2,34 @@
 
 from __future__ import annotations
 
+from .burpsuite_parser import BurpsuiteParser
 from .gobuster_parser import GobusterParser
+from .ffuf_parser import FfufParser
+from .hashcat_parser import HashcatParser
+from .masscan_parser import MasscanParser
+from .hydra_parser import HydraParser
+from .john_parser import JohnParser
+from .metasploit_parser import MetasploitParser
 from .nikto_parser import NiktoParser
 from .nmap_parser import NmapParser
 from .nuclei_parser import NucleiParser
+from .sqlmap_parser import SqlmapParser
+from .wpscan_parser import WpscanParser
+from .zaproxy_parser import ZaproxyParser
 
-__all__ = ["NmapParser", "NiktoParser", "NucleiParser", "GobusterParser"]
+__all__ = [
+    "NmapParser",
+    "NiktoParser",
+    "NucleiParser",
+    "GobusterParser",
+    "BurpsuiteParser",
+    "SqlmapParser",
+    "FfufParser",
+    "MasscanParser",
+    "HydraParser",
+    "JohnParser",
+    "HashcatParser",
+    "MetasploitParser",
+    "WpscanParser",
+    "ZaproxyParser",
+]

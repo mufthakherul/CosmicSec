@@ -285,13 +285,38 @@ async def run_tools_with_progress(
     Returns (all_findings, state).
     """
     from .executor import run_tool_complete
-    from .parsers import GobusterParser, NiktoParser, NmapParser, NucleiParser
+    from .parsers import (
+        BurpsuiteParser,
+        FfufParser,
+        GobusterParser,
+        HashcatParser,
+        HydraParser,
+        JohnParser,
+        MasscanParser,
+        MetasploitParser,
+        NiktoParser,
+        NmapParser,
+        NucleiParser,
+        SqlmapParser,
+        WpscanParser,
+        ZaproxyParser,
+    )
 
     _PARSERS = {
         "nmap": NmapParser(),
         "nikto": NiktoParser(),
         "nuclei": NucleiParser(),
         "gobuster": GobusterParser(),
+        "sqlmap": SqlmapParser(),
+        "ffuf": FfufParser(),
+        "masscan": MasscanParser(),
+        "wpscan": WpscanParser(),
+        "hydra": HydraParser(),
+        "zaproxy": ZaproxyParser(),
+        "john": JohnParser(),
+        "hashcat": HashcatParser(),
+        "metasploit": MetasploitParser(),
+        "burpsuite": BurpsuiteParser(),
     }
 
     state = ScanProgressState(tools_total=len(tools))
@@ -327,6 +352,7 @@ async def run_tools_with_progress(
                         "name": name,
                         "exit_code": result.exit_code,
                         "findings": findings,
+                        "stdout": result.stdout,
                         "stderr": result.stderr,
                     }
                 )
@@ -337,6 +363,7 @@ async def run_tools_with_progress(
                         "name": name,
                         "exit_code": 1,
                         "findings": [],
+                        "stdout": "",
                         "stderr": str(exc),
                     }
                 )

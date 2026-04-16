@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -73,6 +73,17 @@ const NotFoundPage = React.lazy(() =>
 
 export function App() {
   const location = useLocation();
+  const mainRef = useRef<HTMLElement | null>(null);
+  const [routeAnnouncement, setRouteAnnouncement] = useState("");
+
+  useEffect(() => {
+    const pageLabel = document.title || location.pathname;
+    setRouteAnnouncement(`Navigated to ${pageLabel}`);
+    if (location.hash) {
+      return;
+    }
+    mainRef.current?.focus();
+  }, [location.pathname, location.search, location.hash]);
 
   return (
     <ThemeProvider>
@@ -82,8 +93,17 @@ export function App() {
           <RouteProgressBar />
           <SWUpdateBanner />
           <PWAInstallBanner />
+          <div className="sr-only" aria-live="polite" aria-atomic="true">
+            {routeAnnouncement}
+          </div>
           <Suspense fallback={<PageSkeleton />}>
-            <div key={`${location.pathname}${location.search}`} className="page-enter">
+            <main
+              id="main-content"
+              key={`${location.pathname}${location.search}`}
+              className="page-enter"
+              ref={mainRef}
+              tabIndex={-1}
+            >
             <Routes location={location}>
               {/* ------------------------------------------------------------------ */}
               {/* Public routes — no auth required */}
@@ -209,7 +229,7 @@ export function App() {
               {/* ------------------------------------------------------------------ */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
-            </div>
+            </main>
           </Suspense>
         </ErrorBoundary>
       </AuthProvider>
