@@ -1,0 +1,27 @@
+name: Workflow Quality
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workflow-lint:
+    name: Lint GitHub Actions workflows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Run actionlint
+        uses: rhysd/actionlint@v1
