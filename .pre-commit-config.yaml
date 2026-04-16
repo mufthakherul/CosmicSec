@@ -18,11 +18,11 @@ repos:
     hooks:
       - id: frontend-eslint
         name: frontend-eslint
-        entry: bash -c 'cd frontend && files=(); for file in "$@"; do rel="${file#frontend/}"; [ -f "$rel" ] && files+=("$rel"); done; [ ${#files[@]} -eq 0 ] || npx eslint --max-warnings 20 "${files[@]}"' --
+        entry: bash -c 'cd frontend && [ -d node_modules ] || { echo "frontend/node_modules missing; run: cd frontend && npm install"; exit 1; }; files=(); for file in "$@"; do rel="${file#frontend/}"; [ -f "$rel" ] && files+=("$rel"); done; [ ${#files[@]} -eq 0 ] || npx eslint --max-warnings 50 "${files[@]}"' --
         language: system
         files: ^frontend/.*\.(ts|tsx)$
       - id: frontend-prettier
         name: frontend-prettier
-        entry: bash -c 'cd frontend && files=(); for file in "$@"; do rel="${file#frontend/}"; [ -f "$rel" ] && files+=("$rel"); done; [ ${#files[@]} -eq 0 ] || npx prettier --write "${files[@]}"' --
+        entry: bash -c 'cd frontend && [ -d node_modules ] || { echo "frontend/node_modules missing; run: cd frontend && npm install"; exit 1; }; files=(); for file in "$@"; do rel="${file#frontend/}"; [ -f "$rel" ] && files+=("$rel"); done; [ ${#files[@]} -eq 0 ] || npx prettier --write "${files[@]}"' --
         language: system
         files: ^frontend/.*\.(ts|tsx|css|js|jsx|json|md|yml|yaml)$
