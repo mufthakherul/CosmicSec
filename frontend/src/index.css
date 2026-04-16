@@ -4,6 +4,31 @@ body {
     @apply bg-slate-950 text-slate-100;
 }
 
+/* High-contrast accessibility mode */
+html.high-contrast body {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+html.high-contrast [class*="bg-slate-"] {
+  background-color: #000 !important;
+}
+
+html.high-contrast [class*="text-slate-"] {
+  color: #fff !important;
+}
+
+html.high-contrast [class*="border-slate-"] {
+  border-color: #fff !important;
+}
+
+/* App-level reduced motion preference toggle */
+html[data-reduced-motion="true"] * {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 /* ============================================================
    Phase V.2 — Page Transitions & Micro-Interactions
    ============================================================ */

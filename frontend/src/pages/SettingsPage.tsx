@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Bell,
   Globe,
   Lock,
   Moon,
@@ -91,7 +90,7 @@ function ToggleRow({
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, highContrast, setHighContrast, reducedMotion, setReducedMotion } = useTheme();
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   // Notification preferences
@@ -254,6 +253,18 @@ export function SettingsPage() {
               ))}
             </div>
           </div>
+          <ToggleRow
+            label="High contrast mode"
+            description="Improve readability with stronger foreground/background contrast"
+            checked={highContrast}
+            onChange={setHighContrast}
+          />
+          <ToggleRow
+            label="Reduced motion mode"
+            description="Reduce animations and transitions across the interface"
+            checked={reducedMotion}
+            onChange={setReducedMotion}
+          />
         </Section>
 
         {/* ------------------------------------------------------------------ */}
