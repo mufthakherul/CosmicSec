@@ -41,6 +41,7 @@ help:
 	@echo "  make admin-cli     - Launch CosmicSec admin CLI"
 	@echo "  make admin-tui     - Launch CosmicSec admin TUI"
 	@echo "  make admin-ssh     - Start CosmicSec SSH admin server"
+	@echo "  make cli-manpage   - Regenerate CLI man page"
 	@echo ""
 
 install:
@@ -171,3 +172,6 @@ admin-tui:
 
 admin-ssh:
 	python -m services.admin_service.ssh_server
+
+cli-manpage:
+	python scripts/generate-cli-manpage.py
