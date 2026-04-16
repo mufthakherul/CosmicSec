@@ -6,6 +6,8 @@ import { ProtectedRoute } from "./router/ProtectedRoute";
 import { SkipLink } from "./components/ui/SkipLink";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { PageSkeleton } from "./components/PageSkeleton";
+import { SWUpdateBanner } from "./components/SWUpdateBanner";
+import { PWAInstallBanner } from "./components/PWAInstallBanner";
 
 // Public pages (eagerly loaded — above the fold)
 import { LandingPage } from "./pages/LandingPage";
@@ -74,6 +76,8 @@ export function App() {
       <AuthProvider>
         <ErrorBoundary>
           <SkipLink />
+          <SWUpdateBanner />
+          <PWAInstallBanner />
           <Suspense fallback={<PageSkeleton />}>
             <Routes>
               {/* ------------------------------------------------------------------ */}
