@@ -11,7 +11,6 @@ import {
   Globe,
   Play,
   Radar,
-  Shield,
   TrendingUp,
   Users,
   Zap,
@@ -114,6 +113,33 @@ function relativeTime(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+function useAnimatedNumber(target: number, enabled: boolean, duration = 700): number {
+  const [value, setValue] = useState(enabled ? 0 : target);
+
+  useEffect(() => {
+    if (!enabled) {
+      setValue(target);
+      return;
+    }
+
+    const start = performance.now();
+    let frame = 0;
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      setValue(Math.round(target * progress));
+      if (progress < 1) {
+        frame = requestAnimationFrame(tick);
+      }
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, enabled, duration]);
+
+  return value;
+}
+
 const SEVERITY_DOT: Record<string, string> = {
   critical: "bg-rose-500",
   high: "bg-orange-500",
@@ -196,18 +222,25 @@ function SecurityScoreGauge({ score }: { score: number }) {
 interface StatCardProps {
   label: string;
   value: number | string;
+  valueClassName?: string;
   icon: React.ElementType;
   iconClass: string;
   trend?: { value: number; label: string };
   to?: string;
+  className?: string;
 }
 
-function StatCard({ label, value, icon: Icon, iconClass, trend, to }: StatCardProps) {
+function StatCard({ label, value, valueClassName, icon: Icon, iconClass, trend, to, className }: StatCardProps) {
   const inner = (
-    <div className="flex items-start justify-between rounded-xl border border-slate-800 bg-slate-900 p-4 transition-colors hover:border-slate-700">
+    <div
+      className={[
+        "flex items-start justify-between rounded-xl border border-slate-800 bg-slate-900 p-4 transition-colors hover:border-slate-700",
+        className ?? "",
+      ].join(" ")}
+    >
       <div>
         <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
-        <p className="mt-1 text-2xl font-bold text-slate-100">{value}</p>
+        <p className={["mt-1 text-2xl font-bold text-slate-100", valueClassName ?? ""].join(" ")}>{value}</p>
         {trend && (
           <div className="mt-1 flex items-center gap-1 text-xs text-emerald-400">
             <TrendingUp className="h-3 w-3" />
@@ -313,6 +346,7 @@ export function DashboardPage() {
   const [stats, setStats] = useState<OverviewStats>(MOCK_STATS);
   const [activity, setActivity] = useState<RecentActivity[]>(MOCK_ACTIVITY);
   const [loading, setLoading] = useState(true);
+  const [animateBars, setAnimateBars] = useState(false);
 
   useEffect(() => {
     const headers: Record<string, string> = {};
@@ -341,6 +375,20 @@ export function DashboardPage() {
       }
     })();
   }, [token]);
+
+  useEffect(() => {
+    if (loading) {
+      setAnimateBars(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setAnimateBars(true), 40);
+    return () => window.clearTimeout(timer);
+  }, [loading, stats.compliance_pct]);
+
+  const totalScansCount = useAnimatedNumber(stats.total_scans, !loading);
+  const criticalCount = useAnimatedNumber(stats.critical_findings, !loading);
+  const activeAgentsCount = useAnimatedNumber(stats.active_agents, !loading);
+  const openBugsCount = useAnimatedNumber(stats.open_bugs, !loading);
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -386,38 +434,46 @@ export function DashboardPage() {
             <div className="min-w-[220px] snap-start sm:min-w-0">
               <StatCard
                 label="Total Scans"
-                value={loading ? "…" : stats.total_scans}
+                value={loading ? "…" : totalScansCount}
+                valueClassName={loading ? undefined : "animate-count"}
                 icon={Radar}
                 iconClass="bg-cyan-500/10 text-cyan-400"
                 trend={{ value: stats.scans_today, label: "today" }}
                 to="/scans"
+                className="animate-slide-in"
               />
             </div>
             <div className="min-w-[220px] snap-start sm:min-w-0">
               <StatCard
                 label="Critical Findings"
-                value={loading ? "…" : stats.critical_findings}
+                value={loading ? "…" : criticalCount}
+                valueClassName={loading ? undefined : stats.critical_findings > 0 ? "animate-count animate-badge" : "animate-count"}
                 icon={AlertTriangle}
                 iconClass="bg-rose-500/10 text-rose-400"
                 trend={{ value: stats.findings_last_7d, label: "last 7d" }}
                 to="/timeline"
+                className="animate-slide-in [animation-delay:60ms]"
               />
             </div>
             <div className="min-w-[220px] snap-start sm:min-w-0">
               <StatCard
                 label="Active Agents"
-                value={loading ? "…" : stats.active_agents}
+                value={loading ? "…" : activeAgentsCount}
+                valueClassName={loading ? undefined : "animate-count"}
                 icon={Zap}
                 iconClass="bg-emerald-500/10 text-emerald-400"
+                className="animate-slide-in [animation-delay:120ms]"
               />
             </div>
             <div className="min-w-[220px] snap-start sm:min-w-0">
               <StatCard
                 label="Open Bug Reports"
-                value={loading ? "…" : stats.open_bugs}
+                value={loading ? "…" : openBugsCount}
+                valueClassName={loading ? undefined : "animate-count"}
                 icon={Bug}
                 iconClass="bg-orange-500/10 text-orange-400"
                 to="/bugbounty"
+                className="animate-slide-in [animation-delay:180ms]"
               />
             </div>
           </div>
@@ -449,7 +505,7 @@ export function DashboardPage() {
                       className={`h-2 rounded-full transition-all duration-700 ${
                         pct >= 80 ? "bg-emerald-500" : pct >= 60 ? "bg-amber-500" : "bg-rose-500"
                       }`}
-                      style={{ width: `${pct}%` }}
+                      style={{ width: `${animateBars ? pct : 0}%` }}
                     />
                   </div>
                 </div>
@@ -476,11 +532,15 @@ export function DashboardPage() {
             </Link>
           </div>
           <div className="divide-y divide-slate-800">
-            {activity.map((ev) => {
+            {activity.map((ev, idx) => {
               const Icon = ACTIVITY_ICON[ev.type] ?? Activity;
               const colorClass = ACTIVITY_COLOR[ev.type] ?? "text-slate-400 bg-slate-800";
               return (
-                <div key={ev.id} className="flex items-start gap-3 px-4 py-3">
+                <div
+                  key={ev.id}
+                  className="animate-slide-in flex items-start gap-3 px-4 py-3"
+                  style={{ animationDelay: `${idx * 50}ms` }}
+                >
                   <div className={`mt-0.5 flex-shrink-0 rounded-lg p-2 ${colorClass}`}>
                     <Icon className="h-4 w-4" />
                   </div>

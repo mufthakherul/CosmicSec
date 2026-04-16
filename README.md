@@ -160,6 +160,11 @@ npm install
 npm run dev
 # Optional: generate bundle report at frontend/dist/stats.html
 npm run analyze
+
+# Component library (Storybook)
+npm run storybook
+# Static Storybook build
+npm run build-storybook
 ```
 
 ### Run CLI Agent (Local Mode)
