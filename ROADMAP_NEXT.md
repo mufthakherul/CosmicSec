@@ -74,7 +74,7 @@ Phase X — [Title]
 17. [Target Architecture (Post-Phase V)](#target-architecture-post-phase-v)
 18. [New File & Directory Map](#new-file--directory-map)
 
-> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update (2026-04-16): CA-1/CA-2/CA-7/CA-8/CA-9/CA-10 now tracked at 100%, including plugin runtime loading, shell mode, ask/chat commands, sync conflict resolution + batched import push, multi-strategy self-update, full 14-tool parser parity, and Rust parser acceleration scaffold.** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
+> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update (2026-04-16): CA-1 through CA-10 are now tracked at 100%, including interactive dashboard/watch mode, AI conversational + analysis command surface, workflow/schedule orchestration, org/team enterprise commands, plugin runtime loading, offline sync conflict resolution, multi-strategy self-update, full 14-tool parser parity, and Rust parser acceleration scaffold.** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
 
 ---
 

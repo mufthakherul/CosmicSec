@@ -15,6 +15,7 @@ import os
 import platform
 import shlex
 import subprocess
+import sys
 import tempfile
 import uuid
 import webbrowser
@@ -24,9 +25,11 @@ from urllib.parse import parse_qs, urlparse
 
 import typer
 from rich.console import Console
+from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
+from rich.text import Text
 
 from .__init__ import __version__
 from .branding import available_themes, canonical_theme, print_banner, resolve_theme, severity_label
@@ -68,6 +71,14 @@ plugin_app = typer.Typer(help="Plugin lifecycle management commands.")
 app.add_typer(plugin_app, name="plugin")
 theme_app = typer.Typer(help="Theme customization commands.")
 app.add_typer(theme_app, name="theme")
+workflow_app = typer.Typer(help="Workflow orchestration commands.")
+app.add_typer(workflow_app, name="workflow")
+team_app = typer.Typer(help="Enterprise team and organization commands.")
+app.add_typer(team_app, name="team")
+org_app = typer.Typer(help="Organization-scoped enterprise commands.")
+app.add_typer(org_app, name="org")
+schedule_app = typer.Typer(help="Recurring scan schedules.")
+app.add_typer(schedule_app, name="schedule")
 
 console = Console()
 _active_profile: str | None = None
@@ -1516,6 +1527,465 @@ def theme_preview(
     for sev in ("critical", "high", "medium", "low", "info"):
         sev_table.add_row(sev, severity_label(chosen, sev))
     console.print(sev_table)
+
+
+# ---------------------------------------------------------------------------
+# CA-3/4/5/6 commands — watch, analyze/suggest, workflows, team
+# ---------------------------------------------------------------------------
+
+
+@app.command("watch")
+def watch(
+    interval: int = typer.Option(5, "--interval", min=1, max=120, help="Refresh interval in seconds"),
+    cycles: int = typer.Option(0, "--cycles", min=0, help="Number of refresh cycles (0 = unlimited)"),
+) -> None:
+    """Live dashboard mode for scan/system status in terminal."""
+    import time
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("watch", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+
+    def _render_panel(health: dict, scans: list[dict], pending: int) -> Panel:
+        table = Table(show_header=True, header_style="bold cyan", title="Live Scan Dashboard")
+        table.add_column("Metric")
+        table.add_column("Value")
+        table.add_row("API Health", str(health.get("status", "unknown")))
+        table.add_row("Profile", profile)
+        table.add_row("Pending offline findings", str(pending))
+        table.add_row("Recent scans", str(len(scans)))
+        for scan in scans[:5]:
+            sid = str(scan.get("id", ""))[:12]
+            status = str(scan.get("status", "unknown"))
+            target = str(scan.get("target", "unknown"))[:40]
+            table.add_row(f"scan:{sid}", f"{status} · {target}")
+        subtitle = Text(f"refresh every {interval}s", style="dim")
+        return Panel(table, title="CosmicSec Watch", subtitle=subtitle, border_style="cyan")
+
+    from .offline_store import OfflineStore
+
+    i = 0
+    with Live(console=console, refresh_per_second=4) as live:
+        while True:
+            i += 1
+            health = {}
+            scans: list[dict] = []
+            pending = len(OfflineStore().get_unsynced_findings())
+            try:
+                health_resp = httpx.get(f"{server.rstrip('/')}/api/health", headers=headers, timeout=8.0)
+                if health_resp.status_code < 400:
+                    health = health_resp.json()
+                scans_resp = httpx.get(
+                    f"{server.rstrip('/')}/api/scans",
+                    headers=headers,
+                    params={"limit": 5},
+                    timeout=8.0,
+                )
+                if scans_resp.status_code < 400:
+                    payload = scans_resp.json()
+                    scans = payload.get("items", payload if isinstance(payload, list) else [])
+                    if not isinstance(scans, list):
+                        scans = []
+            except Exception:
+                health = {"status": "unreachable"}
+            live.update(_render_panel(health, scans, pending))
+            if cycles and i >= cycles:
+                break
+            time.sleep(interval)
+    _audit("watch", profile=profile, detail=f"interval={interval};cycles={cycles or 'unlimited'}", success=True)
+
+
+@app.command("dashboard")
+def dashboard(
+    interval: int = typer.Option(5, "--interval", min=1, max=120, help="Refresh interval in seconds"),
+    cycles: int = typer.Option(0, "--cycles", min=0, help="Number of refresh cycles (0 = unlimited)"),
+) -> None:
+    """Full-screen dashboard alias for watch mode."""
+    watch(interval=interval, cycles=cycles)
+
+
+@app.command("analyze")
+def analyze(
+    scan_id: Optional[str] = typer.Option(None, "--scan-id", help="Scan ID to analyze"),
+    text: Optional[str] = typer.Option(None, "--text", help="Freeform finding/context text"),
+) -> None:
+    """Run AI security analysis for a scan or freeform context."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("analyze", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+
+    if not scan_id and not text:
+        console.print("[red]Provide --scan-id or --text.[/red]")
+        _audit("analyze", profile=profile, detail="missing_input", success=False)
+        raise typer.Exit(1)
+
+    query = f"Analyze scan {scan_id}" if scan_id else f"Analyze findings: {text}"
+    payload = {"query": query, "context": text or ""}
+    try:
+        resp = httpx.post(f"{server.rstrip('/')}/api/ai/query", json=payload, headers=headers, timeout=25.0)
+        resp.raise_for_status()
+    except Exception as exc:
+        console.print(f"[red]Analyze request failed:[/red] {exc}")
+        _audit("analyze", profile=profile, detail=f"error={exc}", success=False)
+        raise typer.Exit(1) from exc
+
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("analyze", profile=profile, detail=f"scan_id={scan_id or ''}", success=True)
+
+
+@app.command("explain")
+def explain(
+    finding_id: str = typer.Argument(..., help="Finding ID or finding title"),
+) -> None:
+    """Explain a specific finding with attack impact and remediation."""
+    suggest(f"Explain this finding in depth: {finding_id}")
+
+
+@app.command("correlate")
+def correlate(
+    scan_id: Optional[str] = typer.Option(None, "--scan-id", help="Scan ID for correlation context"),
+) -> None:
+    """Correlate findings into attack chains and MITRE-aligned insights."""
+    context = f"scan {scan_id}" if scan_id else "latest scan"
+    suggest(f"Correlate findings for {context}; include attack-chain and MITRE mapping summary.")
+
+
+@app.command("suggest")
+def suggest(
+    finding: str = typer.Argument(..., help="Finding title or vulnerability context"),
+) -> None:
+    """Get prioritized remediation suggestions for a finding."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("suggest", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+
+    payload = {
+        "query": f"Provide prioritized remediation plan for: {finding}",
+        "context": "Return practical patch/mitigation and rollback-safe steps.",
+    }
+    try:
+        resp = httpx.post(f"{server.rstrip('/')}/api/ai/query", json=payload, headers=headers, timeout=25.0)
+        resp.raise_for_status()
+    except Exception as exc:
+        console.print(f"[red]Suggestion request failed:[/red] {exc}")
+        _audit("suggest", profile=profile, detail=f"error={exc}", success=False)
+        raise typer.Exit(1) from exc
+
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("suggest", profile=profile, detail="ok", success=True)
+
+
+@workflow_app.command("create")
+def workflow_create(
+    name: str = typer.Argument(..., help="Workflow name"),
+    output: Optional[str] = typer.Option(None, "--output", help="Output workflow YAML path"),
+) -> None:
+    """Scaffold a workflow YAML for multi-step orchestration."""
+    target = Path(output).expanduser() if output else (_CONFIG_DIR / "workflows" / f"{name}.yaml")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    template = (
+        f"name: {name}\n"
+        "steps:\n"
+        "  - name: discover\n"
+        "    command: discover\n"
+        "  - name: scan\n"
+        "    command: scan --target ${TARGET} --tool nmap\n"
+        "  - name: summarize\n"
+        "    command: history stats\n"
+    )
+    target.write_text(template, encoding="utf-8")
+    console.print(f"[green]Workflow scaffold created:[/green] {target}")
+    _audit("workflow_create", detail=f"name={name};path={target}", success=True)
+
+
+@workflow_app.command("list")
+def workflow_list() -> None:
+    """List available workflow YAML files."""
+    wf_dir = _CONFIG_DIR / "workflows"
+    wf_dir.mkdir(parents=True, exist_ok=True)
+    files = sorted(wf_dir.glob("*.yaml"))
+    table = Table(title="Workflows", show_header=True, header_style="bold magenta")
+    table.add_column("Name")
+    table.add_column("Path", style="dim")
+    for f in files:
+        table.add_row(f.stem, str(f))
+    console.print(table if files else "[yellow]No workflows found.[/yellow]")
+    _audit("workflow_list", detail=f"count={len(files)}", success=True)
+
+
+@workflow_app.command("validate")
+def workflow_validate(
+    file: str = typer.Option(..., "--file", help="Workflow YAML file path"),
+) -> None:
+    """Validate workflow YAML structure."""
+    source = Path(file).expanduser()
+    if not source.exists():
+        console.print(f"[red]Workflow file not found:[/red] {source}")
+        _audit("workflow_validate", detail=f"missing_file={source}", success=False)
+        raise typer.Exit(1)
+    raw = source.read_text(encoding="utf-8")
+    try:
+        import yaml  # type: ignore[import-untyped]
+
+        data = yaml.safe_load(raw) or {}
+    except Exception as exc:
+        console.print(f"[red]YAML parse error:[/red] {exc}")
+        _audit("workflow_validate", detail=f"invalid_yaml={source}", success=False)
+        raise typer.Exit(1) from exc
+    steps = data.get("steps", [])
+    ok = isinstance(steps, list) and bool(steps)
+    if not ok:
+        console.print("[red]Workflow must contain a non-empty `steps` list.[/red]")
+        _audit("workflow_validate", detail=f"invalid_steps={source}", success=False)
+        raise typer.Exit(1)
+    console.print(f"[green]Workflow valid:[/green] {source}")
+    _audit("workflow_validate", detail=f"valid={source}", success=True)
+
+
+@workflow_app.command("run")
+def workflow_run(
+    file: str = typer.Option(..., "--file", help="Workflow YAML file path"),
+    target: Optional[str] = typer.Option(None, "--target", help="Target placeholder value"),
+) -> None:
+    """Execute a workflow YAML file step-by-step."""
+    source = Path(file).expanduser()
+    if not source.exists():
+        console.print(f"[red]Workflow file not found:[/red] {source}")
+        _audit("workflow_run", detail=f"missing_file={source}", success=False)
+        raise typer.Exit(1)
+
+    raw = source.read_text(encoding="utf-8")
+    try:
+        import yaml  # type: ignore[import-untyped]
+
+        data = yaml.safe_load(raw) or {}
+    except Exception:
+        # Minimal fallback parser for simple workflow files.
+        data = {"steps": []}
+        for line in raw.splitlines():
+            line = line.strip()
+            if line.startswith("command:"):
+                data["steps"].append({"name": f"step-{len(data['steps'])+1}", "command": line.split(":", 1)[1].strip()})
+
+    steps = data.get("steps", [])
+    if not isinstance(steps, list) or not steps:
+        console.print("[red]Workflow has no steps.[/red]")
+        _audit("workflow_run", detail="empty_steps", success=False)
+        raise typer.Exit(1)
+
+    env_target = target or os.getenv("TARGET", "")
+    failures = 0
+    for idx, step in enumerate(steps, start=1):
+        if not isinstance(step, dict):
+            continue
+        cmd = str(step.get("command", "")).strip()
+        if not cmd:
+            continue
+        cmd = cmd.replace("${TARGET}", env_target)
+        step_name = str(step.get("name", f"step-{idx}"))
+        console.print(f"[cyan]→ {step_name}[/cyan]: {cmd}")
+        candidate_invocations = [
+            [sys.executable, "-m", "cosmicsec_agent.main", *shlex.split(cmd)],
+            [sys.executable, str(Path(__file__).resolve()), *shlex.split(cmd)],
+        ]
+        run = None
+        for invocation in candidate_invocations:
+            run = subprocess.run(invocation, capture_output=True, text=True, check=False)
+            if run.returncode == 0 or "No module named cosmicsec_agent" not in (run.stderr or ""):
+                break
+        if run is None:
+            failures += 1
+            continue
+        if run.returncode != 0:
+            failures += 1
+            console.print(f"[yellow]Step failed ({run.returncode}):[/yellow] {step_name}")
+            if run.stderr:
+                console.print(run.stderr[:400])
+        elif run.stdout:
+            console.print(run.stdout[:400])
+    _audit("workflow_run", detail=f"file={source};failures={failures}", success=failures == 0)
+    if failures:
+        raise typer.Exit(1)
+
+
+@schedule_app.command("add")
+def schedule_add(
+    name: str = typer.Argument(..., help="Schedule name"),
+    workflow: str = typer.Option(..., "--workflow", help="Workflow file path"),
+    cron: str = typer.Option("0 * * * *", "--cron", help="Cron expression"),
+) -> None:
+    """Add a recurring workflow schedule definition."""
+    schedules_file = _CONFIG_DIR / "schedules.json"
+    schedules_file.parent.mkdir(parents=True, exist_ok=True)
+    schedules: list[dict] = []
+    if schedules_file.exists():
+        try:
+            data = json.loads(schedules_file.read_text(encoding="utf-8"))
+            if isinstance(data, list):
+                schedules = data
+        except Exception:
+            schedules = []
+    schedules = [s for s in schedules if s.get("name") != name]
+    schedules.append({"name": name, "workflow": workflow, "cron": cron, "enabled": True})
+    schedules_file.write_text(json.dumps(schedules, indent=2), encoding="utf-8")
+    console.print(f"[green]Schedule added:[/green] {name}")
+    _audit("schedule_add", detail=f"name={name};cron={cron}", success=True)
+
+
+@schedule_app.command("list")
+def schedule_list() -> None:
+    """List stored recurring schedule definitions."""
+    schedules_file = _CONFIG_DIR / "schedules.json"
+    if not schedules_file.exists():
+        console.print("[yellow]No schedules configured.[/yellow]")
+        _audit("schedule_list", detail="count=0", success=True)
+        return
+    data = json.loads(schedules_file.read_text(encoding="utf-8"))
+    schedules = data if isinstance(data, list) else []
+    table = Table(title="Schedules", show_header=True, header_style="bold magenta")
+    table.add_column("Name")
+    table.add_column("Cron")
+    table.add_column("Workflow")
+    table.add_column("Enabled")
+    for item in schedules:
+        table.add_row(
+            str(item.get("name", "")),
+            str(item.get("cron", "")),
+            str(item.get("workflow", "")),
+            "yes" if item.get("enabled", True) else "no",
+        )
+    console.print(table)
+    _audit("schedule_list", detail=f"count={len(schedules)}", success=True)
+
+
+@schedule_app.command("run")
+def schedule_run(
+    name: str = typer.Option(..., "--name", help="Schedule name"),
+    target: Optional[str] = typer.Option(None, "--target", help="Target override"),
+) -> None:
+    """Run a configured schedule immediately."""
+    schedules_file = _CONFIG_DIR / "schedules.json"
+    if not schedules_file.exists():
+        console.print("[red]No schedules configured.[/red]")
+        _audit("schedule_run", detail=f"missing_schedule={name}", success=False)
+        raise typer.Exit(1)
+    data = json.loads(schedules_file.read_text(encoding="utf-8"))
+    schedules = data if isinstance(data, list) else []
+    selected = next((s for s in schedules if s.get("name") == name), None)
+    if not selected:
+        console.print(f"[red]Schedule not found:[/red] {name}")
+        _audit("schedule_run", detail=f"missing_schedule={name}", success=False)
+        raise typer.Exit(1)
+    workflow_run(file=str(selected.get("workflow", "")), target=target)
+    _audit("schedule_run", detail=f"name={name}", success=True)
+
+
+@team_app.command("invite")
+def team_invite(
+    org_id: str = typer.Option(..., "--org-id", help="Organization ID"),
+    email: str = typer.Option(..., "--email", help="Member email"),
+    role: str = typer.Option("viewer", "--role", help="Role to assign"),
+) -> None:
+    """Invite a team member to an organization."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("team_invite", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    payload = {"email": email, "role": role}
+    resp = httpx.post(
+        f"{server.rstrip('/')}/api/orgs/{org_id}/invite",
+        json=payload,
+        headers=headers,
+        timeout=15.0,
+    )
+    if resp.status_code >= 400:
+        console.print(f"[red]Invite failed:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("team_invite", profile=profile, detail=f"org={org_id};email={email}", success=False)
+        raise typer.Exit(1)
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("team_invite", profile=profile, detail=f"org={org_id};email={email};role={role}", success=True)
+
+
+@team_app.command("members")
+def team_members(
+    org_id: str = typer.Option(..., "--org-id", help="Organization ID"),
+) -> None:
+    """List organization team members."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("team_members", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    resp = httpx.get(f"{server.rstrip('/')}/api/orgs/{org_id}/members", headers=headers, timeout=15.0)
+    if resp.status_code >= 400:
+        console.print(f"[red]Failed to fetch members:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("team_members", profile=profile, detail=f"org={org_id}", success=False)
+        raise typer.Exit(1)
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("team_members", profile=profile, detail=f"org={org_id}", success=True)
+
+
+@org_app.command("list")
+def org_list() -> None:
+    """List available organizations for the current identity."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("org_list", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+    resp = httpx.get(f"{server.rstrip('/')}/api/orgs", headers=headers, timeout=15.0)
+    if resp.status_code >= 400:
+        console.print(f"[red]Failed to list orgs:[/red] {resp.status_code} {resp.text[:200]}")
+        _audit("org_list", profile=profile, detail="api_error", success=False)
+        raise typer.Exit(1)
+    console.print_json(json.dumps(resp.json(), indent=2))
+    _audit("org_list", profile=profile, detail="ok", success=True)
+
+
+@org_app.command("switch")
+def org_switch(
+    org_id: str = typer.Argument(..., help="Organization ID"),
+) -> None:
+    """Switch active profile organization context."""
+    from .profiles import ProfileStore
+
+    profile = _resolve_profile()
+    store = ProfileStore()
+    current = store.get_profile(profile) or {}
+    server = str(current.get("server_url", _load_config().get("server", "")))
+    updated = store.upsert_profile(profile, server_url=server, org_id=org_id)
+    console.print(f"[green]Active org switched:[/green] profile={profile} org={updated.get('org_id')}")
+    _audit("org_switch", profile=profile, detail=f"org_id={org_id}", success=True)
 
 
 # ---------------------------------------------------------------------------
