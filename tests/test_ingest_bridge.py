@@ -65,8 +65,6 @@ class TestHealthCheck:
         monkeypatch.setenv("COSMICSEC_USE_RUST_INGEST", "true")
         import importlib
 
-        import httpx
-
         import services.api_gateway.ingest_bridge as bridge
 
         importlib.reload(bridge)
@@ -96,3 +94,97 @@ class TestFeatureFlagValues:
 
         importlib.reload(bridge)
         assert bridge._USE_RUST_INGEST is expected
+
+
+class TestGrpcRouting:
+    @pytest.mark.asyncio
+    async def test_routes_to_rust_with_generated_stub(self, monkeypatch):
+        monkeypatch.setenv("COSMICSEC_USE_RUST_INGEST", "true")
+        import importlib
+
+        import services.api_gateway.ingest_bridge as bridge
+
+        importlib.reload(bridge)
+
+        class FakePb2:
+            TOOL_UNKNOWN = 0
+            TOOL_NMAP = 1
+
+            @staticmethod
+            def IngestRequest(**kwargs):
+                return type("Req", (), kwargs)
+
+        class FakeStub:
+            last_request = None
+
+            def IngestBatch(self, request, timeout=30):
+                self.last_request = request
+                return type(
+                    "Resp",
+                    (),
+                    {
+                        "job_id": "job-123",
+                        "scan_id": request.scan_id,
+                        "findings_parsed": 5,
+                        "findings_inserted": 5,
+                        "parse_errors": 0,
+                        "duration_ms": 12.5,
+                        "error_messages": [],
+                    },
+                )
+
+        fake_stub = FakeStub()
+        with (
+            patch.object(bridge, "check_rust_ingest_health", new=AsyncMock(return_value=True)),
+            patch.object(bridge, "_get_grpc_stub", return_value=(fake_stub, FakePb2)),
+        ):
+            result = await bridge.ingest_batch("nmap", b"<xml/>", "scan-abc")
+
+        assert result["routed_to"] == "rust"
+        assert result["stats"]["findings_parsed"] == 5
+        assert fake_stub.last_request.tool == FakePb2.TOOL_NMAP
+
+    @pytest.mark.asyncio
+    async def test_unknown_tool_maps_to_unknown_enum(self, monkeypatch):
+        monkeypatch.setenv("COSMICSEC_USE_RUST_INGEST", "true")
+        import importlib
+
+        import services.api_gateway.ingest_bridge as bridge
+
+        importlib.reload(bridge)
+
+        class FakePb2:
+            TOOL_UNKNOWN = 0
+
+            @staticmethod
+            def IngestRequest(**kwargs):
+                return type("Req", (), kwargs)
+
+        class FakeStub:
+            last_request = None
+
+            def IngestBatch(self, request, timeout=30):
+                self.last_request = request
+                return type(
+                    "Resp",
+                    (),
+                    {
+                        "job_id": "job-123",
+                        "scan_id": request.scan_id,
+                        "findings_parsed": 0,
+                        "findings_inserted": 0,
+                        "parse_errors": 1,
+                        "duration_ms": 2.0,
+                        "error_messages": ["unsupported tool"],
+                    },
+                )
+
+        fake_stub = FakeStub()
+        with (
+            patch.object(bridge, "check_rust_ingest_health", new=AsyncMock(return_value=True)),
+            patch.object(bridge, "_get_grpc_stub", return_value=(fake_stub, FakePb2)),
+        ):
+            result = await bridge.ingest_batch("not-a-real-tool", b"{}", "scan-xyz")
+
+        assert result["routed_to"] == "rust"
+        assert fake_stub.last_request.tool == FakePb2.TOOL_UNKNOWN
