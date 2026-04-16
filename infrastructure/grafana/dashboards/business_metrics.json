@@ -1,0 +1,106 @@
+{
+  "id": null,
+  "uid": "cosmicsec-business-metrics",
+  "title": "CosmicSec Business Metrics",
+  "tags": ["cosmicsec", "business", "kpi"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5m",
+  "time": { "from": "now-30d", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active Users (24h)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "expr": "cosmicsec_active_users_total", "legendFormat": "users", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "green", "value": null}] } } }
+    },
+    {
+      "id": 2,
+      "title": "Scans This Month",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "expr": "increase(cosmicsec_scans_total[30d])", "legendFormat": "scans", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "blue", "value": null}] } } }
+    },
+    {
+      "id": 3,
+      "title": "Total Findings (30d)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [{ "expr": "increase(cosmicsec_findings_total[30d])", "legendFormat": "findings", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "yellow", "value": null}] } } }
+    },
+    {
+      "id": 4,
+      "title": "Critical Findings (30d)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [{ "expr": "increase(cosmicsec_findings_total{severity=\"critical\"}[30d])", "legendFormat": "critical", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}] } } }
+    },
+    {
+      "id": 5,
+      "title": "Scans per Day",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        { "expr": "increase(cosmicsec_scans_total[1d])", "legendFormat": "scans/day", "datasource": "Prometheus" }
+      ],
+      "options": { "tooltip": { "mode": "single" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "palette-classic" } } }
+    },
+    {
+      "id": 6,
+      "title": "Finding Severity Distribution",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        { "expr": "sum by (severity) (cosmicsec_findings_total)", "legendFormat": "{{severity}}", "datasource": "Prometheus" }
+      ],
+      "options": { "pieType": "pie", "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right" } },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } } }
+    },
+    {
+      "id": 7,
+      "title": "New Users (7d)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "increase(cosmicsec_user_registrations_total[1d])", "legendFormat": "new users/day", "datasource": "Prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "palette-classic" } } }
+    },
+    {
+      "id": 8,
+      "title": "Organizations",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 12 },
+      "targets": [{ "expr": "cosmicsec_organizations_total", "legendFormat": "orgs", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "green", "value": null}] } } }
+    },
+    {
+      "id": 9,
+      "title": "Agent Connections (7d)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 12 },
+      "targets": [
+        { "expr": "cosmicsec_agent_connections", "legendFormat": "active agents", "datasource": "Prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "palette-classic" } } }
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "links": [
+    { "title": "Service Health", "url": "/d/cosmicsec-service-health", "type": "dashboard" },
+    { "title": "AI Performance", "url": "/d/cosmicsec-ai-performance", "type": "dashboard" }
+  ]
+}
