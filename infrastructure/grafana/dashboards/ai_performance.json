@@ -1,0 +1,130 @@
+{
+  "id": null,
+  "uid": "cosmicsec-ai-performance",
+  "title": "CosmicSec AI Performance",
+  "tags": ["cosmicsec", "ai", "performance"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-3h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "AI Inference Requests (req/s)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_requests_total{service=\"ai-service\"}[5m]))", "legendFormat": "req/s", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "unit": "reqps", "thresholds": { "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}] } } }
+    },
+    {
+      "id": 2,
+      "title": "AI Error Rate (%)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "expr": "100 * sum(rate(http_requests_total{service=\"ai-service\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{service=\"ai-service\"}[5m]))", "legendFormat": "error %", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "unit": "percent", "thresholds": { "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 5}] } } }
+    },
+    {
+      "id": 3,
+      "title": "Cache Hit Rate (%)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [{ "expr": "100 * sum(rate(cosmicsec_cache_hits_total{service=\"ai-service\"}[5m])) / (sum(rate(cosmicsec_cache_hits_total{service=\"ai-service\"}[5m])) + sum(rate(cosmicsec_cache_misses_total{service=\"ai-service\"}[5m])))", "legendFormat": "hit %", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "unit": "percent", "thresholds": { "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 50}, {"color": "green", "value": 80}] } } }
+    },
+    {
+      "id": 4,
+      "title": "Active AI Provider",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [{ "expr": "cosmicsec_ai_provider_active", "legendFormat": "provider", "datasource": "Prometheus" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color": "blue", "value": null}] } } }
+    },
+    {
+      "id": 5,
+      "title": "AI Inference Latency P50/P95/P99 (ms)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{service=\"ai-service\",route=~\"/analyze.*\"}[5m])) * 1000", "legendFormat": "P50", "datasource": "Prometheus" },
+        { "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"ai-service\",route=~\"/analyze.*\"}[5m])) * 1000", "legendFormat": "P95", "datasource": "Prometheus" },
+        { "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{service=\"ai-service\",route=~\"/analyze.*\"}[5m])) * 1000", "legendFormat": "P99", "datasource": "Prometheus" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": { "defaults": { "unit": "ms", "color": { "mode": "palette-classic" } } }
+    },
+    {
+      "id": 6,
+      "title": "AI Requests by Endpoint",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        { "expr": "sum by (route) (rate(http_requests_total{service=\"ai-service\"}[5m]))", "legendFormat": "{{route}}", "datasource": "Prometheus" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": { "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } } }
+    },
+    {
+      "id": 7,
+      "title": "Multi-Agent Workflow Runs",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total{service=\"ai-service\",route=\"/workflow/assess\"}[5m]))", "legendFormat": "workflow/s", "datasource": "Prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } } }
+    },
+    {
+      "id": 8,
+      "title": "KB Ingest Operations",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 12 },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total{service=\"ai-service\",route=~\"/kb/.*\"}[5m]))", "legendFormat": "kb ops/s", "datasource": "Prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } } }
+    },
+    {
+      "id": 9,
+      "title": "MITRE ATT&CK Mapping Requests",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 12 },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total{service=\"ai-service\",route=\"/analyze/mitre\"}[5m]))", "legendFormat": "mitre/s", "datasource": "Prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } } }
+    },
+    {
+      "id": 10,
+      "title": "AI Service Memory (MB)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 18 },
+      "targets": [
+        { "expr": "process_resident_memory_bytes{service=\"ai-service\"} / 1048576", "legendFormat": "RSS MB", "datasource": "Prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "megabytes", "color": { "mode": "palette-classic" } } }
+    },
+    {
+      "id": 11,
+      "title": "Redis Cache Operations (AI Service)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 18 },
+      "targets": [
+        { "expr": "sum(rate(cosmicsec_cache_hits_total{service=\"ai-service\"}[5m]))", "legendFormat": "hits/s", "datasource": "Prometheus" },
+        { "expr": "sum(rate(cosmicsec_cache_misses_total{service=\"ai-service\"}[5m]))", "legendFormat": "misses/s", "datasource": "Prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops", "color": { "mode": "palette-classic" } } }
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "links": [
+    { "title": "Service Health", "url": "/d/cosmicsec-service-health", "type": "dashboard" },
+    { "title": "Platform Overview", "url": "/d/cosmicsec-overview", "type": "dashboard" }
+  ]
+}
