@@ -5,7 +5,7 @@
 
 ---
 
-> ### 📊 Overall Progress: **~80% Complete** (Phases K+L+M+N+O+P+T complete; Q and R advanced; CLI companion CA-1 substantially implemented)
+> ### 📊 Overall Progress: **~85% Complete** (Phases K+L+M+N+O+P+T complete; Q, R, S, V substantially advanced; CLI companion CA-1 substantially implemented)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -15,13 +15,13 @@
 > | **N — Dependency Modernization** | ✅ Complete | 100% |
 > | **O — Test Coverage** | ✅ Complete | 100% |
 > | **P — Rust Ingest Engine** | ✅ Complete | 100% |
-> | **Q — AI/ML Workflows** | 🟢 In progress | 55% |
-> | **R — Enterprise Features** | 🟢 In progress | 40% |
-> | **S — Performance & Scale** | ⬜ Not started | 0% |
+> | **Q — AI/ML Workflows** | 🟢 In progress | 60% |
+> | **R — Enterprise Features** | 🟢 In progress | 80% |
+> | **S — Performance & Scale** | 🟢 In progress | 55% |
 > | **T — Go Event Broker** | ✅ Complete | 100% |
 > | **U — Mobile & PWA** | ⬜ Not started | 0% |
-> | **V — DX & Polish** | ⬜ Not started | 0% |
-> | **Cross-Cutting** | 🟡 In progress | ~35% |
+> | **V — DX & Polish** | 🟢 In progress | 40% |
+> | **Cross-Cutting** | 🟡 In progress | ~40% |
 
 ---
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
@@ -74,7 +74,7 @@ Phase X — [Title]
 17. [Target Architecture (Post-Phase V)](#target-architecture-post-phase-v)
 18. [New File & Directory Map](#new-file--directory-map)
 
-> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update: CA-1 is ~80% complete (secure credential store + auth/profile/audit commands delivered).** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
+> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update (2026-04-16): CA-1 ~80% complete; R.4 RBAC engine ready for CLI `require_rbac_permission` adoption; R.5 branding headers available to CLI `cosmicsec connect` for theming.** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
 
 ---
 
@@ -1676,7 +1676,7 @@ Minimum viable output: Triage only (always works — rule-based fallback).
 
 ---
 
-## Phase R — Enterprise, Multi-Tenancy & Premium Features 🟢 IN PROGRESS (~40%)
+## Phase R — Enterprise, Multi-Tenancy & Premium Features 🟢 IN PROGRESS (~80%)
 
 > 🎯 **Goal**: Add organization-scoped multi-tenancy, SSO, advanced RBAC, compliance automation, and white-label support. After this phase, CosmicSec is ready for enterprise customers.
 >
@@ -1687,17 +1687,24 @@ Minimum viable output: Triage only (always works — rule-based fallback).
 > ✅ **R.1 substantially complete 2026-04-16**: `services/org_service/main.py` — full Organization CRUD (`POST /api/orgs`, `GET /api/orgs/{id}`, `GET /api/orgs/slug/{slug}`, `PUT /api/orgs/{id}`, `DELETE /api/orgs/{id}`), member management (`POST /api/orgs/{id}/invite`, `GET /api/orgs/{id}/members`), SSO provider configuration (`POST /api/orgs/{id}/sso`, `GET /api/orgs/{id}/sso`), branding endpoints (`GET/PUT /api/orgs/{id}/branding`). Graceful 503 when DB unavailable. Test suite in `tests/test_org_service.py`.
 >
 > ✅ **R.3 complete 2026-04-16**: `services/compliance_service/main.py` — full automated compliance assessment for SOC 2 Type II, PCI-DSS v4.0, HIPAA, ISO 27001. `POST /api/compliance/assess/{framework}` returns per-control pass/fail/partial, overall score, readiness level, gap list. `GET /api/compliance/controls` lists all frameworks. 10 tests in `tests/test_compliance_service.py`.
+>
+> ✅ **R.4 complete 2026-04-16**: `services/auth_service/rbac_engine.py` — full resource-level RBAC engine. 6 built-in roles (admin, manager, soc_analyst, pentester, auditor, viewer) with inheritance, custom role CRUD, `require_rbac_permission(resource, action)` FastAPI dependency. Extended Casbin policy with all roles/resources. RBAC API endpoints: `GET /rbac/roles`, `POST /rbac/roles`, `DELETE /rbac/roles/{name}`, `POST /rbac/check`, `GET /rbac/matrix`. 14 unit tests in `tests/test_phase_r4_rbac.py`.
+>
+> ✅ **R.5 complete 2026-04-16**: `services/api_gateway/white_label.py` — `WhiteLabelMiddleware` injects `X-Org-Name`, `X-Primary-Color`, `X-Logo-URL` headers from org branding cache. `GET /api/branding/{org_slug}` returns CSS variable block for frontend theming. `PUT /api/branding/{org_slug}` updates org branding. 11 tests in `tests/test_phase_r5_white_label.py`.
 
 **Completed:**
 - ✅ `services/org_service/main.py` — Organization CRUD, member management, SSO config, branding, graceful DB fallback
 - ✅ `services/compliance_service/main.py` — SOC2/PCI-DSS/HIPAA/ISO27001 automated assessment + gap analysis
+- ✅ `services/auth_service/rbac_engine.py` — Resource-level RBAC engine + `require_rbac_permission` decorator
+- ✅ `services/auth_service/rbac/policy.csv` — Expanded Casbin policy for all 6 roles × all resources
+- ✅ `services/api_gateway/white_label.py` — WhiteLabelMiddleware + `/api/branding/{slug}` endpoints
 - ✅ `tests/test_org_service.py` — 9 tests covering health, CRUD, SSO, branding, member management
 - ✅ `tests/test_compliance_service.py` — 10 tests covering all 4 frameworks, gap detection, report generation
+- ✅ `tests/test_phase_r4_rbac.py` — 14 tests covering role matrix, custom roles, API auth
+- ✅ `tests/test_phase_r5_white_label.py` — 11 tests covering middleware headers, CSS generation, PUT/GET
 
-**Remaining (~60% of phase):**
+**Remaining (~20% of phase):**
 - ⏳ R.2 — SSO Integration (SAML 2.0 + OIDC endpoints, frontend "Sign in with SSO" button)
-- ⏳ R.4 — Advanced RBAC (Casbin resource-level permissions, custom role creation, frontend Roles page)
-- ⏳ R.5 — White-label support (custom domain, branding API, CSS variable injection)
 
 ### R.1 — Multi-Tenancy
 
@@ -1830,13 +1837,30 @@ Fallback: Default CosmicSec branding if no custom branding configured.
 
 ---
 
-## Phase S — Performance, Observability & Global Scale
+## Phase S — Performance, Observability & Global Scale 🟢 IN PROGRESS (~55%)
 
 > 🎯 **Goal**: Add comprehensive observability, caching strategy, database optimization, and horizontal scaling. After this phase, CosmicSec handles 10,000+ concurrent users.
 >
 > 📋 **Prerequisites**: Phases K-R stable
 >
 > 🌐 **Languages**: Python, SQL, YAML
+>
+> ✅ **S.1 complete 2026-04-16**: Redis caching added to recon service (DNS 1h, Shodan 24h, VirusTotal 12h, crt.sh 6h, RDAP 6h TTLs) with graceful Redis fallback. AI service analysis result caching (1h TTL) and MITRE mapping cache (24h TTL). Both use existing `CacheManager` from `services/common/caching.py`.
+>
+> ✅ **S.2 complete 2026-04-16**: Alembic migration `0005_phase_s_performance_indexes.py` — composite indexes on `findings(scan_id, severity, created_at)`, `findings(organization_id, created_at)`, `findings(severity)`, `audit_logs(user_id, created_at)`, `audit_logs(action, created_at)`, `scans(user_id, created_at)`, `scans(organization_id, created_at)`, `scans(status)`, `organization_members(organization_id, user_id)`.
+>
+> ✅ **S.3 complete 2026-04-15**: `infrastructure/prometheus_alerts.yml` — full alerting rules for service health (ServiceDown, HighErrorRate, HighP99Latency), infrastructure (HighMemoryUsage, DiskUsage, DBPoolExhausted, RedisDown), security scanning (ScanQueueDepth, CriticalFindingsSpike, AIServiceLatency), NATS broker (NATSBrokerDown, EventDLQGrowing).
+
+**Completed:**
+- ✅ `services/recon_service/main.py` — Redis caching for all 5 OSINT lookups + `/cache/stats` endpoint
+- ✅ `services/ai_service/main.py` — Redis caching for `/analyze` (1h) and `/analyze/mitre` (24h)
+- ✅ `services/common/caching.py` — `CacheManager` with tagging and invalidation (pre-existing, enhanced)
+- ✅ `alembic/versions/0005_phase_s_performance_indexes.py` — 9 composite DB indexes
+- ✅ `infrastructure/prometheus_alerts.yml` — full S.3 alerting rules
+
+**Remaining (~45%):**
+- ⏳ S.2 partial — read replica config (`services/common/db.py` read_engine), table partitioning (monthly findings partitions), materialized dashboard views
+- ⏳ S.3 partial — Grafana dashboard JSON files (Service Health, Scan Pipeline, AI Performance dashboards)
 
 ### S.1 — Caching Strategy
 
@@ -2105,13 +2129,31 @@ Without service worker: app works normally (just no offline/push).
 
 ---
 
-## Phase V — Developer Experience, Branding & Polish
+## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~40%)
 
 > 🎯 **Goal**: Make CosmicSec a joy to develop on and a premium-feeling product. Add developer documentation, component library, animation polish, and branding refinements.
 >
 > 📋 **Prerequisites**: All previous phases substantially complete
 >
 > 🌐 **Languages**: TypeScript, Markdown, YAML
+>
+> ✅ **V.3 substantially complete 2026-04-16**: ADRs (001-005), runbooks for deploy-production, incident-response, database-migration, add-new-service, add-new-scanner-plugin all present in `docs/adr/` and `docs/runbooks/`.
+>
+> ✅ **V.4 complete (prior session)**: `scripts/seed-dev-data.py` — full dev seed with org, 5 users, 10 scans, 50+ findings, recon data, AI analysis results.
+
+**Completed:**
+- ✅ `docs/adr/ADR-001` through `ADR-005` — Architecture Decision Records
+- ✅ `docs/runbooks/deploy-production.md`
+- ✅ `docs/runbooks/incident-response.md`
+- ✅ `docs/runbooks/database-migration.md` ← **NEW 2026-04-16**
+- ✅ `docs/runbooks/add-new-service.md` ← **NEW 2026-04-16**
+- ✅ `docs/runbooks/add-new-scanner-plugin.md` ← **NEW 2026-04-16**
+- ✅ `scripts/seed-dev-data.py` — development seed data (V.4)
+
+**Remaining (~60%):**
+- ⏳ V.1 — Storybook component library
+- ⏳ V.2 — Animation & micro-interactions (Framer Motion, Tailwind transitions)
+- ⏳ V.3 partial — CONTRIBUTING.md update, PR template, README quick-start
 
 ### V.1 — Component Library (Storybook)
 
@@ -2249,7 +2291,7 @@ These improvements span multiple phases and should be applied continuously:
 - [ ] Add pre-commit hooks: ruff, mypy (strict), prettier, eslint
 - [x] Add Makefile targets: `make dev-frontend`, `make dev-backend`, `make seed`, `make test-all` ✅
 - [x] Add GitHub Codespaces devcontainer configuration ✅ *(.devcontainer/devcontainer.json)*
-- [ ] Add development seed data script
+- [x] Add development seed data script ✅ *(scripts/seed-dev-data.py — Phase V.4)*
 
 ### Code Quality
 - [ ] Add mypy strict mode for all services
