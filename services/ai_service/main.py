@@ -738,3 +738,52 @@ async def dispatch_task(req: DispatchTaskRequest):
         pass  # Agent relay may not be running; task still returned
 
     return task_payload
+
+
+# ---------------------------------------------------------------------------
+# Phase Q.4 — Multi-Agent Assessment Workflow endpoint
+# ---------------------------------------------------------------------------
+
+import uuid as _agent_uuid
+
+from services.ai_service.agents import run_assessment_workflow
+
+
+class WorkflowRequest(BaseModel):
+    scan_id: str = Field(default_factory=lambda: str(_agent_uuid.uuid4()))
+    findings: list[dict] = Field(default_factory=list)
+    provider: str = Field(default="")
+
+
+class WorkflowResponse(BaseModel):
+    scan_id: str
+    triaged_count: int
+    groups_count: int
+    plan_steps: int
+    remediation_plan: list[dict]
+    errors: list[str]
+    timing: dict
+
+
+@app.post("/workflow/assess", response_model=WorkflowResponse)
+async def run_workflow(req: WorkflowRequest):
+    """
+    Run the full multi-agent triage → analysis → correlation → remediation pipeline.
+
+    Uses LangGraph StateGraph when installed; falls back to a sequential
+    async pipeline with identical semantics.
+    """
+    result = await run_assessment_workflow(
+        findings=req.findings,
+        scan_id=req.scan_id,
+        provider=req.provider,
+    )
+    return WorkflowResponse(
+        scan_id=result["scan_id"],
+        triaged_count=len(result["triaged_findings"]),
+        groups_count=len(result["correlation_groups"]),
+        plan_steps=len(result["remediation_plan"]),
+        remediation_plan=result["remediation_plan"],
+        errors=result["errors"],
+        timing=result["timing"],
+    )
