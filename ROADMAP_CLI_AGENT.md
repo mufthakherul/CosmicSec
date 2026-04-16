@@ -5,8 +5,8 @@
 > **Version**: 2.1 (2026-04-16) | **Parent Roadmap**: [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: `cli/agent/` module, related SDK integration, server-side agent relay, AI-driven CLI workflows
-> **Current State**: v0.3.0 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented**, plus active CA-7/CA-8/CA-9/CA-10 tranche (branding/version polish, plugin lifecycle expansion, sync pull/import + optimize commands, SQLite optimization stats, expanded `docs/cli/*`).
-> **Progress Refresh (2026-04-16)**: Latest tranche added Phase R.2 backend SSO protocol/discovery endpoints in core services (`auth_service` + `api_gateway`) and frontend login integration now has end-to-end route coverage; CLI phase percentages remain unchanged in this update.
+> **Current State**: v0.3.0+ — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented**, plus expanded CA-7/CA-8/CA-9/CA-10 tranche (plugin runtime loading, shell/ask/chat workflows, sync conflict controls, gzip batched sync push, Rust parser acceleration scaffold, offline-store utility commands).
+> **Progress Refresh (2026-04-16)**: CA-1 **96%**, CA-2 **97%**, CA-7 **90%**, CA-8 **86%**, CA-9 **82%**, CA-10 **84%**. New completion items include plugin auto-load/reload, browser OAuth login path, authenticated server sync upload, and richer interactive CLI surfaces.
 
 ---
 
@@ -105,17 +105,17 @@ This document is a **companion to [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)** and d
 | CG-02 | ~~No `login` command~~ → `auth login/logout/status/refresh` + token refresh path | ~~Terrible UX~~ | ✅ **Fixed** (v0.2.1) |
 | CG-03 | ~~No interactive/conversational mode~~ → **`run` command** accepts natural language | ~~Not competitive~~ | 🟡 Partial (v0.2.0) |
 | CG-04 | ~~No AI integration~~ → **Hybrid engine** with OpenAI/Ollama/Cloud providers | ~~Missing differentiator~~ | 🟡 Partial (v0.2.0) |
-| CG-05 | **No progress indicators during scans** — output only after completion | Bad UX for long-running tools | 🔴 Open |
-| CG-06 | **No scan cancellation** — Ctrl+C kills the entire agent | No graceful abort | 🔴 Open |
-| CG-07 | **No config management** — no `cosmicsec config set/get/list` | Must manually edit JSON | 🔴 Open |
+| CG-05 | ~~No progress indicators during scans~~ → live rich progress renderer with structured tool output | ~~Bad UX for long-running tools~~ | ✅ **Fixed** (v0.3.x) |
+| CG-06 | ~~No scan cancellation~~ → graceful two-stage interrupt handling in scan workflows | ~~No graceful abort~~ | ✅ **Fixed** (v0.3.x) |
+| CG-07 | ~~No config management~~ → `config get/set/list/reset/edit` command suite | ~~Must manually edit JSON~~ | ✅ **Fixed** (v0.3.0) |
 | CG-08 | ~~Zero test coverage~~ → **42 tests** for hybrid engine | ~~No quality gates~~ | 🟡 Partial (v0.2.0) |
 | CG-09 | **Agent relay uses in-memory dict** — all connections lost on restart | Data loss | 🔴 Open |
-| CG-10 | **No shell completions** — no tab completion for commands or tool names | Missing standard feature | 🔴 Open |
-| CG-11 | **No update mechanism** — no `cosmicsec update` or version checking | Manual updates only | 🔴 Open |
+| CG-10 | ~~No shell completions~~ → `completions install/show` for bash/zsh/fish/powershell | ~~Missing standard feature~~ | ✅ **Fixed** (v0.3.0) |
+| CG-11 | **No full update mechanism** — release and package workflows exist, in-CLI self-update command still pending | Manual updates only | 🟡 Partial |
 | CG-12 | ~~No profile/workspace support~~ → `profile list/add/use/delete/show` + global `--profile` | ~~Single-context only~~ | ✅ **Fixed** (v0.2.1) |
 | CG-13 | ~~No output formatting options~~ → **OutputFormatter** (table/json/yaml/csv/quiet, TTY detect) | ~~Not scriptable~~ | ✅ **Fixed** (v0.3.0) |
 | CG-14 | ~~No scan history~~ → **`history` commands** (list/show/findings/diff/stats/delete) | ~~Data not accessible~~ | ✅ **Fixed** (v0.3.0) |
-| CG-15 | **Only 4 parsers** — 10 of 14 supported tools have no output parsing | Incomplete coverage | 🔴 Open |
+| CG-15 | **Parser coverage expanded via plugin parser runtime + Rust accel scaffold, but not yet full 14-tool parity** | Incomplete coverage | 🟡 Partial |
 | CG-16 | ~~Tool selection is static/registry-only~~ → **Hybrid dynamic/static engine** | ~~Not competitive with Copilot/Gemini CLI~~ | ✅ **Fixed** (v0.2.0) |
 
 ### 🟡 What Dependencies Already Exist
