@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import { render } from "@testing-library/react";
 import { useScanStream } from "../../hooks/useScanStream";
 import { useScanStore, type Scan } from "../../store/scanStore";
@@ -60,14 +61,14 @@ describe("useScanStream", () => {
   });
 
   it("connects with scan id and auth token", () => {
-    render(<HookHarness scanId="scan-1" />);
+    render(createElement(HookHarness, { scanId: "scan-1" }));
     expect(MockWebSocket.instances).toHaveLength(1);
     expect(MockWebSocket.instances[0].url).toContain("/ws/scans/scan-1");
     expect(MockWebSocket.instances[0].url).toContain("token=test-token");
   });
 
   it("handles progress, finding, complete and error messages", () => {
-    render(<HookHarness scanId="scan-1" />);
+    render(createElement(HookHarness, { scanId: "scan-1" }));
     const ws = MockWebSocket.instances[0];
 
     ws.emitMessage({ type: "progress", payload: { progress: 55 } });
@@ -97,7 +98,7 @@ describe("useScanStream", () => {
   });
 
   it("reconnects with exponential backoff after socket close", () => {
-    render(<HookHarness scanId="scan-1" />);
+    render(createElement(HookHarness, { scanId: "scan-1" }));
     const first = MockWebSocket.instances[0];
     first.emitClose();
     vi.advanceTimersByTime(1000);

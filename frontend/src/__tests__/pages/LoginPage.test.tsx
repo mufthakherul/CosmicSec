@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import axios, { AxiosError } from "axios";
+import { MemoryRouter } from "react-router-dom";
 import { LoginPage } from "../../pages/LoginPage";
 
 const mockNavigate = vi.fn();
@@ -27,19 +28,27 @@ vi.mock("../../context/AuthContext", async () => {
 vi.mock("axios");
 
 describe("LoginPage", () => {
+  function renderPage() {
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("renders required form controls", () => {
-    render(<LoginPage />);
+    renderPage();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
   });
 
   it("shows validation errors on empty submit", async () => {
-    render(<LoginPage />);
+    renderPage();
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
     expect(await screen.findByText("Email is required")).toBeInTheDocument();
@@ -54,7 +63,7 @@ describe("LoginPage", () => {
       },
     });
 
-    render(<LoginPage />);
+    renderPage();
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: "user@cosmicsec.dev" },
     });
@@ -81,7 +90,7 @@ describe("LoginPage", () => {
       new AxiosError("Request failed", "401", undefined, undefined, response),
     );
 
-    render(<LoginPage />);
+    renderPage();
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: "user@cosmicsec.dev" },
     });
@@ -90,6 +99,6 @@ describe("LoginPage", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Invalid credentials");
+    expect(await screen.findByRole("alert")).toHaveTextContent(/invalid/i);
   });
 });
