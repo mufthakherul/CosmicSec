@@ -158,6 +158,12 @@ export const TimelinePage: React.FC = () => {
   const [filterDateRange, setFilterDateRange] = useState<FilterDateRange>("all");
   const [filterTarget, setFilterTarget] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const [pullStartY, setPullStartY] = useState<number | null>(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [swipedCardId, setSwipedCardId] = useState<string | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
   // -------------------------------------------------------------------------
@@ -278,6 +284,7 @@ export const TimelinePage: React.FC = () => {
 
   const filtered = useMemo(() => {
     return events.filter((ev) => {
+      if (dismissedIds.has(ev.id)) return false;
       if (filterSource !== "all" && ev.source !== filterSource) return false;
       if (filterSeverity !== "all" && ev.severity !== filterSeverity) return false;
       if (!isWithinRange(ev.timestamp, filterDateRange)) return false;
@@ -288,7 +295,7 @@ export const TimelinePage: React.FC = () => {
         return false;
       return true;
     });
-  }, [events, filterSource, filterSeverity, filterDateRange, filterTarget]);
+  }, [events, dismissedIds, filterSource, filterSeverity, filterDateRange, filterTarget]);
 
   // -------------------------------------------------------------------------
   // Export
@@ -302,6 +309,27 @@ export const TimelinePage: React.FC = () => {
     a.download = `cosmicsec-timeline-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleMobileListTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (window.scrollY <= 0) {
+      setPullStartY(event.touches[0].clientY);
+    }
+  };
+
+  const handleMobileListTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (pullStartY === null) return;
+    const nextDistance = Math.max(0, event.touches[0].clientY - pullStartY);
+    setPullDistance(Math.min(nextDistance, 90));
+  };
+
+  const handleMobileListTouchEnd = () => {
+    if (pullDistance > 70 && !isLoading) {
+      setIsPullRefreshing(true);
+      void fetchData().finally(() => setIsPullRefreshing(false));
+    }
+    setPullStartY(null);
+    setPullDistance(0);
   };
 
   // -------------------------------------------------------------------------
@@ -422,11 +450,35 @@ export const TimelinePage: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 md:hidden">
+            <div
+              className="-mx-1 md:hidden"
+              onTouchStart={handleMobileListTouchStart}
+              onTouchMove={handleMobileListTouchMove}
+              onTouchEnd={handleMobileListTouchEnd}
+            >
+              {(pullDistance > 0 || isPullRefreshing) && (
+                <div className="mb-2 px-1">
+                  <div
+                    className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300"
+                    style={{ opacity: Math.min(1, pullDistance / 70) }}
+                  >
+                    {isPullRefreshing ? "Refreshing timeline…" : "Pull down to refresh"}
+                  </div>
+                </div>
+              )}
+              <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1">
               {filtered.map((ev) => (
                 <div
                   key={`mobile-${ev.id}`}
-                  className="min-w-[84%] snap-start rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm"
+                  className="min-w-[84%] snap-start rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm transition-transform"
+                  onTouchStart={(event) => setTouchStartX(event.touches[0].clientX)}
+                  onTouchEnd={(event) => {
+                    if (touchStartX === null) return;
+                    const deltaX = touchStartX - event.changedTouches[0].clientX;
+                    if (deltaX > 60) setSwipedCardId(ev.id);
+                    if (deltaX < -40) setSwipedCardId(null);
+                    setTouchStartX(null);
+                  }}
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${SOURCE_BADGE[ev.source]}`}>
@@ -450,8 +502,34 @@ export const TimelinePage: React.FC = () => {
                       {ev.target}
                     </button>
                   )}
+                  {swipedCardId === ev.id && (
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => (ev.scan_id ? navigate(`/scans/${ev.scan_id}`) : navigate("/scans"))}
+                        className="min-h-8 rounded bg-cyan-500/20 px-2 py-1 text-[11px] font-medium text-cyan-300"
+                      >
+                        Open
+                      </button>
+                      <button
+                        onClick={() => setFilterTarget(ev.target ?? "")}
+                        className="min-h-8 rounded bg-amber-500/20 px-2 py-1 text-[11px] font-medium text-amber-300"
+                      >
+                        Filter
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDismissedIds((previous) => new Set(previous).add(ev.id));
+                          setSwipedCardId(null);
+                        }}
+                        className="min-h-8 rounded bg-rose-500/20 px-2 py-1 text-[11px] font-medium text-rose-300"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
+              </div>
             </div>
 
             <div className="relative hidden space-y-0 md:block">
