@@ -38,10 +38,17 @@ app.add_typer(offline_app, name="offline")
 
 mode_app = typer.Typer(help="Execution mode management.")
 app.add_typer(mode_app, name="mode")
+auth_app = typer.Typer(help="Authentication commands.")
+app.add_typer(auth_app, name="auth")
+profile_app = typer.Typer(help="Profile/workspace management commands.")
+app.add_typer(profile_app, name="profile")
+audit_app = typer.Typer(help="Audit trail commands.")
+app.add_typer(audit_app, name="audit")
 
 console = Console()
+_active_profile: str | None = None
 
-_CONFIG_DIR = Path.home() / ".cosmicsec"
+_CONFIG_DIR = Path(os.getenv("COSMICSEC_CONFIG_DIR", str(Path.home() / ".cosmicsec")))
 _CONFIG_FILE = _CONFIG_DIR / "config.json"
 
 
@@ -59,6 +66,49 @@ def _load_config() -> dict:
 def _save_config(cfg: dict) -> None:
     _CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     _CONFIG_FILE.write_text(json.dumps(cfg, indent=2))
+
+
+def _resolve_profile() -> str:
+    from .profiles import ProfileStore
+
+    if _active_profile:
+        return _active_profile
+    return ProfileStore().get_active_profile()
+
+
+def _audit(
+    action: str,
+    *,
+    profile: str | None = None,
+    target: str | None = None,
+    detail: str | None = None,
+    success: bool = True,
+) -> None:
+    from .audit_log import AuditLogStore
+
+    try:
+        AuditLogStore().log(
+            action,
+            profile=profile or _resolve_profile(),
+            target=target,
+            detail=detail,
+            success=success,
+        )
+    except Exception:
+        return
+
+
+@app.callback()
+def app_callback(
+    profile: Optional[str] = typer.Option(None, "--profile", help="Profile name override"),
+) -> None:
+    """Global CLI options."""
+    global _active_profile
+    from .credential_store import CredentialStore
+    from .profiles import ProfileStore
+
+    _active_profile = profile or ProfileStore().get_active_profile()
+    CredentialStore().migrate_legacy_config(_CONFIG_FILE)
 
 
 # ---------------------------------------------------------------------------
@@ -82,6 +132,7 @@ def discover() -> None:
 
     if not tools:
         console.print("[yellow]No supported security tools found on PATH.[/yellow]")
+        _audit("discover", success=True)
         raise typer.Exit(0)
 
     table = Table(title="Discovered Security Tools", show_header=True, header_style="bold magenta")
@@ -94,6 +145,7 @@ def discover() -> None:
         table.add_row(t.name, t.path, t.version, ", ".join(t.capabilities))
 
     console.print(table)
+    _audit("discover", detail=f"tools={len(tools)}", success=True)
 
 
 # ---------------------------------------------------------------------------
@@ -135,6 +187,7 @@ def run(
     exec_mode = mode_map.get(mode.lower())
     if exec_mode is None:
         console.print(f"[red]Invalid mode '{mode}'. Use: static, dynamic, or hybrid.[/red]")
+        _audit("run", detail=f"invalid_mode={mode}", success=False)
         raise typer.Exit(1)
 
     cfg = _load_config()
@@ -152,10 +205,13 @@ def run(
     if dry_run:
         if not quiet:
             console.print("[yellow]Dry run — no commands were executed.[/yellow]")
+        _audit("run", detail="dry_run", success=True)
         raise typer.Exit(0)
 
     if not result.success:
+        _audit("run", detail="execution_failed", success=False)
         raise typer.Exit(1)
+    _audit("run", success=True)
 
 
 # ---------------------------------------------------------------------------
@@ -196,6 +252,225 @@ def plan(
         console.print_json(json.dumps(execution_plan.to_dict(), indent=2))
     else:
         engine._display_plan(execution_plan)
+    _audit("plan", success=True)
+
+
+# ---------------------------------------------------------------------------
+# auth + profile + audit
+# ---------------------------------------------------------------------------
+
+
+@auth_app.command("login")
+def auth_login(
+    server: Optional[str] = typer.Option(None, "--server", help="Server URL"),
+    api_key: Optional[str] = typer.Option(None, "--api-key", help="API key"),
+    token: Optional[str] = typer.Option(None, "--token", help="Access token"),
+    refresh_token: Optional[str] = typer.Option(None, "--refresh-token", help="Refresh token"),
+    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID"),
+) -> None:
+    """Login using API key or access token."""
+    from .auth import AuthManager
+
+    profile = _resolve_profile()
+    resolved_server = server or typer.prompt("Server URL", default="http://localhost:8000")
+    if not api_key and not token:
+        method = typer.prompt("Auth method (api_key/token)", default="api_key").strip().lower()
+        if method == "token":
+            token = typer.prompt("Access token", hide_input=True)
+            refresh_token = refresh_token or typer.prompt(
+                "Refresh token (optional)", default="", show_default=False
+            )
+            refresh_token = refresh_token or None
+        else:
+            api_key = typer.prompt("API key", hide_input=True)
+
+    manager = AuthManager()
+    result = manager.login(
+        profile=profile,
+        server_url=resolved_server,
+        api_key=api_key,
+        access_token=token,
+        refresh_token=refresh_token,
+        org_id=org_id,
+    )
+    _audit("login", profile=profile, target=resolved_server, success=True)
+    console.print(f"[green]✅ Logged in on profile '{profile}'.[/green]")
+    console.print(result)
+
+
+@auth_app.command("logout")
+def auth_logout(
+    force: bool = typer.Option(False, "--force", help="Skip confirmation"),
+) -> None:
+    """Clear stored credentials for the active profile."""
+    from .auth import AuthManager
+
+    profile = _resolve_profile()
+    if not force and not typer.confirm(f"Logout profile '{profile}'?"):
+        raise typer.Exit(0)
+    AuthManager().logout(profile)
+    _audit("logout", profile=profile, success=True)
+    console.print(f"[green]Logged out profile '{profile}'.[/green]")
+
+
+@auth_app.command("status")
+def auth_status() -> None:
+    """Show authentication status for the active profile."""
+    from .auth import AuthManager
+
+    profile = _resolve_profile()
+    status = AuthManager().status(profile)
+    _audit("auth_status", profile=profile, success=True)
+    console.print_json(json.dumps(status, indent=2))
+
+
+@auth_app.command("refresh")
+def auth_refresh() -> None:
+    """Refresh access token using refresh token."""
+    from .auth import AuthManager
+
+    profile = _resolve_profile()
+    try:
+        result = AuthManager().refresh(profile)
+        _audit("auth_refresh", profile=profile, success=True)
+        console.print_json(json.dumps(result, indent=2))
+    except Exception as exc:
+        _audit("auth_refresh", profile=profile, detail=str(exc), success=False)
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+
+@profile_app.command("list")
+def profile_list() -> None:
+    """List configured profiles."""
+    from .profiles import ProfileStore
+
+    profiles = ProfileStore().list_profiles()
+    _audit("profile_list", success=True)
+    if not profiles:
+        console.print("[yellow]No profiles configured.[/yellow]")
+        raise typer.Exit(0)
+    table = Table(title="CosmicSec Profiles", show_header=True, header_style="bold magenta")
+    table.add_column("Name", style="cyan")
+    table.add_column("Active")
+    table.add_column("Server")
+    table.add_column("Auth")
+    for row in profiles:
+        table.add_row(
+            row["name"],
+            "✅" if row.get("active") else "",
+            row.get("server_url", ""),
+            row.get("auth_method", ""),
+        )
+    console.print(table)
+
+
+@profile_app.command("add")
+def profile_add(
+    name: str = typer.Argument(..., help="Profile name"),
+    server: Optional[str] = typer.Option(None, "--server", help="Server URL"),
+    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID"),
+) -> None:
+    """Create or update a profile."""
+    from .profiles import ProfileStore
+
+    server_url = server or typer.prompt("Server URL", default="http://localhost:8000")
+    profile = ProfileStore().upsert_profile(name, server_url=server_url, org_id=org_id)
+    _audit("profile_add", profile=name, target=server_url, success=True)
+    console.print_json(json.dumps(profile, indent=2))
+
+
+@profile_app.command("use")
+def profile_use(
+    name: str = typer.Argument(..., help="Profile name"),
+) -> None:
+    """Set active profile."""
+    from .profiles import ProfileStore
+
+    store = ProfileStore()
+    try:
+        store.set_active_profile(name)
+    except ValueError as exc:
+        _audit("profile_switch", profile=name, detail=str(exc), success=False)
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+    _audit("profile_switch", profile=name, success=True)
+    console.print(f"[green]Active profile set to '{name}'.[/green]")
+
+
+@profile_app.command("delete")
+def profile_delete(
+    name: str = typer.Argument(..., help="Profile name"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation"),
+) -> None:
+    """Delete a profile and its stored credentials."""
+    from .credential_store import CredentialStore
+    from .profiles import ProfileStore
+
+    if not force and not typer.confirm(f"Delete profile '{name}'?"):
+        raise typer.Exit(0)
+    deleted = ProfileStore().delete_profile(name)
+    if not deleted:
+        console.print(f"[red]Profile '{name}' not found.[/red]")
+        raise typer.Exit(1)
+    creds = CredentialStore()
+    for key in ("api_key", "access_token", "refresh_token", "server_url", "org_id"):
+        creds.delete(name, key)
+    _audit("profile_delete", profile=name, success=True)
+    console.print(f"[green]Deleted profile '{name}'.[/green]")
+
+
+@profile_app.command("show")
+def profile_show(name: Optional[str] = typer.Argument(None, help="Profile name")) -> None:
+    """Show profile details."""
+    from .profiles import ProfileStore
+
+    resolved = name or _resolve_profile()
+    profile = ProfileStore().get_profile(resolved)
+    if not profile:
+        console.print(f"[red]Profile '{resolved}' not found.[/red]")
+        raise typer.Exit(1)
+    _audit("profile_show", profile=resolved, success=True)
+    console.print_json(json.dumps(profile, indent=2))
+
+
+@audit_app.command("list")
+def audit_list(
+    limit: int = typer.Option(20, "--limit", help="Max entries"),
+    since: Optional[str] = typer.Option(None, "--since", help="ISO timestamp filter"),
+    action: Optional[str] = typer.Option(None, "--action", help="Action filter"),
+) -> None:
+    """List local CLI audit events."""
+    from .audit_log import AuditLogStore
+
+    rows = AuditLogStore().list(limit=limit, since=since, action=action)
+    console.print_json(json.dumps(rows, indent=2))
+
+
+@audit_app.command("export")
+def audit_export(
+    fmt: str = typer.Option("json", "--format", help="json or csv"),
+    output: str = typer.Option("cosmicsec-audit.json", "--output", help="Output file"),
+) -> None:
+    """Export audit trail to file."""
+    from .audit_log import AuditLogStore
+
+    out = AuditLogStore().export(fmt=fmt, output_file=output)
+    console.print(f"[green]Audit exported to {out}[/green]")
+
+
+@audit_app.command("clear")
+def audit_clear(
+    before: Optional[str] = typer.Option(None, "--before", help="Delete records before timestamp"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation"),
+) -> None:
+    """Clear audit trail entries."""
+    from .audit_log import AuditLogStore
+
+    if not force and not typer.confirm("Clear matching audit records?"):
+        raise typer.Exit(0)
+    deleted = AuditLogStore().clear(before=before)
+    console.print(f"[green]Removed {deleted} audit event(s).[/green]")
 
 
 # ---------------------------------------------------------------------------
@@ -214,6 +489,7 @@ def mode_show() -> None:
     console.print("  [blue]static[/blue]   — Registry-only (fast, offline, deterministic)")
     console.print("  [green]dynamic[/green]  — AI-powered planning (like GitHub Copilot CLI)")
     console.print("  [magenta]hybrid[/magenta]   — AI + static fallback (recommended)")
+    _audit("mode_show", success=True)
 
 
 @mode_app.command("set")
@@ -224,11 +500,13 @@ def mode_set(
     valid = {"static", "dynamic", "hybrid"}
     if mode.lower() not in valid:
         console.print(f"[red]Invalid mode '{mode}'. Use: {', '.join(valid)}[/red]")
+        _audit("mode_set", detail=f"invalid_mode={mode}", success=False)
         raise typer.Exit(1)
     cfg = _load_config()
     cfg["execution_mode"] = mode.lower()
     _save_config(cfg)
     console.print(f"[green]Default execution mode set to:[/green] [bold]{mode.lower()}[/bold]")
+    _audit("mode_set", detail=f"mode={mode.lower()}", success=True)
 
 
 # ---------------------------------------------------------------------------
@@ -252,6 +530,7 @@ def scan(
 
     if not tool and not all_tools:
         console.print("[red]Specify --tool <name> or --all.[/red]")
+        _audit("scan_start", target=target, detail="missing_tool_selection", success=False)
         raise typer.Exit(1)
 
     registry = ToolRegistry()
@@ -269,12 +548,14 @@ def scan(
     if tool:
         if tool not in discovered:
             console.print(f"[red]Tool '{tool}' not found on PATH.[/red]")
+            _audit("scan_start", target=target, detail=f"tool_not_found={tool}", success=False)
             raise typer.Exit(1)
         tools_to_run = [discovered[tool]]
 
     for tool_info in tools_to_run:
         scan_id = str(uuid.uuid4())
         store.save_scan(scan_id, target, tool_info.name, "running")
+        _audit("scan_start", target=target, detail=f"tool={tool_info.name}", success=True)
         console.print(f"\n[bold cyan]Running {tool_info.name} against {target}…[/bold cyan]")
 
         extra_args = flags.split() if flags else []
@@ -299,6 +580,19 @@ def scan(
 
         if result.exit_code != 0:
             console.print(f"[yellow]Tool exited with code {result.exit_code}[/yellow]")
+            _audit(
+                "scan_complete",
+                target=target,
+                detail=f"tool={tool_info.name};exit_code={result.exit_code}",
+                success=False,
+            )
+        else:
+            _audit(
+                "scan_complete",
+                target=target,
+                detail=f"tool={tool_info.name};findings={len(findings)}",
+                success=True,
+            )
 
     console.print("\n[green]Scan complete. Results saved to offline store.[/green]")
 
@@ -338,29 +632,54 @@ def _display_findings(findings: list[dict], tool_name: str, target: str) -> None
 
 @app.command()
 def connect(
-    server: str = typer.Option(..., "--server", help="WebSocket server URL"),
-    api_key: str = typer.Option(..., "--api-key", help="API key for authentication"),
+    server: Optional[str] = typer.Option(None, "--server", help="Server URL"),
+    api_key: Optional[str] = typer.Option(None, "--api-key", help="API key for authentication"),
 ) -> None:
     """Register this agent and enter streaming mode."""
     from .offline_store import OfflineStore
     from .stream import AgentStreamClient
     from .tool_registry import ToolRegistry
 
+    from .credential_store import CredentialStore
+    from .profiles import ProfileStore
+
+    profile = _resolve_profile()
+    creds = CredentialStore()
+    profile_store = ProfileStore()
+    profile_data = profile_store.get_profile(profile) or {}
+
+    # Precedence: explicit CLI flag > secure credential store > profile metadata > legacy config.
+    resolved_server = (
+        server
+        or creds.retrieve(profile, "server_url")
+        or profile_data.get("server_url")
+        or _load_config().get("server")
+    )
+    resolved_api_key = api_key or creds.retrieve(profile, "api_key")
+    if not resolved_server or not resolved_api_key:
+        console.print(
+            "[red]Missing server/api key. Run 'cosmicsec-agent auth login' first or pass --server --api-key.[/red]"
+        )
+        _audit("connect", profile=profile, detail="missing_credentials", success=False)
+        raise typer.Exit(1)
+
     cfg = _load_config()
     agent_id = cfg.get("agent_id") or str(uuid.uuid4())
-    cfg.update({"server": server, "api_key": api_key, "agent_id": agent_id})
+    cfg.update({"server": resolved_server, "agent_id": agent_id})
     _save_config(cfg)
+    creds.store(profile, "server_url", resolved_server)
+    creds.store(profile, "api_key", resolved_api_key)
 
     registry = ToolRegistry()
     manifest = registry.to_manifest()
     store = OfflineStore()
-    client = AgentStreamClient(server, api_key, agent_id, store)
+    client = AgentStreamClient(resolved_server, resolved_api_key, agent_id, store)
 
-    console.print(f"[bold cyan]Connecting to {server} as agent {agent_id}…[/bold cyan]")
+    console.print(f"[bold cyan]Connecting to {resolved_server} as agent {agent_id}…[/bold cyan]")
 
     async def _run() -> None:
         # First: register agent with server via REST
-        http_base = server.replace("ws://", "http://").replace("wss://", "https://")
+        http_base = resolved_server.replace("ws://", "http://").replace("wss://", "https://")
         import httpx
 
         try:
@@ -368,7 +687,7 @@ def connect(
                 reg_resp = await http_client.post(
                     f"{http_base}/api/agents/register",
                     json={"manifest": manifest, "agent_id": agent_id},
-                    headers={"X-API-Key": api_key},
+                    headers={"X-API-Key": resolved_api_key},
                     timeout=10.0,
                 )
                 if reg_resp.status_code == 200:
@@ -393,6 +712,7 @@ def connect(
         await client._send_raw({"type": "manifest", "payload": manifest})
         console.print("[green]Connected! Streaming mode active. Press Ctrl+C to exit.[/green]")
         console.print(f"Tool manifest sent: {len(manifest['tools'])} tool(s).")
+        _audit("connect", profile=profile, target=resolved_server, success=True)
         async for task in client.receive_tasks():
             console.print(f"[bold yellow]Received task:[/bold yellow] {task}")
 
@@ -400,6 +720,7 @@ def connect(
         asyncio.run(_run())
     except KeyboardInterrupt:
         console.print("\n[yellow]Disconnected.[/yellow]")
+        _audit("disconnect", profile=profile, target=resolved_server, success=True)
 
 
 # ---------------------------------------------------------------------------
@@ -425,6 +746,7 @@ def offline_export(
             output_file = output_file.rsplit(".", 1)[0] + ".json"
         store.export_json(output_file)
     console.print(f"[green]Exported findings to {output_file}[/green]")
+    _audit("export", detail=f"format={fmt};output={output_file}", success=True)
 
 
 # ---------------------------------------------------------------------------
@@ -478,6 +800,7 @@ def status() -> None:
         console.print(table)
     else:
         console.print("[yellow]No supported tools found on PATH.[/yellow]")
+    _audit("status", detail=f"tools={len(tools)};unsynced={len(unsynced)}", success=True)
 
 
 if __name__ == "__main__":

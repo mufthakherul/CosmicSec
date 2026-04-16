@@ -5,7 +5,7 @@
 
 ---
 
-> ### 📊 Overall Progress: **~78% Complete** (Phases K+L+M+N+O complete; P, Q, R, T significantly advanced)
+> ### 📊 Overall Progress: **~80% Complete** (Phases K+L+M+N+O+P+T complete; Q and R advanced; CLI companion CA-1 substantially implemented)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -14,14 +14,14 @@
 > | **M — Frontend Completion** | ✅ Complete | 100% |
 > | **N — Dependency Modernization** | ✅ Complete | 100% |
 > | **O — Test Coverage** | ✅ Complete | 100% |
-> | **P — Rust Ingest Engine** | 🟢 In progress | 85% |
+> | **P — Rust Ingest Engine** | ✅ Complete | 100% |
 > | **Q — AI/ML Workflows** | 🟢 In progress | 55% |
 > | **R — Enterprise Features** | 🟢 In progress | 40% |
 > | **S — Performance & Scale** | ⬜ Not started | 0% |
 > | **T — Go Event Broker** | ✅ Complete | 100% |
 > | **U — Mobile & PWA** | ⬜ Not started | 0% |
 > | **V — DX & Polish** | ⬜ Not started | 0% |
-> | **Cross-Cutting** | 🟡 In progress | ~25% |
+> | **Cross-Cutting** | 🟡 In progress | ~35% |
 
 ---
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
@@ -74,7 +74,7 @@ Phase X — [Title]
 17. [Target Architecture (Post-Phase V)](#target-architecture-post-phase-v)
 18. [New File & Directory Map](#new-file--directory-map)
 
-> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
+> **📌 Companion Roadmap**: The CLI Agent has its own detailed roadmap with 10 phases (CA-1 through CA-10) covering security hardening, AI integration, interactive TUI, orchestration pipelines, enterprise features, and more. **Latest update: CA-1 is ~80% complete (secure credential store + auth/profile/audit commands delivered).** See **[`ROADMAP_CLI_AGENT.md`](./ROADMAP_CLI_AGENT.md)**.
 
 ---
 
