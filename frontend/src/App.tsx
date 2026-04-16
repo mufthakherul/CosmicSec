@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ProtectedRoute } from "./router/ProtectedRoute";
@@ -8,6 +8,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { PageSkeleton } from "./components/PageSkeleton";
 import { SWUpdateBanner } from "./components/SWUpdateBanner";
 import { PWAInstallBanner } from "./components/PWAInstallBanner";
+import { RouteProgressBar } from "./components/RouteProgressBar";
 
 // Public pages (eagerly loaded — above the fold)
 import { LandingPage } from "./pages/LandingPage";
@@ -71,15 +72,19 @@ const NotFoundPage = React.lazy(() =>
 );
 
 export function App() {
+  const location = useLocation();
+
   return (
     <ThemeProvider>
       <AuthProvider>
         <ErrorBoundary>
           <SkipLink />
+          <RouteProgressBar />
           <SWUpdateBanner />
           <PWAInstallBanner />
           <Suspense fallback={<PageSkeleton />}>
-            <Routes>
+            <div key={`${location.pathname}${location.search}`} className="page-enter">
+            <Routes location={location}>
               {/* ------------------------------------------------------------------ */}
               {/* Public routes — no auth required */}
               {/* ------------------------------------------------------------------ */}
@@ -204,6 +209,7 @@ export function App() {
               {/* ------------------------------------------------------------------ */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
+            </div>
           </Suspense>
         </ErrorBoundary>
       </AuthProvider>

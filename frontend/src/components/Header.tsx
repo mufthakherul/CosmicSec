@@ -307,7 +307,7 @@ function GlobalSearch() {
         onKeyDown={onKeyDown}
         className={[
           "h-9 w-64 rounded-lg border bg-slate-800 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500",
-          "outline-none transition-all duration-200",
+          "input-glow outline-none transition-all duration-200",
           open
             ? "border-cyan-500 ring-1 ring-cyan-500/30 w-80"
             : "border-slate-700 hover:border-slate-600",
@@ -594,7 +594,7 @@ export function Header() {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShortcutsOpen(true)}
-            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
+            className="ripple rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
             aria-label="Open keyboard shortcuts"
             title="Keyboard shortcuts (?)"
           >
@@ -604,7 +604,7 @@ export function Header() {
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
+            className="ripple rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -627,7 +627,7 @@ export function Header() {
           onClick={() => setShortcutsOpen(false)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 p-5"
+            className="page-enter w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">

@@ -412,7 +412,7 @@ export function DashboardPage() {
           </div>
           <Link
             to="/scans"
-            className="flex min-h-11 items-center gap-2 self-start rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-cyan-400 sm:self-auto"
+            className="ripple flex min-h-11 items-center gap-2 self-start rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-cyan-400 sm:self-auto"
           >
             <Play className="h-4 w-4" />
             New Scan
