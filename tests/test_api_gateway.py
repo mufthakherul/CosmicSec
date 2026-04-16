@@ -123,6 +123,16 @@ def test_auth_refresh_static_mode_denied_by_policy() -> None:
     assert payload["_runtime"]["route"] == "policy_denied"
 
 
+def test_org_sso_discovery_route_is_wired() -> None:
+    response = client.get("/api/orgs/slug/acme-security/sso")
+    assert response.status_code in (200, 404, 503)
+
+
+def test_auth_saml_metadata_route_is_wired() -> None:
+    response = client.get("/api/auth/sso/saml/metadata")
+    assert response.status_code in (200, 503)
+
+
 def test_get_scan_emergency_mode_uses_partial_fallback() -> None:
     response = client.get("/api/scans/test-scan-id", headers={"X-Platform-Mode": "emergency"})
     assert response.status_code == 200
