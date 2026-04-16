@@ -5,7 +5,7 @@ import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 
 function validateEmail(email: string): string | null {
     if (!email) return "Email is required";

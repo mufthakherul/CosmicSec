@@ -56,6 +56,7 @@ cosmicsec-agent status
 ```bash
 cosmicsec-agent ai setup
 cosmicsec-agent sync status
+cosmicsec-agent sync resolve --strategy merge
 cosmicsec-agent plugin create demo-plugin
 ```
 
@@ -88,6 +89,7 @@ You can invoke the same CLI as `cosmicsec` once installed:
 
 ```bash
 cosmicsec --version
+cosmicsec shell
 ```
 
 ## Distribution Assets
@@ -95,6 +97,7 @@ cosmicsec --version
 - Homebrew formula template: `cli/agent/homebrew/cosmicsec-agent.rb`
 - Man page source: `docs/cli/cosmicsec-agent.1`
 - Regenerate man page: `python scripts/generate-cli-manpage.py`
+- Optional Rust acceleration crate: `cli/agent/rust_parsers/` (`pip install cosmicsec-agent[fast]`)
 
 ## Troubleshooting
 

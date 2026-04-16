@@ -4,7 +4,7 @@ import axios, { AxiosError } from "axios";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { Button } from "../components/ui/button";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 const RESEND_COOLDOWN = 60;
 
 function validateEmail(email: string): string | null {

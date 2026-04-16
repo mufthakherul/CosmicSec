@@ -6,6 +6,8 @@ import re
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
+from ..rust_accel import parse_nmap_xml as rust_parse_nmap_xml
+
 
 # Severity mapping based on port number / service risk
 _PORT_SEVERITY: dict[int, str] = {
@@ -58,6 +60,11 @@ class NmapParser:
 
         Falls back to text parsing if the input is not valid XML.
         """
+        rust_findings = rust_parse_nmap_xml(xml_output)
+        if rust_findings is not None:
+            for finding in rust_findings:
+                finding.setdefault("timestamp", _now_iso())
+            return rust_findings
         try:
             return self._parse_xml(xml_output)
         except ET.ParseError:

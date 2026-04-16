@@ -152,6 +152,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.cosmicsec-gateway.rule=PathPrefix(`/api`) || PathPrefix(`/health`) || PathPrefix(`/ws`)
       - traefik.http.routers.cosmicsec-gateway.entrypoints=web
+      - traefik.http.routers.cosmicsec-gateway.middlewares=security-headers@file,rate-limit@file,cors-api@file
       - traefik.http.services.cosmicsec-gateway.loadbalancer.server.port=8000
 
   # Auth Service

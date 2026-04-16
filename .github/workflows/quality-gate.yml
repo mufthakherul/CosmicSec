@@ -7,6 +7,36 @@ on:
   workflow_dispatch:
 
 jobs:
+  python-static-analysis:
+    name: Python static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install mypy ruff vulture radon
+
+      - name: mypy strict
+        run: mypy services/ --strict --ignore-missing-imports
+
+      - name: Ruff import sorting
+        run: ruff check . --select I
+
+      - name: Dead code detection (vulture)
+        run: vulture services cli broker --min-confidence 80
+
+      - name: Complexity analysis (radon)
+        run: radon cc services cli -s -n B
+
   cli-and-backend:
     name: CLI + Backend checks
     runs-on: ubuntu-latest

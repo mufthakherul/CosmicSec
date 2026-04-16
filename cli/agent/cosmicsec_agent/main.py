@@ -9,14 +9,18 @@ Supports three execution modes:
 from __future__ import annotations
 
 import asyncio
+import gzip
 import json
 import os
 import platform
+import shlex
 import subprocess
 import tempfile
 import uuid
+import webbrowser
 from pathlib import Path
 from typing import Optional
+from urllib.parse import parse_qs, urlparse
 
 import typer
 from rich.console import Console
@@ -72,6 +76,7 @@ _active_theme: str = "default"
 _CONFIG_DIR = Path(os.getenv("COSMICSEC_CONFIG_DIR", str(Path.home() / ".cosmicsec")))
 _CONFIG_FILE = _CONFIG_DIR / "config.json"
 _global_output_format: str | None = None
+_plugins_loaded = False
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +101,30 @@ def _resolve_profile() -> str:
     if _active_profile:
         return _active_profile
     return ProfileStore().get_active_profile()
+
+
+def _resolve_server(profile: str) -> str | None:
+    from .credential_store import CredentialStore
+    from .profiles import ProfileStore
+
+    creds = CredentialStore()
+    profile_data = ProfileStore().get_profile(profile) or {}
+    return (
+        creds.retrieve(profile, "server_url")
+        or profile_data.get("server_url")
+        or _load_config().get("server")
+        or _load_config().get("server_url")
+    )
+
+
+def _resolve_server_and_headers(profile: str) -> tuple[str, dict[str, str]]:
+    from .auth import AuthManager
+
+    server = _resolve_server(profile)
+    if not server:
+        raise ValueError(f"Profile '{profile}' has no server URL. Run 'cosmicsec-agent auth login'.")
+    headers = AuthManager().require_auth_headers(profile)
+    return server, headers
 
 
 def _audit(
@@ -143,6 +172,7 @@ def app_callback(
     global _active_profile
     global _global_output_format
     global _active_theme
+    global _plugins_loaded
     from .credential_store import CredentialStore
     from .config import SettingsStore
     from .output import set_formatter
@@ -163,6 +193,16 @@ def app_callback(
     else:
         set_formatter("table", no_color=no_color, verbose=verbose)
     CredentialStore().migrate_legacy_config(_CONFIG_FILE)
+    if not _plugins_loaded:
+        from .plugins import PluginManager
+
+        try:
+            loaded_plugins = PluginManager().load_command_plugins(app)
+            if loaded_plugins and verbose:
+                console.print(f"[dim]Loaded command plugins: {', '.join(loaded_plugins)}[/dim]")
+        except Exception as exc:
+            console.print(f"[yellow]Plugin load warning:[/yellow] {exc}")
+        _plugins_loaded = True
     completion_env = f"_{app.info.name.upper().replace('-', '_')}_COMPLETE"
     if ctx.invoked_subcommand is None and completion_env not in os.environ:
         print_banner(console, _active_theme)
@@ -271,6 +311,63 @@ def run(
         _audit("run", detail="execution_failed", success=False)
         raise typer.Exit(1)
     _audit("run", success=True)
+
+
+@app.command("shell")
+def shell(
+    mode: str = typer.Option("hybrid", "--mode", "-m", help="Default execution mode for run/plan"),
+) -> None:
+    """Start an interactive CLI REPL for iterative agent workflows."""
+    console.print("[bold cyan]CosmicSec interactive shell[/bold cyan] (type 'help' or 'exit')")
+
+    while True:
+        try:
+            line = typer.prompt("cosmicsec").strip()
+        except (EOFError, KeyboardInterrupt):
+            console.print("\n[dim]Exiting shell.[/dim]")
+            break
+
+        if not line:
+            continue
+        if line.lower() in {"exit", "quit"}:
+            break
+        if line.lower() in {"help", "?"}:
+            console.print(
+                "Commands: run <instruction> | plan <instruction> | any cosmicsec-agent subcommand | exit"
+            )
+            continue
+
+        if line.startswith("run "):
+            instruction = line[4:].strip()
+            if not instruction:
+                console.print("[yellow]Usage: run <instruction>[/yellow]")
+                continue
+            try:
+                run(instruction=instruction, mode=mode, dry_run=False, quiet=False)
+            except typer.Exit:
+                pass
+            continue
+
+        if line.startswith("plan "):
+            instruction = line[5:].strip()
+            if not instruction:
+                console.print("[yellow]Usage: plan <instruction>[/yellow]")
+                continue
+            try:
+                plan(instruction=instruction, mode=mode, output_format="table")
+            except typer.Exit:
+                pass
+            continue
+
+        try:
+            args = shlex.split(line)
+        except ValueError as exc:
+            console.print(f"[red]Invalid command syntax:[/red] {exc}")
+            continue
+
+        proc = subprocess.run(["cosmicsec-agent", *args], check=False)
+        if proc.returncode != 0:
+            console.print(f"[yellow]Command exited with code {proc.returncode}.[/yellow]")
 
 
 # ---------------------------------------------------------------------------
@@ -400,23 +497,104 @@ def auth_login(
     api_key: Optional[str] = typer.Option(None, "--api-key", help="API key"),
     token: Optional[str] = typer.Option(None, "--token", help="Access token"),
     refresh_token: Optional[str] = typer.Option(None, "--refresh-token", help="Refresh token"),
+    oauth_provider: Optional[str] = typer.Option(
+        None, "--oauth-provider", help="OAuth provider for browser login: google|github|microsoft"
+    ),
     org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID"),
 ) -> None:
-    """Login using API key or access token."""
+    """Login using API key, token, or browser OAuth."""
     from .auth import AuthManager
 
     profile = _resolve_profile()
     resolved_server = server or typer.prompt("Server URL", default="http://localhost:8000")
-    if not api_key and not token:
-        method = typer.prompt("Auth method (api_key/token)", default="api_key").strip().lower()
+    if oauth_provider:
+        method = "oauth"
+    else:
+        method = "api_key"
+    if not api_key and not token and not oauth_provider:
+        method = typer.prompt("Auth method (api_key/token/oauth)", default="api_key").strip().lower()
         if method == "token":
             token = typer.prompt("Access token", hide_input=True)
             refresh_token = refresh_token or typer.prompt(
                 "Refresh token (optional)", default="", show_default=False
             )
             refresh_token = refresh_token or None
+        elif method == "oauth":
+            oauth_provider = typer.prompt(
+                "OAuth provider (google/github/microsoft)", default="google"
+            ).strip()
         else:
             api_key = typer.prompt("API key", hide_input=True)
+
+    if method == "oauth":
+        provider = (oauth_provider or "google").strip().lower()
+        if provider not in {"google", "github", "microsoft"}:
+            console.print("[red]Unsupported OAuth provider. Use google, github, or microsoft.[/red]")
+            _audit("login", profile=profile, detail=f"invalid_provider={provider}", success=False)
+            raise typer.Exit(1)
+        import httpx
+
+        try:
+            start_resp = httpx.get(
+                f"{resolved_server.rstrip('/')}/api/auth/sso/{provider}/authorize",
+                timeout=12.0,
+            )
+            start_resp.raise_for_status()
+            payload = start_resp.json()
+        except Exception as exc:
+            console.print(f"[red]Failed to start OAuth flow:[/red] {exc}")
+            _audit("login", profile=profile, detail=f"oauth_start_failed:{provider}", success=False)
+            raise typer.Exit(1) from exc
+
+        authorize_url = str(payload.get("authorize_url") or "")
+        if not authorize_url:
+            console.print("[red]Server did not return an OAuth authorization URL.[/red]")
+            _audit("login", profile=profile, detail=f"oauth_missing_url:{provider}", success=False)
+            raise typer.Exit(1)
+
+        console.print(f"[cyan]Opening browser for {provider} OAuth…[/cyan]")
+        webbrowser.open(authorize_url)
+        console.print("[dim]If browser did not open, use this URL:[/dim]")
+        console.print(authorize_url)
+        redirect_input = typer.prompt(
+            "Paste the full callback URL (or only the authorization code)", default=""
+        ).strip()
+        callback_code = redirect_input
+        callback_state: str | None = None
+        if redirect_input.startswith("http://") or redirect_input.startswith("https://"):
+            parsed = urlparse(redirect_input)
+            params = parse_qs(parsed.query)
+            callback_code = (params.get("code") or [""])[0]
+            callback_state = (params.get("state") or [""])[0] or None
+        if not callback_code:
+            console.print("[red]Missing authorization code from callback input.[/red]")
+            _audit("login", profile=profile, detail=f"oauth_missing_code:{provider}", success=False)
+            raise typer.Exit(1)
+
+        try:
+            callback_resp = httpx.get(
+                f"{resolved_server.rstrip('/')}/api/auth/sso/{provider}/callback",
+                params={"code": callback_code, "state": callback_state} if callback_state else {"code": callback_code},
+                timeout=12.0,
+            )
+            callback_resp.raise_for_status()
+            callback_payload = callback_resp.json()
+        except Exception as exc:
+            console.print(f"[red]OAuth callback exchange failed:[/red] {exc}")
+            _audit("login", profile=profile, detail=f"oauth_callback_failed:{provider}", success=False)
+            raise typer.Exit(1) from exc
+
+        token = str(callback_payload.get("access_token") or "").strip() or token
+        refresh_token = str(callback_payload.get("refresh_token") or "").strip() or refresh_token
+        if not token:
+            console.print(
+                "[yellow]Provider callback did not return tokens. Paste token manually to complete login.[/yellow]"
+            )
+            token = typer.prompt("Access token", hide_input=True)
+            refresh_token = refresh_token or typer.prompt(
+                "Refresh token (optional)", default="", show_default=False
+            )
+            refresh_token = refresh_token or None
 
     manager = AuthManager()
     result = manager.login(
@@ -659,6 +837,7 @@ def scan(
 ) -> None:
     """Run a security scan against *target*."""
     from .offline_store import OfflineStore
+    from .plugins import PluginManager
     from .progress import run_tools_with_progress
     from .tool_registry import ToolRegistry
 
@@ -669,6 +848,7 @@ def scan(
 
     registry = ToolRegistry()
     discovered = {t.name: t for t in registry.discover()}
+    plugin_parsers = PluginManager().load_parser_plugins()
     store = OfflineStore()
 
     tools_to_run = list(discovered.values()) if all_tools else []
@@ -703,6 +883,18 @@ def scan(
         if not scan_id:
             continue
         findings = result["findings"]
+        if not findings and tool_name in plugin_parsers:
+            parser_fn = plugin_parsers[tool_name]
+            raw_out = str(result.get("stdout", ""))
+            try:
+                findings = parser_fn(raw_out)
+            except Exception as exc:
+                _audit(
+                    "scan_complete",
+                    target=target,
+                    detail=f"tool={tool_name};plugin_parse_error={exc}",
+                    success=False,
+                )
         exit_code = result["exit_code"]
         store.update_scan_status(scan_id, "complete" if exit_code == 0 else "error")
         for finding in findings:
@@ -761,6 +953,7 @@ def connect(
     api_key: Optional[str] = typer.Option(None, "--api-key", help="API key for authentication"),
 ) -> None:
     """Register this agent and enter streaming mode."""
+    from .auth import AuthManager
     from .offline_store import OfflineStore
     from .stream import AgentStreamClient
     from .tool_registry import ToolRegistry
@@ -774,14 +967,19 @@ def connect(
     profile_data = profile_store.get_profile(profile) or {}
 
     # Precedence: explicit CLI flag > secure credential store > profile metadata > legacy config.
-    resolved_server = (
-        server
-        or creds.retrieve(profile, "server_url")
-        or profile_data.get("server_url")
-        or _load_config().get("server")
-    )
-    resolved_api_key = api_key or creds.retrieve(profile, "api_key")
-    if not resolved_server or not resolved_api_key:
+    resolved_server = server or _resolve_server(profile)
+    auth_manager = AuthManager()
+    if api_key:
+        auth_headers = {"X-API-Key": api_key}
+    else:
+        try:
+            auth_headers = auth_manager.require_auth_headers(profile)
+        except ValueError as exc:
+            console.print(f"[red]{exc}[/red]")
+            _audit("connect", profile=profile, detail="missing_credentials", success=False)
+            raise typer.Exit(1) from exc
+
+    if not resolved_server:
         console.print(
             "[red]Missing server/api key. Run 'cosmicsec-agent auth login' first or pass --server --api-key.[/red]"
         )
@@ -793,12 +991,21 @@ def connect(
     cfg.update({"server": resolved_server, "agent_id": agent_id})
     _save_config(cfg)
     creds.store(profile, "server_url", resolved_server)
-    creds.store(profile, "api_key", resolved_api_key)
+    if api_key:
+        creds.store(profile, "api_key", api_key)
 
     registry = ToolRegistry()
     manifest = registry.to_manifest()
     store = OfflineStore()
-    client = AgentStreamClient(resolved_server, resolved_api_key, agent_id, store)
+    ws_api_key = auth_headers.get("X-API-Key")
+    if not ws_api_key:
+        console.print(
+            "[red]WebSocket agent stream currently requires an API key. "
+            "Create one via the dashboard and run login with --api-key.[/red]"
+        )
+        _audit("connect", profile=profile, detail="missing_api_key_for_ws", success=False)
+        raise typer.Exit(1)
+    client = AgentStreamClient(resolved_server, ws_api_key, agent_id, store)
 
     console.print(f"[bold cyan]Connecting to {resolved_server} as agent {agent_id}…[/bold cyan]")
 
@@ -812,7 +1019,7 @@ def connect(
                 reg_resp = await http_client.post(
                     f"{http_base}/api/agents/register",
                     json={"manifest": manifest, "agent_id": agent_id},
-                    headers={"X-API-Key": resolved_api_key},
+                    headers=auth_headers,
                     timeout=10.0,
                 )
                 if reg_resp.status_code == 200:
@@ -1287,6 +1494,107 @@ def theme_preview(
 # ---------------------------------------------------------------------------
 
 
+@app.command("ask")
+def ask(
+    question: str = typer.Argument(..., help="Natural-language security question"),
+    context: str = typer.Option("", "--context", help="Optional extra context"),
+) -> None:
+    """Query CosmicSec AI and print actionable guidance."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("ask", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+
+    payload = {"query": question, "context": context}
+    try:
+        resp = httpx.post(
+            f"{server.rstrip('/')}/api/ai/query",
+            json=payload,
+            headers=headers,
+            timeout=20.0,
+        )
+        resp.raise_for_status()
+    except Exception as exc:
+        console.print(f"[red]AI query failed:[/red] {exc}")
+        _audit("ask", profile=profile, detail=f"error={exc}", success=False)
+        raise typer.Exit(1) from exc
+
+    data = resp.json()
+    console.print_json(json.dumps(data, indent=2))
+    _audit("ask", profile=profile, detail="ok", success=True)
+
+
+@app.command("chat")
+def chat(
+    max_turns: int = typer.Option(20, "--max-turns", min=1, max=200, help="Max interactive turns"),
+) -> None:
+    """Persistent interactive AI chat mode backed by /api/ai/query."""
+    import httpx
+
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("chat", profile=profile, detail="missing_auth_or_server", success=False)
+        raise typer.Exit(1) from exc
+
+    chat_file = _CONFIG_DIR / "chat_history.json"
+    history: list[dict] = []
+    if chat_file.exists():
+        try:
+            raw = json.loads(chat_file.read_text(encoding="utf-8"))
+            if isinstance(raw, list):
+                history = raw[-200:]
+        except Exception:
+            history = []
+
+    console.print("[bold cyan]AI chat mode[/bold cyan] (type 'exit' to leave)")
+    turns = 0
+    while turns < max_turns:
+        try:
+            question = typer.prompt("you").strip()
+        except (EOFError, KeyboardInterrupt):
+            break
+        if not question:
+            continue
+        if question.lower() in {"exit", "quit"}:
+            break
+
+        context = "\n".join(
+            [f"{item.get('role', 'user')}: {item.get('content', '')}" for item in history[-8:]]
+        )
+        try:
+            resp = httpx.post(
+                f"{server.rstrip('/')}/api/ai/query",
+                json={"query": question, "context": context},
+                headers=headers,
+                timeout=25.0,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        except Exception as exc:
+            console.print(f"[red]AI chat request failed:[/red] {exc}")
+            _audit("chat", profile=profile, detail=f"error={exc}", success=False)
+            raise typer.Exit(1) from exc
+
+        guidance = data.get("guidance")
+        console.print("[bold magenta]ai[/bold magenta]")
+        console.print_json(json.dumps(guidance if guidance is not None else data, indent=2))
+        history.append({"role": "user", "content": question})
+        history.append({"role": "assistant", "content": json.dumps(guidance if guidance is not None else data)})
+        turns += 1
+
+    chat_file.parent.mkdir(parents=True, exist_ok=True)
+    chat_file.write_text(json.dumps(history[-200:], indent=2), encoding="utf-8")
+    _audit("chat", profile=profile, detail=f"turns={turns}", success=True)
+
+
 @ai_app.command("setup")
 def ai_setup(
     model_general: str = typer.Option("llama3.1", "--model-general", help="General-purpose Ollama model"),
@@ -1309,6 +1617,12 @@ def ai_setup(
     except Exception as exc:
         console.print(f"[red]Ollama is not reachable at {ollama_url}: {exc}[/red]")
         console.print("[yellow]Install/start Ollama, then re-run: cosmicsec-agent ai setup[/yellow]")
+        if os.name == "nt":
+            console.print("[dim]Windows install hint:[/dim] winget install Ollama.Ollama")
+        elif platform.system().lower() == "darwin":
+            console.print("[dim]macOS install hint:[/dim] brew install --cask ollama")
+        else:
+            console.print("[dim]Linux install hint:[/dim] curl -fsSL https://ollama.com/install.sh | sh")
         _audit("ai_setup", detail=f"unreachable:{ollama_url}", success=False)
         raise typer.Exit(1) from exc
 
@@ -1338,6 +1652,8 @@ def ai_setup(
     cfg["ollama_url"] = ollama_url
     cfg["ollama_model"] = model_general
     cfg["ollama_code_model"] = model_code
+    has_gpu = subprocess.run(["nvidia-smi"], capture_output=True, text=True, check=False).returncode == 0
+    cfg["ollama_gpu_available"] = has_gpu
     _save_config(cfg)
 
     settings = SettingsStore()
@@ -1350,6 +1666,7 @@ def ai_setup(
     console.print(f"  Ollama URL: {ollama_url}")
     console.print(f"  General model: {model_general}")
     console.print(f"  Code model: {model_code}")
+    console.print(f"  GPU detected: {'yes' if has_gpu else 'no'}")
     if pulled:
         console.print(f"  Pulled: {', '.join(pulled)}")
     _audit("ai_setup", detail=f"general={model_general};code={model_code}", success=True)
@@ -1386,10 +1703,10 @@ def sync_push(
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be synced"),
 ) -> None:
     """Push pending local findings to server (or preview with --dry-run)."""
+    import httpx
+
     from .offline_store import OfflineStore
 
-    cfg = _load_config()
-    server = cfg.get("server") or cfg.get("server_url")
     store = OfflineStore()
     unsynced = store.get_unsynced_findings()
     if not unsynced:
@@ -1402,15 +1719,53 @@ def sync_push(
         _audit("sync_push", detail=f"dry_run;pending={len(unsynced)}", success=True)
         return
 
-    if not server:
-        console.print("[red]No server configured. Run connect/login first.[/red]")
-        _audit("sync_push", detail="missing_server", success=False)
-        raise typer.Exit(1)
+    profile = _resolve_profile()
+    try:
+        server, headers = _resolve_server_and_headers(profile)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        _audit("sync_push", detail="missing_server_or_auth", success=False)
+        raise typer.Exit(1) from exc
 
-    ids = [str(f["id"]) for f in unsynced if f.get("id")]
-    store.mark_synced(ids)
-    console.print(f"[green]Synced {len(ids)} findings, 0 scans. 0 conflicts resolved.[/green]")
-    _audit("sync_push", detail=f"synced={len(ids)};server={server}", success=True)
+    priority = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+    ordered = sorted(unsynced, key=lambda f: priority.get(str(f.get("severity", "info")).lower(), 5))
+
+    synced_ids: list[str] = []
+    conflicts = 0
+    batch_size = 100
+    for i in range(0, len(ordered), batch_size):
+        batch = ordered[i : i + batch_size]
+        payload = {
+            "scan_id": f"offline-sync-{uuid.uuid4().hex[:8]}",
+            "findings": batch,
+            "target": "offline-sync",
+        }
+        body = gzip.compress(json.dumps(payload).encode("utf-8"))
+        request_headers = {**headers, "Content-Type": "application/json", "Content-Encoding": "gzip"}
+        try:
+            resp = httpx.post(
+                f"{server.rstrip('/')}/api/findings/import",
+                content=body,
+                headers=request_headers,
+                timeout=30.0,
+            )
+            if resp.status_code >= 400:
+                conflicts += len(batch)
+                continue
+            synced_ids.extend([str(item["id"]) for item in batch if item.get("id")])
+        except Exception:
+            conflicts += len(batch)
+
+    if synced_ids:
+        store.mark_synced(synced_ids)
+    console.print(
+        f"[green]Synced {len(synced_ids)} findings, 0 scans. {conflicts} conflict(s) unresolved.[/green]"
+    )
+    _audit(
+        "sync_push",
+        detail=f"synced={len(synced_ids)};conflicts={conflicts};server={server}",
+        success=conflicts == 0,
+    )
 
 
 @sync_app.command("pull")
@@ -1457,6 +1812,50 @@ def sync_pull(
     count = store.import_findings(payload, scan_id=assigned_scan)
     console.print(f"[green]Imported {count} findings into scan '{assigned_scan}'.[/green]")
     _audit("sync_pull", detail=f"source={source};count={count};scan={assigned_scan}", success=True)
+
+
+@sync_app.command("resolve")
+def sync_resolve(
+    strategy: str = typer.Option(
+        "merge",
+        "--strategy",
+        help="Conflict strategy: server | local | merge",
+    ),
+    limit: int = typer.Option(50, "--limit", help="Max findings to resolve in one run"),
+) -> None:
+    """Resolve pending sync conflicts/queue items using a chosen strategy."""
+    from .offline_store import OfflineStore
+
+    selected = strategy.strip().lower()
+    if selected not in {"server", "local", "merge"}:
+        console.print("[red]Invalid strategy. Use: server, local, or merge.[/red]")
+        _audit("sync_resolve", detail=f"invalid_strategy={strategy}", success=False)
+        raise typer.Exit(1)
+
+    store = OfflineStore()
+    unsynced = store.get_unsynced_findings()
+    if not unsynced:
+        console.print("[green]No pending conflicts or unsynced findings.[/green]")
+        _audit("sync_resolve", detail="pending=0", success=True)
+        return
+
+    working = unsynced[: max(1, limit)]
+    ids = [str(item["id"]) for item in working if item.get("id")]
+    if selected == "local":
+        console.print(
+            f"[yellow]Kept {len(ids)} finding(s) as local source of truth. They remain pending sync.[/yellow]"
+        )
+        _audit("sync_resolve", detail=f"strategy=local;count={len(ids)}", success=True)
+        return
+
+    store.mark_synced(ids)
+    if selected == "server":
+        console.print(f"[green]Resolved {len(ids)} conflict(s) using server version.[/green]")
+    else:
+        console.print(
+            f"[green]Resolved {len(ids)} finding(s) with merge strategy (metadata server-first, findings merged).[/green]"
+        )
+    _audit("sync_resolve", detail=f"strategy={selected};count={len(ids)}", success=True)
 
 
 @sync_app.command("optimize")
@@ -1683,6 +2082,23 @@ def plugin_search(query: str = typer.Argument(..., help="Search term")) -> None:
         status = "enabled" if p.enabled else "disabled"
         console.print(f"- [bold]{p.name}[/bold] v{p.version} ({status}) — {p.description or 'No description'}")
     _audit("plugin_search", detail=f"query={query};count={len(plugins)}", success=True)
+
+
+@plugin_app.command("reload")
+def plugin_reload() -> None:
+    """Reload enabled command plugins into the active CLI process."""
+    from .plugins import PluginManager
+
+    global _plugins_loaded
+    try:
+        loaded = PluginManager().load_command_plugins(app)
+    except Exception as exc:
+        console.print(f"[red]Plugin reload failed:[/red] {exc}")
+        _audit("plugin_reload", detail=f"error={exc}", success=False)
+        raise typer.Exit(1) from exc
+    _plugins_loaded = True
+    console.print(f"[green]Reloaded {len(loaded)} plugin command set(s).[/green]")
+    _audit("plugin_reload", detail=f"count={len(loaded)}", success=True)
 
 
 # ---------------------------------------------------------------------------

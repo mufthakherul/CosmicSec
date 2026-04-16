@@ -4,7 +4,7 @@ import axios, { AxiosError } from "axios";
 import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
 import { Button } from "../components/ui/button";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 
 interface FieldErrors {
     name?: string;

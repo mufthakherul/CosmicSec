@@ -327,6 +327,7 @@ async def run_tools_with_progress(
                         "name": name,
                         "exit_code": result.exit_code,
                         "findings": findings,
+                        "stdout": result.stdout,
                         "stderr": result.stderr,
                     }
                 )
@@ -337,6 +338,7 @@ async def run_tools_with_progress(
                         "name": name,
                         "exit_code": 1,
                         "findings": [],
+                        "stdout": "",
                         "stderr": str(exc),
                     }
                 )

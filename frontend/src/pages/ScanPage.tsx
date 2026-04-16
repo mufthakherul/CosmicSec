@@ -5,7 +5,7 @@ import { AppLayout } from "../components/AppLayout";
 import { useScanStore, type Scan, type ScanStatus } from "../store/scanStore";
 import { useNotificationStore } from "../store/notificationStore";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 
 const TOOLS = ["nmap", "nikto", "nuclei", "gobuster", "sqlmap"] as const;
 type Tool = (typeof TOOLS)[number];
