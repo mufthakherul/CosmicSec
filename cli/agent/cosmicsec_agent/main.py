@@ -23,7 +23,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
 from .__init__ import __version__
-from .branding import print_banner, resolve_theme, severity_label
+from .branding import available_themes, canonical_theme, print_banner, resolve_theme, severity_label
 
 app = typer.Typer(
     name="cosmicsec-agent",
@@ -60,6 +60,8 @@ sync_app = typer.Typer(help="Offline sync and reconciliation commands.")
 app.add_typer(sync_app, name="sync")
 plugin_app = typer.Typer(help="Plugin lifecycle management commands.")
 app.add_typer(plugin_app, name="plugin")
+theme_app = typer.Typer(help="Theme customization commands.")
+app.add_typer(theme_app, name="theme")
 
 console = Console()
 _active_profile: str | None = None
@@ -1214,6 +1216,59 @@ def config_edit() -> None:
     SettingsStore().edit()
     _audit("config_edit", success=True)
     console.print("[green]Settings saved.[/green]")
+
+
+@theme_app.command("list")
+def theme_list() -> None:
+    """List available CLI color themes."""
+    themes = available_themes()
+    rows = [{"theme": name} for name in themes]
+    table = Table(title="CosmicSec Themes", show_header=True, header_style="bold magenta")
+    table.add_column("Theme", style="cyan")
+    table.add_column("Preview", style="white")
+    for row in rows:
+        table.add_row(row["theme"], severity_label(row["theme"], "critical"))
+    console.print(table)
+
+
+@theme_app.command("set")
+def theme_set(
+    name: str = typer.Argument(..., help="Theme name: default|dark|light|minimal|neon"),
+) -> None:
+    """Set the active CLI theme."""
+    from .config import SettingsStore
+
+    global _active_theme
+    selected = canonical_theme(name)
+    if not selected:
+        console.print(f"[red]Unknown theme '{name}'.[/red]")
+        console.print(f"[dim]Available: {', '.join(available_themes())}[/dim]")
+        raise typer.Exit(1)
+
+    SettingsStore().set("color_theme", selected)
+    _active_theme = selected
+    _audit("theme_set", detail=f"theme={selected}", success=True)
+    console.print(f"[green]Theme set to '{selected}'.[/green]")
+    print_banner(console, selected, subtitle="Theme preview")
+
+
+@theme_app.command("preview")
+def theme_preview(
+    name: Optional[str] = typer.Option(None, "--theme", help="Theme name to preview"),
+) -> None:
+    """Preview banner and severity styles for a theme."""
+    from .config import SettingsStore
+
+    chosen = canonical_theme(name) if name else canonical_theme(str(SettingsStore().get("color_theme")))
+    if not chosen:
+        chosen = "default"
+    print_banner(console, chosen, subtitle="Theme preview")
+    sev_table = Table(title="Severity Style Preview", show_header=True, header_style="bold magenta")
+    sev_table.add_column("Severity", style="cyan")
+    sev_table.add_column("Label", style="white")
+    for sev in ("critical", "high", "medium", "low", "info"):
+        sev_table.add_row(sev, severity_label(chosen, sev))
+    console.print(sev_table)
 
 
 # ---------------------------------------------------------------------------

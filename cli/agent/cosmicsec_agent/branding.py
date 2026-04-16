@@ -56,7 +56,7 @@ _SEVERITY_ICONS = {
     "info": "⚪",
 }
 
-_BANNER = """\
+_BANNER = r"""\
   ____                _      ____            
  / ___|___  ___ _ __ (_) ___/ ___|  ___  ___ 
 | |   / _ \/ __| '_ \| |/ __\___ \ / _ \/ __|
@@ -71,6 +71,19 @@ def resolve_theme(theme_name: str | None) -> str:
     raw = theme_name.strip().lower()
     mapped = _THEME_ALIASES.get(raw, raw)
     return mapped if mapped in _SEVERITY_STYLES else "default"
+
+
+def canonical_theme(theme_name: str | None) -> str | None:
+    """Resolve theme aliases and return canonical theme name, else None."""
+    if not theme_name:
+        return None
+    raw = theme_name.strip().lower()
+    mapped = _THEME_ALIASES.get(raw, raw)
+    return mapped if mapped in _SEVERITY_STYLES else None
+
+
+def available_themes() -> list[str]:
+    return sorted(_SEVERITY_STYLES.keys())
 
 
 def severity_style(theme: str, severity: str) -> str:
