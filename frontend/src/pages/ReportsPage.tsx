@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileText, Download, Loader2, Calendar, Search, AlertTriangle, CheckCircle } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useNotificationStore } from "../store/notificationStore";
@@ -31,6 +31,27 @@ export function ReportsPage() {
   const [format, setFormat] = useState<ReportFormat>("json");
   const [generating, setGenerating] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
+  const [animateCharts, setAnimateCharts] = useState(false);
+
+  const reportHealth = useMemo(() => {
+    const total = reports.length || 1;
+    const ready = reports.filter((report) => report.status === "ready").length;
+    const generatingCount = reports.filter((report) => report.status === "generating").length;
+    const queued = reports.filter((report) => report.status === "queued").length;
+    const failed = reports.filter((report) => report.status === "failed").length;
+    return [
+      { label: "Ready", count: ready, pct: Math.round((ready / total) * 100), color: "bg-emerald-500" },
+      { label: "Generating", count: generatingCount, pct: Math.round((generatingCount / total) * 100), color: "bg-blue-500" },
+      { label: "Queued", count: queued, pct: Math.round((queued / total) * 100), color: "bg-slate-500" },
+      { label: "Failed", count: failed, pct: Math.round((failed / total) * 100), color: "bg-rose-500" },
+    ];
+  }, [reports]);
+
+  useEffect(() => {
+    setAnimateCharts(false);
+    const timer = window.setTimeout(() => setAnimateCharts(true), 50);
+    return () => window.clearTimeout(timer);
+  }, [reports.length]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +134,7 @@ export function ReportsPage() {
                       value={scanId}
                       onChange={(e) => setScanId(e.target.value)}
                       placeholder="Enter scan ID…"
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
+                      className="input-glow w-full rounded-lg border border-slate-700 bg-slate-900 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30"
                       required
                     />
                   </div>
@@ -143,12 +164,34 @@ export function ReportsPage() {
                 <button
                   type="submit"
                   disabled={generating || !scanId.trim()}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="ripple flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
                   {generating ? "Queuing…" : "Generate Report"}
                 </button>
               </form>
+
+              <div className="mt-5 border-t border-slate-800 pt-4">
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Report Health</h3>
+                <div className="space-y-2">
+                  {reportHealth.map((item) => (
+                    <div key={item.label}>
+                      <div className="mb-1 flex items-center justify-between text-xs text-slate-400">
+                        <span>{item.label}</span>
+                        <span>
+                          {item.count} ({item.pct}%)
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-slate-800">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-700 ${item.color}`}
+                          style={{ width: `${animateCharts ? item.pct : 0}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </section>
 

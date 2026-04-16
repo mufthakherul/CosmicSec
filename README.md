@@ -167,6 +167,12 @@ npm run storybook
 npm run build-storybook
 ```
 
+When GitHub Pages is enabled for this repository, Storybook deploys from CI at:
+
+`https://mufthakherul.github.io/CosmicSec/`
+
+and can be mounted under a `/storybook/` path depending on Pages configuration.
+
 ### Run CLI Agent (Local Mode)
 
 ```bash
