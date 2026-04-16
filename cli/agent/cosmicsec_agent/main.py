@@ -44,6 +44,12 @@ profile_app = typer.Typer(help="Profile/workspace management commands.")
 app.add_typer(profile_app, name="profile")
 audit_app = typer.Typer(help="Audit trail commands.")
 app.add_typer(audit_app, name="audit")
+history_app = typer.Typer(help="Scan history and findings management.")
+app.add_typer(history_app, name="history")
+config_app = typer.Typer(help="CLI configuration management.")
+app.add_typer(config_app, name="config")
+completions_app = typer.Typer(help="Shell completion scripts.")
+app.add_typer(completions_app, name="completions")
 
 console = Console()
 _active_profile: str | None = None
@@ -801,6 +807,385 @@ def status() -> None:
     else:
         console.print("[yellow]No supported tools found on PATH.[/yellow]")
     _audit("status", detail=f"tools={len(tools)};unsynced={len(unsynced)}", success=True)
+
+
+# ---------------------------------------------------------------------------
+# history commands — CA-2.3
+# ---------------------------------------------------------------------------
+
+
+@history_app.command("list")
+def history_list(
+    limit: int = typer.Option(20, "--limit", "-n", help="Max results"),
+    since: Optional[str] = typer.Option(None, "--since", help="ISO date filter, e.g. 2026-01-01"),
+    tool: Optional[str] = typer.Option(None, "--tool", help="Filter by tool name"),
+    target: Optional[str] = typer.Option(None, "--target", help="Filter by target (partial match)"),
+    output_format: str = typer.Option("table", "--output", "-o", help="table|json|yaml|csv"),
+) -> None:
+    """List past scans with finding counts.
+
+    \b
+    Examples:
+      cosmicsec-agent history list --limit 10
+      cosmicsec-agent history list --tool nmap --since 2026-01-01 -o json
+    """
+    from .offline_store import OfflineStore
+    from .output import get_formatter
+
+    scans = OfflineStore().list_scans(limit=limit, since=since, tool=tool, target=target)
+    _audit("history_list", detail=f"limit={limit}", success=True)
+    fmt = get_formatter(fmt=output_format)
+    if output_format == "table":
+        rows = [
+            {
+                "ID": s["id"][:8] + "…",
+                "Target": s["target"],
+                "Tool": s["tool"],
+                "Status": s["status"],
+                "Created": s["created_at"][:19],
+                "Findings": s["total_findings"],
+            }
+            for s in scans
+        ]
+        fmt.table(rows, title="Scan History")
+    else:
+        fmt.render(scans)
+
+
+@history_app.command("show")
+def history_show(
+    scan_id: str = typer.Argument(..., help="Scan ID (or prefix)"),
+    output_format: str = typer.Option("table", "--output", "-o", help="table|json"),
+) -> None:
+    """Show full scan details including all findings."""
+    from .offline_store import OfflineStore
+    from .output import get_formatter
+
+    store = OfflineStore()
+    # Support prefix matching
+    all_scans = store.list_scans(limit=500)
+    matched = [s for s in all_scans if s["id"].startswith(scan_id)]
+    if not matched:
+        console.print(f"[red]No scan found with ID prefix '{scan_id}'.[/red]")
+        raise typer.Exit(1)
+    scan = store.get_scan_with_findings(matched[0]["id"])
+    if not scan:
+        console.print(f"[red]Scan '{scan_id}' not found.[/red]")
+        raise typer.Exit(1)
+    _audit("history_show", target=scan.get("target"), success=True)
+    fmt = get_formatter(fmt=output_format)
+    if output_format == "table":
+        console.print(f"\n[bold]Scan:[/bold] {scan['id']}")
+        console.print(f"[bold]Target:[/bold] {scan['target']}")
+        console.print(f"[bold]Tool:[/bold] {scan['tool']}  |  [bold]Status:[/bold] {scan['status']}")
+        console.print(f"[bold]Created:[/bold] {scan['created_at']}")
+        findings = scan.get("findings", [])
+        if findings:
+            rows = [{"Severity": f["severity"].upper(), "Title": f["title"], "Evidence": (f.get("evidence") or "")[:60]} for f in findings]
+            fmt.table(rows, title=f"Findings ({len(findings)})")
+        else:
+            console.print("[dim]No findings.[/dim]")
+    else:
+        fmt.render(scan)
+
+
+@history_app.command("findings")
+def history_findings(
+    severity: Optional[str] = typer.Option(None, "--severity", "-s", help="Filter by severity"),
+    tool: Optional[str] = typer.Option(None, "--tool", help="Filter by tool"),
+    search: Optional[str] = typer.Option(None, "--search", help="Text search in title/description"),
+    limit: int = typer.Option(50, "--limit", "-n", help="Max results"),
+    output_format: str = typer.Option("table", "--output", "-o", help="table|json|csv"),
+) -> None:
+    """Search across all findings with filters.
+
+    \b
+    Examples:
+      cosmicsec-agent history findings --severity critical
+      cosmicsec-agent history findings --search "sql injection" -o json
+    """
+    from .offline_store import OfflineStore
+    from .output import get_formatter
+
+    findings = OfflineStore().search_findings(severity=severity, tool=tool, search=search, limit=limit)
+    _audit("history_findings", detail=f"n={len(findings)}", success=True)
+    fmt = get_formatter(fmt=output_format)
+    if not findings:
+        console.print("[dim]No findings match your filters.[/dim]")
+        return
+    fmt.render(
+        findings,
+        columns=["severity", "title", "tool", "target", "timestamp"],
+        title=f"Findings ({len(findings)})",
+    )
+
+
+@history_app.command("diff")
+def history_diff(
+    scan_a: str = typer.Argument(..., help="First scan ID"),
+    scan_b: str = typer.Argument(..., help="Second scan ID"),
+    output_format: str = typer.Option("table", "--output", "-o", help="table|json"),
+) -> None:
+    """Compare two scans: show new, resolved, and changed-severity findings."""
+    from .offline_store import OfflineStore
+    from .output import get_formatter
+
+    diff = OfflineStore().diff_scans(scan_a, scan_b)
+    _audit("history_diff", detail=f"a={scan_a[:8]};b={scan_b[:8]}", success=True)
+    fmt = get_formatter(fmt=output_format)
+    if output_format == "json":
+        fmt.json(diff)
+        return
+    console.print(f"\n[bold]Comparing scans[/bold] {scan_a[:8]}… → {scan_b[:8]}…")
+    s = diff.get("summary", {})
+    console.print(f"  [green]+{s.get('new', 0)} new[/green]  "
+                  f"[red]-{s.get('resolved', 0)} resolved[/red]  "
+                  f"[yellow]~{s.get('changed', 0)} changed severity[/yellow]")
+    if diff.get("new_findings"):
+        fmt.table(diff["new_findings"], columns=["severity", "title"], title="New Findings")
+    if diff.get("resolved_findings"):
+        fmt.table(diff["resolved_findings"], columns=["severity", "title"], title="Resolved Findings")
+    if diff.get("changed_severity"):
+        fmt.table(diff["changed_severity"], columns=["title", "old_severity", "new_severity"], title="Changed Severity")
+
+
+@history_app.command("stats")
+def history_stats(
+    output_format: str = typer.Option("table", "--output", "-o", help="table|json"),
+) -> None:
+    """Show aggregate scan and finding statistics."""
+    from .offline_store import OfflineStore
+    from .output import get_formatter
+
+    stats = OfflineStore().stats()
+    _audit("history_stats", success=True)
+    fmt = get_formatter(fmt=output_format)
+    if output_format == "json":
+        fmt.json(stats)
+        return
+    console.print(f"\n[bold]Total scans:[/bold] {stats['total_scans']}")
+    console.print(f"[bold]Total findings:[/bold] {stats['total_findings']}")
+    sev = stats.get("findings_by_severity", {})
+    if sev:
+        rows = [{"Severity": k, "Count": v} for k, v in sorted(sev.items())]
+        fmt.table(rows, title="Findings by Severity")
+    tools = stats.get("top_tools", [])
+    if tools:
+        fmt.table(tools, columns=["tool", "scans"], title="Top Tools Used")
+
+
+@history_app.command("delete")
+def history_delete(
+    scan_id: str = typer.Argument(..., help="Scan ID to delete"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation"),
+) -> None:
+    """Delete a scan and all its findings."""
+    from .offline_store import OfflineStore
+
+    if not force and not typer.confirm(f"Delete scan '{scan_id}' and all its findings?"):
+        raise typer.Exit(0)
+    deleted = OfflineStore().delete_scan(scan_id)
+    if not deleted:
+        console.print(f"[red]Scan '{scan_id}' not found.[/red]")
+        raise typer.Exit(1)
+    _audit("history_delete", detail=f"scan_id={scan_id}", success=True)
+    console.print(f"[green]Deleted scan {scan_id}.[/green]")
+
+
+# ---------------------------------------------------------------------------
+# config commands — CA-2.4
+# ---------------------------------------------------------------------------
+
+
+@config_app.command("get")
+def config_get(
+    key: str = typer.Argument(..., help="Setting key"),
+) -> None:
+    """Get a single configuration value.
+
+    \b
+    Example:
+      cosmicsec-agent config get default_output_format
+    """
+    from .config import SettingsStore
+
+    try:
+        value = SettingsStore().get(key)
+        console.print(f"{key} = {value}")
+    except KeyError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+
+@config_app.command("set")
+def config_set(
+    key: str = typer.Argument(..., help="Setting key"),
+    value: str = typer.Argument(..., help="New value"),
+) -> None:
+    """Set a configuration value.
+
+    \b
+    Examples:
+      cosmicsec-agent config set default_output_format json
+      cosmicsec-agent config set default_parallel 5
+      cosmicsec-agent config set auto_sync false
+    """
+    from .config import SettingsStore
+
+    try:
+        coerced = SettingsStore().set(key, value)
+        _audit("config_set", detail=f"{key}={coerced}", success=True)
+        console.print(f"[green]Set {key} = {coerced}[/green]")
+    except (KeyError, ValueError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+
+@config_app.command("list")
+def config_list(
+    output_format: str = typer.Option("table", "--output", "-o", help="table|json"),
+    show_defaults: bool = typer.Option(False, "--all", help="Show all settings including unmodified"),
+) -> None:
+    """List all configuration settings.
+
+    \b
+    Examples:
+      cosmicsec-agent config list
+      cosmicsec-agent config list --all -o json
+    """
+    from .config import SettingsStore
+    from .output import get_formatter
+
+    rows = SettingsStore().list_all()
+    if not show_defaults:
+        rows = [r for r in rows if r["modified"]]
+    if not rows:
+        console.print("[dim]All settings are at their default values. Use --all to show.[/dim]")
+        return
+    fmt = get_formatter(fmt=output_format)
+    fmt.render(
+        rows,
+        columns=["key", "value", "default", "description"],
+        title="CosmicSec Settings",
+    )
+
+
+@config_app.command("reset")
+def config_reset(
+    key: Optional[str] = typer.Argument(None, help="Key to reset (omit to reset all)"),
+    force: bool = typer.Option(False, "--force", help="Skip confirmation when resetting all"),
+) -> None:
+    """Reset one or all settings to defaults."""
+    from .config import SettingsStore
+
+    if not key and not force and not typer.confirm("Reset ALL settings to defaults?"):
+        raise typer.Exit(0)
+    try:
+        SettingsStore().reset(key)
+        _audit("config_reset", detail=f"key={key or 'all'}", success=True)
+        console.print(f"[green]Reset {'key ' + key if key else 'all settings'} to defaults.[/green]")
+    except KeyError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+
+@config_app.command("edit")
+def config_edit() -> None:
+    """Open the settings file in $EDITOR."""
+    from .config import SettingsStore
+
+    SettingsStore().edit()
+    _audit("config_edit", success=True)
+    console.print("[green]Settings saved.[/green]")
+
+
+# ---------------------------------------------------------------------------
+# completions — CA-2.5
+# ---------------------------------------------------------------------------
+
+
+@completions_app.command("install")
+def completions_install(
+    shell: Optional[str] = typer.Option(
+        None,
+        "--shell",
+        help="Shell type: bash | zsh | fish | powershell (auto-detected if omitted)",
+    ),
+) -> None:
+    """Install shell tab completions for cosmicsec-agent.
+
+    \b
+    Examples:
+      cosmicsec-agent completions install
+      cosmicsec-agent completions install --shell zsh
+    """
+
+    if not shell:
+        shell_path = os.environ.get("SHELL", "")
+        if "zsh" in shell_path:
+            shell = "zsh"
+        elif "fish" in shell_path:
+            shell = "fish"
+        elif "powershell" in shell_path.lower() or os.name == "nt":
+            shell = "powershell"
+        else:
+            shell = "bash"
+
+    console.print(f"[cyan]Generating completions for {shell}…[/cyan]")
+
+    # Generate completion script via Typer / click
+    try:
+        import subprocess as _sp
+        env = {**os.environ, f"_{app.info.name.upper().replace('-', '_')}_COMPLETE": f"{shell}_source"}
+        result = _sp.run(["cosmicsec-agent"], env=env, capture_output=True, text=True)
+        script = result.stdout
+    except Exception:
+        script = ""
+
+    if not script:
+        console.print("[yellow]Could not auto-generate completions. Please follow manual instructions below.[/yellow]")
+        _print_manual_instructions(shell)
+        return
+
+    install_paths = {
+        "bash": Path.home() / ".bash_completion.d" / "cosmicsec-agent",
+        "zsh": Path.home() / ".zsh" / "completions" / "_cosmicsec-agent",
+        "fish": Path.home() / ".config" / "fish" / "completions" / "cosmicsec-agent.fish",
+        "powershell": Path.home() / "Documents" / "PowerShell" / "cosmicsec-agent.ps1",
+    }
+    dest = install_paths.get(shell, Path.home() / f".cosmicsec-agent-completions.{shell}")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(script)
+    _audit("completions_install", detail=f"shell={shell}", success=True)
+    console.print(f"[green]Completions installed to {dest}[/green]")
+    _print_manual_instructions(shell)
+
+
+@completions_app.command("show")
+def completions_show(
+    shell: str = typer.Option("bash", "--shell", help="bash | zsh | fish | powershell"),
+) -> None:
+    """Print the completion script to stdout (for piping to a file)."""
+    import subprocess as _sp
+
+    env = {**os.environ, f"_{app.info.name.upper().replace('-', '_')}_COMPLETE": f"{shell}_source"}
+    result = _sp.run(["cosmicsec-agent"], env=env, capture_output=True, text=True)
+    if result.stdout:
+        print(result.stdout)
+    else:
+        console.print("[yellow]Could not generate completions for this shell.[/yellow]")
+        raise typer.Exit(1)
+
+
+def _print_manual_instructions(shell: str) -> None:
+    instructions = {
+        "bash": 'Add to ~/.bashrc:\n  source ~/.bash_completion.d/cosmicsec-agent',
+        "zsh": 'Add to ~/.zshrc:\n  fpath=(~/.zsh/completions $fpath)\n  autoload -U compinit && compinit',
+        "fish": 'Fish completions are auto-loaded from ~/.config/fish/completions/',
+        "powershell": 'Add to your PowerShell $PROFILE:\n  . ~/Documents/PowerShell/cosmicsec-agent.ps1',
+    }
+    msg = instructions.get(shell, "See your shell documentation for loading completion scripts.")
+    console.print(f"\n[dim]{msg}[/dim]")
 
 
 if __name__ == "__main__":

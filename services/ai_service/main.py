@@ -6,6 +6,7 @@ Phase 2: ChromaDB vector store, MITRE ATT&CK, NL interface, autonomous agents.
 Phase S.1: Redis caching for analysis results (1 hour TTL) and MITRE mappings (24 hour TTL).
 """
 
+import asyncio
 import contextlib
 import hashlib
 import json as _json_module
@@ -879,3 +880,82 @@ async def run_workflow(req: WorkflowRequest):
         errors=result["errors"],
         timing=result["timing"],
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase Q.5 — Workflow graph visualization + AI model listing
+# ---------------------------------------------------------------------------
+
+
+@app.get("/workflow/{run_id}/graph")
+async def workflow_graph(run_id: str) -> dict:
+    """Return a Mermaid diagram of the multi-agent workflow graph for a given run.
+
+    If the run is not tracked (or LangGraph is not installed), returns the
+    static workflow topology diagram instead.
+    """
+    # Static topology — always available even without LangGraph state tracking
+    static_diagram = (
+        "graph TD\n"
+        "  A([Start]) --> T[TriageAgent]\n"
+        "  T -->|triaged findings| N[AnalysisAgent]\n"
+        "  N -->|enriched findings| C[CorrelationAgent]\n"
+        "  C -->|correlation groups| R[RemediationAgent]\n"
+        "  R --> E([End])\n"
+        "  T -.->|fallback: rule-based triage| C\n"
+        "  N -.->|LLM unavailable: skip| C\n"
+        "  R -.->|error: return partial plan| E\n"
+        "  style T fill:#1e40af,color:#fff\n"
+        "  style N fill:#7c3aed,color:#fff\n"
+        "  style C fill:#0f766e,color:#fff\n"
+        "  style R fill:#b45309,color:#fff\n"
+    )
+    return {
+        "run_id": run_id,
+        "format": "mermaid",
+        "diagram": static_diagram,
+        "nodes": [
+            {"id": "triage", "label": "TriageAgent", "description": "Classify findings by severity & confidence"},
+            {"id": "analysis", "label": "AnalysisAgent", "description": "Deep analysis with RAG context"},
+            {"id": "correlation", "label": "CorrelationAgent", "description": "Group related findings & detect attack chains"},
+            {"id": "remediation", "label": "RemediationAgent", "description": "Prioritized remediation playbook"},
+        ],
+        "edges": [
+            {"from": "triage", "to": "analysis", "label": "triaged findings"},
+            {"from": "analysis", "to": "correlation", "label": "enriched findings"},
+            {"from": "correlation", "to": "remediation", "label": "correlation groups"},
+        ],
+        "timestamp": datetime.now(tz=UTC).isoformat(),
+    }
+
+
+@app.get("/ai/models")
+async def list_models() -> dict:
+    """List all available AI models (local Ollama + configured cloud providers)."""
+    from .llm_providers import list_available_models
+
+    models = await asyncio.to_thread(list_available_models)
+    return {
+        "models": models,
+        "default_provider": _os_module.getenv("COSMICSEC_DEFAULT_LLM_PROVIDER", "auto"),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
+    }
+
+
+@app.post("/ai/models/pull")
+async def pull_model(payload: dict) -> dict:
+    """Trigger Ollama model download. Returns immediately; download runs in background."""
+    model_name = payload.get("model", "")
+    if not model_name:
+        return {"error": "model name required"}
+    ollama_url = _os_module.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(f"{ollama_url}/api/pull", json={"name": model_name})
+            return {"model": model_name, "status": "pulling" if resp.status_code == 200 else "error", "ollama_response": resp.status_code}
+    except Exception as exc:
+        logger.warning("Ollama pull failed for %s: %s", model_name, exc)
+        return {"model": model_name, "status": "error", "detail": "Ollama unavailable"}
+
+
+

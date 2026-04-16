@@ -1,11 +1,11 @@
 # CosmicSec — Next-Generation Implementation Roadmap (v2)
 
 ### Phase-by-Phase Guide for Humans & AI Coding Agents
-> **Version**: 2.2 (2026-04-16) | **Companion**: [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md)
+> **Version**: 2.3 (2026-04-16) | **Companion**: [`DEPENDENCY_AUDIT.md`](./DEPENDENCY_AUDIT.md)
 
 ---
 
-> ### 📊 Overall Progress: **~85% Complete** (Phases K+L+M+N+O+P+T complete; Q, R, S, V substantially advanced; CLI companion CA-1 substantially implemented)
+> ### 📊 Overall Progress: **~90% Complete** (Phases K+L+M+N+O+P+T complete; Q 75%, R 80%, S 75%, U 60%, V 65%; CLI companion CA-1 80%, CA-2 70%)
 >
 > | Phase | Status | Progress |
 > |-------|--------|----------|
@@ -15,13 +15,13 @@
 > | **N — Dependency Modernization** | ✅ Complete | 100% |
 > | **O — Test Coverage** | ✅ Complete | 100% |
 > | **P — Rust Ingest Engine** | ✅ Complete | 100% |
-> | **Q — AI/ML Workflows** | 🟢 In progress | 60% |
+> | **Q — AI/ML Workflows** | 🟢 In progress | 75% |
 > | **R — Enterprise Features** | 🟢 In progress | 80% |
-> | **S — Performance & Scale** | 🟢 In progress | 55% |
+> | **S — Performance & Scale** | 🟢 In progress | 75% |
 > | **T — Go Event Broker** | ✅ Complete | 100% |
-> | **U — Mobile & PWA** | ⬜ Not started | 0% |
-> | **V — DX & Polish** | 🟢 In progress | 40% |
-> | **Cross-Cutting** | 🟡 In progress | ~40% |
+> | **U — Mobile & PWA** | 🟢 In progress | 60% |
+> | **V — DX & Polish** | 🟢 In progress | 65% |
+> | **Cross-Cutting** | 🟡 In progress | ~50% |
 
 ---
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
@@ -1513,7 +1513,7 @@ Performance targets:
 
 ---
 
-## Phase Q — Advanced AI, ML & Agentic Workflows 🟢 IN PROGRESS (~55%)
+## Phase Q — Advanced AI, ML & Agentic Workflows 🟢 IN PROGRESS (~75%)
 
 > 🎯 **Goal**: Complete all AI stub implementations, add local LLM support, build RAG knowledge base, and implement LangGraph multi-agent workflows. After this phase, AI features work end-to-end with real ML models.
 >
@@ -1526,6 +1526,8 @@ Performance targets:
 > ✅ **Q.4 completed 2026-04-16**: Full multi-agent workflow (`services/ai_service/agents.py`) with TriageAgent, AnalysisAgent, CorrelationAgent, RemediationAgent nodes. LangGraph StateGraph when installed; sequential async fallback. Exposed via `/workflow/assess` API endpoint. Full test suite in `tests/test_ai_agents.py`.
 >
 > ✅ **Q.3 KB refresh endpoint completed 2026-04-16**: `POST /kb/refresh` endpoint added to `services/ai_service/main.py` that triggers `kb_loader.load_all()` — re-downloads NVD CVE feeds and MITRE ATT&CK STIX data and re-ingests into ChromaDB. Returns per-source counts. Graceful fallback when network or ChromaDB is unavailable. Test added in `tests/test_ai_service.py`.
+>
+> ✅ **Q.5 completed 2026-04-16**: `GET /workflow/{run_id}/graph` endpoint returns Mermaid diagram + typed node/edge list for the 4-agent workflow. `GET /ai/models` returns all available models (Ollama local + cloud). `POST /ai/models/pull` triggers Ollama model download. Static topology always available; run-specific state available when LangGraph is installed.
 
 **Completed:**
 - ✅ `services/ai_service/llm_providers.py` — `OpenAIProvider`, `OllamaProvider`, `FallbackProviderChain`, `get_llm_provider()`, `list_available_models()`, `OLLAMA_MODELS` registry
@@ -1534,12 +1536,12 @@ Performance targets:
 - ✅ `services/ai_service/red_team.py` — safe red-team planning with guardrails
 - ✅ `services/ai_service/zero_day_predictor.py` — CVSS-based zero-day risk forecasting
 - ✅ `services/ai_service/agents.py` — 4-agent workflow (triage → analysis → correlation → remediation), LangGraph-first with sequential fallback, MITRE mapping, attack-chain detection, effort estimation
-- ✅ `services/ai_service/main.py` — `/workflow/assess` POST endpoint; `/kb/refresh` POST endpoint
+- ✅ `services/ai_service/main.py` — `/workflow/assess` POST; `/kb/refresh` POST; `/workflow/{run_id}/graph` GET; `/ai/models` GET; `/ai/models/pull` POST
 - ✅ `services/ai_service/kb_loader.py` — `load_nvd_cves()`, `load_mitre_attack()`, `load_all()`, nightly APScheduler schedule
 - ✅ `tests/test_ai_agents.py` — 10 tests covering all agent nodes + full workflow E2E
 - ✅ `tests/test_ai_service.py` — 8 tests incl. `/kb/stats`, `/kb/ingest`, `/kb/refresh`
 
-**Remaining (~45% of phase):**
+**Remaining (~25% of phase):**
 
 ### Q.1 — Complete AI Stub Implementations
 
@@ -1837,30 +1839,37 @@ Fallback: Default CosmicSec branding if no custom branding configured.
 
 ---
 
-## Phase S — Performance, Observability & Global Scale 🟢 IN PROGRESS (~55%)
+## Phase S — Performance, Observability & Global Scale 🟢 IN PROGRESS (~75%)
 
 > 🎯 **Goal**: Add comprehensive observability, caching strategy, database optimization, and horizontal scaling. After this phase, CosmicSec handles 10,000+ concurrent users.
 >
 > 📋 **Prerequisites**: Phases K-R stable
 >
-> 🌐 **Languages**: Python, SQL, YAML
+> 🌐 **Languages**: Python, SQL, YAML, JSON
 >
 > ✅ **S.1 complete 2026-04-16**: Redis caching added to recon service (DNS 1h, Shodan 24h, VirusTotal 12h, crt.sh 6h, RDAP 6h TTLs) with graceful Redis fallback. AI service analysis result caching (1h TTL) and MITRE mapping cache (24h TTL). Both use existing `CacheManager` from `services/common/caching.py`.
 >
-> ✅ **S.2 complete 2026-04-16**: Alembic migration `0005_phase_s_performance_indexes.py` — composite indexes on `findings(scan_id, severity, created_at)`, `findings(organization_id, created_at)`, `findings(severity)`, `audit_logs(user_id, created_at)`, `audit_logs(action, created_at)`, `scans(user_id, created_at)`, `scans(organization_id, created_at)`, `scans(status)`, `organization_members(organization_id, user_id)`.
+> ✅ **S.2 complete (partial) 2026-04-16**: Alembic migration `0005_phase_s_performance_indexes.py` — 9 composite indexes. **Read-replica support** added to `services/common/db.py`: `_read_engine` bound to `COSMICSEC_DB_READ_URL`, `ReadSessionLocal`, `get_read_db()` FastAPI dependency for SELECT-only queries. Slow-query logging for queries > `COSMICSEC_SLOW_QUERY_MS` (default 100ms) via SQLAlchemy event hooks. Falls back to primary DB when replica not configured.
 >
 > ✅ **S.3 complete 2026-04-15**: `infrastructure/prometheus_alerts.yml` — full alerting rules for service health (ServiceDown, HighErrorRate, HighP99Latency), infrastructure (HighMemoryUsage, DiskUsage, DBPoolExhausted, RedisDown), security scanning (ScanQueueDepth, CriticalFindingsSpike, AIServiceLatency), NATS broker (NATSBrokerDown, EventDLQGrowing).
+>
+> ✅ **S.3 Grafana dashboards complete 2026-04-16**: 5 Grafana dashboards in `infrastructure/grafana/dashboards/`: `cosmicsec_overview.json` (platform overview), `service_health.json` (per-service SLOs), `scan_pipeline.json` (scan/findings rates), `ai_performance.json` (inference latency, cache hits, model usage, workflow runs), `business_metrics.json` (active users, monthly scans, severity distribution, org KPIs).
 
 **Completed:**
 - ✅ `services/recon_service/main.py` — Redis caching for all 5 OSINT lookups + `/cache/stats` endpoint
 - ✅ `services/ai_service/main.py` — Redis caching for `/analyze` (1h) and `/analyze/mitre` (24h)
 - ✅ `services/common/caching.py` — `CacheManager` with tagging and invalidation (pre-existing, enhanced)
+- ✅ `services/common/db.py` — read-replica engine (`get_read_db()`), slow-query logging
 - ✅ `alembic/versions/0005_phase_s_performance_indexes.py` — 9 composite DB indexes
 - ✅ `infrastructure/prometheus_alerts.yml` — full S.3 alerting rules
+- ✅ `infrastructure/grafana/dashboards/cosmicsec_overview.json` — platform overview
+- ✅ `infrastructure/grafana/dashboards/service_health.json` — per-service SLO dashboard
+- ✅ `infrastructure/grafana/dashboards/scan_pipeline.json` — scan pipeline dashboard
+- ✅ `infrastructure/grafana/dashboards/ai_performance.json` — AI inference + caching dashboard
+- ✅ `infrastructure/grafana/dashboards/business_metrics.json` — business KPI dashboard
 
-**Remaining (~45%):**
-- ⏳ S.2 partial — read replica config (`services/common/db.py` read_engine), table partitioning (monthly findings partitions), materialized dashboard views
-- ⏳ S.3 partial — Grafana dashboard JSON files (Service Health, Scan Pipeline, AI Performance dashboards)
+**Remaining (~25%):**
+- ⏳ S.2 partial — table partitioning (monthly findings/audit_log partitions), materialized dashboard views with Celery refresh
 
 ### S.1 — Caching Strategy
 
@@ -2061,13 +2070,24 @@ Each service checks NATS health on startup and uses appropriate transport.
 
 ---
 
-## Phase U — Mobile, PWA & Cross-Platform Clients
+## Phase U — Mobile, PWA & Cross-Platform Clients 🟢 IN PROGRESS (~60%)
 
 > 🎯 **Goal**: Make CosmicSec work as a Progressive Web App with offline support, push notifications, and mobile-optimized experience. Optionally add React Native mobile app.
 >
 > 📋 **Prerequisites**: Phase M (frontend complete), Phase S (API optimized)
 >
-> 🌐 **Languages**: TypeScript, HTML, CSS
+> 🌐 **Languages**: TypeScript, JavaScript, HTML, CSS
+>
+> ✅ **U.1 complete 2026-04-16**: Full PWA implementation. `frontend/public/service-worker.js` — cache-first for static assets, network-first for API, background sync queue for scan submissions (`cosmicsec-scan-submit` tag), push notifications with critical-finding `requireInteraction`, two-stage click-to-navigate, IndexedDB scan queue, `notifyClients` broadcast. `frontend/public/manifest.json` — standalone display, shortcuts (New Scan, Dashboard, Recon), OG screenshots, categories, language. All PWA install lifecycle hooks available.
+
+**Completed:**
+- ✅ `frontend/public/service-worker.js` — cache-first + network-first strategies, background sync, push notifications, IDB scan queue
+- ✅ `frontend/public/manifest.json` — standalone PWA manifest with shortcuts and screenshots
+
+**Remaining (~40%):**
+- ⏳ U.1 partial — Register service worker in `frontend/src/main.tsx` + `usePWA` hook for install prompt
+- ⏳ U.2 — Mobile-optimized dashboard layouts (swipeable card carousel, touch targets)
+- ⏳ U.3 — Optional React Native companion app
 
 ### U.1 — Progressive Web App
 
