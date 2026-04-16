@@ -3,9 +3,14 @@ CosmicSec AI Service — Helix AI engine.
 
 Phase 1: LangChain + TF-IDF RAG, OpenAI chain, security analysis endpoints.
 Phase 2: ChromaDB vector store, MITRE ATT&CK, NL interface, autonomous agents.
+Phase S.1: Redis caching for analysis results (1 hour TTL) and MITRE mappings (24 hour TTL).
 """
 
+import contextlib
+import hashlib
+import json as _json_module
 import logging
+import os as _os_module
 import uuid
 from datetime import UTC, datetime
 
@@ -173,8 +178,54 @@ async def health_check() -> dict:
     }
 
 
+
+# ---------------------------------------------------------------------------
+# Phase S.1 — AI result caching (Redis, graceful fallback)
+# ---------------------------------------------------------------------------
+try:
+    import redis as _ai_redis_module
+    _ai_redis = _ai_redis_module.from_url(
+        f"redis://{_os_module.getenv('REDIS_HOST', 'localhost')}:{_os_module.getenv('REDIS_PORT', '6379')}/0",
+        decode_responses=True,
+        socket_connect_timeout=2,
+    )
+    _ai_redis.ping()
+    _AI_CACHE_ENABLED = True
+except Exception:
+    _ai_redis = None
+    _AI_CACHE_ENABLED = False
+
+
+def _ai_cache_key(namespace: str, data: str) -> str:
+    return f"ai:{namespace}:{hashlib.sha256(data.encode()).hexdigest()}"
+
+
+def _ai_cache_get(key: str) -> dict | None:
+    if not _AI_CACHE_ENABLED or _ai_redis is None:
+        return None
+    try:
+        raw = _ai_redis.get(key)
+        return _json_module.loads(raw) if raw else None
+    except Exception:
+        return None
+
+
+def _ai_cache_set(key: str, value: dict, ttl: int) -> None:
+    if not _AI_CACHE_ENABLED or _ai_redis is None:
+        return
+    with contextlib.suppress(Exception):
+        _ai_redis.setex(key, ttl, _json_module.dumps(value, default=str))
+
+
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_findings(payload: AnalyzeRequest) -> AnalyzeResponse:
+    # Cache key: hash of target + sorted finding titles
+    cache_input = payload.target + "|" + "|".join(sorted(f.title for f in payload.findings))
+    cache_key = _ai_cache_key("analyze", cache_input)
+    cached = _ai_cache_get(cache_key)
+    if cached:
+        return AnalyzeResponse(**cached)
+
     critical_count = sum(
         1 for finding in payload.findings if finding.severity.lower() == "critical"
     )
@@ -195,7 +246,9 @@ async def analyze_findings(payload: AnalyzeRequest) -> AnalyzeResponse:
         high=high_count,
     )
 
-    return AnalyzeResponse(summary=summary, risk_score=risk_score, recommendations=recommendations)
+    result = AnalyzeResponse(summary=summary, risk_score=risk_score, recommendations=recommendations)
+    _ai_cache_set(cache_key, result.model_dump(), ttl=3600)  # 1 hour
+    return result
 
 
 @app.post("/analyze/agent", response_model=AgentResponse)
@@ -234,9 +287,17 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
 @app.post("/analyze/mitre", response_model=MitreResponse)
 async def analyze_mitre(payload: MitreRequest) -> MitreResponse:
     """Map a list of findings to MITRE ATT&CK tactics and techniques."""
+    cache_key = _ai_cache_key("mitre", "|".join(sorted(payload.findings)))
+    cached = _ai_cache_get(cache_key)
+    if cached:
+        entries = [MitreEntry(**m) for m in cached.get("mappings", [])]
+        return MitreResponse(mappings=entries, total=len(entries))
+
     raw_mappings = map_multiple(payload.findings)
     entries = [MitreEntry(**m) for m in raw_mappings]
-    return MitreResponse(mappings=entries, total=len(entries))
+    response = MitreResponse(mappings=entries, total=len(entries))
+    _ai_cache_set(cache_key, response.model_dump(), ttl=86400)  # 24 hours
+    return response
 
 
 @app.post("/kb/ingest")
