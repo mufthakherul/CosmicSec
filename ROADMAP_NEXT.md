@@ -2070,7 +2070,7 @@ Each service checks NATS health on startup and uses appropriate transport.
 
 ---
 
-## Phase U — Mobile, PWA & Cross-Platform Clients 🟢 IN PROGRESS (~66%)
+## Phase U — Mobile, PWA & Cross-Platform Clients 🟢 IN PROGRESS (~72%)
 
 > 🎯 **Goal**: Make CosmicSec work as a Progressive Web App with offline support, push notifications, and mobile-optimized experience. Optionally add React Native mobile app.
 >
@@ -2081,13 +2081,15 @@ Each service checks NATS health on startup and uses appropriate transport.
 > ✅ **U.1 complete 2026-04-16**: Full PWA implementation. `frontend/public/service-worker.js` — cache-first for static assets, network-first for API, background sync queue for scan submissions (`cosmicsec-scan-submit` tag), push notifications with critical-finding `requireInteraction`, two-stage click-to-navigate, IndexedDB scan queue, `notifyClients` broadcast. `frontend/public/manifest.json` — standalone display, shortcuts (New Scan, Dashboard, Recon), OG screenshots, categories, language.
 >
 > ✅ **U.1 install UX tranche 2026-04-16**: Added `usePWA` install hook (`frontend/src/hooks/usePWA.ts`) and integrated install/update banners globally in `App.tsx` (`PWAInstallBanner`, `SWUpdateBanner`) with test coverage.
+>
+> ✅ **U.2 mobile UX tranche 2026-04-16**: Added mobile bottom navigation (`frontend/src/components/MobileBottomNav.tsx` + AppLayout integration), swipeable dashboard stat cards, larger touch targets on scan/timeline controls, and mobile swipeable timeline event cards.
 
 **Completed:**
 - ✅ `frontend/public/service-worker.js` — cache-first + network-first strategies, background sync, push notifications, IDB scan queue
 - ✅ `frontend/public/manifest.json` — standalone PWA manifest with shortcuts and screenshots
 
-**Remaining (~34%):**
-- ⏳ U.2 — Mobile-optimized dashboard layouts (swipeable card carousel, touch targets)
+**Remaining (~28%):**
+- ⏳ U.2 partial — deeper touch gestures (pull-to-refresh, swipe quick actions, pinch-to-zoom topology) and broader page coverage
 - ⏳ U.3 — Optional React Native companion app
 
 ### U.1 — Progressive Web App
