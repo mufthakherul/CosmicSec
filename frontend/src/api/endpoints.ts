@@ -68,6 +68,19 @@ export interface Report {
   created_at: string;
 }
 
+export interface AgentSearchResult {
+  id: string;
+  name: string;
+  status: string;
+}
+
+export interface SearchResults {
+  scans: Scan[];
+  findings: Finding[];
+  agents: AgentSearchResult[];
+  reports: Report[];
+}
+
 /* ---------- Auth ---------- */
 export const auth = {
   login: (email: string, password: string) =>
@@ -148,12 +161,7 @@ export const settings = {
 export const search = {
   query: (q: string, limit = 10) =>
     client
-      .get<{
-        scans: Scan[];
-        findings: Finding[];
-        agents: unknown[];
-        reports: Report[];
-      }>("/api/search", { params: { q, limit } })
+      .get<SearchResults>("/api/search", { params: { q, limit } })
       .then((r) => r.data),
 };
 

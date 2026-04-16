@@ -7,6 +7,23 @@ from services.auth_service.main import app
 client = TestClient(app)
 
 
+def _unique_email() -> str:
+    return f"testuser+{secrets.token_urlsafe(6)}@example.com"
+
+
+def _register(email: str, password: str = "StrongPass123!", role: str = "user") -> dict:
+    resp = client.post(
+        "/register",
+        json={"email": email, "password": password, "full_name": "Test User", "role": role},
+    )
+    return resp.json()
+
+
+def _login(email: str, password: str = "StrongPass123!") -> dict:
+    resp = client.post("/login", json={"email": email, "password": password})
+    return resp.json()
+
+
 def test_health_endpoint() -> None:
     response = client.get("/health")
     assert response.status_code == 200
@@ -144,3 +161,147 @@ def test_org_creation_and_retention_update() -> None:
     residency_get = client.get(f"/orgs/{org_id}/compliance/data-residency", headers=headers)
     assert residency_get.status_code == 200
     assert residency_get.json()["data_residency"]["storage_class"] == "encrypted"
+
+
+# ---------------------------------------------------------------------------
+# Phase O: expanded auth service tests
+# ---------------------------------------------------------------------------
+
+
+def test_register_new_user() -> None:
+    email = _unique_email()
+    resp = client.post(
+        "/register",
+        json={"email": email, "password": "StrongPass123!", "full_name": "Alice", "role": "user"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["email"] == email
+    assert "user_id" in body
+
+
+def test_register_duplicate_email_rejected() -> None:
+    email = _unique_email()
+    _register(email)
+    dup = client.post(
+        "/register",
+        json={"email": email, "password": "StrongPass123!", "full_name": "Alice", "role": "user"},
+    )
+    assert dup.status_code == 400
+    assert "already" in dup.json()["detail"].lower()
+
+
+def test_login_returns_tokens() -> None:
+    email = _unique_email()
+    _register(email)
+    resp = client.post("/login", json={"email": email, "password": "StrongPass123!"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "access_token" in body
+    assert "refresh_token" in body
+    assert body["token_type"] == "bearer"
+
+
+def test_login_wrong_password_returns_401() -> None:
+    email = _unique_email()
+    _register(email)
+    resp = client.post("/login", json={"email": email, "password": "WrongPassword!"})
+    assert resp.status_code == 401
+
+
+def test_login_nonexistent_user_returns_401() -> None:
+    resp = client.post("/login", json={"email": "nobody@test.example.com", "password": "Pass123!"})
+    assert resp.status_code == 401
+
+
+def test_verify_valid_token() -> None:
+    email = _unique_email()
+    _register(email)
+    token = _login(email)["access_token"]
+    resp = client.get("/verify", params={"token": token})
+    assert resp.status_code == 200
+    assert resp.json()["valid"] is True
+    assert resp.json()["email"] == email
+
+
+def test_me_endpoint_requires_auth() -> None:
+    resp = client.get("/me")
+    assert resp.status_code in (401, 422)
+
+
+def test_me_endpoint_returns_user_info() -> None:
+    email = _unique_email()
+    _register(email)
+    token = _login(email)["access_token"]
+    resp = client.get("/me", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+    assert resp.json()["email"] == email
+
+
+def test_logout_returns_success() -> None:
+    email = _unique_email()
+    _register(email)
+    token = _login(email)["access_token"]
+    resp = client.post("/logout", headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+    assert "logged out" in resp.json()["message"].lower()
+
+
+def test_refresh_token_returns_new_access_token() -> None:
+    email = _unique_email()
+    _register(email)
+    login_data = _login(email)
+    refresh_token = login_data["refresh_token"]
+    resp = client.post("/refresh", json={"refresh_token": refresh_token})
+    assert resp.status_code == 200
+    assert "access_token" in resp.json()
+
+
+def test_refresh_invalid_token_returns_401() -> None:
+    resp = client.post("/refresh", json={"refresh_token": "not-a-valid-jwt"})
+    assert resp.status_code == 401
+
+
+def test_oauth_start_google() -> None:
+    resp = client.post("/oauth2/google")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["provider"] == "google"
+    assert "authorize_url" in body
+    assert "accounts.google.com" in body["authorize_url"]
+
+
+def test_oauth_start_github() -> None:
+    resp = client.post("/oauth2/github")
+    assert resp.status_code == 200
+    assert resp.json()["provider"] == "github"
+
+
+def test_oauth_start_invalid_provider() -> None:
+    resp = client.post("/oauth2/unknown_provider")
+    assert resp.status_code == 400
+
+
+def test_gdpr_export_returns_user_data() -> None:
+    email = _unique_email()
+    _register(email)
+    resp = client.get("/gdpr/export", params={"email": email})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "user" in body
+    assert body["user"]["email"] == email
+
+
+def test_gdpr_export_unknown_email_returns_404() -> None:
+    resp = client.get("/gdpr/export", params={"email": "ghost@test.example.com"})
+    assert resp.status_code == 404
+
+
+def test_gdpr_delete_removes_user() -> None:
+    email = _unique_email()
+    _register(email)
+    del_resp = client.delete("/gdpr/delete", params={"email": email})
+    assert del_resp.status_code == 200
+    # After deletion, login should fail
+    login_resp = client.post("/login", json={"email": email, "password": "StrongPass123!"})
+    assert login_resp.status_code == 401
