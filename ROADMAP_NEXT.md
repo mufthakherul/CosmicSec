@@ -2160,7 +2160,7 @@ Without service worker: app works normally (just no offline/push).
 
 ---
 
-## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~88%)
+## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~91%)
 
 > 🎯 **Goal**: Make CosmicSec a joy to develop on and a premium-feeling product. Add developer documentation, component library, animation polish, and branding refinements.
 >
@@ -2187,6 +2187,8 @@ Without service worker: app works normally (just no offline/push).
 > ✅ **V.3 distribution/docs uplift 2026-04-16**: Added CLI installation/distribution documentation (`docs/cli/installation.md`), generated man page support (`scripts/generate-cli-manpage.py` + `docs/cli/cosmicsec-agent.1`), and Homebrew formula template (`cli/agent/homebrew/cosmicsec-agent.rb`).
 >
 > ✅ **V.1 Storybook foundation tranche 2026-04-16**: Initialized Storybook (`frontend/.storybook/*`), added reusable component stories (`UiButton`, `Toast`, `Pagination`, `PageSkeleton`, `FormInput`, `ScanCard`) and a design tokens docs page (`frontend/src/stories/DesignTokens.mdx`), with successful `build-storybook` output.
+>
+> ✅ **V.2 animation polish tranche 2026-04-16**: Wired dashboard micro-interactions including animated stat counters, staggered activity feed entrance, compliance bar growth transitions, and stronger visual signal for critical finding count updates.
 
 **Completed:**
 - ✅ `docs/adr/ADR-001` through `ADR-005` — Architecture Decision Records
@@ -2206,10 +2208,11 @@ Without service worker: app works normally (just no offline/push).
 - ✅ Updated contribution workflow docs (`CONTRIBUTING.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `README.md` quick-start additions)
 - ✅ CLI distribution/manpage assets (`docs/cli/installation.md`, `docs/cli/cosmicsec-agent.1`, `scripts/generate-cli-manpage.py`, Homebrew formula template)
 - ✅ Storybook baseline and docs (`frontend/.storybook/*`, `frontend/src/stories/*.stories.tsx`, `frontend/src/stories/DesignTokens.mdx`)
+- ✅ Dashboard animation/micro-interaction improvements (stat count-up, activity staggered slide-in, compliance progress grow animation)
 
-**Remaining (~12%):**
+**Remaining (~9%):**
 - ⏳ V.1 partial — broader story coverage across all frontend components + optional Storybook publish workflow
-- ⏳ V.2 — Remaining animation/micro-interaction polish (dashboard counters/charts/stagger tuning)
+- ⏳ V.2 partial — chart-level grow animations and modal-specific transition polish
 - ⏳ V.3 partial — screenshots/examples polish in README and docs
 
 ### V.1 — Component Library (Storybook)
