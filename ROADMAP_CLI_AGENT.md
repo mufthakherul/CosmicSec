@@ -5,7 +5,7 @@
 > **Version**: 2.1 (2026-04-16) | **Parent Roadmap**: [`ROADMAP_NEXT.md`](./ROADMAP_NEXT.md)
 > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers
 > **Scope**: `cli/agent/` module, related SDK integration, server-side agent relay, AI-driven CLI workflows
-> **Current State**: v0.3.1 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented** (global output callback options, live concurrent scan progress wired into `scan`, history/config/completions), tool discovery, offline store, WebSocket streaming
+> **Current State**: v0.3.2 — **hybrid dynamic/static execution engine + CA-1 security/auth foundation + CA-2 core UX wave implemented** (global output callback options, live concurrent scan progress wired into `scan`, history/config/completions), plus CA-7 documentation bootstrap (`cli/agent/README.md`, `docs/cli/getting-started.md`)
 
 ---
 
@@ -1546,7 +1546,7 @@ cosmicsec pull --since 2026-04-01
 
 ---
 
-## Phase CA-7 — Developer Experience, Branding & Distribution
+## Phase CA-7 — Developer Experience, Branding & Distribution 🟢 IN PROGRESS (~30%)
 
 > 🎯 **Goal**: Polish the CLI for release — branded experience, professional packaging, comprehensive documentation, and easy installation.
 >
@@ -1555,6 +1555,18 @@ cosmicsec pull --since 2026-04-01
 > 🌐 **Languages**: Python, Markdown, YAML
 >
 > ⏱️ **Estimated Duration**: 1–2 weeks
+
+> ✅ **CA-7.3 partial complete 2026-04-16**: Added dedicated CLI docs entry points: `cli/agent/README.md` and `docs/cli/getting-started.md`.
+
+**Completed:**
+- ✅ `cli/agent/README.md` — dedicated agent quick start, command workflows, configuration, and troubleshooting
+- ✅ `docs/cli/getting-started.md` — first-scan setup guide
+
+**Remaining (~70%):**
+- ⏳ CA-7.1 — branding themes/banner refinements
+- ⏳ CA-7.2 — distribution channels (PyPI/Homebrew/standalone/update command)
+- ⏳ CA-7.3 remaining docs (authentication/scanning/ai/workflows/ci-cd/plugins/troubleshooting)
+- ⏳ CA-7.4 — comprehensive CLI test expansion to 90%+ coverage
 
 ### CA-7.1 — Branding & Visual Identity
 

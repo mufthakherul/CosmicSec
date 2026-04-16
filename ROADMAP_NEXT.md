@@ -2149,7 +2149,7 @@ Without service worker: app works normally (just no offline/push).
 
 ---
 
-## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~40%)
+## Phase V — Developer Experience, Branding & Polish 🟢 IN PROGRESS (~50%)
 
 > 🎯 **Goal**: Make CosmicSec a joy to develop on and a premium-feeling product. Add developer documentation, component library, animation polish, and branding refinements.
 >
@@ -2160,6 +2160,8 @@ Without service worker: app works normally (just no offline/push).
 > ✅ **V.3 substantially complete 2026-04-16**: ADRs (001-005), runbooks for deploy-production, incident-response, database-migration, add-new-service, add-new-scanner-plugin all present in `docs/adr/` and `docs/runbooks/`.
 >
 > ✅ **V.4 complete (prior session)**: `scripts/seed-dev-data.py` — full dev seed with org, 5 users, 10 scans, 50+ findings, recon data, AI analysis results.
+>
+> ✅ **V.3 DX quality uplift 2026-04-16**: Frontend ESLint + Prettier tooling added (`frontend/eslint.config.js`, `frontend/.prettierrc.json`) and integrated into pre-commit local hooks.
 
 **Completed:**
 - ✅ `docs/adr/ADR-001` through `ADR-005` — Architecture Decision Records
@@ -2169,8 +2171,11 @@ Without service worker: app works normally (just no offline/push).
 - ✅ `docs/runbooks/add-new-service.md` ← **NEW 2026-04-16**
 - ✅ `docs/runbooks/add-new-scanner-plugin.md` ← **NEW 2026-04-16**
 - ✅ `scripts/seed-dev-data.py` — development seed data (V.4)
+- ✅ Frontend linting baseline with `eslint` + `@typescript-eslint` (`frontend/package.json`, `frontend/eslint.config.js`)
+- ✅ Frontend formatting baseline with `prettier` (`frontend/.prettierrc.json`, `frontend/package.json`)
+- ✅ Pre-commit local frontend checks for ESLint + Prettier (`.pre-commit-config.yaml`)
 
-**Remaining (~60%):**
+**Remaining (~50%):**
 - ⏳ V.1 — Storybook component library
 - ⏳ V.2 — Animation & micro-interactions (Framer Motion, Tailwind transitions)
 - ⏳ V.3 partial — CONTRIBUTING.md update, PR template, README quick-start
@@ -2308,15 +2313,15 @@ These improvements span multiple phases and should be applied continuously:
 ### Developer Experience
 - [x] Add docker-compose.dev.yml with hot-reload for all services ✅ *(Phase K.8)*
 - [x] Add VS Code workspace settings (`.vscode/settings.json`, extensions.json) ✅
-- [ ] Add pre-commit hooks: ruff, mypy (strict), prettier, eslint
+- [ ] Add pre-commit hooks: ruff, mypy (strict), prettier, eslint *(partial: prettier/eslint hooks added; strict mypy pending)*
 - [x] Add Makefile targets: `make dev-frontend`, `make dev-backend`, `make seed`, `make test-all` ✅
 - [x] Add GitHub Codespaces devcontainer configuration ✅ *(.devcontainer/devcontainer.json)*
 - [x] Add development seed data script ✅ *(scripts/seed-dev-data.py — Phase V.4)*
 
 ### Code Quality
 - [ ] Add mypy strict mode for all services
-- [ ] Add eslint with @typescript-eslint for frontend
-- [ ] Add prettier for consistent formatting
+- [x] Add eslint with @typescript-eslint for frontend ✅ *(frontend/eslint.config.js + npm lint script)*
+- [x] Add prettier for consistent formatting ✅ *(frontend/.prettierrc.json + npm format scripts)*
 - [ ] Add import sorting (isort via ruff)
 - [ ] Add dead code detection (vulture for Python)
 - [ ] Add complexity analysis (radon for Python)
