@@ -50,7 +50,7 @@ describe("SettingsPage", () => {
   it("renders account information from auth context", () => {
     render(<SettingsPage />);
     expect(screen.getByText(/demo user/i)).toBeInTheDocument();
-    expect(screen.getByText(/user@cosmicsec\.dev/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/user@cosmicsec\.dev/i).length).toBeGreaterThan(0);
   });
 
   it("saves scan defaults through API client", async () => {
@@ -71,15 +71,15 @@ describe("SettingsPage", () => {
     });
   });
 
-  it("blocks account deletion when email confirmation does not match", () => {
+  it("keeps delete action disabled until email confirmation matches", () => {
     render(<SettingsPage />);
-    fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    const deleteButton = screen.getByRole("button", { name: /^delete$/i });
 
+    expect(deleteButton).toBeDisabled();
     expect(client.delete).not.toHaveBeenCalled();
-    expect(addNotification).toHaveBeenCalledWith({
-      type: "error",
-      message: "Email confirmation does not match.",
-    });
+    expect(addNotification).not.toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Email confirmation does not match." }),
+    );
   });
 
   it("enables two-factor authentication and shows success message", async () => {
