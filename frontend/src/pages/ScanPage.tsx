@@ -31,13 +31,19 @@ function toScanTypes(scanType: "quick" | "full" | "custom", tools: Set<Tool>): s
 
 export function ScanPage() {
   const navigate = useNavigate();
-  const { scans, addScan } = useScanStore();
+  const { scans, addScan, setScans } = useScanStore();
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   const [target, setTarget] = useState("");
   const [scanType, setScanType] = useState<"quick" | "full" | "custom">("quick");
   const [selectedTools, setSelectedTools] = useState<Set<Tool>>(new Set(["nmap", "nuclei"]));
   const [submitting, setSubmitting] = useState(false);
+  const [pullStartY, setPullStartY] = useState<number | null>(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [swipedScanId, setSwipedScanId] = useState<string | null>(null);
+  const [dismissedScanIds, setDismissedScanIds] = useState<Set<string>>(new Set());
 
   const toggleTool = (tool: Tool) =>
     setSelectedTools((prev) => {
@@ -88,6 +94,59 @@ export function ScanPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const refreshScans = async () => {
+    setIsRefreshing(true);
+    try {
+      const token = localStorage.getItem("cosmicsec_token");
+      const res = await fetch(`${API}/api/scans`, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (!res.ok) throw new Error("Failed to refresh scans");
+      const payload = (await res.json()) as Array<{
+        id?: string;
+        target?: string;
+        status?: ScanStatus;
+        created_at?: string;
+      }>;
+      if (!Array.isArray(payload)) return;
+      const mapped: Scan[] = payload.map((item) => ({
+        id: item.id ?? `scan-${Date.now()}`,
+        target: item.target ?? "unknown",
+        tool: "remote",
+        status: (item.status ?? "pending") as ScanStatus,
+        progress: item.status === "completed" ? 100 : item.status === "running" ? 60 : 0,
+        findings: [],
+        createdAt: item.created_at ?? new Date().toISOString(),
+      }));
+      setScans(mapped);
+    } catch {
+      addNotification({ type: "warning", message: "Scan refresh unavailable right now." });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const onRecentTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (window.scrollY <= 0) {
+      setPullStartY(event.touches[0].clientY);
+    }
+  };
+  const onRecentTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (pullStartY === null) return;
+    const nextDistance = Math.max(0, event.touches[0].clientY - pullStartY);
+    setPullDistance(Math.min(nextDistance, 90));
+  };
+  const onRecentTouchEnd = () => {
+    if (pullDistance > 70 && !isRefreshing) {
+      void refreshScans();
+    }
+    setPullStartY(null);
+    setPullDistance(0);
   };
 
   return (
@@ -177,8 +236,14 @@ export function ScanPage() {
               {scans.length === 0 ? (
                 <div className="py-10 text-center text-sm text-slate-500">No scans yet. Launch one to get started.</div>
               ) : (
+                <div className="space-y-2" onTouchStart={onRecentTouchStart} onTouchMove={onRecentTouchMove} onTouchEnd={onRecentTouchEnd}>
+                  {(pullDistance > 0 || isRefreshing) && (
+                    <div className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300" style={{ opacity: Math.min(1, pullDistance / 70) }}>
+                      {isRefreshing ? "Refreshing scans…" : "Pull down to refresh scans"}
+                    </div>
+                  )}
                 <ul className="space-y-2">
-                  {scans.slice(0, 20).map((scan) => {
+                  {scans.filter((scan) => !dismissedScanIds.has(scan.id)).slice(0, 20).map((scan) => {
                     const badge = STATUS_BADGE[scan.status];
                     const BadgeIcon = badge.icon;
                     return (
@@ -190,6 +255,14 @@ export function ScanPage() {
                             void navigate(`/scans/${scan.id}`);
                           }}
                           className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3 transition-colors hover:border-slate-700"
+                          onTouchStart={(event) => setTouchStartX(event.touches[0].clientX)}
+                          onTouchEnd={(event) => {
+                            if (touchStartX === null) return;
+                            const deltaX = touchStartX - event.changedTouches[0].clientX;
+                            if (deltaX > 60) setSwipedScanId(scan.id);
+                            if (deltaX < -40) setSwipedScanId(null);
+                            setTouchStartX(null);
+                          }}
                         >
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium text-slate-200">{scan.target}</p>
@@ -200,10 +273,36 @@ export function ScanPage() {
                             {badge.label}
                           </span>
                         </a>
+                        {swipedScanId === scan.id && (
+                          <div className="mt-1 grid grid-cols-3 gap-2">
+                            <button
+                              onClick={() => void navigate(`/scans/${scan.id}`)}
+                              className="min-h-8 rounded bg-cyan-500/20 px-2 py-1 text-[11px] font-medium text-cyan-300"
+                            >
+                              Open
+                            </button>
+                            <button
+                              onClick={() => void refreshScans()}
+                              className="min-h-8 rounded bg-amber-500/20 px-2 py-1 text-[11px] font-medium text-amber-300"
+                            >
+                              Refresh
+                            </button>
+                            <button
+                              onClick={() => {
+                                setDismissedScanIds((previous) => new Set(previous).add(scan.id));
+                                setSwipedScanId(null);
+                              }}
+                              className="min-h-8 rounded bg-rose-500/20 px-2 py-1 text-[11px] font-medium text-rose-300"
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                        )}
                       </li>
                     );
                   })}
                 </ul>
+                </div>
               )}
             </div>
           </section>

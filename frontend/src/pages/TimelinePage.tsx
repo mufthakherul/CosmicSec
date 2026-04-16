@@ -505,16 +505,16 @@ export const TimelinePage: React.FC = () => {
                   {swipedCardId === ev.id && (
                     <div className="mt-3 grid grid-cols-3 gap-2">
                       <button
-                        onClick={() => (ev.scan_id ? navigate(`/scans/${ev.scan_id}`) : navigate("/scans"))}
+                        onClick={() => navigate("/agents")}
                         className="min-h-8 rounded bg-cyan-500/20 px-2 py-1 text-[11px] font-medium text-cyan-300"
                       >
-                        Open
+                        Assign
                       </button>
                       <button
-                        onClick={() => setFilterTarget(ev.target ?? "")}
+                        onClick={() => setFilterSeverity("critical")}
                         className="min-h-8 rounded bg-amber-500/20 px-2 py-1 text-[11px] font-medium text-amber-300"
                       >
-                        Filter
+                        Flag
                       </button>
                       <button
                         onClick={() => {

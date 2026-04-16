@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, AlertTriangle, CheckCircle2, Clock, ShieldAlert, ShieldCheck, TrendingUp } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
@@ -172,6 +172,59 @@ function TrendChart({ values }: { values: number[] }) {
       <polyline fill="none" stroke="#334155" strokeWidth="1" points={`12,108 328,108`} />
       <polyline fill="none" stroke="#22d3ee" strokeWidth="2.5" points={points} />
     </svg>
+  );
+}
+
+function MobileTopologyMap() {
+  const [scale, setScale] = useState(1);
+  const pinchDistanceRef = useRef<number | null>(null);
+
+  const clampScale = (value: number) => Math.max(0.8, Math.min(2.2, value));
+
+  const onTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length !== 2) return;
+    const [a, b] = [event.touches[0], event.touches[1]];
+    const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    if (pinchDistanceRef.current === null) {
+      pinchDistanceRef.current = distance;
+      return;
+    }
+    const ratio = distance / pinchDistanceRef.current;
+    setScale((previous) => clampScale(previous * ratio));
+    pinchDistanceRef.current = distance;
+  };
+
+  const onTouchEnd = () => {
+    pinchDistanceRef.current = null;
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-200">Network Topology (Pinch Zoom)</h2>
+        <span className="text-xs text-slate-500">{Math.round(scale * 100)}%</span>
+      </div>
+      <div
+        className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950 md:hidden"
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <svg width="100%" height="180" viewBox="0 0 320 180" aria-label="Network topology map">
+          <g transform={`translate(30 8) scale(${scale})`}>
+            <line x1="32" y1="70" x2="120" y2="30" stroke="#334155" strokeWidth="2" />
+            <line x1="32" y1="70" x2="120" y2="110" stroke="#334155" strokeWidth="2" />
+            <line x1="120" y1="30" x2="220" y2="70" stroke="#334155" strokeWidth="2" />
+            <line x1="120" y1="110" x2="220" y2="70" stroke="#334155" strokeWidth="2" />
+            <circle cx="32" cy="70" r="16" fill="#0f172a" stroke="#22d3ee" strokeWidth="2" />
+            <circle cx="120" cy="30" r="14" fill="#0f172a" stroke="#f59e0b" strokeWidth="2" />
+            <circle cx="120" cy="110" r="14" fill="#0f172a" stroke="#a78bfa" strokeWidth="2" />
+            <circle cx="220" cy="70" r="16" fill="#0f172a" stroke="#34d399" strokeWidth="2" />
+          </g>
+        </svg>
+      </div>
+      <p className="mt-2 text-xs text-slate-500 md:hidden">Use two fingers to zoom the topology map.</p>
+      <p className="mt-2 hidden text-xs text-slate-500 md:block">Pinch zoom is available on mobile touch devices.</p>
+    </div>
   );
 }
 
@@ -423,6 +476,8 @@ export function Phase5OperationsPage() {
             </div>
           </section>
         </div>
+
+        <MobileTopologyMap />
       </div>
     </AppLayout>
   );
