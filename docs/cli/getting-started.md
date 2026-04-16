@@ -21,6 +21,11 @@ cosmicsec-agent discover
 cosmicsec-agent scan --target scanme.nmap.org --tool nmap
 ```
 
+Expected workflow:
+1. `discover` confirms local tool availability.
+2. `scan` queues execution and writes findings to local history/offline store.
+3. Use `history list` and `history findings` to inspect results immediately.
+
 ## Work offline
 
 ```bash
@@ -32,6 +37,7 @@ cosmicsec-agent offline export --format json --output-file findings.json
 
 ```bash
 cosmicsec-agent history list --limit 20
+cosmicsec-agent history findings --severity critical --format table
 cosmicsec-agent completions install --shell bash
 cosmicsec-agent ai setup
 cosmicsec-agent plugin list
