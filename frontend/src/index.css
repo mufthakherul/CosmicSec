@@ -3,3 +3,140 @@
 body {
     @apply bg-slate-950 text-slate-100;
 }
+
+/* ============================================================
+   Phase V.2 — Page Transitions & Micro-Interactions
+   ============================================================ */
+
+/* Route transition — fade + slide-up */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 0.22s ease-out both;
+}
+
+/* Success checkmark animation */
+@keyframes scale-in-check {
+  from { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.animate-check {
+  animation: scale-in-check 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* Error shake animation */
+@keyframes shake-x {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake-x 0.4s ease-in-out both;
+}
+
+/* Counter number animation */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-count {
+  animation: count-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered list-item entrance */
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slide-in-left 0.25s ease-out both;
+}
+
+/* Notification badge bounce */
+@keyframes badge-bounce {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.4); }
+  60% { transform: scale(0.9); }
+}
+
+.animate-badge {
+  animation: badge-bounce 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Navigation progress bar */
+@keyframes progress-indeterminate {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(400%); }
+}
+
+.progress-bar-indeterminate::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 25%;
+  background: inherit;
+  animation: progress-indeterminate 1s ease-in-out infinite;
+}
+
+/* Smooth security score gauge fill */
+@keyframes gauge-fill {
+  from { stroke-dashoffset: 283; }
+}
+
+.gauge-arc {
+  animation: gauge-fill 1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Input focus glow (supplement Tailwind ring) */
+.input-glow:focus {
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2), 0 0 12px rgba(14, 165, 233, 0.1);
+}
+
+/* Button click ripple effect — add class="ripple" to buttons */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.ripple:active::after {
+  opacity: 1;
+  transition: opacity 0s;
+}
+
+/* Reduced motion — respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .animate-check,
+  .animate-shake,
+  .animate-count,
+  .animate-slide-in,
+  .animate-badge,
+  .gauge-arc {
+    animation: none !important;
+  }
+}
