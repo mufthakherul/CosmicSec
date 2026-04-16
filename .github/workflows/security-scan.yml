@@ -169,11 +169,12 @@ jobs:
           fetch-depth: 0
 
       - name: Run TruffleHog
+        # GitHub sets `before` to all-zero SHA on first push; skip in that case to avoid invalid diff range.
         if: github.event_name == 'pull_request' || github.event.before != '0000000000000000000000000000000000000000'
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          # PRs scan introduced commit range; pushes scan from previous commit to current commit.
+          # PRs use base SHA from PR; pushes use `before` SHA for commit-range secret scanning.
           base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           head: ${{ github.sha }}
           extra_args: --results=verified,unknown
