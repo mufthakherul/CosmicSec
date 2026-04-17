@@ -102,7 +102,7 @@ jobs:
     name: Auto-fix and open PR
     runs-on: ubuntu-latest
     needs: security-quality-scan
-    if: ${{ !cancelled() }}
+    if: ${{ !failure() && !cancelled() }}
     permissions:
       contents: write
       pull-requests: write
@@ -133,10 +133,40 @@ jobs:
 
       - name: Apply safe autofixes
         run: |
-          ruff check . --fix || true
-          ruff format . || true
-          pre-commit run --all-files || true
-          npm --prefix frontend run format || true
+          set +e
+          failures=0
+
+          ruff check . --fix
+          rc=$?
+          if [ "$rc" -ne 0 ]; then
+            echo "::warning::ruff check --fix failed with exit code $rc"
+            failures=$((failures + 1))
+          fi
+
+          ruff format .
+          rc=$?
+          if [ "$rc" -ne 0 ]; then
+            echo "::warning::ruff format failed with exit code $rc"
+            failures=$((failures + 1))
+          fi
+
+          pre-commit run --all-files
+          rc=$?
+          if [ "$rc" -ne 0 ]; then
+            echo "::warning::pre-commit autofix run failed with exit code $rc"
+            failures=$((failures + 1))
+          fi
+
+          npm --prefix frontend run format
+          rc=$?
+          if [ "$rc" -ne 0 ]; then
+            echo "::warning::frontend format failed with exit code $rc"
+            failures=$((failures + 1))
+          fi
+
+          if [ "$failures" -ne 0 ]; then
+            echo "::warning::Autofix phase completed with $failures failing step(s)"
+          fi
 
       - name: Create pull request for automated improvements
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
