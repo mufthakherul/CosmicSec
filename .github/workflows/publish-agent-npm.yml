@@ -1,0 +1,48 @@
+name: Publish npm cosmicsec-agent package
+
+on:
+  push:
+    tags:
+      - "agent-npm/v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-agent-npm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@mufthakherul"
+
+      - name: Validate package
+        working-directory: cli/agent/npm
+        run: |
+          npm run test
+          npm run pack:check
+
+      - name: Publish package to GitHub Packages
+        working-directory: cli/agent/npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish summary
+        run: |
+          {
+            echo "## npm Agent Publish Summary"
+            echo "- Published @mufthakherul/cosmicsec-agent-cli to GitHub Packages"
+            echo "- Registry: https://npm.pkg.github.com"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -180,6 +180,11 @@ and can be mounted under a `/storybook/` path depending on Pages configuration.
 ### Run CLI Agent (Local Mode)
 
 ```bash
+# npm global launcher (installs/runs Python CLI automatically)
+npm install -g @mufthakherul/cosmicsec-agent-cli
+cosmicsec --help
+
+# or direct Python editable install
 cd cli/agent
 pip install -e .
 cosmicsec --help
@@ -322,4 +327,3 @@ Licensed under a **Custom MIT License with Ethical Use & AI Restriction Clauses*
 ## 🌟 Acknowledgements
 
 CosmicSec is built on the shoulders of giants in the open-source security community. We gratefully acknowledge FastAPI, LangChain, Celery, MITRE ATT&CK, React, Rust, and all contributors whose work makes this platform possible.
-

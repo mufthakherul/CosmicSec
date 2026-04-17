@@ -14,6 +14,10 @@ cosmicsec-agent scan --target 127.0.0.1 --tool nmap
 ## Installation Options
 
 ```bash
+# npm (global launcher package)
+npm install -g @mufthakherul/cosmicsec-agent-cli
+cosmicsec-agent --help
+
 # pipx (recommended for end users)
 pipx install cosmicsec-agent
 
@@ -95,6 +99,7 @@ cosmicsec shell
 ## Distribution Assets
 
 - Homebrew formula template: `cli/agent/homebrew/cosmicsec-agent.rb`
+- npm launcher package: `cli/agent/npm/` (`@mufthakherul/cosmicsec-agent-cli`)
 - Man page source: `docs/cli/cosmicsec-agent.1`
 - Regenerate man page: `python scripts/generate-cli-manpage.py`
 - Optional Rust acceleration crate: `cli/agent/rust_parsers/` (`pip install cosmicsec-agent[fast]`)
