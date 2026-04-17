@@ -2,6 +2,14 @@ name: Docs Suite - User Detailed
 
 on:
   workflow_dispatch:
+  # Auto-run docs generation when core docs/doc-generator inputs change on main.
+  push:
+    branches: [main]
+    paths:
+      - "docs/**/*.md"
+      - "!docs/generated/**/*.md"
+      - "scripts/ci/generate_docs_bundle.py"
+      - ".github/workflows/docs-user-detailed.yml"
   schedule:
     - cron: "15 2 * * 2"
 
