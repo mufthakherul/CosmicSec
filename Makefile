@@ -1,7 +1,7 @@
 COMPOSE_DEV = -f docker-compose.yml -f docker-compose.dev.yml
 
 .PHONY: install dev dev-frontend dev-backend test build clean help up \
-       seed test-all lint-all format-all setup-self-hosted cross-platform-info
+	seed test-all lint-all format-all setup-self-hosted cross-platform-info diagnose
 
 help:
 	@echo "CosmicSec — Universal Cybersecurity Intelligence Platform"
@@ -38,6 +38,7 @@ help:
 	@echo "  make logs          - Tail all service logs"
 	@echo "  make shell         - Open shell in API gateway"
 	@echo "  make health        - Check service health endpoints"
+	@echo "  make diagnose      - Show unhealthy services, logs, and endpoint checks"
 	@echo ""
 	@echo "Database:"
 	@echo "  make db-migrate    - Run Alembic migrations"
@@ -51,7 +52,7 @@ help:
 	@echo ""
 
 install:
-	pip install -r requirements.txt
+	pip install -r requirements/dev.txt
 
 dev:
 	docker compose $(COMPOSE_DEV) up -d
@@ -146,6 +147,51 @@ health:
 	@curl -sf http://localhost:8003/health && echo " AI Service: UP" || echo " AI Service: DOWN"
 	@curl -sf http://localhost:8004/health && echo " Recon Service: UP" || echo " Recon Service: DOWN"
 	@curl -sf http://localhost:8005/health && echo " Report Service: UP" || echo " Report Service: DOWN"
+
+diagnose:
+	@echo "== Docker service status =="
+	@docker compose $(COMPOSE_DEV) ps
+	@echo ""
+	@echo "== Non-healthy services =="
+	@FAILED="$$(docker compose $(COMPOSE_DEV) ps --format '{{.Service}}\t{{.Status}}' | grep -Ei 'unhealthy|exited|dead|restarting' | cut -f1)"; \
+	if [ -n "$$FAILED" ]; then \
+		echo "$$FAILED"; \
+	else \
+		echo "None"; \
+	fi
+	@echo ""
+	@echo "== Tail logs for non-healthy services =="
+	@FAILED="$$(docker compose $(COMPOSE_DEV) ps --format '{{.Service}}\t{{.Status}}' | grep -Ei 'unhealthy|exited|dead|restarting' | cut -f1)"; \
+	if [ -n "$$FAILED" ]; then \
+		docker compose $(COMPOSE_DEV) logs --no-color --tail=120 $$FAILED; \
+	else \
+		echo "No non-healthy services to inspect."; \
+	fi
+	@echo ""
+	@echo "== Endpoint probes =="
+	@for endpoint in \
+		http://localhost:8000/health \
+		http://localhost:8001/health \
+		http://localhost:8002/health \
+		http://localhost:8003/health \
+		http://localhost:8004/health \
+		http://localhost:8005/health \
+		http://localhost:8006/health \
+		http://localhost:8007/health \
+		http://localhost:8008/health \
+		http://localhost:8009/health \
+		http://localhost:8010/health \
+		http://localhost:8011/health \
+		http://localhost:8012/health \
+		http://localhost:8090/health \
+		http://localhost:8099/health \
+		http://localhost:8222/healthz; do \
+		if curl -sf $$endpoint >/dev/null; then \
+			echo "OK   $$endpoint"; \
+		else \
+			echo "FAIL $$endpoint"; \
+		fi; \
+	done
 
 # Development shortcuts
 watch-gateway:

@@ -5,7 +5,8 @@ FROM python:3.13-slim as builder
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    VENV_PATH=/opt/venv
 
 WORKDIR /app
 
@@ -18,9 +19,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+# Copy runtime requirements first to maximize layer cache reuse.
+COPY requirements/runtime.txt /tmp/requirements/runtime.txt
+RUN python -m venv ${VENV_PATH}
+RUN --mount=type=cache,target=/root/.cache/pip \
+    ${VENV_PATH}/bin/pip install --no-cache-dir -r /tmp/requirements/runtime.txt
 
 # Production stage
 FROM python:3.13-slim
@@ -31,11 +34,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
+# Copy Python virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
 
-# Make sure scripts in .local are usable
-ENV PATH=/root/.local/bin:$PATH
+# Ensure runtime uses app virtualenv binaries
+ENV PATH=/opt/venv/bin:$PATH
 
 # Create app user for security
 RUN useradd -m -u 1000 cosmicsec && \
