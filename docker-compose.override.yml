@@ -1,0 +1,117 @@
+# docker-compose.override.yml
+# Local development overrides
+# This file is automatically used by Docker Compose in development
+# It overrides settings from docker-compose.yml
+
+version: '3.9'
+
+services:
+  # API Gateway with hot reload
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api_gateway/Dockerfile
+      args:
+        - ENVIRONMENT=development
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services:/workspace/services
+      - ./cosmicsec_platform:/workspace/cosmicsec_platform
+    command: |
+      sh -c "python -m uvicorn services.api_gateway.main:app \
+        --host 0.0.0.0 --port 8000 --reload --log-level debug"
+
+  # Auth Service with debug mode
+  auth-service:
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+    volumes:
+      - ./services:/workspace/services
+      - ./cosmicsec_platform:/workspace/cosmicsec_platform
+    command: |
+      sh -c "python -m uvicorn services.auth_service.main:app \
+        --host 0.0.0.0 --port 8001 --reload --log-level debug"
+
+  # Scan Service with debug mode
+  scan-service:
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+    volumes:
+      - ./services:/workspace/services
+      - ./cosmicsec_platform:/workspace/cosmicsec_platform
+    command: |
+      sh -c "python -m uvicorn services.scan_service.main:app \
+        --host 0.0.0.0 --port 8002 --reload --log-level debug"
+
+  # AI Service with debug mode
+  ai-service:
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+      - OLLAMA_BASE_URL=http://localhost:11434
+    volumes:
+      - ./services:/workspace/services
+      - ./cosmicsec_platform:/workspace/cosmicsec_platform
+    command: |
+      sh -c "python -m uvicorn services.ai_service.main:app \
+        --host 0.0.0.0 --port 8003 --reload --log-level debug"
+
+  # Frontend with hot reload
+  frontend:
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - NODE_ENV=development
+    volumes:
+      - ./frontend/src:/workspace/src
+      - ./frontend/public:/workspace/public
+    command: npm run dev
+
+  # Postgres with verbose logging
+  postgres:
+    environment:
+      - POSTGRES_INITDB_ARGS=-c log_statement=all -c log_duration=on
+      - POSTGRES_PASSWORD=dev_password
+    ports:
+      - "5432:5432"
+
+  # Redis with debug logging
+  redis:
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass dev_password --loglevel debug
+
+  # MongoDB with verbose logging
+  mongodb:
+    command: mongod --auth --logpath /var/log/mongodb.log --verbose
+
+  # Elasticsearch with debug logging
+  elasticsearch:
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - logger.level=DEBUG
+
+  # Prometheus for metrics
+  prometheus:
+    environment:
+      - TZ=UTC
+
+  # Grafana for visualization
+  grafana:
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+  # Loki for log aggregation
+  loki:
+    environment:
+      - LOKI_RETENTION=240h
