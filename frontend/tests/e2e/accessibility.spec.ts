@@ -59,7 +59,7 @@ test.describe("Accessibility basics — login page", () => {
     await page.keyboard.press("Tab");
     await page.keyboard.type("Password1");
     // Find and focus submit button
-    const submitBtn = page.getByRole("button", { name: /sign in/i });
+    const submitBtn = page.getByRole("button", { name: "Sign in", exact: true });
     await submitBtn.focus();
     // Activating with Enter should trigger form submission
     await page.keyboard.press("Enter");
@@ -69,7 +69,7 @@ test.describe("Accessibility basics — login page", () => {
 
   test("error messages have role=alert", async ({ page }) => {
     // Submit empty to trigger validation
-    await page.getByRole("button", { name: /sign in/i }).click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
     const alert = page.locator("[role='alert']");
     await expect(alert.first()).toBeVisible({ timeout: 3000 });
   });

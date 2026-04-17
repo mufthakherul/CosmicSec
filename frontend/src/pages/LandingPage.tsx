@@ -265,7 +265,7 @@ export function LandingPage() {
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-cyan-400" />
             <span className="font-semibold">CosmicSec</span>
-            <span className="text-slate-500 text-sm ml-2">© {new Date().getFullYear()}</span>
+            <span className="text-slate-400 text-sm ml-2">© {new Date().getFullYear()}</span>
           </div>
           <div className="flex gap-6 text-sm text-slate-400">
             <Link to="/pricing" className="hover:text-white transition-colors">
