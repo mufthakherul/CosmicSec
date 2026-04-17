@@ -1029,12 +1029,9 @@ def connect(
     from .tool_registry import ToolRegistry
 
     from .credential_store import CredentialStore
-    from .profiles import ProfileStore
 
     profile = _resolve_profile()
     creds = CredentialStore()
-    profile_store = ProfileStore()
-    profile_data = profile_store.get_profile(profile) or {}
 
     # Precedence: explicit CLI flag > secure credential store > profile metadata > legacy config.
     resolved_server = server or _resolve_server(profile)
