@@ -10,7 +10,7 @@ for (const vp of viewports) {
   test(`landing page remains usable on ${vp.name}`, async ({ page }) => {
     await page.setViewportSize({ width: vp.width, height: vp.height });
     await page.goto("/");
-    await expect(page.getByText("Universal Cybersecurity Intelligence Platform")).toBeVisible();
+    await expect(page.getByText("Universal Cybersecurity Intelligence Platform").first()).toBeVisible();
     await expect(page.getByRole("link", { name: /get started free/i })).toBeVisible();
   });
 }
