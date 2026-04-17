@@ -220,34 +220,37 @@ export function AgentsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadAgents = async (showLoader = false) => {
-    if (showLoader) setRefreshing(true);
-    const headers: Record<string, string> = {};
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+  const loadAgents = useCallback(
+    async (showLoader = false) => {
+      if (showLoader) setRefreshing(true);
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    try {
-      const res = await fetch(`${API}/api/agents`, { headers });
-      if (res.ok) {
-        const data = (await res.json()) as { agents?: Agent[] };
-        if (data.agents?.length) {
-          setAgents(data.agents);
-          setLoading(false);
-          setRefreshing(false);
-          return;
+      try {
+        const res = await fetch(`${API}/api/agents`, { headers });
+        if (res.ok) {
+          const data = (await res.json()) as { agents?: Agent[] };
+          if (data.agents?.length) {
+            setAgents(data.agents);
+            setLoading(false);
+            setRefreshing(false);
+            return;
+          }
         }
+      } catch {
+        // fall through to mock
       }
-    } catch {
-      // fall through to mock
-    }
 
-    setAgents(MOCK_AGENTS);
-    setLoading(false);
-    setRefreshing(false);
-  };
+      setAgents(MOCK_AGENTS);
+      setLoading(false);
+      setRefreshing(false);
+    },
+    [token]
+  );
 
   useEffect(() => {
     loadAgents();
-  }, [token]);
+  }, [loadAgents]);
 
   const onlineCount = agents.filter((a) => a.status === "online").length;
   const idleCount = agents.filter((a) => a.status === "idle").length;

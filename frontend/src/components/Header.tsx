@@ -283,7 +283,9 @@ function GlobalSearch() {
 
     if (event.key === "Enter") {
       event.preventDefault();
+      // eslint-disable-next-line security/detect-object-injection
       if (resultItems[activeIndex]) {
+        // eslint-disable-next-line security/detect-object-injection
         goTo(resultItems[activeIndex].path);
       }
       return;
