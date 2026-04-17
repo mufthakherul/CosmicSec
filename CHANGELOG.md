@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/mufthakherul/CosmicSec/compare/v0.2.0...v0.2.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* bump trivy-action to 0.35.0 in workflows ([4c0c03d](https://github.com/mufthakherul/CosmicSec/commit/4c0c03df2daedff10e2b1b29202203f640ef61e5))
+* handle trufflehog initial-push edge case and align sri parsing ([1a5ab34](https://github.com/mufthakherul/CosmicSec/commit/1a5ab34c5234689f26207e751672d12658c103cf))
+* stabilize CI workflows and refresh frontend lockfile ([bcf5493](https://github.com/mufthakherul/CosmicSec/commit/bcf54938d7398f33611e40f14eb07cb5df3e5fbf))
+
 ## [0.2.0](https://github.com/mufthakherul/CosmicSec/compare/v0.1.0...v0.2.0) (2026-04-16)
 
 
