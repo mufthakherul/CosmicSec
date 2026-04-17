@@ -65,6 +65,9 @@ const TimelinePage = React.lazy(() =>
 const SettingsPage = React.lazy(() =>
   import("./pages/SettingsPage").then((m) => ({ default: m.SettingsPage })),
 );
+const SystemStatusPage = React.lazy(() =>
+  import("./pages/SystemStatusPage").then((m) => ({ default: m.SystemStatusPage })),
+);
 const AgentsPage = React.lazy(() =>
   import("./pages/AgentsPage").then((m) => ({ default: m.AgentsPage })),
 );
@@ -214,6 +217,14 @@ export function App() {
                   element={
                     <ProtectedRoute>
                       <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/system-status"
+                  element={
+                    <ProtectedRoute>
+                      <SystemStatusPage />
                     </ProtectedRoute>
                   }
                 />
