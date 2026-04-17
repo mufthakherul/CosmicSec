@@ -153,7 +153,9 @@ export function AdminDashboardPage() {
     <section className="space-y-8">
       <header className="rounded-lg border border-slate-800 bg-slate-900 p-4">
         <h2 className="text-2xl font-semibold">Advanced Admin Dashboard</h2>
-        <p className="text-sm text-slate-300">Realtime platform status, operations control, and governance tooling.</p>
+        <p className="text-sm text-slate-300">
+          Realtime platform status, operations control, and governance tooling.
+        </p>
       </header>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -189,15 +191,24 @@ export function AdminDashboardPage() {
           </div>
           <ul className="space-y-2 text-sm">
             {users.map((u) => (
-              <li key={u.email} className="flex items-center justify-between rounded border border-slate-800 p-2">
+              <li
+                key={u.email}
+                className="flex items-center justify-between rounded border border-slate-800 p-2"
+              >
                 <span>
                   {u.email} <span className="text-slate-400">({u.role})</span>
                 </span>
                 <div className="flex gap-2">
-                  <Button className="bg-emerald-600 hover:bg-emerald-500" onClick={() => assignRole(u.email, "analyst")}>
+                  <Button
+                    className="bg-emerald-600 hover:bg-emerald-500"
+                    onClick={() => assignRole(u.email, "analyst")}
+                  >
                     Analyst
                   </Button>
-                  <Button className="bg-violet-600 hover:bg-violet-500" onClick={() => assignRole(u.email, "admin")}>
+                  <Button
+                    className="bg-violet-600 hover:bg-violet-500"
+                    onClick={() => assignRole(u.email, "admin")}
+                  >
                     Admin
                   </Button>
                 </div>
@@ -212,7 +223,9 @@ export function AdminDashboardPage() {
             {Object.entries(moduleState).map(([name, enabled]) => (
               <Button
                 key={name}
-                className={enabled ? "bg-emerald-600 hover:bg-emerald-500" : "bg-rose-700 hover:bg-rose-600"}
+                className={
+                  enabled ? "bg-emerald-600 hover:bg-emerald-500" : "bg-rose-700 hover:bg-rose-600"
+                }
                 onClick={() => toggleModule(name)}
               >
                 {name}: {enabled ? "enabled" : "disabled"}
@@ -222,7 +235,11 @@ export function AdminDashboardPage() {
           <div className="mt-4 space-y-2">
             {Object.entries(config).map(([key, value]) => (
               <div key={key} className="flex gap-2">
-                <input readOnly className="w-1/3 rounded border border-slate-700 bg-slate-950 p-2" value={key} />
+                <input
+                  readOnly
+                  className="w-1/3 rounded border border-slate-700 bg-slate-950 p-2"
+                  value={key}
+                />
                 <input
                   className="w-2/3 rounded border border-slate-700 bg-slate-950 p-2"
                   value={value}
@@ -273,7 +290,11 @@ export function AdminDashboardPage() {
 
         <section className="rounded-lg border border-slate-800 bg-slate-900 p-4">
           <h3 className="mb-3 text-lg font-semibold">Interactive Vulnerability Report</h3>
-          <svg width={reportValues.length * (barWidth + 12)} height={chartHeight} className="rounded bg-slate-950 p-2">
+          <svg
+            width={reportValues.length * (barWidth + 12)}
+            height={chartHeight}
+            className="rounded bg-slate-950 p-2"
+          >
             {reportValues.map((value, i) => {
               const h = value * 12;
               const x = i * (barWidth + 12);
@@ -288,7 +309,10 @@ export function AdminDashboardPage() {
               );
             })}
           </svg>
-          <Button className="mt-3" onClick={() => setReportValues((prev) => prev.map((v) => Math.max(2, (v + 1) % 10)))}>
+          <Button
+            className="mt-3"
+            onClick={() => setReportValues((prev) => prev.map((v) => Math.max(2, (v + 1) % 10)))}
+          >
             Refresh chart
           </Button>
         </section>
@@ -307,14 +331,17 @@ export function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {audit.slice().reverse().map((entry, idx) => (
-                <tr key={`${entry.timestamp}-${idx}`} className="border-t border-slate-800">
-                  <td className="p-2">{entry.timestamp}</td>
-                  <td className="p-2">{entry.action}</td>
-                  <td className="p-2">{entry.actor}</td>
-                  <td className="p-2">{entry.detail}</td>
-                </tr>
-              ))}
+              {audit
+                .slice()
+                .reverse()
+                .map((entry, idx) => (
+                  <tr key={`${entry.timestamp}-${idx}`} className="border-t border-slate-800">
+                    <td className="p-2">{entry.timestamp}</td>
+                    <td className="p-2">{entry.action}</td>
+                    <td className="p-2">{entry.actor}</td>
+                    <td className="p-2">{entry.detail}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

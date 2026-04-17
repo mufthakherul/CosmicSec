@@ -13,10 +13,18 @@ const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => 
   const method = init?.method ?? "GET";
 
   if (url.includes("/api/admin/users") && method === "GET") {
-    return new Response(JSON.stringify({ items: [{ email: "admin@cosmicsec.dev", role: "admin" }] }), { status: 200 });
+    return new Response(
+      JSON.stringify({ items: [{ email: "admin@cosmicsec.dev", role: "admin" }] }),
+      { status: 200 },
+    );
   }
   if (url.includes("/api/admin/audit-logs")) {
-    return new Response(JSON.stringify({ items: [{ timestamp: "2026-01-01", action: "login", actor: "admin", detail: "ok" }] }), { status: 200 });
+    return new Response(
+      JSON.stringify({
+        items: [{ timestamp: "2026-01-01", action: "login", actor: "admin", detail: "ok" }],
+      }),
+      { status: 200 },
+    );
   }
   if (url.includes("/api/admin/config")) {
     return new Response(JSON.stringify({ config: { mode: "strict" } }), { status: 200 });

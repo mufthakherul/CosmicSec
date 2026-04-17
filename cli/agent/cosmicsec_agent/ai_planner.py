@@ -266,8 +266,7 @@ def _build_system_prompt(context: dict[str, Any]) -> str:
     """Build the system prompt for AI planning with tool context."""
     available_tools = context.get("available_tools", [])
     tool_list = "\n".join(
-        f"  - {t['name']}: {', '.join(t.get('capabilities', []))}"
-        for t in available_tools
+        f"  - {t['name']}: {', '.join(t.get('capabilities', []))}" for t in available_tools
     )
 
     return f"""You are CosmicSec Helix AI, an expert cybersecurity task planner.
@@ -275,7 +274,7 @@ def _build_system_prompt(context: dict[str, Any]) -> str:
 Your job is to convert natural language security instructions into a structured
 JSON execution plan. You have access to the following locally installed security tools:
 
-{tool_list or '  (no tools discovered yet)'}
+{tool_list or "  (no tools discovered yet)"}
 
 IMPORTANT RULES:
 1. Only suggest tools from the available list above, or common system commands.
@@ -444,9 +443,7 @@ class AITaskPlanner:
             raw_intent=instruction,
         )
 
-    def _build_plan_from_intent(
-        self, intent: ParsedIntent, instruction: str
-    ) -> ExecutionPlan:
+    def _build_plan_from_intent(self, intent: ParsedIntent, instruction: str) -> ExecutionPlan:
         """Convert a ParsedIntent into an ExecutionPlan with concrete steps."""
         steps: list[ExecutionStep] = []
         step_counter = 0

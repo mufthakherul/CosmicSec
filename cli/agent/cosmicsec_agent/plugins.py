@@ -14,7 +14,9 @@ from typing import Callable
 
 
 _NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_-]{1,63}$")
-_DEFAULT_ROOT = Path(os.getenv("COSMICSEC_PLUGINS_DIR", str(Path.home() / ".cosmicsec" / "plugins")))
+_DEFAULT_ROOT = Path(
+    os.getenv("COSMICSEC_PLUGINS_DIR", str(Path.home() / ".cosmicsec" / "plugins"))
+)
 
 
 @dataclass
@@ -150,7 +152,7 @@ class PluginManager:
             (
                 "from __future__ import annotations\n\n"
                 "def register(app) -> None:\n"
-                "    \"\"\"Register additional Typer commands.\"\"\"\n"
+                '    """Register additional Typer commands."""\n'
                 "    return None\n"
             ),
             encoding="utf-8",
@@ -159,7 +161,7 @@ class PluginManager:
             (
                 "from __future__ import annotations\n\n"
                 "def parse_tool_output(stdout: str) -> list[dict]:\n"
-                "    \"\"\"Return parsed findings for this plugin's custom tool.\"\"\"\n"
+                '    """Return parsed findings for this plugin\'s custom tool."""\n'
                 "    return []\n"
             ),
             encoding="utf-8",

@@ -20,7 +20,12 @@ const SAMPLE_RESULT = {
   shodan: { enabled: true, subdomains: ["mail.example.com"], data_preview: [{}] },
   virustotal: { enabled: true, analysis_stats: { harmless: 70, malicious: 2, suspicious: 0 } },
   crtsh: { enabled: true, subdomains: ["www.example.com", "api.example.com"] },
-  rdap: { enabled: true, handle: "EXAMPLE-NET", status: ["active"], nameservers: ["ns1.example.com"] },
+  rdap: {
+    enabled: true,
+    handle: "EXAMPLE-NET",
+    status: ["active"],
+    nameservers: ["ns1.example.com"],
+  },
 };
 
 describe("ReconPage", () => {
@@ -43,7 +48,10 @@ describe("ReconPage", () => {
   it("shows loading skeletons while request is in flight", async () => {
     let resolvePromise!: (value: Response) => void;
     globalThis.fetch = vi.fn(
-      () => new Promise<Response>((res) => { resolvePromise = res; }),
+      () =>
+        new Promise<Response>((res) => {
+          resolvePromise = res;
+        }),
     ) as unknown as typeof fetch;
 
     render(<ReconPage />);
@@ -64,7 +72,9 @@ describe("ReconPage", () => {
   it("renders DNS IPs in result panels after successful recon", async () => {
     globalThis.fetch = vi
       .fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify(SAMPLE_RESULT), { status: 200 })) as unknown as typeof fetch;
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(SAMPLE_RESULT), { status: 200 }),
+      ) as unknown as typeof fetch;
 
     render(<ReconPage />);
     fireEvent.change(screen.getByPlaceholderText(/target domain or ip/i), {
@@ -82,7 +92,9 @@ describe("ReconPage", () => {
   it("renders RDAP and VirusTotal section labels", async () => {
     globalThis.fetch = vi
       .fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify(SAMPLE_RESULT), { status: 200 })) as unknown as typeof fetch;
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(SAMPLE_RESULT), { status: 200 }),
+      ) as unknown as typeof fetch;
 
     render(<ReconPage />);
     fireEvent.change(screen.getByPlaceholderText(/target domain or ip/i), {
@@ -96,7 +108,9 @@ describe("ReconPage", () => {
   });
 
   it("shows error notification when fetch fails", async () => {
-    globalThis.fetch = vi.fn().mockRejectedValueOnce(new Error("net fail")) as unknown as typeof fetch;
+    globalThis.fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("net fail")) as unknown as typeof fetch;
 
     render(<ReconPage />);
     fireEvent.change(screen.getByPlaceholderText(/target domain or ip/i), {
@@ -123,7 +137,9 @@ describe("ReconPage", () => {
   it("renders Export JSON button after results load", async () => {
     globalThis.fetch = vi
       .fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify(SAMPLE_RESULT), { status: 200 })) as unknown as typeof fetch;
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(SAMPLE_RESULT), { status: 200 }),
+      ) as unknown as typeof fetch;
 
     render(<ReconPage />);
     fireEvent.change(screen.getByPlaceholderText(/target domain or ip/i), {

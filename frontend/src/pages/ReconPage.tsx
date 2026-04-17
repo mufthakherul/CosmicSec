@@ -18,7 +18,14 @@ interface ReconResult {
   /** crt.sh certificate transparency subdomains */
   crtsh: { enabled: boolean; subdomains?: string[]; error?: string };
   /** RDAP registration info */
-  rdap: { enabled: boolean; handle?: string; status?: string[]; nameservers?: string[]; events?: unknown[]; error?: string };
+  rdap: {
+    enabled: boolean;
+    handle?: string;
+    status?: string[];
+    nameservers?: string[];
+    events?: unknown[];
+    error?: string;
+  };
   findings?: { source: string; summary: string }[];
 }
 
@@ -39,7 +46,11 @@ function CollapsiblePanel({
         className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-slate-300 hover:text-slate-100"
       >
         <span>{title}</span>
-        {open ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronRight className="h-4 w-4 text-slate-500" />}
+        {open ? (
+          <ChevronDown className="h-4 w-4 text-slate-500" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-slate-500" />
+        )}
       </button>
       {open && <div className="border-t border-slate-800 px-4 pb-4 pt-3">{children}</div>}
     </div>
@@ -52,7 +63,11 @@ function SkeletonPanel() {
       <div className="mb-3 h-4 w-1/3 animate-pulse rounded bg-slate-700" />
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-3 animate-pulse rounded bg-slate-800" style={{ width: `${60 + i * 10}%` }} />
+          <div
+            key={i}
+            className="h-3 animate-pulse rounded bg-slate-800"
+            style={{ width: `${60 + i * 10}%` }}
+          />
         ))}
       </div>
     </div>
@@ -133,7 +148,11 @@ export function ReconPage() {
             disabled={loading}
             className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
             {loading ? "Running…" : "Run Recon"}
           </button>
         </form>
@@ -165,22 +184,34 @@ export function ReconPage() {
             </div>
 
             {/* DNS */}
-            <CollapsiblePanel title={`DNS Records${result.dns.ips.length > 0 ? ` (${result.dns.ips.length} IPs)` : ""}`} defaultOpen>
+            <CollapsiblePanel
+              title={`DNS Records${result.dns.ips.length > 0 ? ` (${result.dns.ips.length} IPs)` : ""}`}
+              defaultOpen
+            >
               {result.dns.ips.length > 0 ? (
                 <div className="space-y-1 text-sm">
                   <p className="text-xs uppercase tracking-wide text-slate-500">A / AAAA Records</p>
                   <div className="flex flex-wrap gap-2">
                     {result.dns.ips.map((ip) => (
-                      <span key={ip} className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-xs text-cyan-300">{ip}</span>
+                      <span
+                        key={ip}
+                        className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-xs text-cyan-300"
+                      >
+                        {ip}
+                      </span>
                     ))}
                   </div>
                   {result.dns.errors.length > 0 && (
-                    <p className="mt-1 text-xs text-rose-400">Errors: {result.dns.errors.join("; ")}</p>
+                    <p className="mt-1 text-xs text-rose-400">
+                      Errors: {result.dns.errors.join("; ")}
+                    </p>
                   )}
                 </div>
               ) : (
                 <p className="text-sm text-slate-500">
-                  {result.dns.errors.length > 0 ? result.dns.errors.join("; ") : "No DNS records resolved."}
+                  {result.dns.errors.length > 0
+                    ? result.dns.errors.join("; ")
+                    : "No DNS records resolved."}
                 </p>
               )}
             </CollapsiblePanel>
@@ -188,23 +219,34 @@ export function ReconPage() {
             {/* Shodan */}
             <CollapsiblePanel title="Shodan Intelligence">
               {!result.shodan.enabled ? (
-                <p className="text-sm text-slate-500">Shodan not configured (SHODAN_API_KEY not set).</p>
+                <p className="text-sm text-slate-500">
+                  Shodan not configured (SHODAN_API_KEY not set).
+                </p>
               ) : result.shodan.error ? (
                 <p className="text-sm text-rose-400">Error: {result.shodan.error}</p>
               ) : (
                 <div className="space-y-2">
                   {result.shodan.subdomains && result.shodan.subdomains.length > 0 && (
                     <div>
-                      <p className="mb-1 text-xs uppercase tracking-wide text-slate-500">Subdomains via Shodan</p>
+                      <p className="mb-1 text-xs uppercase tracking-wide text-slate-500">
+                        Subdomains via Shodan
+                      </p>
                       <div className="flex flex-wrap gap-2">
                         {result.shodan.subdomains.map((sub) => (
-                          <span key={sub} className="rounded-md bg-slate-800 px-2 py-0.5 font-mono text-xs text-slate-300">{sub}</span>
+                          <span
+                            key={sub}
+                            className="rounded-md bg-slate-800 px-2 py-0.5 font-mono text-xs text-slate-300"
+                          >
+                            {sub}
+                          </span>
                         ))}
                       </div>
                     </div>
                   )}
                   {result.shodan.data_preview && result.shodan.data_preview.length > 0 && (
-                    <p className="text-xs text-slate-500">{result.shodan.data_preview.length} service record(s) found.</p>
+                    <p className="text-xs text-slate-500">
+                      {result.shodan.data_preview.length} service record(s) found.
+                    </p>
                   )}
                 </div>
               )}
@@ -213,7 +255,9 @@ export function ReconPage() {
             {/* VirusTotal */}
             <CollapsiblePanel title="VirusTotal Analysis">
               {!result.virustotal.enabled ? (
-                <p className="text-sm text-slate-500">VirusTotal not configured (VIRUSTOTAL_API_KEY not set).</p>
+                <p className="text-sm text-slate-500">
+                  VirusTotal not configured (VIRUSTOTAL_API_KEY not set).
+                </p>
               ) : result.virustotal.error ? (
                 <p className="text-sm text-rose-400">Error: {result.virustotal.error}</p>
               ) : result.virustotal.analysis_stats ? (
@@ -221,7 +265,11 @@ export function ReconPage() {
                   {Object.entries(result.virustotal.analysis_stats).map(([stat, count]) => (
                     <div key={stat} className="rounded-lg bg-slate-900 p-2 text-center">
                       <dt className="text-xs capitalize text-slate-500">{stat}</dt>
-                      <dd className={`text-base font-bold ${stat === "malicious" && count > 0 ? "text-rose-400" : "text-slate-200"}`}>{count}</dd>
+                      <dd
+                        className={`text-base font-bold ${stat === "malicious" && count > 0 ? "text-rose-400" : "text-slate-200"}`}
+                      >
+                        {count}
+                      </dd>
                     </div>
                   ))}
                 </dl>
@@ -242,11 +290,18 @@ export function ReconPage() {
                   ) : subs.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {subs.map((sub) => (
-                        <span key={sub} className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-xs text-slate-300">{sub}</span>
+                        <span
+                          key={sub}
+                          className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-xs text-slate-300"
+                        >
+                          {sub}
+                        </span>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-500">No subdomains found via certificate transparency logs.</p>
+                    <p className="text-sm text-slate-500">
+                      No subdomains found via certificate transparency logs.
+                    </p>
                   )}
                 </CollapsiblePanel>
               );

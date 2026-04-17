@@ -27,7 +27,11 @@ function CopyButton({ text }: { text: string }) {
       className="rounded p-1 text-slate-500 transition-colors hover:text-slate-300"
       aria-label="Copy"
     >
-      {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-emerald-400" />
+      ) : (
+        <Copy className="h-3.5 w-3.5" />
+      )}
     </button>
   );
 }
@@ -58,7 +62,13 @@ export function ProfilePage() {
         },
         body: JSON.stringify({ name: `key-${Date.now()}` }),
       });
-      const data = (await res.json()) as { id?: string; key?: string; name?: string; prefix?: string; created_at?: string };
+      const data = (await res.json()) as {
+        id?: string;
+        key?: string;
+        name?: string;
+        prefix?: string;
+        created_at?: string;
+      };
       const newKey: ApiKey = {
         id: data.id ?? `k-${Date.now()}`,
         name: data.name ?? `key-${Date.now()}`,
@@ -67,7 +77,10 @@ export function ProfilePage() {
       };
       setApiKeys((prev) => [newKey, ...prev]);
       setNewKeyValue(data.key ?? `cs_demo_${Math.random().toString(36).slice(2)}`);
-      addNotification({ type: "success", message: "API key generated. Copy it now — it won't be shown again." });
+      addNotification({
+        type: "success",
+        message: "API key generated. Copy it now — it won't be shown again.",
+      });
     } catch {
       addNotification({ type: "error", message: "Failed to generate API key." });
     } finally {
@@ -134,7 +147,11 @@ export function ProfilePage() {
               disabled={generatingKey}
               className="flex items-center gap-1.5 rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-medium text-amber-300 transition-colors hover:bg-amber-500/30 disabled:opacity-50"
             >
-              {generatingKey ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+              {generatingKey ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Plus className="h-3.5 w-3.5" />
+              )}
               Generate New Key
             </button>
           </div>
@@ -142,7 +159,9 @@ export function ProfilePage() {
           {/* Newly generated key */}
           {newKeyValue && (
             <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-2.5">
-              <span className="flex-1 truncate font-mono text-xs text-amber-300">{newKeyValue}</span>
+              <span className="flex-1 truncate font-mono text-xs text-amber-300">
+                {newKeyValue}
+              </span>
               <CopyButton text={newKeyValue} />
               <button
                 onClick={() => setNewKeyValue(null)}
@@ -166,7 +185,9 @@ export function ProfilePage() {
                     <p className="text-sm font-medium text-slate-300">{k.name}</p>
                     <p className="font-mono text-xs text-slate-500">
                       {k.prefix}••••••••
-                      {k.last_used ? ` · Last used ${new Date(k.last_used).toLocaleDateString()}` : " · Never used"}
+                      {k.last_used
+                        ? ` · Last used ${new Date(k.last_used).toLocaleDateString()}`
+                        : " · Never used"}
                     </p>
                   </div>
                   <button
@@ -191,9 +212,21 @@ export function ProfilePage() {
           <ul className="space-y-3">
             {(
               [
-                { key: "email_alerts", label: "Email Alerts", description: "Receive scan results and critical alerts via email." },
-                { key: "slack_alerts", label: "Slack Alerts", description: "Send notifications to your Slack workspace." },
-                { key: "critical_only", label: "Critical Findings Only", description: "Only notify for critical severity findings." },
+                {
+                  key: "email_alerts",
+                  label: "Email Alerts",
+                  description: "Receive scan results and critical alerts via email.",
+                },
+                {
+                  key: "slack_alerts",
+                  label: "Slack Alerts",
+                  description: "Send notifications to your Slack workspace.",
+                },
+                {
+                  key: "critical_only",
+                  label: "Critical Findings Only",
+                  description: "Only notify for critical severity findings.",
+                },
               ] as const
             ).map(({ key, label, description }) => (
               <li key={key} className="flex items-center justify-between gap-4">

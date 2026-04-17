@@ -44,7 +44,11 @@ export function DemoSandboxPage() {
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
             <Stat label="Status" value={DEMO_SCAN.status} color="text-emerald-400" />
             <Stat label="Total Findings" value={String(DEMO_SCAN.summary.total_findings)} />
-            <Stat label="Critical" value={String(DEMO_SCAN.summary.critical)} color="text-rose-400" />
+            <Stat
+              label="Critical"
+              value={String(DEMO_SCAN.summary.critical)}
+              color="text-rose-400"
+            />
             <Stat label="High" value={String(DEMO_SCAN.summary.high)} color="text-orange-400" />
           </div>
         </section>
@@ -109,16 +113,13 @@ export function DemoSandboxPage() {
             <ReconCard title="DNS Records">
               <div className="space-y-1 text-sm">
                 <p>
-                  <b className="text-slate-400">A:</b>{" "}
-                  {DEMO_RECON.dns.a_records.join(", ")}
+                  <b className="text-slate-400">A:</b> {DEMO_RECON.dns.a_records.join(", ")}
                 </p>
                 <p>
-                  <b className="text-slate-400">MX:</b>{" "}
-                  {DEMO_RECON.dns.mx_records.join(", ")}
+                  <b className="text-slate-400">MX:</b> {DEMO_RECON.dns.mx_records.join(", ")}
                 </p>
                 <p>
-                  <b className="text-slate-400">NS:</b>{" "}
-                  {DEMO_RECON.dns.ns_records.join(", ")}
+                  <b className="text-slate-400">NS:</b> {DEMO_RECON.dns.ns_records.join(", ")}
                 </p>
               </div>
             </ReconCard>
@@ -134,8 +135,7 @@ export function DemoSandboxPage() {
             <ReconCard title="Shodan">
               <div className="space-y-1 text-sm">
                 <p>
-                  <b className="text-slate-400">Open Ports:</b>{" "}
-                  {DEMO_RECON.shodan.ports.join(", ")}
+                  <b className="text-slate-400">Open Ports:</b> {DEMO_RECON.shodan.ports.join(", ")}
                 </p>
                 <p>
                   <b className="text-slate-400">Org:</b> {DEMO_RECON.shodan.org}

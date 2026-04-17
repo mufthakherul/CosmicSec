@@ -184,8 +184,7 @@ class ScanProgressDisplay:
         elapsed = self._state.elapsed
         m, s = divmod(int(elapsed), 60)
         header = Text(
-            f"CosmicSec Scan  ⏱ {m:02d}:{s:02d}  "
-            f"Findings: {self._state.total_findings}",
+            f"CosmicSec Scan  ⏱ {m:02d}:{s:02d}  Findings: {self._state.total_findings}",
             style="bold",
         )
         items = [
@@ -228,9 +227,7 @@ class ScanProgressDisplay:
         else:
             lines.append("[dim]cosmicsec-agent history list  — view full results[/dim]")
 
-        self._console.print(
-            Panel("\n".join(lines), border_style="green", expand=False)
-        )
+        self._console.print(Panel("\n".join(lines), border_style="green", expand=False))
 
 
 # ---------------------------------------------------------------------------

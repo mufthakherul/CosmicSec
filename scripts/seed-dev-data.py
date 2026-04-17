@@ -20,12 +20,10 @@ Requires: DATABASE_URL environment variable (defaults to SQLite)
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 import sys
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any
 
 # Add repo root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -71,35 +69,40 @@ DEMO_USERS = [
         "email": "admin@cosmicsec.dev",
         "full_name": "Alex Admin",
         "role": "admin",
-        "password": os.getenv("SEED_ADMIN_PASSWORD") or hashlib.sha256(b"admin@cosmicsec.dev").hexdigest()[:20],
+        "password": os.getenv("SEED_ADMIN_PASSWORD")
+        or hashlib.sha256(b"admin@cosmicsec.dev").hexdigest()[:20],
     },
     {
         "id": "user-analyst-001",
         "email": "analyst@cosmicsec.dev",
         "full_name": "Sam Analyst",
         "role": "analyst",
-        "password": os.getenv("SEED_ANALYST_PASSWORD") or hashlib.sha256(b"analyst@cosmicsec.dev").hexdigest()[:20],
+        "password": os.getenv("SEED_ANALYST_PASSWORD")
+        or hashlib.sha256(b"analyst@cosmicsec.dev").hexdigest()[:20],
     },
     {
         "id": "user-pentester-001",
         "email": "pentester@cosmicsec.dev",
         "full_name": "Pat Pentester",
         "role": "pentester",
-        "password": os.getenv("SEED_PENTESTER_PASSWORD") or hashlib.sha256(b"pentester@cosmicsec.dev").hexdigest()[:20],
+        "password": os.getenv("SEED_PENTESTER_PASSWORD")
+        or hashlib.sha256(b"pentester@cosmicsec.dev").hexdigest()[:20],
     },
     {
         "id": "user-auditor-001",
         "email": "auditor@cosmicsec.dev",
         "full_name": "Andrea Auditor",
         "role": "auditor",
-        "password": os.getenv("SEED_AUDITOR_PASSWORD") or hashlib.sha256(b"auditor@cosmicsec.dev").hexdigest()[:20],
+        "password": os.getenv("SEED_AUDITOR_PASSWORD")
+        or hashlib.sha256(b"auditor@cosmicsec.dev").hexdigest()[:20],
     },
     {
         "id": "user-viewer-001",
         "email": "viewer@cosmicsec.dev",
         "full_name": "Viktor Viewer",
         "role": "viewer",
-        "password": os.getenv("SEED_VIEWER_PASSWORD") or hashlib.sha256(b"viewer@cosmicsec.dev").hexdigest()[:20],
+        "password": os.getenv("SEED_VIEWER_PASSWORD")
+        or hashlib.sha256(b"viewer@cosmicsec.dev").hexdigest()[:20],
     },
 ]
 
@@ -237,7 +240,7 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
-def create_org(db: "Session") -> dict:
+def create_org(db: Session) -> dict:
     existing = db.query(OrganizationModel).filter_by(id=DEMO_ORG["id"]).first()
     if existing:
         print(f"  ↩ Org already exists: {DEMO_ORG['slug']}")
@@ -258,7 +261,7 @@ def create_org(db: "Session") -> dict:
     return DEMO_ORG
 
 
-def create_users(db: "Session") -> list[dict]:
+def create_users(db: Session) -> list[dict]:
     created = []
     for u in DEMO_USERS:
         existing = db.query(UserModel).filter_by(id=u["id"]).first()
@@ -292,17 +295,24 @@ def create_users(db: "Session") -> list[dict]:
     return created
 
 
-def create_scans(db: "Session") -> list[str]:
+def create_scans(db: Session) -> list[str]:
     scan_ids = []
-    statuses = ["completed", "completed", "completed", "failed", "running",
-                "completed", "completed", "pending", "completed", "completed"]
-    types = ["quick", "full", "custom", "quick", "full",
-             "custom", "quick", "full", "quick", "full"]
+    statuses = [
+        "completed",
+        "completed",
+        "completed",
+        "failed",
+        "running",
+        "completed",
+        "completed",
+        "pending",
+        "completed",
+        "completed",
+    ]
+    types = ["quick", "full", "custom", "quick", "full", "custom", "quick", "full", "quick", "full"]
 
-    for i, (target, status, scan_type) in enumerate(
-        zip(SAMPLE_TARGETS, statuses, types)
-    ):
-        scan_id = f"scan-demo-{i+1:03d}"
+    for i, (target, status, scan_type) in enumerate(zip(SAMPLE_TARGETS, statuses, types)):
+        scan_id = f"scan-demo-{i + 1:03d}"
         existing = db.query(ScanModel).filter_by(id=scan_id).first()
         if existing:
             print(f"  ↩ Scan exists: {scan_id}")
@@ -330,14 +340,14 @@ def create_scans(db: "Session") -> list[str]:
     return scan_ids
 
 
-def create_findings(db: "Session", scan_ids: list[str]) -> int:
+def create_findings(db: Session, scan_ids: list[str]) -> int:
     count = 0
     templates = FINDING_TEMPLATES
     for scan_idx, scan_id in enumerate(scan_ids[:8]):  # Findings for first 8 scans
         n_findings = 3 + (scan_idx % 7)  # 3-9 findings per scan
         for j in range(n_findings):
             tmpl = templates[(scan_idx + j) % len(templates)]
-            finding_id = f"finding-{scan_id}-{j+1:02d}"
+            finding_id = f"finding-{scan_id}-{j + 1:02d}"
             existing = db.query(FindingModel).filter_by(id=finding_id).first()
             if existing:
                 count += 1

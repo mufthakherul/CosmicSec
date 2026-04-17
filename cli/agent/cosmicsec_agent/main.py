@@ -141,7 +141,9 @@ def _resolve_server_and_headers(profile: str) -> tuple[str, dict[str, str]]:
 
     server = _resolve_server(profile)
     if not server:
-        raise ValueError(f"Profile '{profile}' has no server URL. Run 'cosmicsec-agent auth login'.")
+        raise ValueError(
+            f"Profile '{profile}' has no server URL. Run 'cosmicsec-agent auth login'."
+        )
     headers = AuthManager().require_auth_headers(profile)
     return server, headers
 
@@ -497,7 +499,9 @@ def update_cmd(
     strategy = strategy.lower().strip()
     if strategy not in {"auto", "pip", "pipx", "brew", "winget"}:
         console.print("[red]Invalid strategy. Use: auto|pip|pipx|brew|winget[/red]")
-        _audit("update_install", detail=f"latest={latest};invalid_strategy={strategy}", success=False)
+        _audit(
+            "update_install", detail=f"latest={latest};invalid_strategy={strategy}", success=False
+        )
         raise typer.Exit(1)
 
     candidates: list[list[str]] = []
@@ -505,7 +509,11 @@ def update_cmd(
         candidates.append(["pipx", "upgrade", "cosmicsec-agent"])
     if strategy in {"auto", "brew"} and shutil.which("brew"):
         candidates.append(["brew", "upgrade", "cosmicsec-agent"])
-    if strategy in {"auto", "winget"} and platform.system().lower() == "windows" and shutil.which("winget"):
+    if (
+        strategy in {"auto", "winget"}
+        and platform.system().lower() == "windows"
+        and shutil.which("winget")
+    ):
         candidates.append(["winget", "upgrade", "--id", "CosmicSec.Agent", "--silent"])
     if strategy in {"auto", "pip"} or not candidates:
         candidates.append([sys.executable, "-m", "pip", "install", "--upgrade", "cosmicsec-agent"])
@@ -530,8 +538,12 @@ def update_cmd(
             success=False,
         )
         raise typer.Exit(1)
-    console.print(f"[green]Updated CosmicSec Agent to {latest}. Restart your shell session.[/green]")
-    _audit("update_install", detail=f"latest={latest};strategy={strategy};cmd={used_cmd}", success=True)
+    console.print(
+        f"[green]Updated CosmicSec Agent to {latest}. Restart your shell session.[/green]"
+    )
+    _audit(
+        "update_install", detail=f"latest={latest};strategy={strategy};cmd={used_cmd}", success=True
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -560,7 +572,9 @@ def auth_login(
     else:
         method = "api_key"
     if not api_key and not token and not oauth_provider:
-        method = typer.prompt("Auth method (api_key/token/oauth)", default="api_key").strip().lower()
+        method = (
+            typer.prompt("Auth method (api_key/token/oauth)", default="api_key").strip().lower()
+        )
         if method == "token":
             token = typer.prompt("Access token", hide_input=True)
             refresh_token = refresh_token or typer.prompt(
@@ -577,7 +591,9 @@ def auth_login(
     if method == "oauth":
         provider = (oauth_provider or "google").strip().lower()
         if provider not in {"google", "github", "microsoft"}:
-            console.print("[red]Unsupported OAuth provider. Use google, github, or microsoft.[/red]")
+            console.print(
+                "[red]Unsupported OAuth provider. Use google, github, or microsoft.[/red]"
+            )
             _audit("login", profile=profile, detail=f"invalid_provider={provider}", success=False)
             raise typer.Exit(1)
         import httpx
@@ -622,14 +638,18 @@ def auth_login(
         try:
             callback_resp = httpx.get(
                 f"{resolved_server.rstrip('/')}/api/auth/sso/{provider}/callback",
-                params={"code": callback_code, "state": callback_state} if callback_state else {"code": callback_code},
+                params={"code": callback_code, "state": callback_state}
+                if callback_state
+                else {"code": callback_code},
                 timeout=12.0,
             )
             callback_resp.raise_for_status()
             callback_payload = callback_resp.json()
         except Exception as exc:
             console.print(f"[red]OAuth callback exchange failed:[/red] {exc}")
-            _audit("login", profile=profile, detail=f"oauth_callback_failed:{provider}", success=False)
+            _audit(
+                "login", profile=profile, detail=f"oauth_callback_failed:{provider}", success=False
+            )
             raise typer.Exit(1) from exc
 
         token = str(callback_payload.get("access_token") or "").strip() or token
@@ -922,7 +942,9 @@ def scan(
         tool_payloads.append({"name": tool_info.name, "path": tool_info.path, "args": extra_args})
 
     tool_results, _ = asyncio.run(
-        run_tools_with_progress(tool_payloads, target=target, max_parallel=parallel if all_tools else 1)
+        run_tools_with_progress(
+            tool_payloads, target=target, max_parallel=parallel if all_tools else 1
+        )
     )
 
     for result in tool_results:
@@ -1167,8 +1189,12 @@ def status() -> None:
     # AI provider status
     has_openai = bool(cfg.get("openai_api_key") or os.environ.get("OPENAI_API_KEY"))
     has_server = bool(cfg.get("server"))
-    console.print(f"  OpenAI: {'[green]configured[/green]' if has_openai else '[dim]not configured[/dim]'}")
-    console.print(f"  Cloud AI: {'[green]available[/green]' if has_server else '[dim]not connected[/dim]'}")
+    console.print(
+        f"  OpenAI: {'[green]configured[/green]' if has_openai else '[dim]not configured[/dim]'}"
+    )
+    console.print(
+        f"  Cloud AI: {'[green]available[/green]' if has_server else '[dim]not connected[/dim]'}"
+    )
 
     if tools:
         table = Table(show_header=True, header_style="bold magenta")
@@ -1253,11 +1279,20 @@ def history_show(
     if fmt.fmt == "table":
         console.print(f"\n[bold]Scan:[/bold] {scan['id']}")
         console.print(f"[bold]Target:[/bold] {scan['target']}")
-        console.print(f"[bold]Tool:[/bold] {scan['tool']}  |  [bold]Status:[/bold] {scan['status']}")
+        console.print(
+            f"[bold]Tool:[/bold] {scan['tool']}  |  [bold]Status:[/bold] {scan['status']}"
+        )
         console.print(f"[bold]Created:[/bold] {scan['created_at']}")
         findings = scan.get("findings", [])
         if findings:
-            rows = [{"Severity": f["severity"].upper(), "Title": f["title"], "Evidence": (f.get("evidence") or "")[:60]} for f in findings]
+            rows = [
+                {
+                    "Severity": f["severity"].upper(),
+                    "Title": f["title"],
+                    "Evidence": (f.get("evidence") or "")[:60],
+                }
+                for f in findings
+            ]
             fmt.table(rows, title=f"Findings ({len(findings)})")
         else:
             console.print("[dim]No findings.[/dim]")
@@ -1283,7 +1318,9 @@ def history_findings(
     from .offline_store import OfflineStore
     from .output import get_formatter
 
-    findings = OfflineStore().search_findings(severity=severity, tool=tool, search=search, limit=limit)
+    findings = OfflineStore().search_findings(
+        severity=severity, tool=tool, search=search, limit=limit
+    )
     _audit("history_findings", detail=f"n={len(findings)}", success=True)
     fmt = get_formatter(fmt=output_format or _global_output_format)
     if not findings:
@@ -1314,15 +1351,23 @@ def history_diff(
         return
     console.print(f"\n[bold]Comparing scans[/bold] {scan_a[:8]}… → {scan_b[:8]}…")
     s = diff.get("summary", {})
-    console.print(f"  [green]+{s.get('new', 0)} new[/green]  "
-                  f"[red]-{s.get('resolved', 0)} resolved[/red]  "
-                  f"[yellow]~{s.get('changed', 0)} changed severity[/yellow]")
+    console.print(
+        f"  [green]+{s.get('new', 0)} new[/green]  "
+        f"[red]-{s.get('resolved', 0)} resolved[/red]  "
+        f"[yellow]~{s.get('changed', 0)} changed severity[/yellow]"
+    )
     if diff.get("new_findings"):
         fmt.table(diff["new_findings"], columns=["severity", "title"], title="New Findings")
     if diff.get("resolved_findings"):
-        fmt.table(diff["resolved_findings"], columns=["severity", "title"], title="Resolved Findings")
+        fmt.table(
+            diff["resolved_findings"], columns=["severity", "title"], title="Resolved Findings"
+        )
     if diff.get("changed_severity"):
-        fmt.table(diff["changed_severity"], columns=["title", "old_severity", "new_severity"], title="Changed Severity")
+        fmt.table(
+            diff["changed_severity"],
+            columns=["title", "old_severity", "new_severity"],
+            title="Changed Severity",
+        )
 
 
 @history_app.command("stats")
@@ -1420,7 +1465,9 @@ def config_set(
 @config_app.command("list")
 def config_list(
     output_format: Optional[str] = typer.Option(None, "--output", "-o", help="table|json"),
-    show_defaults: bool = typer.Option(False, "--all", help="Show all settings including unmodified"),
+    show_defaults: bool = typer.Option(
+        False, "--all", help="Show all settings including unmodified"
+    ),
 ) -> None:
     """List all configuration settings.
 
@@ -1459,7 +1506,9 @@ def config_reset(
     try:
         SettingsStore().reset(key)
         _audit("config_reset", detail=f"key={key or 'all'}", success=True)
-        console.print(f"[green]Reset {'key ' + key if key else 'all settings'} to defaults.[/green]")
+        console.print(
+            f"[green]Reset {'key ' + key if key else 'all settings'} to defaults.[/green]"
+        )
     except KeyError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(1) from exc
@@ -1525,7 +1574,9 @@ def theme_preview(
     """Preview banner and severity styles for a theme."""
     from .config import SettingsStore
 
-    chosen = canonical_theme(name) if name else canonical_theme(str(SettingsStore().get("color_theme")))
+    chosen = (
+        canonical_theme(name) if name else canonical_theme(str(SettingsStore().get("color_theme")))
+    )
     if not chosen:
         chosen = "default"
     print_banner(console, chosen, subtitle="Theme preview")
@@ -1544,8 +1595,12 @@ def theme_preview(
 
 @app.command("watch")
 def watch(
-    interval: int = typer.Option(5, "--interval", min=1, max=120, help="Refresh interval in seconds"),
-    cycles: int = typer.Option(0, "--cycles", min=0, help="Number of refresh cycles (0 = unlimited)"),
+    interval: int = typer.Option(
+        5, "--interval", min=1, max=120, help="Refresh interval in seconds"
+    ),
+    cycles: int = typer.Option(
+        0, "--cycles", min=0, help="Number of refresh cycles (0 = unlimited)"
+    ),
 ) -> None:
     """Live dashboard mode for scan/system status in terminal."""
     import time
@@ -1585,7 +1640,9 @@ def watch(
             scans: list[dict] = []
             pending = len(OfflineStore().get_unsynced_findings())
             try:
-                health_resp = httpx.get(f"{server.rstrip('/')}/api/health", headers=headers, timeout=8.0)
+                health_resp = httpx.get(
+                    f"{server.rstrip('/')}/api/health", headers=headers, timeout=8.0
+                )
                 if health_resp.status_code < 400:
                     health = health_resp.json()
                 scans_resp = httpx.get(
@@ -1605,13 +1662,22 @@ def watch(
             if cycles and i >= cycles:
                 break
             time.sleep(interval)
-    _audit("watch", profile=profile, detail=f"interval={interval};cycles={cycles or 'unlimited'}", success=True)
+    _audit(
+        "watch",
+        profile=profile,
+        detail=f"interval={interval};cycles={cycles or 'unlimited'}",
+        success=True,
+    )
 
 
 @app.command("dashboard")
 def dashboard(
-    interval: int = typer.Option(5, "--interval", min=1, max=120, help="Refresh interval in seconds"),
-    cycles: int = typer.Option(0, "--cycles", min=0, help="Number of refresh cycles (0 = unlimited)"),
+    interval: int = typer.Option(
+        5, "--interval", min=1, max=120, help="Refresh interval in seconds"
+    ),
+    cycles: int = typer.Option(
+        0, "--cycles", min=0, help="Number of refresh cycles (0 = unlimited)"
+    ),
 ) -> None:
     """Full-screen dashboard alias for watch mode."""
     watch(interval=interval, cycles=cycles)
@@ -1675,7 +1741,9 @@ def analyze(
     query = f"Analyze scan {scan_id}" if scan_id else f"Analyze findings: {text}"
     payload = {"query": query, "context": text or ""}
     try:
-        resp = httpx.post(f"{server.rstrip('/')}/api/ai/query", json=payload, headers=headers, timeout=25.0)
+        resp = httpx.post(
+            f"{server.rstrip('/')}/api/ai/query", json=payload, headers=headers, timeout=25.0
+        )
         resp.raise_for_status()
     except Exception as exc:
         console.print(f"[red]Analyze request failed:[/red] {exc}")
@@ -1696,7 +1764,9 @@ def explain(
 
 @app.command("correlate")
 def correlate(
-    scan_id: Optional[str] = typer.Option(None, "--scan-id", help="Scan ID for correlation context"),
+    scan_id: Optional[str] = typer.Option(
+        None, "--scan-id", help="Scan ID for correlation context"
+    ),
 ) -> None:
     """Correlate findings into attack chains and MITRE-aligned insights."""
     context = f"scan {scan_id}" if scan_id else "latest scan"
@@ -1723,7 +1793,9 @@ def suggest(
         "context": "Return practical patch/mitigation and rollback-safe steps.",
     }
     try:
-        resp = httpx.post(f"{server.rstrip('/')}/api/ai/query", json=payload, headers=headers, timeout=25.0)
+        resp = httpx.post(
+            f"{server.rstrip('/')}/api/ai/query", json=payload, headers=headers, timeout=25.0
+        )
         resp.raise_for_status()
     except Exception as exc:
         console.print(f"[red]Suggestion request failed:[/red] {exc}")
@@ -1824,7 +1896,12 @@ def workflow_run(
         for line in raw.splitlines():
             line = line.strip()
             if line.startswith("command:"):
-                data["steps"].append({"name": f"step-{len(data['steps'])+1}", "command": line.split(":", 1)[1].strip()})
+                data["steps"].append(
+                    {
+                        "name": f"step-{len(data['steps']) + 1}",
+                        "command": line.split(":", 1)[1].strip(),
+                    }
+                )
 
     steps = data.get("steps", [])
     if not isinstance(steps, list) or not steps:
@@ -1992,7 +2069,9 @@ def schedule_run_due(
 
 @schedule_app.command("daemon")
 def schedule_daemon(
-    interval: int = typer.Option(60, "--interval", min=10, max=3600, help="Polling interval seconds"),
+    interval: int = typer.Option(
+        60, "--interval", min=10, max=3600, help="Polling interval seconds"
+    ),
 ) -> None:
     """Run schedule due-check loop in foreground."""
     import time
@@ -2040,7 +2119,12 @@ def team_invite(
         _audit("team_invite", profile=profile, detail=f"org={org_id};email={email}", success=False)
         raise typer.Exit(1)
     console.print_json(json.dumps(resp.json(), indent=2))
-    _audit("team_invite", profile=profile, detail=f"org={org_id};email={email};role={role}", success=True)
+    _audit(
+        "team_invite",
+        profile=profile,
+        detail=f"org={org_id};email={email};role={role}",
+        success=True,
+    )
 
 
 @team_app.command("members")
@@ -2057,7 +2141,9 @@ def team_members(
         console.print(f"[red]{exc}[/red]")
         _audit("team_members", profile=profile, detail="missing_auth_or_server", success=False)
         raise typer.Exit(1) from exc
-    resp = httpx.get(f"{server.rstrip('/')}/api/orgs/{org_id}/members", headers=headers, timeout=15.0)
+    resp = httpx.get(
+        f"{server.rstrip('/')}/api/orgs/{org_id}/members", headers=headers, timeout=15.0
+    )
     if resp.status_code >= 400:
         console.print(f"[red]Failed to fetch members:[/red] {resp.status_code} {resp.text[:200]}")
         _audit("team_members", profile=profile, detail=f"org={org_id}", success=False)
@@ -2099,13 +2185,17 @@ def org_switch(
     current = store.get_profile(profile) or {}
     server = str(current.get("server_url", _load_config().get("server", "")))
     updated = store.upsert_profile(profile, server_url=server, org_id=org_id)
-    console.print(f"[green]Active org switched:[/green] profile={profile} org={updated.get('org_id')}")
+    console.print(
+        f"[green]Active org switched:[/green] profile={profile} org={updated.get('org_id')}"
+    )
     _audit("org_switch", profile=profile, detail=f"org_id={org_id}", success=True)
 
 
 @org_app.command("members")
 def org_members(
-    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+    org_id: Optional[str] = typer.Option(
+        None, "--org-id", help="Organization ID (defaults to active profile org)"
+    ),
 ) -> None:
     """List organization members."""
     from .profiles import ProfileStore
@@ -2125,7 +2215,9 @@ def org_members(
 def org_invite(
     email: str = typer.Option(..., "--email", help="Member email"),
     role: str = typer.Option("viewer", "--role", help="Role to assign"),
-    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+    org_id: Optional[str] = typer.Option(
+        None, "--org-id", help="Organization ID (defaults to active profile org)"
+    ),
 ) -> None:
     """Invite a member to the active organization."""
     from .profiles import ProfileStore
@@ -2143,7 +2235,9 @@ def org_invite(
 
 @org_api_keys_app.command("list")
 def org_api_keys_list(
-    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+    org_id: Optional[str] = typer.Option(
+        None, "--org-id", help="Organization ID (defaults to active profile org)"
+    ),
 ) -> None:
     """List organization API keys."""
     import httpx
@@ -2163,7 +2257,9 @@ def org_api_keys_list(
         console.print(f"[red]{exc}[/red]")
         _audit("org_api_keys_list", profile=profile, detail="missing_auth_or_server", success=False)
         raise typer.Exit(1) from exc
-    resp = httpx.get(f"{server.rstrip('/')}/api/orgs/{org_id}/api-keys", headers=headers, timeout=15.0)
+    resp = httpx.get(
+        f"{server.rstrip('/')}/api/orgs/{org_id}/api-keys", headers=headers, timeout=15.0
+    )
     if resp.status_code >= 400:
         console.print(f"[red]Failed to list API keys:[/red] {resp.status_code} {resp.text[:200]}")
         _audit("org_api_keys_list", profile=profile, detail=f"org={org_id}", success=False)
@@ -2176,7 +2272,9 @@ def org_api_keys_list(
 def org_api_keys_create(
     name: str = typer.Option(..., "--name", help="Key name"),
     scopes: str = typer.Option("read", "--scopes", help="Comma separated scopes"),
-    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+    org_id: Optional[str] = typer.Option(
+        None, "--org-id", help="Organization ID (defaults to active profile org)"
+    ),
 ) -> None:
     """Create an organization API key."""
     import httpx
@@ -2194,7 +2292,9 @@ def org_api_keys_create(
         server, headers = _resolve_server_and_headers(profile)
     except ValueError as exc:
         console.print(f"[red]{exc}[/red]")
-        _audit("org_api_keys_create", profile=profile, detail="missing_auth_or_server", success=False)
+        _audit(
+            "org_api_keys_create", profile=profile, detail="missing_auth_or_server", success=False
+        )
         raise typer.Exit(1) from exc
     payload = {"name": name, "scopes": [s.strip() for s in scopes.split(",") if s.strip()]}
     resp = httpx.post(
@@ -2205,7 +2305,12 @@ def org_api_keys_create(
     )
     if resp.status_code >= 400:
         console.print(f"[red]Failed to create API key:[/red] {resp.status_code} {resp.text[:200]}")
-        _audit("org_api_keys_create", profile=profile, detail=f"org={org_id};name={name}", success=False)
+        _audit(
+            "org_api_keys_create",
+            profile=profile,
+            detail=f"org={org_id};name={name}",
+            success=False,
+        )
         raise typer.Exit(1)
     console.print_json(json.dumps(resp.json(), indent=2))
     _audit("org_api_keys_create", profile=profile, detail=f"org={org_id};name={name}", success=True)
@@ -2214,7 +2319,9 @@ def org_api_keys_create(
 @org_api_keys_app.command("revoke")
 def org_api_keys_revoke(
     key_id: str = typer.Argument(..., help="API key identifier"),
-    org_id: Optional[str] = typer.Option(None, "--org-id", help="Organization ID (defaults to active profile org)"),
+    org_id: Optional[str] = typer.Option(
+        None, "--org-id", help="Organization ID (defaults to active profile org)"
+    ),
 ) -> None:
     """Revoke an organization API key."""
     import httpx
@@ -2232,18 +2339,29 @@ def org_api_keys_revoke(
         server, headers = _resolve_server_and_headers(profile)
     except ValueError as exc:
         console.print(f"[red]{exc}[/red]")
-        _audit("org_api_keys_revoke", profile=profile, detail="missing_auth_or_server", success=False)
+        _audit(
+            "org_api_keys_revoke", profile=profile, detail="missing_auth_or_server", success=False
+        )
         raise typer.Exit(1) from exc
-    resp = httpx.delete(f"{server.rstrip('/')}/api/orgs/{org_id}/api-keys/{key_id}", headers=headers, timeout=15.0)
+    resp = httpx.delete(
+        f"{server.rstrip('/')}/api/orgs/{org_id}/api-keys/{key_id}", headers=headers, timeout=15.0
+    )
     if resp.status_code >= 400:
         console.print(f"[red]Failed to revoke API key:[/red] {resp.status_code} {resp.text[:200]}")
-        _audit("org_api_keys_revoke", profile=profile, detail=f"org={org_id};key={key_id}", success=False)
+        _audit(
+            "org_api_keys_revoke",
+            profile=profile,
+            detail=f"org={org_id};key={key_id}",
+            success=False,
+        )
         raise typer.Exit(1)
     if resp.text.strip():
         console.print_json(json.dumps(resp.json(), indent=2))
     else:
         console.print(f"[green]API key revoked:[/green] {key_id}")
-    _audit("org_api_keys_revoke", profile=profile, detail=f"org={org_id};key={key_id}", success=True)
+    _audit(
+        "org_api_keys_revoke", profile=profile, detail=f"org={org_id};key={key_id}", success=True
+    )
 
 
 @findings_app.command("assign")
@@ -2272,7 +2390,12 @@ def findings_assign(
         _audit("findings_assign", profile=profile, detail=f"id={finding_id}", success=False)
         raise typer.Exit(1)
     console.print_json(json.dumps(resp.json(), indent=2))
-    _audit("findings_assign", profile=profile, detail=f"id={finding_id};assignee={assignee}", success=True)
+    _audit(
+        "findings_assign",
+        profile=profile,
+        detail=f"id={finding_id};assignee={assignee}",
+        success=True,
+    )
 
 
 @findings_app.command("status")
@@ -2298,10 +2421,17 @@ def findings_status(
     )
     if resp.status_code >= 400:
         console.print(f"[red]Status update failed:[/red] {resp.status_code} {resp.text[:200]}")
-        _audit("findings_status", profile=profile, detail=f"id={finding_id};status={status}", success=False)
+        _audit(
+            "findings_status",
+            profile=profile,
+            detail=f"id={finding_id};status={status}",
+            success=False,
+        )
         raise typer.Exit(1)
     console.print_json(json.dumps(resp.json(), indent=2))
-    _audit("findings_status", profile=profile, detail=f"id={finding_id};status={status}", success=True)
+    _audit(
+        "findings_status", profile=profile, detail=f"id={finding_id};status={status}", success=True
+    )
 
 
 @app.command("share")
@@ -2335,7 +2465,9 @@ def share(
 
 @app.command("pull")
 def pull(
-    include_shared: bool = typer.Option(True, "--include-shared/--no-include-shared", help="Include shared findings"),
+    include_shared: bool = typer.Option(
+        True, "--include-shared/--no-include-shared", help="Include shared findings"
+    ),
 ) -> None:
     """Pull remote findings updates into local cache."""
     import httpx
@@ -2348,7 +2480,9 @@ def pull(
         _audit("pull", profile=profile, detail="missing_auth_or_server", success=False)
         raise typer.Exit(1) from exc
     params = {"shared": "true" if include_shared else "false"}
-    resp = httpx.get(f"{server.rstrip('/')}/api/findings/pull", headers=headers, params=params, timeout=30.0)
+    resp = httpx.get(
+        f"{server.rstrip('/')}/api/findings/pull", headers=headers, params=params, timeout=30.0
+    )
     if resp.status_code >= 400:
         console.print(f"[red]Pull failed:[/red] {resp.status_code} {resp.text[:200]}")
         _audit("pull", profile=profile, detail="api_error", success=False)
@@ -2403,7 +2537,12 @@ def report_generate(
     else:
         dest.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     console.print(f"[green]Report generated:[/green] {dest}")
-    _audit("report_generate", profile=selected_profile, detail=f"format={format};path={dest}", success=True)
+    _audit(
+        "report_generate",
+        profile=selected_profile,
+        detail=f"format={format};path={dest}",
+        success=True,
+    )
 
 
 @report_app.command("send")
@@ -2431,7 +2570,9 @@ def report_send(
         _audit("report_send", detail=f"file={report_path};dest={destination}", success=False)
         raise typer.Exit(1) from exc
     if resp.status_code >= 400:
-        console.print(f"[red]Destination rejected report:[/red] {resp.status_code} {resp.text[:200]}")
+        console.print(
+            f"[red]Destination rejected report:[/red] {resp.status_code} {resp.text[:200]}"
+        )
         _audit("report_send", detail=f"file={report_path};dest={destination}", success=False)
         raise typer.Exit(1)
     console.print("[green]Report sent successfully.[/green]")
@@ -2459,10 +2600,26 @@ def ci_scan(
         by_ext[ext] = by_ext.get(ext, 0) + 1
     findings = []
     if (root / ".env").exists():
-        findings.append({"id": "ci-env-file", "severity": "high", "title": ".env file present in repository root"})
+        findings.append(
+            {
+                "id": "ci-env-file",
+                "severity": "high",
+                "title": ".env file present in repository root",
+            }
+        )
     if (root / ".git" / "hooks").exists():
-        findings.append({"id": "ci-hooks-exist", "severity": "low", "title": "Local git hooks directory present"})
-    payload = {"path": str(root), "summary": {"files": file_count, "extensions": by_ext}, "findings": findings}
+        findings.append(
+            {
+                "id": "ci-hooks-exist",
+                "severity": "low",
+                "title": "Local git hooks directory present",
+            }
+        )
+    payload = {
+        "path": str(root),
+        "summary": {"files": file_count, "extensions": by_ext},
+        "findings": findings,
+    }
     out = Path(output)
     out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     console.print(f"[green]CI scan complete:[/green] {out}")
@@ -2621,7 +2778,9 @@ def chat(
         console.print("[bold magenta]ai[/bold magenta]")
         console.print_json(json.dumps(guidance if guidance is not None else data, indent=2))
         history.append({"role": "user", "content": question})
-        history.append({"role": "assistant", "content": json.dumps(guidance if guidance is not None else data)})
+        history.append(
+            {"role": "assistant", "content": json.dumps(guidance if guidance is not None else data)}
+        )
         turns += 1
 
     chat_file.parent.mkdir(parents=True, exist_ok=True)
@@ -2631,7 +2790,9 @@ def chat(
 
 @ai_app.command("setup")
 def ai_setup(
-    model_general: str = typer.Option("llama3.1", "--model-general", help="General-purpose Ollama model"),
+    model_general: str = typer.Option(
+        "llama3.1", "--model-general", help="General-purpose Ollama model"
+    ),
     model_code: str = typer.Option("codellama", "--model-code", help="Code/security Ollama model"),
     no_pull: bool = typer.Option(False, "--no-pull", help="Skip model pulls, configure only"),
 ) -> None:
@@ -2650,13 +2811,17 @@ def ai_setup(
             raise typer.Exit(1)
     except Exception as exc:
         console.print(f"[red]Ollama is not reachable at {ollama_url}: {exc}[/red]")
-        console.print("[yellow]Install/start Ollama, then re-run: cosmicsec-agent ai setup[/yellow]")
+        console.print(
+            "[yellow]Install/start Ollama, then re-run: cosmicsec-agent ai setup[/yellow]"
+        )
         if os.name == "nt":
             console.print("[dim]Windows install hint:[/dim] winget install Ollama.Ollama")
         elif platform.system().lower() == "darwin":
             console.print("[dim]macOS install hint:[/dim] brew install --cask ollama")
         else:
-            console.print("[dim]Linux install hint:[/dim] curl -fsSL https://ollama.com/install.sh | sh")
+            console.print(
+                "[dim]Linux install hint:[/dim] curl -fsSL https://ollama.com/install.sh | sh"
+            )
         _audit("ai_setup", detail=f"unreachable:{ollama_url}", success=False)
         raise typer.Exit(1) from exc
 
@@ -2686,7 +2851,9 @@ def ai_setup(
     cfg["ollama_url"] = ollama_url
     cfg["ollama_model"] = model_general
     cfg["ollama_code_model"] = model_code
-    has_gpu = subprocess.run(["nvidia-smi"], capture_output=True, text=True, check=False).returncode == 0
+    has_gpu = (
+        subprocess.run(["nvidia-smi"], capture_output=True, text=True, check=False).returncode == 0
+    )
     cfg["ollama_gpu_available"] = has_gpu
     _save_config(cfg)
 
@@ -2762,7 +2929,9 @@ def sync_push(
         raise typer.Exit(1) from exc
 
     priority = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
-    ordered = sorted(unsynced, key=lambda f: priority.get(str(f.get("severity", "info")).lower(), 5))
+    ordered = sorted(
+        unsynced, key=lambda f: priority.get(str(f.get("severity", "info")).lower(), 5)
+    )
 
     synced_ids: list[str] = []
     conflicts = 0
@@ -2775,7 +2944,11 @@ def sync_push(
             "target": "offline-sync",
         }
         body = gzip.compress(json.dumps(payload).encode("utf-8"))
-        request_headers = {**headers, "Content-Type": "application/json", "Content-Encoding": "gzip"}
+        request_headers = {
+            **headers,
+            "Content-Type": "application/json",
+            "Content-Encoding": "gzip",
+        }
         try:
             resp = httpx.post(
                 f"{server.rstrip('/')}/api/findings/import",
@@ -3000,7 +3173,16 @@ def plugin_install(
             clone_dir = Path(tmp_dir) / repo.split("/")[-1]
             try:
                 subprocess.run(
-                    ["git", "clone", "--depth", "1", "--branch", ref, f"https://github.com/{repo}.git", str(clone_dir)],
+                    [
+                        "git",
+                        "clone",
+                        "--depth",
+                        "1",
+                        "--branch",
+                        ref,
+                        f"https://github.com/{repo}.git",
+                        str(clone_dir),
+                    ],
                     check=True,
                     capture_output=True,
                     text=True,
@@ -3114,7 +3296,9 @@ def plugin_search(query: str = typer.Argument(..., help="Search term")) -> None:
         return
     for p in plugins:
         status = "enabled" if p.enabled else "disabled"
-        console.print(f"- [bold]{p.name}[/bold] v{p.version} ({status}) — {p.description or 'No description'}")
+        console.print(
+            f"- [bold]{p.name}[/bold] v{p.version} ({status}) — {p.description or 'No description'}"
+        )
     _audit("plugin_search", detail=f"query={query};count={len(plugins)}", success=True)
 
 
@@ -3172,14 +3356,20 @@ def completions_install(
     # Generate completion script via Typer / click
     try:
         import subprocess as _sp
-        env = {**os.environ, f"_{app.info.name.upper().replace('-', '_')}_COMPLETE": f"{shell}_source"}
+
+        env = {
+            **os.environ,
+            f"_{app.info.name.upper().replace('-', '_')}_COMPLETE": f"{shell}_source",
+        }
         result = _sp.run(["cosmicsec-agent"], env=env, capture_output=True, text=True)
         script = result.stdout
     except Exception:
         script = ""
 
     if not script:
-        console.print("[yellow]Could not auto-generate completions. Please follow manual instructions below.[/yellow]")
+        console.print(
+            "[yellow]Could not auto-generate completions. Please follow manual instructions below.[/yellow]"
+        )
         _print_manual_instructions(shell)
         return
 
@@ -3215,10 +3405,10 @@ def completions_show(
 
 def _print_manual_instructions(shell: str) -> None:
     instructions = {
-        "bash": 'Add to ~/.bashrc:\n  source ~/.bash_completion.d/cosmicsec-agent',
-        "zsh": 'Add to ~/.zshrc:\n  fpath=(~/.zsh/completions $fpath)\n  autoload -U compinit && compinit',
-        "fish": 'Fish completions are auto-loaded from ~/.config/fish/completions/',
-        "powershell": 'Add to your PowerShell $PROFILE:\n  . ~/Documents/PowerShell/cosmicsec-agent.ps1',
+        "bash": "Add to ~/.bashrc:\n  source ~/.bash_completion.d/cosmicsec-agent",
+        "zsh": "Add to ~/.zshrc:\n  fpath=(~/.zsh/completions $fpath)\n  autoload -U compinit && compinit",
+        "fish": "Fish completions are auto-loaded from ~/.config/fish/completions/",
+        "powershell": "Add to your PowerShell $PROFILE:\n  . ~/Documents/PowerShell/cosmicsec-agent.ps1",
     }
     msg = instructions.get(shell, "See your shell documentation for loading completion scripts.")
     console.print(f"\n[dim]{msg}[/dim]")

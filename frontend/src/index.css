@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 body {
-    @apply bg-slate-950 text-slate-100;
+  @apply bg-slate-950 text-slate-100;
 }
 
 /* High-contrast accessibility mode */
@@ -51,9 +51,17 @@ html[data-reduced-motion="true"] * {
 
 /* Success checkmark animation */
 @keyframes scale-in-check {
-  from { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.2); }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .animate-check {
@@ -62,11 +70,22 @@ html[data-reduced-motion="true"] * {
 
 /* Error shake animation */
 @keyframes shake-x {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 .animate-shake {
@@ -75,8 +94,14 @@ html[data-reduced-motion="true"] * {
 
 /* Counter number animation */
 @keyframes count-up {
-  from { opacity: 0; transform: translateY(100%); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-count {
@@ -85,8 +110,14 @@ html[data-reduced-motion="true"] * {
 
 /* Staggered list-item entrance */
 @keyframes slide-in-left {
-  from { opacity: 0; transform: translateX(-12px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .animate-slide-in {
@@ -95,9 +126,16 @@ html[data-reduced-motion="true"] * {
 
 /* Notification badge bounce */
 @keyframes badge-bounce {
-  0%, 100% { transform: scale(1); }
-  30% { transform: scale(1.4); }
-  60% { transform: scale(0.9); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.4);
+  }
+  60% {
+    transform: scale(0.9);
+  }
 }
 
 .animate-badge {
@@ -106,12 +144,16 @@ html[data-reduced-motion="true"] * {
 
 /* Navigation progress bar */
 @keyframes progress-indeterminate {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(400%); }
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(400%);
+  }
 }
 
 .progress-bar-indeterminate::after {
-  content: '';
+  content: "";
   display: block;
   height: 100%;
   width: 25%;
@@ -121,7 +163,9 @@ html[data-reduced-motion="true"] * {
 
 /* Smooth security score gauge fill */
 @keyframes gauge-fill {
-  from { stroke-dashoffset: 283; }
+  from {
+    stroke-dashoffset: 283;
+  }
 }
 
 .gauge-arc {
@@ -130,7 +174,9 @@ html[data-reduced-motion="true"] * {
 
 /* Input focus glow (supplement Tailwind ring) */
 .input-glow:focus {
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2), 0 0 12px rgba(14, 165, 233, 0.1);
+  box-shadow:
+    0 0 0 3px rgba(14, 165, 233, 0.2),
+    0 0 12px rgba(14, 165, 233, 0.1);
 }
 
 /* Button click ripple effect — add class="ripple" to buttons */
@@ -140,10 +186,10 @@ html[data-reduced-motion="true"] * {
 }
 
 .ripple::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
   opacity: 0;
   transition: opacity 0.3s;
 }

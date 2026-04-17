@@ -1,11 +1,10 @@
 """
 Tests for services/ai_service/agents.py — multi-agent assessment workflow.
 """
-import asyncio
+
 from typing import Any
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -58,7 +57,7 @@ def sample_findings() -> list[dict[str, Any]]:
 class TestTriageAgent:
     @pytest.mark.asyncio
     async def test_triage_adds_priority_score(self, sample_findings):
-        from services.ai_service.agents import triage_agent, AgentState
+        from services.ai_service.agents import AgentState, triage_agent
 
         state: AgentState = {
             "scan_id": "scan-1",
@@ -79,7 +78,7 @@ class TestTriageAgent:
 
     @pytest.mark.asyncio
     async def test_triage_sorts_by_priority_descending(self, sample_findings):
-        from services.ai_service.agents import triage_agent, AgentState
+        from services.ai_service.agents import AgentState, triage_agent
 
         state: AgentState = {
             "scan_id": "scan-1",
@@ -98,7 +97,7 @@ class TestTriageAgent:
 
     @pytest.mark.asyncio
     async def test_triage_adds_category(self, sample_findings):
-        from services.ai_service.agents import triage_agent, AgentState
+        from services.ai_service.agents import AgentState, triage_agent
 
         state: AgentState = {
             "scan_id": "scan-1",
@@ -117,7 +116,7 @@ class TestTriageAgent:
 
     @pytest.mark.asyncio
     async def test_triage_records_timing(self, sample_findings):
-        from services.ai_service.agents import triage_agent, AgentState
+        from services.ai_service.agents import AgentState, triage_agent
 
         state: AgentState = {
             "scan_id": "scan-1",
@@ -140,9 +139,9 @@ class TestCorrelationAgent:
     async def test_correlation_groups_by_target_and_category(self, sample_findings):
         from services.ai_service.agents import (
             AgentState,
+            analysis_agent,
             correlation_agent,
             triage_agent,
-            analysis_agent,
         )
 
         state: AgentState = {
