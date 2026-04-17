@@ -180,7 +180,8 @@ jobs:
           [ "$failures" -eq 0 ] || echo "::warning::Autofix phase completed with $failures failing step(s)"
 
       - name: Create pull request for automated improvements
-        uses: peter-evans/create-pull-request@v6
+        # v6 pinned SHA for supply-chain integrity.
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
         with:
           branch: automation/main-security-autofix-${{ github.run_id }}
           commit-message: "chore: automated security and quality autofixes"

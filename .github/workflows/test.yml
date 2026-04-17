@@ -57,6 +57,7 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run backend tests
+        # Coverage threshold is enforced in dedicated coverage-report.yml workflow.
         run: pytest tests/ -v --cov=services --cov-report=term-missing --cov-report=xml:coverage.xml --cov-fail-under=0
 
       - name: Upload backend coverage artifact
