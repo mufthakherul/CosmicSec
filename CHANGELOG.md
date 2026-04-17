@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.3.0](https://github.com/mufthakherul/CosmicSec/compare/v0.2.0...v0.3.0) (2026-04-17)
+
+
+### Features
+
+* add cross-platform config detection, service discovery, self-hosting setup, and documentation ([f488280](https://github.com/mufthakherul/CosmicSec/commit/f48828015928739d3011bc125e014faa77fee874))
+* add endpoint resolver and diagnostics UI components ([9588aa0](https://github.com/mufthakherul/CosmicSec/commit/9588aa0bbec1d95bb0bfb08ccb0a8dbd62d06901))
+* Add environment variable overrides for API gateway and service discovery ([19a1dee](https://github.com/mufthakherul/CosmicSec/commit/19a1deebf75acafe65be4bde6204428eb99e33bd))
+* add npm installer package and GitHub publish workflow for cosmicsec agent ([71ade28](https://github.com/mufthakherul/CosmicSec/commit/71ade28340a20f53d7540a044ea842638f17b71b))
+* Add production-grade common service modules ([071098b](https://github.com/mufthakherul/CosmicSec/commit/071098baff67231f7c4644e0e5b1f29fd20c70da))
+* **notification:** expand multi-channel delivery and roadmap/runbook docs ([5af7ac7](https://github.com/mufthakherul/CosmicSec/commit/5af7ac7ea50c4c5b376c328224cf5b3cf937d574))
+* publish CosmicSec showcase ([d57fe1a](https://github.com/mufthakherul/CosmicSec/commit/d57fe1a9d3380f5338b4127ac38b901eecb1834c))
+
+
+### Bug Fixes
+
+* align notification tests and enable docs/wiki auto workflow triggers ([a0f10a8](https://github.com/mufthakherul/CosmicSec/commit/a0f10a89e674453475f64ec41b94db78a5851bdb))
+* align npm installer verification and publish access settings ([c2bcfc4](https://github.com/mufthakherul/CosmicSec/commit/c2bcfc47035afa40801d732a7cade6c170f8d4df))
+* bump trivy-action to 0.35.0 in workflows ([4c0c03d](https://github.com/mufthakherul/CosmicSec/commit/4c0c03df2daedff10e2b1b29202203f640ef61e5))
+* **ci:** remove shellcheck-breaking backticks in workflow summaries ([0772122](https://github.com/mufthakherul/CosmicSec/commit/0772122ea56642b0f7e677647ee9aba801649425))
+* **compose:** make one-command startup and ingest/broker builds reliable ([8a36889](https://github.com/mufthakherul/CosmicSec/commit/8a3688989e83b985d80a39cdb92d858c17c12109))
+* Fix frontend TypeScript and ESLint issues ([826eab6](https://github.com/mufthakherul/CosmicSec/commit/826eab62be10fcab29bdf882f6b6974c197cdee9))
+* Fix Python code quality issues and import sorting ([0a7d3ed](https://github.com/mufthakherul/CosmicSec/commit/0a7d3eda4a53582b387835906b6e4a8f989b48cc))
+* frontend problems-tab fixes and page updates ([533619f](https://github.com/mufthakherul/CosmicSec/commit/533619f2f255c6bdf7b4ee5d78312160c0f470e9))
+* **frontend:** resolve remaining UI lint and accessibility issues ([661ce86](https://github.com/mufthakherul/CosmicSec/commit/661ce862e39542dc57aed53714e7a8ad7349474d))
+* handle trufflehog initial-push edge case and align sri parsing ([1a5ab34](https://github.com/mufthakherul/CosmicSec/commit/1a5ab34c5234689f26207e751672d12658c103cf))
+* resolve Python lint issues in plugin registry, config detection, and agent CLI ([d334d6a](https://github.com/mufthakherul/CosmicSec/commit/d334d6add67813a1aabc1fa4911fc17da2b1cffb))
+* stabilize CI workflows and refresh frontend lockfile ([bcf5493](https://github.com/mufthakherul/CosmicSec/commit/bcf54938d7398f33611e40f14eb07cb5df3e5fbf))
+* track npm installer library and unignore package lib path ([2a02ae0](https://github.com/mufthakherul/CosmicSec/commit/2a02ae09f528a475bf76b512c12e367636391ea0))
+
 ## [0.2.0](https://github.com/mufthakherul/CosmicSec/compare/v0.1.0...v0.2.0) (2026-04-16)
 
 
