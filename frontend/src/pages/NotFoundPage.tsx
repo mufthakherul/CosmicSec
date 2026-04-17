@@ -6,7 +6,7 @@ export function NotFoundPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-slate-100 px-4">
       {/* Glowing background blob */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-cyan-500/5 blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-125 w-125 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/5 blur-3xl" />
       </div>
 
       <div className="relative text-center">
@@ -16,7 +16,7 @@ export function NotFoundPage() {
         </div>
 
         {/* 404 */}
-        <h1 className="mb-2 text-8xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+        <h1 className="mb-2 bg-linear-to-r from-cyan-400 to-blue-500 bg-clip-text text-8xl font-extrabold tracking-tighter text-transparent">
           404
         </h1>
 

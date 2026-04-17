@@ -51,7 +51,7 @@ function RiskGauge({ score }: { score: number }) {
         strokeDasharray={`${filled} ${circumference}`}
         strokeDashoffset={circumference * 0.125}
         strokeLinecap="round"
-        style={{ transition: "stroke-dasharray 0.6s ease" }}
+        className="transition-[stroke-dasharray] duration-700 ease-out"
       />
       <text
         x="50%"
@@ -214,6 +214,8 @@ export function AIAnalysisPage() {
                     <label className="mb-1.5 block text-xs text-slate-500">Load from scan</label>
                     <select
                       value={selectedScan}
+                      aria-label="Load findings from existing scan"
+                      title="Load findings from existing scan"
                       onChange={(e) => handleScanLoad(e.target.value)}
                       className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-300 outline-none focus:border-purple-500/50"
                     >
@@ -294,7 +296,7 @@ export function AIAnalysisPage() {
                   <ul className="space-y-2">
                     {result.mitre_mappings.map((m) => (
                       <li key={m.technique_id} className="flex items-center gap-3">
-                        <span className="flex-shrink-0 rounded bg-slate-800 px-2 py-0.5 font-mono text-xs text-purple-300">
+                        <span className="shrink-0 rounded bg-slate-800 px-2 py-0.5 font-mono text-xs text-purple-300">
                           {m.technique_id}
                         </span>
                         <span className="flex-1 text-sm text-slate-300">{m.technique_name}</span>
@@ -316,7 +318,7 @@ export function AIAnalysisPage() {
                   <ul className="space-y-2">
                     {result.recommendations.map((rec, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
-                        <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
+                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                         {rec}
                       </li>
                     ))}
