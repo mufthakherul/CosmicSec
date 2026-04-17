@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.0](https://github.com/mufthakherul/CosmicSec/compare/v0.2.0...v0.3.0) (2026-04-17)
+
+
+### Features
+
+* **notification:** expand multi-channel delivery and roadmap/runbook docs ([5af7ac7](https://github.com/mufthakherul/CosmicSec/commit/5af7ac7ea50c4c5b376c328224cf5b3cf937d574))
+* publish CosmicSec showcase ([d57fe1a](https://github.com/mufthakherul/CosmicSec/commit/d57fe1a9d3380f5338b4127ac38b901eecb1834c))
+
+
+### Bug Fixes
+
+* align notification tests and enable docs/wiki auto workflow triggers ([a0f10a8](https://github.com/mufthakherul/CosmicSec/commit/a0f10a89e674453475f64ec41b94db78a5851bdb))
+* bump trivy-action to 0.35.0 in workflows ([4c0c03d](https://github.com/mufthakherul/CosmicSec/commit/4c0c03df2daedff10e2b1b29202203f640ef61e5))
+* **ci:** remove shellcheck-breaking backticks in workflow summaries ([0772122](https://github.com/mufthakherul/CosmicSec/commit/0772122ea56642b0f7e677647ee9aba801649425))
+* **compose:** make one-command startup and ingest/broker builds reliable ([8a36889](https://github.com/mufthakherul/CosmicSec/commit/8a3688989e83b985d80a39cdb92d858c17c12109))
+* **frontend:** resolve remaining UI lint and accessibility issues ([661ce86](https://github.com/mufthakherul/CosmicSec/commit/661ce862e39542dc57aed53714e7a8ad7349474d))
+* handle trufflehog initial-push edge case and align sri parsing ([1a5ab34](https://github.com/mufthakherul/CosmicSec/commit/1a5ab34c5234689f26207e751672d12658c103cf))
+* stabilize CI workflows and refresh frontend lockfile ([bcf5493](https://github.com/mufthakherul/CosmicSec/commit/bcf54938d7398f33611e40f14eb07cb5df3e5fbf))
+
 ## [0.2.0](https://github.com/mufthakherul/CosmicSec/compare/v0.1.0...v0.2.0) (2026-04-16)
 
 
