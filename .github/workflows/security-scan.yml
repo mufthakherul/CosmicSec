@@ -219,13 +219,13 @@ jobs:
         run: |
           {
             echo "## Security Scan Summary"
-            echo "- Bandit: `${{ needs.bandit-sast.result }}`"
-            echo "- Trivy FS: `${{ needs.trivy-fs.result }}`"
-            echo "- Frontend security lint: `${{ needs.frontend-eslint-security.result }}`"
-            echo "- SBOM: `${{ needs.sbom.result }}`"
-            echo "- SRI check: `${{ needs.sri-check.result }}`"
-            echo "- Dependency review: `${{ needs.dependency-review.result }}`"
-            echo "- TruffleHog: `${{ needs.trufflehog-secrets.result }}`"
+            echo "- Bandit: ${{ needs.bandit-sast.result }}"
+            echo "- Trivy FS: ${{ needs.trivy-fs.result }}"
+            echo "- Frontend security lint: ${{ needs.frontend-eslint-security.result }}"
+            echo "- SBOM: ${{ needs.sbom.result }}"
+            echo "- SRI check: ${{ needs.sri-check.result }}"
+            echo "- Dependency review: ${{ needs.dependency-review.result }}"
+            echo "- TruffleHog: ${{ needs.trufflehog-secrets.result }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail on required security gate failures

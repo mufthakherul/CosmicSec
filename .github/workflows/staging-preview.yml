@@ -69,6 +69,6 @@ jobs:
         run: |
           {
             echo "## Staging Preview Summary"
-            echo "- Preview image: `cosmicsec-preview:${{ github.sha }}`"
-            echo "- Preview URL: `${{ steps.meta.outputs.preview_url }}`"
+            echo "- Preview image: cosmicsec-preview:${{ github.sha }}"
+            echo "- Preview URL: ${{ steps.meta.outputs.preview_url }}"
           } >> "$GITHUB_STEP_SUMMARY"

@@ -284,14 +284,14 @@ jobs:
         run: |
           {
             echo "## Test Workflow Summary"
-            echo "- Python tests: `${{ needs.python-test.result }}`"
-            echo "- Alembic check: `${{ needs.alembic-migration-check.result }}`"
-            echo "- Frontend tests: `${{ needs.frontend-test.result }}`"
-            echo "- Playwright e2e: `${{ needs.playwright-e2e.result }}`"
-            echo "- Ruff lint: `${{ needs.python-lint.result }}`"
-            echo "- mypy typecheck: `${{ needs.python-typecheck.result }}`"
-            echo "- Frontend typecheck: `${{ needs.frontend-typecheck.result }}`"
-            echo "- Bundle-size guard: `${{ needs.frontend-bundle-size.result }}`"
+            echo "- Python tests: ${{ needs.python-test.result }}"
+            echo "- Alembic check: ${{ needs.alembic-migration-check.result }}"
+            echo "- Frontend tests: ${{ needs.frontend-test.result }}"
+            echo "- Playwright e2e: ${{ needs.playwright-e2e.result }}"
+            echo "- Ruff lint: ${{ needs.python-lint.result }}"
+            echo "- mypy typecheck: ${{ needs.python-typecheck.result }}"
+            echo "- Frontend typecheck: ${{ needs.frontend-typecheck.result }}"
+            echo "- Bundle-size guard: ${{ needs.frontend-bundle-size.result }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail on required job failures
