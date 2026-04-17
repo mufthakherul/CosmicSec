@@ -2,13 +2,23 @@ name: SQL Injection Dynamic Scan
 
 on:
   pull_request:
+    paths:
+      - "services/**"
+      - "docker-compose*.yml"
+      - ".github/workflows/sql-injection-ci.yml"
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sql-injection-scan-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   sqlmap:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    timeout-minutes: 40
     env:
       REDIS_PASSWORD: ci-redis-password
     steps:
@@ -21,7 +31,6 @@ jobs:
       - name: Wait for API gateway
         run: |
           for _ in {1..60}; do
-            # API gateway exposes container health at /health in current compose stack.
             if curl -fsS http://localhost:8000/health >/dev/null; then
               exit 0
             fi
@@ -56,3 +65,12 @@ jobs:
       - name: Shutdown stack
         if: always()
         run: docker compose down -v
+
+      - name: Publish summary
+        if: always()
+        run: |
+          {
+            echo "## SQL Injection Dynamic Scan"
+            echo "- sqlmap smoke scan executed against auth login endpoint"
+            echo "- Artifacts uploaded when present"
+          } >> "$GITHUB_STEP_SUMMARY"

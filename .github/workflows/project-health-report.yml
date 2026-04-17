@@ -5,11 +5,16 @@ on:
   schedule:
     - cron: "0 5 * * 1"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: project-health-report
+  cancel-in-progress: false
+
 jobs:
   health-report:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -53,3 +58,11 @@ jobs:
         with:
           name: project-health-report
           path: .artifacts/project-health-report.json
+
+      - name: Publish summary
+        run: |
+          {
+            echo "## Project Health Report"
+            echo "- Artifact: `project-health-report.json`"
+            echo "- Trigger: `${{ github.event_name }}`"
+          } >> "$GITHUB_STEP_SUMMARY"

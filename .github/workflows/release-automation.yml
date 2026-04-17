@@ -3,17 +3,56 @@ name: Release Automation
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
   workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: release-automation-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  release-health-gate:
+    name: Release health gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
+
+      - name: Run smoke tests
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pytest tests/test_docker_env.py -q
+
   release-please:
+    name: Semantic release + changelog
+    needs: [release-health-gate]
     runs-on: ubuntu-latest
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@v4
         with:
           release-type: simple
+
+      - name: Release summary
+        run: |
+          {
+            echo "## Release Automation"
+            echo "- Semantic versioning/changelog handled by Release Please"
+            echo "- Health gate completed before release automation"
+          } >> "$GITHUB_STEP_SUMMARY"

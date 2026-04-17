@@ -6,11 +6,16 @@ on:
     tags:
       - "agent/v*"
 
+permissions:
+  contents: write
+
+concurrency:
+  group: homebrew-tap-sync-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   update-formula:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -28,3 +33,10 @@ jobs:
         with:
           name: homebrew-formula
           path: /tmp/cosmicsec-agent.rb
+
+      - name: Publish summary
+        run: |
+          {
+            echo "## Homebrew Tap Sync"
+            echo "- Generated formula artifact for `${GITHUB_REF_NAME#agent/v}`"
+          } >> "$GITHUB_STEP_SUMMARY"
