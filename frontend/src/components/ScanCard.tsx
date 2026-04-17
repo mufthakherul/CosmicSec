@@ -32,6 +32,7 @@ const statusStyle: Record<ScanCardStatus, { icon: ReactNode; label: string; clas
 };
 
 export function ScanCard({ target, tool, findings, startedAt, status, onOpen }: ScanCardProps) {
+  // eslint-disable-next-line security/detect-object-injection
   const statusMeta = statusStyle[status];
 
   return (

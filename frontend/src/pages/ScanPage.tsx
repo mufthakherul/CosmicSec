@@ -59,7 +59,11 @@ export function ScanPage() {
   const toggleTool = (tool: Tool) =>
     setSelectedTools((prev) => {
       const next = new Set(prev);
-      next.has(tool) ? next.delete(tool) : next.add(tool);
+      if (next.has(tool)) {
+        next.delete(tool);
+      } else {
+        next.add(tool);
+      }
       return next;
     });
 
