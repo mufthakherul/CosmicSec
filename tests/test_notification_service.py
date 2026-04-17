@@ -72,14 +72,14 @@ def test_delete_unknown_config_returns_404() -> None:
 def test_send_notification_filters_channels(monkeypatch) -> None:
     calls: list[dict] = []
 
-    def fake_request(method: str, url: str, json: dict, headers: dict, timeout: int) -> object:
+    def fake_request(method: str, url: str, **kwargs: dict) -> object:
         calls.append(
             {
                 "method": method,
                 "url": url,
-                "json": json,
-                "headers": headers,
-                "timeout": timeout,
+                "json": kwargs.get("json"),
+                "headers": kwargs.get("headers"),
+                "timeout": kwargs.get("timeout"),
             }
         )
         return object()
@@ -115,7 +115,7 @@ def test_send_notification_filters_channels(monkeypatch) -> None:
 
 
 def test_send_notification_records_delivery_error(monkeypatch) -> None:
-    def fake_post(url: str, json: dict, timeout: int) -> object:
+    def fake_post(url: str, **kwargs: dict) -> object:
         raise httpx.HTTPError("delivery failed")
 
     monkeypatch.setattr("services.notification_service.main.httpx.post", fake_post)
@@ -140,7 +140,7 @@ def test_send_notification_records_delivery_error(monkeypatch) -> None:
 
 
 def test_test_notification_success_for_webhook(monkeypatch) -> None:
-    def fake_post(url: str, json: dict, timeout: int) -> object:
+    def fake_post(url: str, **kwargs: dict) -> object:
         return object()
 
     monkeypatch.setattr("services.notification_service.main.httpx.post", fake_post)
@@ -167,7 +167,7 @@ def test_test_notification_unknown_config_returns_404() -> None:
 
 
 def test_metrics_endpoint_reflects_counters(monkeypatch) -> None:
-    def fake_post(url: str, json: dict, timeout: int) -> object:
+    def fake_post(url: str, **kwargs: dict) -> object:
         return object()
 
     monkeypatch.setattr("services.notification_service.main.httpx.post", fake_post)
