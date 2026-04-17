@@ -54,7 +54,7 @@ jobs:
           PY
 
       - name: Upload health report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: project-health-report
           path: .artifacts/project-health-report.json
