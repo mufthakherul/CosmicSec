@@ -118,5 +118,5 @@ jobs:
           {
             echo "## Wiki Sync Summary"
             echo "- Updated from generated docs outputs when available"
-            echo "- Trigger: `${{ github.event_name }}`"
+            echo "- Trigger: ${{ github.event_name }}"
           } >> "$GITHUB_STEP_SUMMARY"

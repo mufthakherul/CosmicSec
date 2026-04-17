@@ -93,7 +93,7 @@ jobs:
         run: |
           {
             echo "## Build Workflow Summary"
-            echo "- Docker matrix build result: `${{ needs.docker-build.result }}`"
+            echo "- Docker matrix build result: ${{ needs.docker-build.result }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail if matrix build failed

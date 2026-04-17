@@ -64,6 +64,6 @@ jobs:
         run: |
           {
             echo "## Deploy Summary"
-            echo "- Environment: `${{ github.event.inputs.environment || 'staging' }}`"
+            echo "- Environment: ${{ github.event.inputs.environment || 'staging' }}"
             echo "- Pre-deploy validation passed"
           } >> "$GITHUB_STEP_SUMMARY"
