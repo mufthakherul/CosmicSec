@@ -16,6 +16,7 @@ from cosmicsec_platform.service_discovery import get_service_url
 
 logger = logging.getLogger(__name__)
 
+
 # Service URLs - auto-detects OS and deployment environment
 # Can be overridden via environment variables for special cases
 def _get_service_url(service_key: str, env_var: str) -> str:
@@ -23,6 +24,7 @@ def _get_service_url(service_key: str, env_var: str) -> str:
     if explicit_url := os.getenv(env_var):
         return explicit_url
     return get_service_url(service_key)
+
 
 RECON_URL = _get_service_url("recon", "RECON_URL")
 SCAN_URL = _get_service_url("scan", "SCAN_URL")
