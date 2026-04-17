@@ -1,7 +1,7 @@
 COMPOSE_DEV = -f docker-compose.yml -f docker-compose.dev.yml
 
 .PHONY: install dev dev-frontend dev-backend test build clean help up \
-       seed test-all lint-all format-all
+       seed test-all lint-all format-all setup-self-hosted cross-platform-info
 
 help:
 	@echo "CosmicSec — Universal Cybersecurity Intelligence Platform"
@@ -16,6 +16,12 @@ help:
 	@echo "  make up            - Start production containers"
 	@echo "  make stop          - Stop all containers"
 	@echo "  make restart       - Restart all containers"
+	@echo ""
+	@echo "Cross-Platform & Deployment:"
+	@echo "  make cross-platform-info - Show cross-platform setup info"
+	@echo "  make setup-self-hosted   - Interactive self-hosted setup (home/server)"
+	@echo "  make setup-self-hosted-ip IP=192.168.1.100 - Setup with specific IP"
+	@echo "  make hosting-guide  - View hosting requirements & options"
 	@echo ""
 	@echo "Testing & Quality:"
 	@echo "  make test          - Run Python tests with coverage"
@@ -57,6 +63,11 @@ dev:
 	@echo "  Recon Service:http://localhost:8004"
 	@echo "  Report Service:http://localhost:8005"
 	@echo "  API Docs:     http://localhost:8000/api/docs"
+	@echo ""
+	@echo "Note: Automatic cross-platform detection enabled!"
+	@echo "  - Windows, Linux, macOS all supported"
+	@echo "  - Services auto-detect localhost vs docker network"
+	@echo "  See: make cross-platform-info"
 
 dev-build:
 	docker compose $(COMPOSE_DEV) up --build -d
@@ -175,3 +186,36 @@ admin-ssh:
 
 cli-manpage:
 	python scripts/generate-cli-manpage.py
+
+# Cross-Platform & Self-Hosted Deployment
+cross-platform-info:
+	@echo "CosmicSec Cross-Platform Support"
+	@echo "================================"
+	@echo ""
+	@echo "✓ Automatic OS Detection:"
+	@echo "  • Windows (10/11+)"
+	@echo "  • Linux (any distribution)"
+	@echo "  • macOS (10.15+)"
+	@echo ""
+	@echo "✓ Automatic Environment Detection:"
+	@echo "  • Local Development (localhost:PORT)"
+	@echo "  • Docker Compose (service-name:PORT)"
+	@echo "  • Self-Hosted (SERVICE_HOST:PORT)"
+	@echo ""
+	@echo "✓ Features:"
+	@echo "  • No reconfiguration when switching OSes"
+	@echo "  • Service discovery handled automatically"
+	@echo "  • Works with Windows, Linux, and macOS"
+	@echo ""
+	@echo "For detailed info, see: docs/CROSS_PLATFORM_GUIDE.md"
+
+setup-self-hosted:
+	python scripts/setup-self-hosted.py
+
+setup-self-hosted-ip:
+	python scripts/setup-self-hosted.py --ip $(IP)
+
+hosting-guide:
+	@cat docs/HOSTING_REQUIREMENTS.md | less
+
+.DEFAULT_GOAL := help

@@ -7,17 +7,27 @@ from __future__ import annotations
 
 import importlib
 import logging
+import os
 from typing import Any, TypedDict
 
 import httpx
 
+from cosmicsec_platform.service_discovery import get_service_url
+
 logger = logging.getLogger(__name__)
 
-# Service URLs (can be overridden via env vars)
-RECON_URL = "http://recon-service:8004"
-SCAN_URL = "http://scan-service:8002"
-AI_URL = "http://ai-service:8003"
-REPORT_URL = "http://report-service:8005"
+# Service URLs - auto-detects OS and deployment environment
+# Can be overridden via environment variables for special cases
+def _get_service_url(service_key: str, env_var: str) -> str:
+    """Get service URL from env var or service discovery."""
+    if explicit_url := os.getenv(env_var):
+        return explicit_url
+    return get_service_url(service_key)
+
+RECON_URL = _get_service_url("recon", "RECON_URL")
+SCAN_URL = _get_service_url("scan", "SCAN_URL")
+AI_URL = _get_service_url("ai", "AI_URL")
+REPORT_URL = _get_service_url("report", "REPORT_URL")
 
 
 class WorkflowState(TypedDict):
