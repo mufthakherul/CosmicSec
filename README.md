@@ -145,7 +145,25 @@ pip install -r requirements.txt
 ### Run with Docker (Recommended)
 
 ```bash
-docker-compose up --build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+```
+
+### Reliable Compose Commands (Windows-Friendly)
+
+When running from different working directories, use the helper script to always target the repository root:
+
+```powershell
+# Start dev stack
+.\scripts\compose-dev.ps1 -Action up -Detached
+
+# Rebuild one service from scratch and restart it
+.\scripts\compose-dev.ps1 -Action rebuild -Services collab-service
+
+# If you accidentally run "build -d", this helper auto-corrects to up -d --build
+.\scripts\compose-dev.ps1 -Action build -Detached
+
+# Build with automatic retry and BuildKit fallback when Docker returns EOF/500 errors
+.\scripts\docker-build-safe.ps1 -NoCache -Services collab-service
 ```
 
 | Service | URL |

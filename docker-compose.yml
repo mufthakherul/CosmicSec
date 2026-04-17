@@ -145,9 +145,19 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      scan-service:
+        condition: service_healthy
     networks:
       - cosmicsec-network
     command: uvicorn services.api_gateway.main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
     labels:
       - traefik.enable=true
       - traefik.http.routers.cosmicsec-gateway.rule=PathPrefix(`/api`) || PathPrefix(`/health`) || PathPrefix(`/ws`)
@@ -173,9 +183,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     networks:
       - cosmicsec-network
     command: uvicorn services.auth_service.main:app --host 0.0.0.0 --port 8001
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
     labels:
       - traefik.enable=true
       - traefik.http.routers.cosmicsec-auth.rule=PathPrefix(`/auth`)
@@ -203,9 +221,17 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - cosmicsec-network
     command: uvicorn services.scan_service.main:app --host 0.0.0.0 --port 8002
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
     labels:
       - traefik.enable=true
       - traefik.http.routers.cosmicsec-scan.rule=PathPrefix(`/scan`)
@@ -224,11 +250,20 @@ services:
       - CHROMA_PERSIST_DIR=/tmp/cosmicsec_chroma
     ports:
       - "8003:8003"
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - cosmicsec-network
     volumes:
       - chroma_data:/tmp/cosmicsec_chroma
     command: uvicorn services.ai_service.main:app --host 0.0.0.0 --port 8003
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
 
   # Recon Service
   recon-service:
@@ -244,6 +279,12 @@ services:
     networks:
       - cosmicsec-network
     command: uvicorn services.recon_service.main:app --host 0.0.0.0 --port 8004
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
 
   # Report Service
   report-service:
@@ -258,6 +299,12 @@ services:
     networks:
       - cosmicsec-network
     command: uvicorn services.report_service.main:app --host 0.0.0.0 --port 8005
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8005/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
 
   # Collab Service — Phase 2 real-time team collaboration
   collab-service:
@@ -477,7 +524,7 @@ services:
       - "3000:3000"
     depends_on:
       api-gateway:
-        condition: service_started
+        condition: service_healthy
     networks:
       - cosmicsec-network
     volumes:

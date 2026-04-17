@@ -1,4 +1,5 @@
 COMPOSE_DEV = -f docker-compose.yml -f docker-compose.dev.yml
+COMPOSE = docker compose
 
 .PHONY: install dev dev-frontend dev-backend test build clean help up \
 	seed test-all lint-all format-all setup-self-hosted cross-platform-info diagnose
@@ -12,6 +13,8 @@ help:
 	@echo "  make dev-frontend  - Start frontend dev server"
 	@echo "  make dev-backend   - Start backend services in Docker"
 	@echo "  make dev-build     - Rebuild & start dev containers"
+	@echo "  make dev-build-no-cache - Rebuild from scratch and start dev containers"
+	@echo "  make dev-restart-safe   - Restart dev stack with dependency health ordering"
 	@echo "  make seed          - Seed database with dev test data"
 	@echo "  make up            - Start production containers"
 	@echo "  make stop          - Stop all containers"
@@ -33,6 +36,7 @@ help:
 	@echo ""
 	@echo "Docker:"
 	@echo "  make build         - Build Docker images"
+	@echo "  make build-safe    - Build with auto-retry and legacy fallback"
 	@echo "  make clean         - Remove containers, volumes, caches"
 	@echo "  make ps            - Show running containers"
 	@echo "  make logs          - Tail all service logs"
@@ -55,7 +59,7 @@ install:
 	pip install -r requirements/dev.txt
 
 dev:
-	docker compose $(COMPOSE_DEV) up -d
+	$(COMPOSE) $(COMPOSE_DEV) up -d
 	@echo "Dev services started (hot-reload enabled):"
 	@echo "  API Gateway:  http://localhost:8000"
 	@echo "  Auth Service: http://localhost:8001"
@@ -71,37 +75,45 @@ dev:
 	@echo "  See: make cross-platform-info"
 
 dev-build:
-	docker compose $(COMPOSE_DEV) up --build -d
+	$(COMPOSE) $(COMPOSE_DEV) up --build -d
+
+dev-build-no-cache:
+	$(COMPOSE) $(COMPOSE_DEV) build --no-cache
+	$(COMPOSE) $(COMPOSE_DEV) up -d
+
+dev-restart-safe:
+	$(COMPOSE) $(COMPOSE_DEV) down
+	$(COMPOSE) $(COMPOSE_DEV) up -d
 
 up:
-	docker compose up -d
+	$(COMPOSE) up -d
 
 stop:
-	docker-compose down
+	$(COMPOSE) down
 
 logs:
-	docker-compose logs -f
+	$(COMPOSE) logs -f
 
 logs-gateway:
-	docker-compose logs -f api-gateway
+	$(COMPOSE) logs -f api-gateway
 
 logs-auth:
-	docker-compose logs -f auth-service
+	$(COMPOSE) logs -f auth-service
 
 logs-scan:
-	docker-compose logs -f scan-service
+	$(COMPOSE) logs -f scan-service
 
 logs-ai:
-	docker-compose logs -f ai-service
+	$(COMPOSE) logs -f ai-service
 
 logs-recon:
-	docker-compose logs -f recon-service
+	$(COMPOSE) logs -f recon-service
 
 logs-report:
-	docker-compose logs -f report-service
+	$(COMPOSE) logs -f report-service
 
 shell:
-	docker-compose exec api-gateway /bin/sh
+	$(COMPOSE) exec api-gateway /bin/sh
 
 test:
 	pytest tests/ -v --cov=services --cov-report=html
@@ -116,28 +128,34 @@ format:
 	ruff format .
 
 build:
-	docker-compose build
+	$(COMPOSE) build
+
+build-safe:
+	powershell -ExecutionPolicy Bypass -File scripts/docker-build-safe.ps1
+
+build-safe-no-cache:
+	powershell -ExecutionPolicy Bypass -File scripts/docker-build-safe.ps1 -NoCache
 
 clean:
-	docker-compose down -v
+	$(COMPOSE) down -v
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
 
 ps:
-	docker-compose ps
+	$(COMPOSE) ps
 
 restart:
-	docker-compose restart
+	$(COMPOSE) restart
 
 db-migrate:
-	docker-compose exec api-gateway alembic upgrade head
+	$(COMPOSE) exec api-gateway alembic upgrade head
 
 db-reset:
-	docker-compose down -v
-	docker-compose up -d postgres
+	$(COMPOSE) down -v
+	$(COMPOSE) up -d postgres
 	sleep 5
-	docker-compose up -d
+	$(COMPOSE) up -d
 
 health:
 	@echo "Checking service health..."
@@ -204,7 +222,7 @@ dev-frontend:
 	cd frontend && npm run dev
 
 dev-backend:
-	docker compose $(COMPOSE_DEV) up api-gateway auth-service scan-service ai-service -d
+	$(COMPOSE) $(COMPOSE_DEV) up api-gateway auth-service scan-service ai-service -d
 
 seed:
 	python scripts/seed-dev-data.py
