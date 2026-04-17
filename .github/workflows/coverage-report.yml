@@ -47,7 +47,7 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run coverage gate
-        run: pytest tests/ -q --cov=services --cov-report=term-missing --cov-report=xml --cov-fail-under=${COVERAGE_THRESHOLD}
+        run: pytest tests/ -q --cov=services --cov-report=term-missing --cov-report=xml --cov-fail-under="${COVERAGE_THRESHOLD}"
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
@@ -62,6 +62,6 @@ jobs:
         run: |
           {
             echo "## Coverage Report"
-            echo "- Backend coverage threshold: `${COVERAGE_THRESHOLD}%`"
+            echo "- Backend coverage threshold: ${COVERAGE_THRESHOLD}%"
             echo "- Coverage XML uploaded as artifact"
           } >> "$GITHUB_STEP_SUMMARY"
