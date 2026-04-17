@@ -245,7 +245,7 @@ export function AgentsPage() {
       setLoading(false);
       setRefreshing(false);
     },
-    [token]
+    [token],
   );
 
   useEffect(() => {
