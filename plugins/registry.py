@@ -13,8 +13,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -45,6 +43,8 @@ from .db_repository import (
 )
 from .sdk.base import PluginContext
 from .sdk.loader import PluginLoader
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="CosmicSec Plugin Registry",
