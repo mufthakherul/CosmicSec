@@ -3,8 +3,9 @@ import { Brain, Loader2, Shield, Zap, CheckCircle, ChevronRight } from "lucide-r
 import { AppLayout } from "../components/AppLayout";
 import { useScanStore } from "../store/scanStore";
 import { useNotificationStore } from "../store/notificationStore";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 interface MitreMapping {
   technique_id: string;

@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Globe, Download, ChevronDown, ChevronRight, Loader2, Search } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useNotificationStore } from "../store/notificationStore";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 /** Matches the actual recon service /recon response shape */
 interface ReconResult {
@@ -62,11 +63,10 @@ function SkeletonPanel() {
     <div className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm">
       <div className="mb-3 h-4 w-1/3 animate-pulse rounded bg-slate-700" />
       <div className="space-y-2">
-        {[1, 2, 3].map((i) => (
+        {["w-[70%]", "w-[80%]", "w-[90%]"].map((widthClass) => (
           <div
-            key={i}
-            className="h-3 animate-pulse rounded bg-slate-800"
-            style={{ width: `${60 + i * 10}%` }}
+            key={widthClass}
+            className={`h-3 animate-pulse rounded bg-slate-800 ${widthClass}`}
           />
         ))}
       </div>

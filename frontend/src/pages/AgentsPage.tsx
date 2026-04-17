@@ -13,8 +13,9 @@ import {
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useAuth } from "../context/AuthContext";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 // ---------------------------------------------------------------------------
 // Types

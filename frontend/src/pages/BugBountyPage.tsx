@@ -14,8 +14,9 @@ import {
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useNotificationStore } from "../store/notificationStore";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 interface BugBountyProgram {
   id: string;
@@ -178,6 +179,7 @@ export function BugBountyPage() {
                   value={formProgramId}
                   onChange={(e) => setFormProgramId(e.target.value)}
                   required
+                  aria-label="Bug bounty program"
                   className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-300 outline-none focus:border-amber-500/50"
                 >
                   <option value="">— select a program —</option>
@@ -194,6 +196,7 @@ export function BugBountyPage() {
                 <select
                   value={formSeverity}
                   onChange={(e) => setFormSeverity(e.target.value)}
+                  aria-label="Bug severity"
                   className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-300 outline-none focus:border-amber-500/50"
                 >
                   {["critical", "high", "medium", "low", "info"].map((s) => (
@@ -341,7 +344,7 @@ export function BugBountyPage() {
                           {new Date(sub.submitted_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="flex flex-shrink-0 items-center gap-2">
+                      <div className="flex shrink-0 items-center gap-2">
                         {sub.reward && (
                           <span className="flex items-center gap-1 text-xs font-medium text-emerald-400">
                             <DollarSign className="h-3 w-3" />

@@ -4,8 +4,9 @@ import { Radar, Clock, CheckCircle, AlertCircle, Loader2, Play } from "lucide-re
 import { AppLayout } from "../components/AppLayout";
 import { useScanStore, type Scan, type ScanStatus } from "../store/scanStore";
 import { useNotificationStore } from "../store/notificationStore";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 const TOOLS = ["nmap", "nikto", "nuclei", "gobuster", "sqlmap"] as const;
 type Tool = (typeof TOOLS)[number];
@@ -201,6 +202,7 @@ export function ScanPage() {
                   <select
                     value={scanType}
                     onChange={(e) => setScanType(e.target.value as typeof scanType)}
+                    aria-label="Scan type"
                     className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-cyan-500/50"
                   >
                     <option value="quick">Quick Scan</option>
@@ -264,10 +266,7 @@ export function ScanPage() {
                   onTouchEnd={onRecentTouchEnd}
                 >
                   {(pullDistance > 0 || isRefreshing) && (
-                    <div
-                      className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300"
-                      style={{ opacity: Math.min(1, pullDistance / 70) }}
-                    >
+                    <div className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
                       {isRefreshing ? "Refreshing scans…" : "Pull down to refresh scans"}
                     </div>
                   )}
@@ -305,7 +304,7 @@ export function ScanPage() {
                                 </p>
                               </div>
                               <span
-                                className={`ml-3 flex flex-shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
+                                className={`ml-3 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
                               >
                                 <BadgeIcon
                                   className={`h-3 w-3 ${scan.status === "running" ? "animate-spin" : ""}`}

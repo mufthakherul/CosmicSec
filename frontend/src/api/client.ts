@@ -10,8 +10,9 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { ensureApiGatewayBaseUrl, getApiGatewayBaseUrl } from "./runtimeEndpoints";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const BASE_URL = getApiGatewayBaseUrl();
 
 const client: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -20,7 +21,12 @@ const client: AxiosInstance = axios.create({
 });
 
 /* ---------- Request interceptor: attach Authorization header ---------- */
-client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  const dynamicBaseUrl = await ensureApiGatewayBaseUrl();
+  if (dynamicBaseUrl) {
+    config.baseURL = dynamicBaseUrl;
+  }
+
   const token = localStorage.getItem("cosmicsec_token");
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;

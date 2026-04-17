@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useNotificationStore } from "../store/notificationStore";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 interface Report {
   id: string;
@@ -226,9 +227,11 @@ export function ReportsPage() {
                         </span>
                       </div>
                       <div className="h-2 rounded-full bg-slate-800">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-700 ${item.color}`}
-                          style={{ width: `${animateCharts ? item.pct : 0}%` }}
+                        <progress
+                          value={animateCharts ? item.pct : 0}
+                          max={100}
+                          className={`h-2 w-full overflow-hidden rounded-full [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-slate-800 [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-700 [&::-moz-progress-bar]:rounded-full ${item.color}`}
+                          aria-label={`${item.label} percentage`}
                         />
                       </div>
                     </div>
@@ -271,7 +274,7 @@ export function ReportsPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="ml-3 flex flex-shrink-0 items-center gap-2">
+                        <div className="ml-3 flex shrink-0 items-center gap-2">
                           <span
                             className={`rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
                           >

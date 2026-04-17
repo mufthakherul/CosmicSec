@@ -14,8 +14,9 @@ import {
 import { AppLayout } from "../components/AppLayout";
 import { useScanStore, type Finding, type FindingSeverity } from "../store/scanStore";
 import { useScanStream } from "../hooks/useScanStream";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 const SEV_STYLES: Record<
   FindingSeverity,
@@ -51,7 +52,7 @@ function FindingCard({ finding }: { finding: Finding }) {
     <div className={`rounded-lg border ${sev.className} bg-white/5 p-4 backdrop-blur-sm`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-2">
-          <SevIcon className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <SevIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <p className="text-sm font-medium text-slate-200">{finding.title}</p>
         </div>
         <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${sev.className}`}>
@@ -184,11 +185,15 @@ export function ScanDetailPage() {
             <span className="font-mono text-slate-500">{scan.progress}%</span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                scan.status === "failed" ? "bg-rose-500" : "bg-cyan-500"
+            <progress
+              value={scan.progress}
+              max={100}
+              className={`h-2 w-full overflow-hidden rounded-full [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-slate-800 [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500 [&::-moz-progress-bar]:rounded-full ${
+                scan.status === "failed"
+                  ? "[&::-webkit-progress-value]:bg-rose-500 [&::-moz-progress-bar]:bg-rose-500"
+                  : "[&::-webkit-progress-value]:bg-cyan-500 [&::-moz-progress-bar]:bg-cyan-500"
               }`}
-              style={{ width: `${scan.progress}%` }}
+              aria-label="Scan progress"
             />
           </div>
         </div>
