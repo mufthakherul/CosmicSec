@@ -85,7 +85,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
         <div className="flex h-16 items-center justify-between border-b border-slate-800 px-4">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <Shield className="h-6 w-6 flex-shrink-0 text-cyan-400" />
+              <Shield className="h-6 w-6 shrink-0 text-cyan-400" />
               <span className="text-lg font-bold tracking-tight text-slate-100">CosmicSec</span>
             </div>
           )}
@@ -105,7 +105,6 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
               onClick={() => onCollapsedChange(!collapsed)}
               className="hidden rounded p-1 text-slate-400 hover:text-white md:block"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              aria-expanded={!collapsed}
             >
               {collapsed ? (
                 <ChevronRight className="h-4 w-4" />
@@ -139,7 +138,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
                       collapsed ? "justify-center" : "",
                     ].join(" ")}
                   >
-                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <Icon className="h-4 w-4 shrink-0" />
                     {!collapsed && <span>{label}</span>}
                   </Link>
                 </li>
@@ -164,13 +163,13 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
               collapsed ? "justify-center" : "",
             ].join(" ")}
           >
-            <Settings className="h-4 w-4 flex-shrink-0" />
+            <Settings className="h-4 w-4 shrink-0" />
             {!collapsed && <span>Settings</span>}
           </Link>
 
           {!collapsed ? (
             <div className="mb-2 flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400">
                 <User className="h-4 w-4" />
               </div>
               <div className="min-w-0">
@@ -193,7 +192,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
               collapsed ? "justify-center" : "",
             ].join(" ")}
           >
-            <LogOut className="h-4 w-4 flex-shrink-0" />
+            <LogOut className="h-4 w-4 shrink-0" />
             {!collapsed && <span>Log out</span>}
           </button>
         </div>

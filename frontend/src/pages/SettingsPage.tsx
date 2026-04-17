@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Globe, Lock, Moon, Save, Shield, Sun, Trash2, User } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import client from "../api/client";
@@ -60,11 +61,11 @@ function ToggleRow({
         {description && <p className="text-xs text-slate-500">{description}</p>}
       </div>
       <button
-        role="switch"
-        aria-checked={checked}
+        aria-label={label}
+        title={label}
         onClick={() => onChange(!checked)}
         className={[
-          "relative h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200",
+          "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200",
           checked ? "bg-cyan-500" : "bg-slate-700",
         ].join(" ")}
       >
@@ -294,6 +295,25 @@ export function SettingsPage() {
         </Section>
 
         {/* ------------------------------------------------------------------ */}
+        {/* Diagnostics */}
+        {/* ------------------------------------------------------------------ */}
+        <Section title="Diagnostics" description="Inspect platform health and gateway route readiness">
+          <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4">
+            <p className="text-sm text-slate-300">
+              Open the live System Status dashboard to verify service availability, probe latency,
+              and API gateway route coverage.
+            </p>
+            <Link
+              to="/system-status"
+              className="mt-3 inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-500"
+            >
+              <Shield className="h-4 w-4" />
+              Open System Status
+            </Link>
+          </div>
+        </Section>
+
+        {/* ------------------------------------------------------------------ */}
         {/* Scan defaults */}
         {/* ------------------------------------------------------------------ */}
         <Section title="Scan Defaults" description="Default settings applied to every new scan">
@@ -388,7 +408,7 @@ export function SettingsPage() {
               { label: "User ID", value: user?.id ?? "—", icon: Shield },
             ].map(({ label, value, icon: Icon }) => (
               <div key={label} className="flex items-start gap-2 rounded-lg bg-slate-950 px-3 py-2">
-                <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-500" />
+                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
                 <div>
                   <p className="text-xs text-slate-500">{label}</p>
                   <p className="truncate font-medium text-slate-200">{value}</p>

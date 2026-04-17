@@ -14,6 +14,23 @@ type KnownService =
   | "org-service"
   | "compliance-service";
 
+export const KNOWN_SERVICES: readonly KnownService[] = [
+  "api-gateway",
+  "auth-service",
+  "scan-service",
+  "ai-service",
+  "recon-service",
+  "report-service",
+  "agent-relay",
+  "bugbounty-service",
+  "collab-service",
+  "integration-service",
+  "notification-service",
+  "phase5-service",
+  "org-service",
+  "compliance-service",
+];
+
 const SERVICE_PORTS: Record<KnownService, number> = {
   "api-gateway": 8000,
   "auth-service": 8001,
@@ -171,6 +188,16 @@ async function probeHealth(baseUrl: string): Promise<boolean> {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export async function checkEndpointHealth(baseUrl: string): Promise<{ healthy: boolean; latencyMs: number }> {
+  const started = typeof performance !== "undefined" ? performance.now() : Date.now();
+  const healthy = await probeHealth(baseUrl);
+  const ended = typeof performance !== "undefined" ? performance.now() : Date.now();
+  return {
+    healthy,
+    latencyMs: Math.round(ended - started),
+  };
 }
 
 export async function resolveServiceBaseUrl(service: KnownService = "api-gateway"): Promise<string> {
