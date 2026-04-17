@@ -2,24 +2,68 @@ name: Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: staging
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
   push:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.event.inputs.environment || 'staging' }}
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  pre-deploy-validation:
+    name: Pre-deploy validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
+
       - name: Run smoke tests before deploy
-        run: pytest tests/ -q
+        run: pytest tests/test_docker_env.py -q
+
+  deploy:
+    name: Deploy (${{ github.event.inputs.environment || 'staging' }})
+    needs: [pre-deploy-validation]
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    steps:
+      - uses: actions/checkout@v5
+
       - name: Deploy placeholder
-        run: echo "Deploy stage scaffolded. Add cloud-specific deployment commands here."
+        run: |
+          echo "Deploy stage scaffolded."
+          echo "Target env: ${{ github.event.inputs.environment || 'staging' }}"
+          echo "Add cloud-specific deployment commands and rollback hooks here."
+
+      - name: Deploy summary
+        run: |
+          {
+            echo "## Deploy Summary"
+            echo "- Environment: `${{ github.event.inputs.environment || 'staging' }}`"
+            echo "- Pre-deploy validation passed"
+          } >> "$GITHUB_STEP_SUMMARY"

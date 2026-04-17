@@ -10,64 +10,17 @@ on:
       - "!docs/generated/**/*.md"
       - "scripts/ci/generate_docs_bundle.py"
       - ".github/workflows/docs-production-status-progress.yml"
+      - ".github/workflows/_reusable-docs-suite.yml"
   schedule:
     - cron: "45 2 * * 2"
 
-permissions:
-  contents: write
-  pull-requests: write
-
-concurrency:
-  group: docs-suite-pr
-  cancel-in-progress: false
-
 jobs:
-  generate-production-docs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Generate production status docs and full docs scan
-        run: |
-          python scripts/ci/generate_docs_bundle.py \
-            --profile production \
-            --output docs/generated/PRODUCTION_STATUS_PROGRESS_DETAILED.md \
-            --scan-output .artifacts/docs-scan-production.json
-
-      - name: Upload docs scan artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs-scan-production
-          path: .artifacts/docs-scan-production.json
-          if-no-files-found: error
-
-      - name: Create or update shared docs PR
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
-        with:
-          branch: automation/docs-suite
-          delete-branch: false
-          commit-message: "docs(prod): refresh production status and progress docs"
-          title: "docs: automated documentation suite refresh"
-          body: |
-            Automated docs suite refresh (production/status pass).
-
-            Included in this PR branch:
-            - Full markdown scan of repository docs
-            - Regenerated production status and progress documentation
-            - Any additional docs updates from companion docs-suite workflows
-
-            This PR is intentionally shared across docs-suite workflows.
-          labels: |
-            automation
-            documentation
-          add-paths: |
-            docs/generated/PRODUCTION_STATUS_PROGRESS_DETAILED.md
-            scripts/ci/generate_docs_bundle.py
+  docs-production:
+    uses: ./.github/workflows/_reusable-docs-suite.yml
+    with:
+      profile: production
+      output_file: docs/generated/PRODUCTION_STATUS_PROGRESS_DETAILED.md
+      scan_output: .artifacts/docs-scan-production.json
+      scan_artifact_name: docs-scan-production
+      commit_message: "docs(prod): refresh production status and progress docs"
+      run_label: production/status

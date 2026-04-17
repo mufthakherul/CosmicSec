@@ -10,64 +10,17 @@ on:
       - "!docs/generated/**/*.md"
       - "scripts/ci/generate_docs_bundle.py"
       - ".github/workflows/docs-user-detailed.yml"
+      - ".github/workflows/_reusable-docs-suite.yml"
   schedule:
     - cron: "15 2 * * 2"
 
-permissions:
-  contents: write
-  pull-requests: write
-
-concurrency:
-  group: docs-suite-pr
-  cancel-in-progress: false
-
 jobs:
-  generate-user-docs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Generate user docs and full docs scan
-        run: |
-          python scripts/ci/generate_docs_bundle.py \
-            --profile user \
-            --output docs/generated/USER_GUIDE_DETAILED.md \
-            --scan-output .artifacts/docs-scan-user.json
-
-      - name: Upload docs scan artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs-scan-user
-          path: .artifacts/docs-scan-user.json
-          if-no-files-found: error
-
-      - name: Create or update shared docs PR
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
-        with:
-          branch: automation/docs-suite
-          delete-branch: false
-          commit-message: "docs(user): refresh detailed user docs"
-          title: "docs: automated documentation suite refresh"
-          body: |
-            Automated docs suite refresh (user-focused pass).
-
-            Included in this PR branch:
-            - Full markdown scan of repository docs
-            - Regenerated detailed user documentation
-            - Any additional docs updates from companion docs-suite workflows
-
-            This PR is intentionally shared across docs-suite workflows.
-          labels: |
-            automation
-            documentation
-          add-paths: |
-            docs/generated/USER_GUIDE_DETAILED.md
-            scripts/ci/generate_docs_bundle.py
+  docs-user:
+    uses: ./.github/workflows/_reusable-docs-suite.yml
+    with:
+      profile: user
+      output_file: docs/generated/USER_GUIDE_DETAILED.md
+      scan_output: .artifacts/docs-scan-user.json
+      scan_artifact_name: docs-scan-user
+      commit_message: "docs(user): refresh detailed user docs"
+      run_label: user-focused

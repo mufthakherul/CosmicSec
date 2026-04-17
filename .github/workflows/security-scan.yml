@@ -1,14 +1,40 @@
 # CosmicSec — Security Scanning CI Workflow (Cross-cutting)
-# Runs Trivy container scanning and Bandit SAST on every push/PR.
+# Runs SAST, dependency review, secret scanning, and integrity checks.
 
 name: Security Scan
 
 on:
   push:
     branches: [main]
+    paths:
+      - "services/**"
+      - "frontend/**"
+      - "scripts/**"
+      - "requirements*.txt"
+      - "pyproject.toml"
+      - "Dockerfile"
+      - "docker-compose*.yml"
+      - ".github/workflows/security-scan.yml"
   pull_request:
+    paths:
+      - "services/**"
+      - "frontend/**"
+      - "scripts/**"
+      - "requirements*.txt"
+      - "pyproject.toml"
+      - "Dockerfile"
+      - "docker-compose*.yml"
+      - ".github/workflows/security-scan.yml"
   schedule:
-    - cron: "0 6 * * 1"  # Every Monday at 6am UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-scan-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   bandit-sast:
@@ -25,6 +51,10 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
 
       - name: Install Bandit
         run: pip install bandit[toml]
@@ -36,7 +66,6 @@ jobs:
             -ll \
             --format json \
             --output /tmp/bandit-results.json || true
-          # Display summary
           bandit -r services/ -ll -x services/common/db.py || true
 
       - name: Upload Bandit results
@@ -60,26 +89,24 @@ jobs:
       - name: Run Trivy (filesystem — critical & high)
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          scan-type: "fs"
-          scan-ref: "."
+          scan-type: fs
+          scan-ref: .
           exit-code: "0"
           ignore-unfixed: true
-          severity: "CRITICAL,HIGH"
-          format: "sarif"
-          output: "trivy-results.sarif"
+          severity: CRITICAL,HIGH
+          format: sarif
+          output: trivy-results.sarif
 
       - name: Upload Trivy SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: "trivy-results.sarif"
-          category: "trivy-fs"
+          sarif_file: trivy-results.sarif
+          category: trivy-fs
 
   frontend-eslint-security:
     name: Frontend SAST (ESLint security plugin)
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     defaults:
       run:
         working-directory: frontend
@@ -91,7 +118,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "22"
-          cache: "npm"
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
@@ -103,8 +130,6 @@ jobs:
   sbom:
     name: Generate SBOM (Syft)
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -125,8 +150,6 @@ jobs:
   sri-check:
     name: SRI validation
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -142,7 +165,6 @@ jobs:
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
-    # Zero SHA marks an initial push with no valid "before" commit to diff against.
     if: github.event_name == 'pull_request' || github.event.before != '0000000000000000000000000000000000000000'
     permissions:
       contents: read
@@ -172,12 +194,42 @@ jobs:
           fetch-depth: 0
 
       - name: Run TruffleHog
-        # GitHub sets `before` to all-zero SHA on first push; skip in that case to avoid invalid diff range.
         if: github.event_name == 'pull_request' || github.event.before != '0000000000000000000000000000000000000000'
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          # PRs use base SHA from PR; pushes use `before` SHA for commit-range secret scanning.
           base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           head: ${{ github.sha }}
           extra_args: --results=verified,unknown
+
+  security-summary:
+    name: Security summary
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - bandit-sast
+      - trivy-fs
+      - frontend-eslint-security
+      - sbom
+      - sri-check
+      - dependency-review
+      - trufflehog-secrets
+    steps:
+      - name: Publish security summary
+        run: |
+          {
+            echo "## Security Scan Summary"
+            echo "- Bandit: `${{ needs.bandit-sast.result }}`"
+            echo "- Trivy FS: `${{ needs.trivy-fs.result }}`"
+            echo "- Frontend security lint: `${{ needs.frontend-eslint-security.result }}`"
+            echo "- SBOM: `${{ needs.sbom.result }}`"
+            echo "- SRI check: `${{ needs.sri-check.result }}`"
+            echo "- Dependency review: `${{ needs.dependency-review.result }}`"
+            echo "- TruffleHog: `${{ needs.trufflehog-secrets.result }}`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on required security gate failures
+        if: |
+          needs.sri-check.result == 'failure' ||
+          needs.dependency-review.result == 'failure'
+        run: exit 1

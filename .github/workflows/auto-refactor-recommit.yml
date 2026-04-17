@@ -24,44 +24,50 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: auto-refactor-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   recommit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Auto-fix with pre-commit
         if: ${{ github.event_name == 'schedule' || inputs.run_precommit }}
-        shell: bash
         run: |
           python -m pip install --upgrade pip pre-commit
           pre-commit run --all-files || true
 
       - name: Frontend formatting
         if: ${{ github.event_name == 'schedule' || inputs.run_frontend_format }}
-        shell: bash
         run: |
           if [ -f frontend/package.json ]; then
-            cd frontend
-            npm ci
-            npm run format || true
+            npm --prefix frontend ci
+            npm --prefix frontend run format || true
           fi
 
       - name: Generate recommit metadata
-        shell: bash
         run: |
           mkdir -p .github/recommit
           {
@@ -71,6 +77,15 @@ jobs:
             echo "scope=${{ inputs.scope_path || '.' }}"
             echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } > .github/recommit/last-run.env
+
+      - name: Publish summary
+        run: |
+          {
+            echo "## Auto Refactor Summary"
+            echo "- Scope: `${{ inputs.scope_path || '.' }}`"
+            echo "- pre-commit enabled: `${{ github.event_name == 'schedule' || inputs.run_precommit }}`"
+            echo "- frontend format enabled: `${{ github.event_name == 'schedule' || inputs.run_frontend_format }}`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create pull request with automated refactors
         uses: peter-evans/create-pull-request@v6
