@@ -9,10 +9,18 @@ CosmicSec aims to be an AI-native, hybrid cybersecurity intelligence platform th
 - AI-assisted analysis and risk interpretation
 - Collaboration, reporting, and compliance workflows
 - Local agent execution on user machines (CLI mode)
-- Unified operation modes:
+- Unified operation modes — see the full capability matrix in [`docs/ROADMAP_UNIFIED.md`](ROADMAP_UNIFIED.md):
   - STATIC mode (public/demo)
   - DYNAMIC mode (authenticated dashboard)
   - LOCAL mode (CLI/local tool orchestration)
+  - LOCAL_WEB mode (browser UI served locally for isolation)
+  - DESKTOP_OFFLINE, MOBILE_COMPANION, AUTOMATION_API, CHATOPS (Wave 3)
+
+## Active Roadmap
+
+All active planning is in the **unified roadmap**: [`docs/ROADMAP_UNIFIED.md`](ROADMAP_UNIFIED.md)
+
+Historical roadmap phases A–J, K–V, and CA-1–CA-10 are archived in [`docs/archive/roadmaps/`](archive/roadmaps/).
 
 ## Current Progress Snapshot
 
@@ -22,7 +30,8 @@ Based on repository documentation and implementation state:
 - CLI/local-agent implementation and packaging are present under `cli/agent/`
 - SDK surfaces exist for multiple languages under `sdk/`
 - Infrastructure and observability assets exist under `infrastructure/`, `docker-compose*.yml`, and related files
-- Roadmap documents indicate broad phase completion coverage in `ROADMAP.md`, `ROADMAP_NEXT.md`, and `ROADMAP_CLI_AGENT.md`
+- Wave 1 (roadmap consolidation, gap baseline, docs update) is complete
+- Waves 2–4 (isolation-first, new access modes, tooling expansion) are planned in `docs/ROADMAP_UNIFIED.md`
 
 ## Security and CI Status Notes (This Update)
 
@@ -31,6 +40,7 @@ This update focused on practical workflow stabilization and dependency hygiene a
 - Fixed failing frontend unit tests in `frontend/src/__tests__/pages/LoginPage.test.tsx`
 - Standardized GitHub workflow runtime baselines for compatibility (`Python 3.12`, `Node 22`) across multiple workflows
 - Reduced brittle quality-gate hard-fails for advisory/static checks so core pipelines are less likely to fail for non-blocking quality noise
+- Archived old roadmap files and created the unified roadmap at `docs/ROADMAP_UNIFIED.md`
 
 Note:
 - Full GitHub Advanced Security alert triage (all code scanning and Dependabot alert IDs) requires authenticated access to repository security alerts.
@@ -63,4 +73,5 @@ Web research indicates multiple adjacent/open-source platforms with overlapping 
 ## Conclusion on "Exact Same Project"
 
 No strong evidence of an exact same project (same hybrid architecture, same mode model, and same integrated feature set) was found in this search pass.
-There are several mature neighboring platforms with partial overlap, but CosmicSec appears differentiated by its explicit three-mode architecture and local-agent + cloud dashboard integration model.
+There are several mature neighboring platforms with partial overlap, but CosmicSec appears differentiated by its explicit multi-mode architecture and local-agent + cloud dashboard integration model.
+

@@ -179,16 +179,36 @@ CosmicSec/
 │
 ├── 📚 docs/                             # Documentation
 │   ├── DIRECTORY_STRUCTURE.md           # ← this file
+│   ├── ROADMAP_UNIFIED.md               # ✅ CANONICAL roadmap — all future planning goes here
+│   ├── PROJECT_GOAL_AND_PROGRESS.md     # Project goal, progress snapshot, similar-project analysis
 │   ├── DEPLOYMENT_GUIDE.md              # Docker / K8s / Terraform deployment guide
 │   ├── TESTING_GUIDE.md                 # Testing strategy, coverage, CI/CD
-│   ├── ENHANCEMENT_SUMMARY.md           # Phase I–J enhancement details
-│   ├── PHASE_I_DETAILS.md               # Phase I technical deep-dive
-│   ├── PROJECT_INDEX.md                 # Full project file index
+│   ├── adr/                             # Architecture Decision Records
+│   ├── cli/                             # CLI documentation
+│   ├── runbooks/                        # Operational runbooks
+│   │   ├── add-new-scanner-plugin.md    # How to add a scanner plugin
+│   │   ├── add-new-service.md           # How to add a microservice
+│   │   ├── database-migration.md        # DB migration procedures
+│   │   ├── deploy-production.md         # Production deployment steps
+│   │   └── incident-response.md         # Incident response playbook
+│   ├── archive/                         # Read-only historical snapshots
+│   │   └── roadmaps/                    # Archived roadmap files
+│   │       ├── README.md                # Archive index
+│   │       ├── ROADMAP_ORIGINAL.md      # Phases A–J (formerly ROADMAP.md)
+│   │       ├── ROADMAP_NEXT_ORIGINAL.md # Phases K–V (formerly ROADMAP_NEXT.md)
+│   │       └── ROADMAP_CLI_AGENT_ORIGINAL.md  # CA-1–CA-10 (formerly ROADMAP_CLI_AGENT.md)
 │   └── assets/                          # Visual brand assets
 │       ├── logo.svg                     # Primary logo (512×512, dark background)
 │       ├── banner.svg                   # Wide banner (1200×300)
 │       ├── project-card.svg             # Project card (1280×640)
 │       └── og-image.svg                 # Open Graph image (1200×630) — also in frontend/public/
+│
+├── 📱 mobile/                           # React Native / Expo mobile companion app
+│   ├── App.tsx                          # App entrypoint (static mock — Wave 3 will add real auth)
+│   ├── app.json                         # Expo configuration
+│   ├── package.json                     # Mobile dependencies (Expo 54, React Native)
+│   ├── tsconfig.json                    # TypeScript config
+│   └── README.md                        # Mobile quick start
 │
 ├── 🗂️ Archives/                         # Archived / deprecated code (kept for traceability)
 │   ├── Codes/                           # Legacy API gateway, docker-compose, plugin snapshots
@@ -214,7 +234,9 @@ CosmicSec/
 ├── alembic.ini                          # Alembic config
 ├── .env.example                         # Environment variables template
 ├── .pre-commit-config.yaml              # Pre-commit hooks (Ruff, trailing whitespace)
-├── ROADMAP.md                           # Full phase-by-phase roadmap (Phases A–J)
+├── ROADMAP.md                           # Redirect stub → docs/ROADMAP_UNIFIED.md
+├── ROADMAP_NEXT.md                      # Redirect stub → docs/ROADMAP_UNIFIED.md
+├── ROADMAP_CLI_AGENT.md                 # Redirect stub → docs/ROADMAP_UNIFIED.md
 ├── README.md                            # Project README
 ├── SECURITY.md                          # Security policy + responsible disclosure
 ├── CONTRIBUTING.md                      # Contribution guidelines
@@ -234,4 +256,5 @@ CosmicSec/
 | GitHub Actions workflows | 6 |
 | Docker Compose services | 16+ (including observability) |
 | Documented API endpoints | 100+ |
+| Planned access modes | 8 (3 stable + 5 in Wave 2–3) |
 
