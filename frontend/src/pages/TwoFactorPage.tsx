@@ -12,8 +12,9 @@ import axios, { AxiosError } from "axios";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 const CODE_LENGTH = 6;
 const COUNTDOWN_SECONDS = 30;
 

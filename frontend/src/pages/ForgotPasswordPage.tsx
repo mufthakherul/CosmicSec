@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import axios, { AxiosError } from "axios";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 const RESEND_COOLDOWN = 60;
 
 function validateEmail(email: string): string | null {
@@ -145,7 +146,6 @@ export function ForgotPasswordPage() {
                   className={`w-full rounded-md border bg-slate-950 px-3 py-2 text-slate-100 placeholder-slate-500 outline-none transition focus:ring-2 focus:ring-cyan-500 ${emailError ? "border-rose-500" : "border-slate-700"}`}
                   placeholder="you@example.com"
                   aria-label="Email address"
-                  aria-invalid={!!emailError}
                   aria-describedby={emailError ? "forgot-email-error" : undefined}
                   autoComplete="email"
                   disabled={isLoading}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { Button } from "../components/ui/button";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
 type DashboardSnapshot = {
   timestamp: number;
@@ -28,7 +29,7 @@ type AuditRecord = {
   detail: string;
 };
 
-const API = import.meta.env.VITE_API_BASE_URL || "";
+const API = getApiGatewayBaseUrl();
 
 export function AdminDashboardPage() {
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);

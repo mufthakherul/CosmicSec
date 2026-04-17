@@ -1,6 +1,10 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useScanStore } from "../store/scanStore";
 import type { Finding } from "../store/scanStore";
+import {
+  ensureApiGatewayBaseUrl,
+  getApiGatewayWebSocketUrl,
+} from "../api/runtimeEndpoints";
 
 const BASE_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 30_000;
@@ -19,52 +23,44 @@ export function useScanStream(scanId: string | undefined) {
   const connect = useCallback(() => {
     if (!scanId || !mountedRef.current) return;
 
-    // Derive ws/wss scheme from the API base URL env var, or fall back to
-    // matching the current page protocol (http→ws, https→wss).
-    const apiBase = import.meta.env.VITE_API_BASE_URL as string | undefined;
-    let wsUrl: string;
-    if (apiBase) {
-      const httpBase = apiBase.replace(/\/+$/, "");
-      wsUrl =
-        httpBase.replace(/^https?/, (scheme) => (scheme === "https" ? "wss" : "ws")) +
-        `/ws/scans/${scanId}`;
-    } else {
-      const scheme = window.location.protocol === "https:" ? "wss" : "ws";
-      wsUrl = `${scheme}://${window.location.host}/ws/scans/${scanId}`;
-    }
+    const openSocket = () => {
+      const wsUrl = getApiGatewayWebSocketUrl(`/ws/scans/${scanId}`);
 
-    // Append auth token as query parameter for WebSocket authentication
-    const authToken = localStorage.getItem("cosmicsec_token");
-    const separator = wsUrl.includes("?") ? "&" : "?";
-    const authenticatedUrl = authToken
-      ? `${wsUrl}${separator}token=${encodeURIComponent(authToken)}`
-      : wsUrl;
+      // Append auth token as query parameter for WebSocket authentication
+      const authToken = localStorage.getItem("cosmicsec_token");
+      const separator = wsUrl.includes("?") ? "&" : "?";
+      const authenticatedUrl = authToken
+        ? `${wsUrl}${separator}token=${encodeURIComponent(authToken)}`
+        : wsUrl;
 
-    const ws = new WebSocket(authenticatedUrl);
-    wsRef.current = ws;
-    ws.onopen = () => {
-      backoffRef.current = BASE_BACKOFF_MS;
+      const ws = new WebSocket(authenticatedUrl);
+      wsRef.current = ws;
+      ws.onopen = () => {
+        backoffRef.current = BASE_BACKOFF_MS;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data as string) as WsMessage;
+          handleMessage(scanId, msg);
+        } catch {
+          // malformed message — ignore
+        }
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+
+      ws.onclose = () => {
+        if (!mountedRef.current) return;
+        const delay = Math.min(backoffRef.current, MAX_BACKOFF_MS);
+        backoffRef.current = delay * 2;
+        reconnectTimer.current = setTimeout(connect, delay);
+      };
     };
 
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data as string) as WsMessage;
-        handleMessage(scanId, msg);
-      } catch {
-        // malformed message — ignore
-      }
-    };
-
-    ws.onerror = () => {
-      ws.close();
-    };
-
-    ws.onclose = () => {
-      if (!mountedRef.current) return;
-      const delay = Math.min(backoffRef.current, MAX_BACKOFF_MS);
-      backoffRef.current = delay * 2;
-      reconnectTimer.current = setTimeout(connect, delay);
-    };
+    void ensureApiGatewayBaseUrl().finally(openSocket);
   }, [scanId]);
 
   useEffect(() => {

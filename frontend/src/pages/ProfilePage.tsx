@@ -3,8 +3,9 @@ import { User, Key, Bell, Copy, Trash2, Plus, Loader2, Check } from "lucide-reac
 import { AppLayout } from "../components/AppLayout";
 import { useAuth } from "../context/AuthContext";
 import { useNotificationStore } from "../store/notificationStore";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 interface ApiKey {
   id: string;
@@ -236,12 +237,12 @@ export function ProfilePage() {
                 </div>
                 <button
                   onClick={() => togglePref(key)}
+                  title={`${label} toggle`}
                   className={[
-                    "relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200",
+                    "relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200",
                     notifPrefs[key] ? "bg-cyan-500" : "bg-slate-700",
                   ].join(" ")}
-                  role="switch"
-                  aria-checked={notifPrefs[key]}
+                  aria-label={label}
                 >
                   <span
                     className={[

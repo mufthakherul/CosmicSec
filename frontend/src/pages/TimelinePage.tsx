@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Clock, Download, Filter, Loader2, RefreshCw, Search } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useAuth } from "../context/AuthContext";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 // ---------------------------------------------------------------------------
 // Types
@@ -376,12 +377,13 @@ export const TimelinePage: React.FC = () => {
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm">
-          <Filter className="h-4 w-4 flex-shrink-0 text-slate-500" />
+          <Filter className="h-4 w-4 shrink-0 text-slate-500" />
 
           {/* Source */}
           <select
             value={filterSource}
             onChange={(e) => setFilterSource(e.target.value as FilterSource)}
+            aria-label="Filter by source"
             className="min-h-10 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-cyan-500/50"
           >
             <option value="all">All Sources</option>
@@ -395,6 +397,7 @@ export const TimelinePage: React.FC = () => {
           <select
             value={filterSeverity}
             onChange={(e) => setFilterSeverity(e.target.value as FilterSeverity)}
+            aria-label="Filter by severity"
             className="min-h-10 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-cyan-500/50"
           >
             <option value="all">All Severities</option>
@@ -409,6 +412,7 @@ export const TimelinePage: React.FC = () => {
           <select
             value={filterDateRange}
             onChange={(e) => setFilterDateRange(e.target.value as FilterDateRange)}
+            aria-label="Filter by date range"
             className="min-h-10 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-cyan-500/50"
           >
             <option value="all">All Time</option>
@@ -418,7 +422,7 @@ export const TimelinePage: React.FC = () => {
           </select>
 
           {/* Target search */}
-          <div className="relative flex-1 min-w-[160px]">
+          <div className="relative min-w-40 flex-1">
             <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
@@ -455,10 +459,7 @@ export const TimelinePage: React.FC = () => {
             >
               {(pullDistance > 0 || isPullRefreshing) && (
                 <div className="mb-2 px-1">
-                  <div
-                    className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300"
-                    style={{ opacity: Math.min(1, pullDistance / 70) }}
-                  >
+                  <div className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
                     {isPullRefreshing ? "Refreshing timeline…" : "Pull down to refresh"}
                   </div>
                 </div>
@@ -539,13 +540,13 @@ export const TimelinePage: React.FC = () => {
 
             <div className="relative hidden space-y-0 md:block">
               {/* Vertical line */}
-              <div className="absolute left-[22px] top-0 bottom-0 w-px bg-slate-800" />
+              <div className="absolute bottom-0 left-5.5 top-0 w-px bg-slate-800" />
 
               <ul className="space-y-1">
                 {filtered.map((ev) => (
                   <li key={ev.id} className="relative flex gap-4 pb-4">
                     {/* Severity dot */}
-                    <div className="relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center">
+                    <div className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center">
                       <span
                         className={`h-3 w-3 rounded-full ring-4 ring-slate-950 ${SEVERITY_DOT[ev.severity]}`}
                       />

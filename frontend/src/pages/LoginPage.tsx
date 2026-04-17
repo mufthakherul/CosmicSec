@@ -4,8 +4,9 @@ import axios, { AxiosError } from "axios";
 import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 function validateEmail(email: string): string | null {
   if (!email) return "Email is required";
@@ -144,7 +145,6 @@ export function LoginPage() {
               className={`w-full rounded-md border bg-slate-950 px-3 py-2 text-slate-100 placeholder-slate-500 outline-none transition focus:ring-2 focus:ring-cyan-500 ${fieldErrors.email ? "border-rose-500" : "border-slate-700"}`}
               placeholder="you@example.com"
               aria-label="Email address"
-              aria-invalid={!!fieldErrors.email}
               aria-describedby={fieldErrors.email ? "login-email-error" : undefined}
               autoComplete="email"
               disabled={isLoading}
@@ -172,7 +172,6 @@ export function LoginPage() {
                 className={`w-full rounded-md border bg-slate-950 px-3 py-2 pr-10 text-slate-100 placeholder-slate-500 outline-none transition focus:ring-2 focus:ring-cyan-500 ${fieldErrors.password ? "border-rose-500" : "border-slate-700"}`}
                 placeholder="••••••••"
                 aria-label="Password"
-                aria-invalid={!!fieldErrors.password}
                 aria-describedby={fieldErrors.password ? "login-password-error" : undefined}
                 autoComplete="current-password"
                 disabled={isLoading}

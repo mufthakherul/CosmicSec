@@ -9,6 +9,7 @@ import { PageSkeleton } from "./components/PageSkeleton";
 import { SWUpdateBanner } from "./components/SWUpdateBanner";
 import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { RouteProgressBar } from "./components/RouteProgressBar";
+import { EndpointDiagnostics } from "./components/EndpointDiagnostics";
 
 // Public pages (eagerly loaded — above the fold)
 import { LandingPage } from "./pages/LandingPage";
@@ -93,6 +94,7 @@ export function App() {
           <RouteProgressBar />
           <SWUpdateBanner />
           <PWAInstallBanner />
+          <EndpointDiagnostics />
           <div className="sr-only" aria-live="polite" aria-atomic="true">
             {routeAnnouncement}
           </div>

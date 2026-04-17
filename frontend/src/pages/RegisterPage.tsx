@@ -3,8 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
 import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
-const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
+const API = getApiGatewayBaseUrl();
 
 interface FieldErrors {
   name?: string;
@@ -141,7 +142,6 @@ export function RegisterPage() {
               className={inputClass(fieldErrors.name)}
               placeholder="Jane Doe"
               aria-label="Full name"
-              aria-invalid={!!fieldErrors.name}
               aria-describedby={fieldErrors.name ? "reg-name-error" : undefined}
               autoComplete="name"
               disabled={isLoading}
@@ -169,7 +169,6 @@ export function RegisterPage() {
               className={inputClass(fieldErrors.email)}
               placeholder="you@example.com"
               aria-label="Email address"
-              aria-invalid={!!fieldErrors.email}
               aria-describedby={fieldErrors.email ? "reg-email-error" : undefined}
               autoComplete="email"
               disabled={isLoading}
@@ -198,7 +197,6 @@ export function RegisterPage() {
                 className={`${inputClass(fieldErrors.password)} pr-10`}
                 placeholder="••••••••"
                 aria-label="Password"
-                aria-invalid={!!fieldErrors.password}
                 aria-describedby="reg-password-strength reg-password-error"
                 autoComplete="new-password"
                 disabled={isLoading}
@@ -251,7 +249,6 @@ export function RegisterPage() {
                 className={`${inputClass(fieldErrors.confirmPassword)} pr-10`}
                 placeholder="••••••••"
                 aria-label="Confirm password"
-                aria-invalid={!!fieldErrors.confirmPassword}
                 aria-describedby={fieldErrors.confirmPassword ? "reg-confirm-error" : undefined}
                 autoComplete="new-password"
                 disabled={isLoading}
