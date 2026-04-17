@@ -44,7 +44,13 @@ function NavAnchor({ to, label, external, onClick }: PublicNavLink & { onClick?:
   );
 }
 
-function ActionLink({ to, label, external, variant, onClick }: PublicNavAction & { onClick?: () => void }) {
+function ActionLink({
+  to,
+  label,
+  external,
+  variant,
+  onClick,
+}: PublicNavAction & { onClick?: () => void }) {
   const className =
     variant === "primary"
       ? "rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400 transition-colors"
@@ -52,7 +58,13 @@ function ActionLink({ to, label, external, variant, onClick }: PublicNavAction &
 
   if (external) {
     return (
-      <a href={to} target="_blank" rel="noopener noreferrer" onClick={onClick} className={className}>
+      <a
+        href={to}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}
+        className={className}
+      >
         {label}
       </a>
     );
@@ -84,7 +96,9 @@ export function PublicNav({ brand, links, actions, sticky = true }: PublicNavPro
   }, [mobileOpen]);
 
   return (
-    <nav className={`${sticky ? "sticky top-0" : ""} z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md`}>
+    <nav
+      className={`${sticky ? "sticky top-0" : ""} z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md`}
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">{brand}</div>
 

@@ -55,4 +55,3 @@ class ZaproxyParser:
             )
 
         return findings
-

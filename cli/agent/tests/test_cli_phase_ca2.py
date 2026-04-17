@@ -163,8 +163,12 @@ class TestOfflineStoreHistory:
 
     def _seed(self, store):
         store.save_scan("scan-001", "192.168.1.1", "nmap", "complete")
-        store.save_finding({"title": "Open SSH port", "severity": "low", "tool": "nmap"}, "scan-001")
-        store.save_finding({"title": "SQL Injection", "severity": "critical", "tool": "nmap"}, "scan-001")
+        store.save_finding(
+            {"title": "Open SSH port", "severity": "low", "tool": "nmap"}, "scan-001"
+        )
+        store.save_finding(
+            {"title": "SQL Injection", "severity": "critical", "tool": "nmap"}, "scan-001"
+        )
         store.save_scan("scan-002", "10.0.0.1", "nuclei", "complete")
         store.save_finding({"title": "XSS Found", "severity": "high", "tool": "nuclei"}, "scan-002")
 

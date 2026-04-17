@@ -50,7 +50,11 @@ def test_create_and_list_notification_config() -> None:
 def test_delete_notification_config() -> None:
     created = client.post(
         "/notify/config",
-        json={"channel": "webhook", "name": "delete-me", "config": {"url": "https://example.org/hook"}},
+        json={
+            "channel": "webhook",
+            "name": "delete-me",
+            "config": {"url": "https://example.org/hook"},
+        },
     )
     config_id = created.json()["id"]
 
@@ -79,12 +83,20 @@ def test_send_notification_filters_channels(monkeypatch) -> None:
     )
     client.post(
         "/notify/config",
-        json={"channel": "slack", "name": "s", "config": {"webhook_url": "https://example.org/slack"}},
+        json={
+            "channel": "slack",
+            "name": "s",
+            "config": {"webhook_url": "https://example.org/slack"},
+        },
     )
 
     response = client.post(
         "/notify/send",
-        json={"event_type": "scan_completed", "payload": {"scan_id": "a1"}, "channels": ["webhook"]},
+        json={
+            "event_type": "scan_completed",
+            "payload": {"scan_id": "a1"},
+            "channels": ["webhook"],
+        },
     )
     assert response.status_code == 200
     data = response.json()
@@ -100,7 +112,11 @@ def test_send_notification_records_delivery_error(monkeypatch) -> None:
     monkeypatch.setattr("services.notification_service.main.httpx.post", fake_post)
     created = client.post(
         "/notify/config",
-        json={"channel": "slack", "name": "fail", "config": {"webhook_url": "https://example.org/slack"}},
+        json={
+            "channel": "slack",
+            "name": "fail",
+            "config": {"webhook_url": "https://example.org/slack"},
+        },
     )
     config_id = created.json()["id"]
 
@@ -121,7 +137,11 @@ def test_test_notification_success_for_webhook(monkeypatch) -> None:
     monkeypatch.setattr("services.notification_service.main.httpx.post", fake_post)
     created = client.post(
         "/notify/config",
-        json={"channel": "webhook", "name": "test", "config": {"url": "https://example.org/webhook"}},
+        json={
+            "channel": "webhook",
+            "name": "test",
+            "config": {"url": "https://example.org/webhook"},
+        },
     )
     config_id = created.json()["id"]
 
@@ -144,7 +164,11 @@ def test_metrics_endpoint_reflects_counters(monkeypatch) -> None:
     monkeypatch.setattr("services.notification_service.main.httpx.post", fake_post)
     client.post(
         "/notify/config",
-        json={"channel": "webhook", "name": "metric", "config": {"url": "https://example.org/webhook"}},
+        json={
+            "channel": "webhook",
+            "name": "metric",
+            "config": {"url": "https://example.org/webhook"},
+        },
     )
     client.post(
         "/notify/send",

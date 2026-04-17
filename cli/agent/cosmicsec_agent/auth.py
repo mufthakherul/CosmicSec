@@ -11,7 +11,9 @@ from .profiles import ProfileStore
 
 
 class AuthManager:
-    def __init__(self, credentials: CredentialStore | None = None, profiles: ProfileStore | None = None) -> None:
+    def __init__(
+        self, credentials: CredentialStore | None = None, profiles: ProfileStore | None = None
+    ) -> None:
         self.credentials = credentials or CredentialStore()
         self.profiles = profiles or ProfileStore()
 
@@ -67,7 +69,9 @@ class AuthManager:
         if not profile_data:
             return {"logged_in": False, "profile": profile, "reason": "profile_not_found"}
 
-        server_url = self.credentials.retrieve(profile, "server_url") or profile_data.get("server_url")
+        server_url = self.credentials.retrieve(profile, "server_url") or profile_data.get(
+            "server_url"
+        )
         api_key = self.credentials.retrieve(profile, "api_key")
         access_token = self.credentials.retrieve(profile, "access_token")
         refresh_token = self.credentials.retrieve(profile, "refresh_token")
@@ -99,7 +103,9 @@ class AuthManager:
         if not profile_data:
             raise ValueError(f"Profile '{profile}' not found")
 
-        server_url = self.credentials.retrieve(profile, "server_url") or profile_data.get("server_url")
+        server_url = self.credentials.retrieve(profile, "server_url") or profile_data.get(
+            "server_url"
+        )
         refresh_token = self.credentials.retrieve(profile, "refresh_token")
         if not server_url:
             raise ValueError("Server URL not configured")

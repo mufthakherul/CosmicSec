@@ -1,13 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Clock,
-  Download,
-  Filter,
-  Loader2,
-  RefreshCw,
-  Search,
-} from "lucide-react";
+import { Clock, Download, Filter, Loader2, RefreshCw, Search } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useAuth } from "../context/AuthContext";
 
@@ -196,7 +189,7 @@ export const TimelinePage: React.FC = () => {
         const scansData = (await scansRes.json()) as ScanItem[] | { items?: ScanItem[] };
         const scans: ScanItem[] = Array.isArray(scansData)
           ? scansData
-          : (scansData as { items?: ScanItem[] }).items ?? [];
+          : ((scansData as { items?: ScanItem[] }).items ?? []);
 
         for (const scan of scans) {
           const findings = scan.findings ?? [];
@@ -238,10 +231,12 @@ export const TimelinePage: React.FC = () => {
           source?: string;
           created_at?: string;
         }
-        const findingsData = (await findingsRes.json()) as FindingItem[] | { items?: FindingItem[] };
+        const findingsData = (await findingsRes.json()) as
+          | FindingItem[]
+          | { items?: FindingItem[] };
         const findings: FindingItem[] = Array.isArray(findingsData)
           ? findingsData
-          : (findingsData as { items?: FindingItem[] }).items ?? [];
+          : ((findingsData as { items?: FindingItem[] }).items ?? []);
 
         for (const f of findings) {
           combined.push({
@@ -262,7 +257,9 @@ export const TimelinePage: React.FC = () => {
 
       setEvents(
         combined.length > 0
-          ? combined.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          ? combined.sort(
+              (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+            )
           : MOCK_EVENTS,
       );
     } catch {
@@ -467,126 +464,136 @@ export const TimelinePage: React.FC = () => {
                 </div>
               )}
               <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1">
-              {filtered.map((ev) => (
-                <div
-                  key={`mobile-${ev.id}`}
-                  className="min-w-[84%] snap-start rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm transition-transform"
-                  onTouchStart={(event) => setTouchStartX(event.touches[0].clientX)}
-                  onTouchEnd={(event) => {
-                    if (touchStartX === null) return;
-                    const deltaX = touchStartX - event.changedTouches[0].clientX;
-                    if (deltaX > 60) setSwipedCardId(ev.id);
-                    if (deltaX < -40) setSwipedCardId(null);
-                    setTouchStartX(null);
-                  }}
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${SOURCE_BADGE[ev.source]}`}>
-                      {SOURCE_LABELS[ev.source]}
-                    </span>
-                    <span className={`text-xs font-semibold capitalize ${SEVERITY_TEXT[ev.severity]}`}>
-                      {ev.severity}
-                    </span>
-                    <span className="ml-auto flex items-center gap-1 text-xs text-slate-500">
-                      <Clock className="h-3 w-3" />
-                      {relativeTime(ev.timestamp)}
-                    </span>
-                  </div>
-                  <h3 className="mt-2 text-sm font-semibold text-slate-200">{ev.title}</h3>
-                  {ev.description && <p className="mt-1 text-xs text-slate-400">{ev.description}</p>}
-                  {ev.target && (
-                    <button
-                      onClick={() => (ev.scan_id ? navigate(`/scans/${ev.scan_id}`) : navigate("/scans"))}
-                      className="mt-2 inline-flex min-h-8 items-center gap-1 rounded bg-slate-800 px-2 py-1 font-mono text-xs text-cyan-400 transition-colors hover:bg-slate-700"
-                    >
-                      {ev.target}
-                    </button>
-                  )}
-                  {swipedCardId === ev.id && (
-                    <div className="mt-3 grid grid-cols-3 gap-2">
-                      <button
-                        onClick={() => navigate("/agents")}
-                        className="min-h-8 rounded bg-cyan-500/20 px-2 py-1 text-[11px] font-medium text-cyan-300"
+                {filtered.map((ev) => (
+                  <div
+                    key={`mobile-${ev.id}`}
+                    className="min-w-[84%] snap-start rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm transition-transform"
+                    onTouchStart={(event) => setTouchStartX(event.touches[0].clientX)}
+                    onTouchEnd={(event) => {
+                      if (touchStartX === null) return;
+                      const deltaX = touchStartX - event.changedTouches[0].clientX;
+                      if (deltaX > 60) setSwipedCardId(ev.id);
+                      if (deltaX < -40) setSwipedCardId(null);
+                      setTouchStartX(null);
+                    }}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${SOURCE_BADGE[ev.source]}`}
                       >
-                        Assign
-                      </button>
-                      <button
-                        onClick={() => setFilterSeverity("critical")}
-                        className="min-h-8 rounded bg-amber-500/20 px-2 py-1 text-[11px] font-medium text-amber-300"
+                        {SOURCE_LABELS[ev.source]}
+                      </span>
+                      <span
+                        className={`text-xs font-semibold capitalize ${SEVERITY_TEXT[ev.severity]}`}
                       >
-                        Flag
-                      </button>
-                      <button
-                        onClick={() => {
-                          setDismissedIds((previous) => new Set(previous).add(ev.id));
-                          setSwipedCardId(null);
-                        }}
-                        className="min-h-8 rounded bg-rose-500/20 px-2 py-1 text-[11px] font-medium text-rose-300"
-                      >
-                        Dismiss
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-              </div>
-            </div>
-
-            <div className="relative hidden space-y-0 md:block">
-            {/* Vertical line */}
-            <div className="absolute left-[22px] top-0 bottom-0 w-px bg-slate-800" />
-
-            <ul className="space-y-1">
-              {filtered.map((ev) => (
-                <li key={ev.id} className="relative flex gap-4 pb-4">
-                  {/* Severity dot */}
-                  <div className="relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center">
-                    <span
-                      className={`h-3 w-3 rounded-full ring-4 ring-slate-950 ${SEVERITY_DOT[ev.severity]}`}
-                    />
-                  </div>
-
-                  {/* Card */}
-                  <div className="flex-1 rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm transition-colors hover:border-slate-700">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {/* Source badge */}
-                        <span
-                          className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${SOURCE_BADGE[ev.source]}`}
-                        >
-                          {SOURCE_LABELS[ev.source]}
-                        </span>
-                        {/* Severity label */}
-                        <span className={`text-xs font-semibold capitalize ${SEVERITY_TEXT[ev.severity]}`}>
-                          {ev.severity}
-                        </span>
-                      </div>
-                      <span className="flex items-center gap-1 text-xs text-slate-500">
+                        {ev.severity}
+                      </span>
+                      <span className="ml-auto flex items-center gap-1 text-xs text-slate-500">
                         <Clock className="h-3 w-3" />
                         {relativeTime(ev.timestamp)}
                       </span>
                     </div>
-
                     <h3 className="mt-2 text-sm font-semibold text-slate-200">{ev.title}</h3>
-
                     {ev.description && (
-                      <p className="mt-1 line-clamp-2 text-xs text-slate-400">{ev.description}</p>
+                      <p className="mt-1 text-xs text-slate-400">{ev.description}</p>
                     )}
-
                     {ev.target && (
                       <button
                         onClick={() =>
                           ev.scan_id ? navigate(`/scans/${ev.scan_id}`) : navigate("/scans")
                         }
-                        className="mt-2 inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 font-mono text-xs text-cyan-400 transition-colors hover:bg-slate-700"
+                        className="mt-2 inline-flex min-h-8 items-center gap-1 rounded bg-slate-800 px-2 py-1 font-mono text-xs text-cyan-400 transition-colors hover:bg-slate-700"
                       >
                         {ev.target}
                       </button>
                     )}
+                    {swipedCardId === ev.id && (
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        <button
+                          onClick={() => navigate("/agents")}
+                          className="min-h-8 rounded bg-cyan-500/20 px-2 py-1 text-[11px] font-medium text-cyan-300"
+                        >
+                          Assign
+                        </button>
+                        <button
+                          onClick={() => setFilterSeverity("critical")}
+                          className="min-h-8 rounded bg-amber-500/20 px-2 py-1 text-[11px] font-medium text-amber-300"
+                        >
+                          Flag
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDismissedIds((previous) => new Set(previous).add(ev.id));
+                            setSwipedCardId(null);
+                          }}
+                          className="min-h-8 rounded bg-rose-500/20 px-2 py-1 text-[11px] font-medium text-rose-300"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </li>
-              ))}
-            </ul>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative hidden space-y-0 md:block">
+              {/* Vertical line */}
+              <div className="absolute left-[22px] top-0 bottom-0 w-px bg-slate-800" />
+
+              <ul className="space-y-1">
+                {filtered.map((ev) => (
+                  <li key={ev.id} className="relative flex gap-4 pb-4">
+                    {/* Severity dot */}
+                    <div className="relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center">
+                      <span
+                        className={`h-3 w-3 rounded-full ring-4 ring-slate-950 ${SEVERITY_DOT[ev.severity]}`}
+                      />
+                    </div>
+
+                    {/* Card */}
+                    <div className="flex-1 rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm transition-colors hover:border-slate-700">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Source badge */}
+                          <span
+                            className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${SOURCE_BADGE[ev.source]}`}
+                          >
+                            {SOURCE_LABELS[ev.source]}
+                          </span>
+                          {/* Severity label */}
+                          <span
+                            className={`text-xs font-semibold capitalize ${SEVERITY_TEXT[ev.severity]}`}
+                          >
+                            {ev.severity}
+                          </span>
+                        </div>
+                        <span className="flex items-center gap-1 text-xs text-slate-500">
+                          <Clock className="h-3 w-3" />
+                          {relativeTime(ev.timestamp)}
+                        </span>
+                      </div>
+
+                      <h3 className="mt-2 text-sm font-semibold text-slate-200">{ev.title}</h3>
+
+                      {ev.description && (
+                        <p className="mt-1 line-clamp-2 text-xs text-slate-400">{ev.description}</p>
+                      )}
+
+                      {ev.target && (
+                        <button
+                          onClick={() =>
+                            ev.scan_id ? navigate(`/scans/${ev.scan_id}`) : navigate("/scans")
+                          }
+                          className="mt-2 inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 font-mono text-xs text-cyan-400 transition-colors hover:bg-slate-700"
+                        >
+                          {ev.target}
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           </>
         )}

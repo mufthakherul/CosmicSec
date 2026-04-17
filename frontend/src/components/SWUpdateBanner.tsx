@@ -27,9 +27,7 @@ export function SWUpdateBanner() {
       className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl border border-cyan-500/30 bg-slate-900/95 px-4 py-3 shadow-2xl shadow-cyan-500/10 backdrop-blur-sm"
     >
       <RefreshCw className="h-4 w-4 shrink-0 text-cyan-400" />
-      <p className="text-sm text-slate-200">
-        A new version of CosmicSec is available.
-      </p>
+      <p className="text-sm text-slate-200">A new version of CosmicSec is available.</p>
       <button
         onClick={handleReload}
         className="ml-2 rounded-md bg-cyan-500 px-3 py-1 text-xs font-semibold text-slate-900 hover:bg-cyan-400 transition-colors"

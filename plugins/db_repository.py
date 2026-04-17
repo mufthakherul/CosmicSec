@@ -92,7 +92,11 @@ def create_marketplace_entry(db: Session, entry: dict[str, Any]) -> dict[str, An
         source_repo=entry.get("source_repo"),
     )
     # Upsert by name
-    existing = db.query(PluginMarketplaceModel).filter(PluginMarketplaceModel.name == entry["name"]).first()
+    existing = (
+        db.query(PluginMarketplaceModel)
+        .filter(PluginMarketplaceModel.name == entry["name"])
+        .first()
+    )
     if existing:
         existing.version = row.version
         existing.description = row.description
@@ -157,9 +161,13 @@ def _rating_to_dict(row: PluginRatingModel) -> dict[str, Any]:
     }
 
 
-def upsert_rating(db: Session, plugin_name: str, user: str, rating: int, review: str | None = None) -> dict[str, Any]:
+def upsert_rating(
+    db: Session, plugin_name: str, user: str, rating: int, review: str | None = None
+) -> dict[str, Any]:
     # Find plugin id
-    plugin = db.query(PluginMarketplaceModel).filter(PluginMarketplaceModel.name == plugin_name).first()
+    plugin = (
+        db.query(PluginMarketplaceModel).filter(PluginMarketplaceModel.name == plugin_name).first()
+    )
     plugin_id = plugin.id if plugin else plugin_name
 
     existing = (
@@ -188,7 +196,9 @@ def upsert_rating(db: Session, plugin_name: str, user: str, rating: int, review:
 
 
 def get_ratings(db: Session, plugin_name: str) -> list[dict[str, Any]]:
-    plugin = db.query(PluginMarketplaceModel).filter(PluginMarketplaceModel.name == plugin_name).first()
+    plugin = (
+        db.query(PluginMarketplaceModel).filter(PluginMarketplaceModel.name == plugin_name).first()
+    )
     plugin_id = plugin.id if plugin else plugin_name
     rows = (
         db.query(PluginRatingModel)

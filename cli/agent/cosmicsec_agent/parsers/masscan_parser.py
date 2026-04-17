@@ -39,4 +39,3 @@ class MasscanParser:
                 }
             )
         return findings
-

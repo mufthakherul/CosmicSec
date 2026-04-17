@@ -279,11 +279,13 @@ class OfflineStore:
                 old_sev = a_titles[title]["severity"]
                 new_sev = b_titles[title]["severity"]
                 if old_sev != new_sev:
-                    changed.append({
-                        "title": title,
-                        "old_severity": old_sev,
-                        "new_severity": new_sev,
-                    })
+                    changed.append(
+                        {
+                            "title": title,
+                            "old_severity": old_sev,
+                            "new_severity": new_sev,
+                        }
+                    )
         return {
             "scan_a": {"id": scan_id_a, "target": a.get("target"), "total": len(a["findings"])},
             "scan_b": {"id": scan_id_b, "target": b.get("target"), "total": len(b["findings"])},

@@ -176,8 +176,8 @@ function SecurityScoreGauge({ score }: { score: number }) {
     clamped >= 80
       ? "#22d3ee" // cyan
       : clamped >= 60
-      ? "#eab308" // yellow
-      : "#f43f5e"; // rose
+        ? "#eab308" // yellow
+        : "#f43f5e"; // rose
 
   return (
     <div className="flex flex-col items-center">
@@ -201,7 +201,15 @@ function SecurityScoreGauge({ score }: { score: number }) {
           style={{ transition: "stroke-dasharray 1s ease, stroke 0.5s ease" }}
         />
         {/* Score text */}
-        <text x="70" y="62" textAnchor="middle" className="fill-slate-100" fontSize="26" fontWeight="700" fill="white">
+        <text
+          x="70"
+          y="62"
+          textAnchor="middle"
+          className="fill-slate-100"
+          fontSize="26"
+          fontWeight="700"
+          fill="white"
+        >
           {clamped}
         </text>
         <text x="70" y="76" textAnchor="middle" fontSize="11" fill="#94a3b8">
@@ -230,7 +238,16 @@ interface StatCardProps {
   className?: string;
 }
 
-function StatCard({ label, value, valueClassName, icon: Icon, iconClass, trend, to, className }: StatCardProps) {
+function StatCard({
+  label,
+  value,
+  valueClassName,
+  icon: Icon,
+  iconClass,
+  trend,
+  to,
+  className,
+}: StatCardProps) {
   const inner = (
     <div
       className={[
@@ -240,7 +257,9 @@ function StatCard({ label, value, valueClassName, icon: Icon, iconClass, trend, 
     >
       <div>
         <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
-        <p className={["mt-1 text-2xl font-bold text-slate-100", valueClassName ?? ""].join(" ")}>{value}</p>
+        <p className={["mt-1 text-2xl font-bold text-slate-100", valueClassName ?? ""].join(" ")}>
+          {value}
+        </p>
         {trend && (
           <div className="mt-1 flex items-center gap-1 text-xs text-emerald-400">
             <TrendingUp className="h-3 w-3" />
@@ -272,10 +291,34 @@ function StatCard({ label, value, valueClassName, icon: Icon, iconClass, trend, 
 
 function QuickActions() {
   const actions = [
-    { label: "New Scan", desc: "Launch a security scan", icon: Play, to: "/scans", color: "from-cyan-500 to-blue-600" },
-    { label: "Recon", desc: "OSINT & enumeration", icon: Globe, to: "/recon", color: "from-blue-500 to-purple-600" },
-    { label: "AI Analysis", desc: "Correlate findings", icon: Brain, to: "/ai", color: "from-purple-500 to-pink-600" },
-    { label: "Reports", desc: "Generate & export", icon: FileText, to: "/reports", color: "from-emerald-500 to-teal-600" },
+    {
+      label: "New Scan",
+      desc: "Launch a security scan",
+      icon: Play,
+      to: "/scans",
+      color: "from-cyan-500 to-blue-600",
+    },
+    {
+      label: "Recon",
+      desc: "OSINT & enumeration",
+      icon: Globe,
+      to: "/recon",
+      color: "from-blue-500 to-purple-600",
+    },
+    {
+      label: "AI Analysis",
+      desc: "Correlate findings",
+      icon: Brain,
+      to: "/ai",
+      color: "from-purple-500 to-pink-600",
+    },
+    {
+      label: "Reports",
+      desc: "Generate & export",
+      icon: FileText,
+      to: "/reports",
+      color: "from-emerald-500 to-teal-600",
+    },
   ];
 
   return (
@@ -447,7 +490,13 @@ export function DashboardPage() {
               <StatCard
                 label="Critical Findings"
                 value={loading ? "…" : criticalCount}
-                valueClassName={loading ? undefined : stats.critical_findings > 0 ? "animate-count animate-badge" : "animate-count"}
+                valueClassName={
+                  loading
+                    ? undefined
+                    : stats.critical_findings > 0
+                      ? "animate-count animate-badge"
+                      : "animate-count"
+                }
                 icon={AlertTriangle}
                 iconClass="bg-rose-500/10 text-rose-400"
                 trend={{ value: stats.findings_last_7d, label: "last 7d" }}
@@ -485,7 +534,10 @@ export function DashboardPage() {
           <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
             <div className="mb-2 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-300">Compliance Readiness</h3>
-              <Link to="/reports" className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5">
+              <Link
+                to="/reports"
+                className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5"
+              >
                 View report <ChevronRight className="h-3 w-3" />
               </Link>
             </div>
