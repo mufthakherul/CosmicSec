@@ -51,19 +51,35 @@ jobs:
           npm --prefix frontend ci
           npm --prefix frontend run test
 
-      - name: Enable auto-merge for safe updates
+      - name: Merge safe updates only when checks are green
         if: |
           steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
           steps.metadata.outputs.update-type == 'version-update:semver-minor'
         uses: actions/github-script@v7
         with:
           script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pull_number = context.payload.pull_request.number;
+            const headSha = context.payload.pull_request.head.sha;
+
+            const status = await github.rest.repos.getCombinedStatusForRef({
+              owner,
+              repo,
+              ref: headSha,
+            });
+
+            if (status.data.state !== "success") {
+              core.info(`Skipping merge: combined status is ${status.data.state}`);
+              return;
+            }
+
             await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              merge_method: "squash"
-            })
+              owner,
+              repo,
+              pull_number,
+              merge_method: "squash",
+            });
 
       - name: Dependency guard summary
         run: |
