@@ -187,9 +187,7 @@ class TestAITaskPlanner:
         self.planner = AITaskPlanner()
 
     def test_static_plan_scan(self) -> None:
-        plan = _run(
-            self.planner.plan("scan 192.168.1.1 with nmap", force_mode="static")
-        )
+        plan = _run(self.planner.plan("scan 192.168.1.1 with nmap", force_mode="static"))
         assert plan.source == "static"
         assert len(plan.steps) > 0
         assert plan.steps[0].tool == "nmap"
@@ -204,47 +202,35 @@ class TestAITaskPlanner:
         assert len(plan.steps) >= 2
 
     def test_static_plan_all_tools(self) -> None:
-        plan = _run(
-            self.planner.plan("scan with all tools", force_mode="static")
-        )
+        plan = _run(self.planner.plan("scan with all tools", force_mode="static"))
         assert any(s.tool == "__all__" for s in plan.steps)
 
     def test_dynamic_plan_no_providers(self) -> None:
-        plan = _run(
-            self.planner.plan("scan something", force_mode="dynamic")
-        )
+        plan = _run(self.planner.plan("scan something", force_mode="dynamic"))
         # No providers → empty plan
         assert plan.source == "dynamic"
         assert plan.confidence == 0.0
 
     def test_hybrid_plan_high_confidence(self) -> None:
         """With a high-confidence local parse, hybrid should use static."""
-        plan = _run(
-            self.planner.plan("scan 192.168.1.1 with nmap")
-        )
+        plan = _run(self.planner.plan("scan 192.168.1.1 with nmap"))
         # Local parser confidence >= 0.8 → hybrid-static
         assert plan.source in ("hybrid-static", "hybrid-fallback", "static")
         assert len(plan.steps) > 0
 
     def test_plan_serialization(self) -> None:
-        plan = _run(
-            self.planner.plan("scan 192.168.1.1 with nmap", force_mode="static")
-        )
+        plan = _run(self.planner.plan("scan 192.168.1.1 with nmap", force_mode="static"))
         d = plan.to_dict()
         assert "steps" in d
         assert "source" in d
         assert isinstance(d["steps"], list)
 
     def test_plan_analyze_intent(self) -> None:
-        plan = _run(
-            self.planner.plan("analyze the scan results", force_mode="static")
-        )
+        plan = _run(self.planner.plan("analyze the scan results", force_mode="static"))
         assert any(s.step_type == StepType.AI_ANALYSIS for s in plan.steps)
 
     def test_plan_report_intent(self) -> None:
-        plan = _run(
-            self.planner.plan("generate an html report", force_mode="static")
-        )
+        plan = _run(self.planner.plan("generate an html report", force_mode="static"))
         assert any(s.step_type == StepType.REPORT for s in plan.steps)
 
 
@@ -270,24 +256,18 @@ class TestHybridEngine:
 
     def test_plan_in_static_mode(self) -> None:
         engine = HybridEngine(mode=ExecutionMode.STATIC)
-        plan = _run(
-            engine.plan("scan 192.168.1.1 with nmap")
-        )
+        plan = _run(engine.plan("scan 192.168.1.1 with nmap"))
         assert len(plan.steps) > 0
         assert plan.steps[0].tool == "nmap"
 
     def test_plan_in_hybrid_mode(self) -> None:
         engine = HybridEngine(mode=ExecutionMode.HYBRID)
-        plan = _run(
-            engine.plan("scan 192.168.1.1 with nmap")
-        )
+        plan = _run(engine.plan("scan 192.168.1.1 with nmap"))
         assert len(plan.steps) > 0
 
     def test_dry_run_no_execution(self) -> None:
         engine = HybridEngine(mode=ExecutionMode.STATIC)
-        result = _run(
-            engine.execute("scan 192.168.1.1 with nmap", interactive=False, dry_run=True)
-        )
+        result = _run(engine.execute("scan 192.168.1.1 with nmap", interactive=False, dry_run=True))
         assert result.plan.steps  # Plan exists
         assert len(result.step_results) == 0  # But nothing was executed
 

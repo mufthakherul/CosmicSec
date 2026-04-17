@@ -38,7 +38,10 @@ export function usePWA() {
     };
   }, []);
 
-  const canInstall = useMemo(() => Boolean(installEvent) && !isInstalled, [installEvent, isInstalled]);
+  const canInstall = useMemo(
+    () => Boolean(installEvent) && !isInstalled,
+    [installEvent, isInstalled],
+  );
 
   const promptInstall = useCallback(async () => {
     if (!installEvent) {

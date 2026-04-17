@@ -366,9 +366,7 @@ class LocalIntentParser:
 
         return flags
 
-    def _infer_action(
-        self, text_lower: str, category: IntentCategory, tools: list[str]
-    ) -> str:
+    def _infer_action(self, text_lower: str, category: IntentCategory, tools: list[str]) -> str:
         """Infer a specific action verb."""
         if category == IntentCategory.SCAN:
             if tools:

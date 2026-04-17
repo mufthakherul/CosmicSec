@@ -104,131 +104,131 @@ export function App() {
               ref={mainRef}
               tabIndex={-1}
             >
-            <Routes location={location}>
-              {/* ------------------------------------------------------------------ */}
-              {/* Public routes — no auth required */}
-              {/* ------------------------------------------------------------------ */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/demo" element={<DemoSandboxPage />} />
-              <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/auth/login" element={<LoginPage />} />
-              <Route path="/auth/register" element={<RegisterPage />} />
-              <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
-              <Route path="/auth/2fa" element={<TwoFactorPage />} />
+              <Routes location={location}>
+                {/* ------------------------------------------------------------------ */}
+                {/* Public routes — no auth required */}
+                {/* ------------------------------------------------------------------ */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/demo" element={<DemoSandboxPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/auth/login" element={<LoginPage />} />
+                <Route path="/auth/register" element={<RegisterPage />} />
+                <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
+                <Route path="/auth/2fa" element={<TwoFactorPage />} />
 
-              {/* ------------------------------------------------------------------ */}
-              {/* Protected routes — requires authentication */}
-              {/* ------------------------------------------------------------------ */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminDashboardPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/phase5"
-                element={
-                  <ProtectedRoute>
-                    <Phase5OperationsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/scans"
-                element={
-                  <ProtectedRoute>
-                    <ScanPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/scans/:id"
-                element={
-                  <ProtectedRoute>
-                    <ScanDetailPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/recon"
-                element={
-                  <ProtectedRoute>
-                    <ReconPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/ai"
-                element={
-                  <ProtectedRoute>
-                    <AIAnalysisPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <ProtectedRoute>
-                    <ReportsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/bugbounty"
-                element={
-                  <ProtectedRoute>
-                    <BugBountyPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/timeline"
-                element={
-                  <ProtectedRoute>
-                    <TimelinePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/agents"
-                element={
-                  <ProtectedRoute>
-                    <AgentsPage />
-                  </ProtectedRoute>
-                }
-              />
+                {/* ------------------------------------------------------------------ */}
+                {/* Protected routes — requires authentication */}
+                {/* ------------------------------------------------------------------ */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminDashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/phase5"
+                  element={
+                    <ProtectedRoute>
+                      <Phase5OperationsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/scans"
+                  element={
+                    <ProtectedRoute>
+                      <ScanPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/scans/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ScanDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/recon"
+                  element={
+                    <ProtectedRoute>
+                      <ReconPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ai"
+                  element={
+                    <ProtectedRoute>
+                      <AIAnalysisPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <ProtectedRoute>
+                      <ReportsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/bugbounty"
+                  element={
+                    <ProtectedRoute>
+                      <BugBountyPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/timeline"
+                  element={
+                    <ProtectedRoute>
+                      <TimelinePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/agents"
+                  element={
+                    <ProtectedRoute>
+                      <AgentsPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* ------------------------------------------------------------------ */}
-              {/* 404 catch-all */}
-              {/* ------------------------------------------------------------------ */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+                {/* ------------------------------------------------------------------ */}
+                {/* 404 catch-all */}
+                {/* ------------------------------------------------------------------ */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
             </main>
           </Suspense>
         </ErrorBoundary>
@@ -236,4 +236,3 @@ export function App() {
     </ThemeProvider>
   );
 }
-

@@ -114,7 +114,10 @@ export function BugBountyPage() {
           description: formDescription.trim(),
         }),
       });
-      interface SubmissionResponse { id?: string; submission_id?: string }
+      interface SubmissionResponse {
+        id?: string;
+        submission_id?: string;
+      }
       const data = (await res.json()) as SubmissionResponse;
       const newSub: BugBountySubmission = {
         id: data.id ?? data.submission_id ?? `sub-${Date.now()}`,
@@ -165,7 +168,10 @@ export function BugBountyPage() {
         {showForm && (
           <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
             <h2 className="mb-4 text-sm font-semibold text-amber-300">New Bug Bounty Submission</h2>
-            <form onSubmit={(e) => void handleSubmitReport(e)} className="grid gap-4 sm:grid-cols-2">
+            <form
+              onSubmit={(e) => void handleSubmitReport(e)}
+              className="grid gap-4 sm:grid-cols-2"
+            >
               <div>
                 <label className="mb-1.5 block text-xs text-slate-400">Program</label>
                 <select
@@ -176,7 +182,9 @@ export function BugBountyPage() {
                 >
                   <option value="">— select a program —</option>
                   {programs.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -189,7 +197,9 @@ export function BugBountyPage() {
                   className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-300 outline-none focus:border-amber-500/50"
                 >
                   {["critical", "high", "medium", "low", "info"].map((s) => (
-                    <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                    <option key={s} value={s}>
+                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -223,7 +233,11 @@ export function BugBountyPage() {
                   disabled={submitting || !formTitle.trim() || !formProgramId}
                   className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-amber-400 disabled:opacity-50"
                 >
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bug className="h-4 w-4" />}
+                  {submitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Bug className="h-4 w-4" />
+                  )}
                   Save Draft
                 </button>
                 <button
@@ -282,10 +296,14 @@ export function BugBountyPage() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredPrograms.map((program) => (
-                  <ProgramCard key={program.id} program={program} onSelect={(id) => {
-                    setFormProgramId(id);
-                    setShowForm(true);
-                  }} />
+                  <ProgramCard
+                    key={program.id}
+                    program={program}
+                    onSelect={(id) => {
+                      setFormProgramId(id);
+                      setShowForm(true);
+                    }}
+                  />
                 ))}
               </div>
             )}
@@ -311,7 +329,9 @@ export function BugBountyPage() {
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className={`rounded border px-2 py-0.5 text-xs font-medium capitalize ${sevClass}`}>
+                          <span
+                            className={`rounded border px-2 py-0.5 text-xs font-medium capitalize ${sevClass}`}
+                          >
                             {sub.severity}
                           </span>
                           <p className="truncate text-sm font-medium text-slate-200">{sub.title}</p>
@@ -329,7 +349,9 @@ export function BugBountyPage() {
                           </span>
                         )}
                         <span className="flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-1 text-xs capitalize text-slate-300">
-                          <StatusIcon className={`h-3 w-3 ${sub.status === "submitted" ? "animate-spin" : ""}`} />
+                          <StatusIcon
+                            className={`h-3 w-3 ${sub.status === "submitted" ? "animate-spin" : ""}`}
+                          />
                           {sub.status}
                         </span>
                       </div>
@@ -365,7 +387,9 @@ function ProgramCard({
           <p className="text-xs text-slate-500">{program.platform}</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`rounded-full px-2 py-0.5 text-xs ${program.active ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-700 text-slate-500"}`}>
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs ${program.active ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-700 text-slate-500"}`}
+          >
             {program.active ? "Active" : "Inactive"}
           </span>
         </div>
@@ -389,7 +413,9 @@ function ProgramCard({
       {expanded && (
         <ul className="mt-1 space-y-0.5">
           {program.scope.map((s, i) => (
-            <li key={i} className="truncate font-mono text-xs text-slate-400">{s}</li>
+            <li key={i} className="truncate font-mono text-xs text-slate-400">
+              {s}
+            </li>
           ))}
         </ul>
       )}

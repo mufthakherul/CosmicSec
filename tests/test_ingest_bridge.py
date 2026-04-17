@@ -1,6 +1,7 @@
 """
 Tests for services/api_gateway/ingest_bridge.py — Rust ingest engine bridge.
 """
+
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -78,14 +79,17 @@ class TestHealthCheck:
 
 
 class TestFeatureFlagValues:
-    @pytest.mark.parametrize("flag_value,expected", [
-        ("true", True),
-        ("1", True),
-        ("yes", True),
-        ("false", False),
-        ("0", False),
-        ("no", False),
-    ])
+    @pytest.mark.parametrize(
+        "flag_value,expected",
+        [
+            ("true", True),
+            ("1", True),
+            ("yes", True),
+            ("false", False),
+            ("0", False),
+            ("no", False),
+        ],
+    )
     def test_flag_parsing(self, monkeypatch, flag_value, expected):
         monkeypatch.setenv("COSMICSEC_USE_RUST_INGEST", flag_value)
         import importlib

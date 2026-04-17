@@ -15,23 +15,33 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
-from services.common.db import SessionLocal, get_db
+from services.common.db import SessionLocal
 
 from .db_repository import (
     avg_rating as db_avg_rating,
+)
+from .db_repository import (
     create_marketplace_entry,
-    create_repository as db_create_repository,
-    get_marketplace_entry,
-    get_ratings as db_get_ratings,
-    get_repository as db_get_repository,
-    list_marketplace as db_list_marketplace,
-    list_repositories as db_list_repositories,
     update_repository_sync,
     upsert_rating,
+)
+from .db_repository import (
+    create_repository as db_create_repository,
+)
+from .db_repository import (
+    get_ratings as db_get_ratings,
+)
+from .db_repository import (
+    get_repository as db_get_repository,
+)
+from .db_repository import (
+    list_marketplace as db_list_marketplace,
+)
+from .db_repository import (
+    list_repositories as db_list_repositories,
 )
 from .sdk.base import PluginContext
 from .sdk.loader import PluginLoader

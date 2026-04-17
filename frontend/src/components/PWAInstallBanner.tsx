@@ -15,7 +15,9 @@ export function PWAInstallBanner() {
       className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-slate-900/95 px-4 py-3 shadow-2xl shadow-emerald-500/10 backdrop-blur-sm"
     >
       <Download className="h-4 w-4 shrink-0 text-emerald-400" />
-      <p className="text-sm text-slate-200">Install CosmicSec as an app for faster access and offline support.</p>
+      <p className="text-sm text-slate-200">
+        Install CosmicSec as an app for faster access and offline support.
+      </p>
       <button
         onClick={() => {
           void promptInstall();

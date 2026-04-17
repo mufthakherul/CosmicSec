@@ -124,9 +124,7 @@ class AutonomousAgentRequest(BaseModel):
     findings: list[str] = Field(
         default_factory=list, description="Finding title strings for analysis"
     )
-    query: str | None = Field(
-        default=None, description="Optional focused question for the agent"
-    )
+    query: str | None = Field(default=None, description="Optional focused question for the agent")
 
 
 # Phase 2 — Exploit guidance model
@@ -179,12 +177,12 @@ async def health_check() -> dict:
     }
 
 
-
 # ---------------------------------------------------------------------------
 # Phase S.1 — AI result caching (Redis, graceful fallback)
 # ---------------------------------------------------------------------------
 try:
     import redis as _ai_redis_module
+
     _ai_redis = _ai_redis_module.from_url(
         f"redis://{_os_module.getenv('REDIS_HOST', 'localhost')}:{_os_module.getenv('REDIS_PORT', '6379')}/0",
         decode_responses=True,
@@ -247,7 +245,9 @@ async def analyze_findings(payload: AnalyzeRequest) -> AnalyzeResponse:
         high=high_count,
     )
 
-    result = AnalyzeResponse(summary=summary, risk_score=risk_score, recommendations=recommendations)
+    result = AnalyzeResponse(
+        summary=summary, risk_score=risk_score, recommendations=recommendations
+    )
     _ai_cache_set(cache_key, result.model_dump(), ttl=3600)  # 1 hour
     return result
 
@@ -441,7 +441,11 @@ def get_remediation_guidance(vulnerability_type: str, finding: dict):
     Phase 4: Defensive AI - Auto-remediation suggestions
     """
     remediation = defensive_ai.suggest_remediation(vulnerability_type, finding)
-    return {"success": True, "remediation": remediation, "timestamp": datetime.now(tz=UTC).isoformat()}
+    return {
+        "success": True,
+        "remediation": remediation,
+        "timestamp": datetime.now(tz=UTC).isoformat(),
+    }
 
 
 @app.post("/defensive/hardening")
@@ -915,10 +919,26 @@ async def workflow_graph(run_id: str) -> dict:
         "format": "mermaid",
         "diagram": static_diagram,
         "nodes": [
-            {"id": "triage", "label": "TriageAgent", "description": "Classify findings by severity & confidence"},
-            {"id": "analysis", "label": "AnalysisAgent", "description": "Deep analysis with RAG context"},
-            {"id": "correlation", "label": "CorrelationAgent", "description": "Group related findings & detect attack chains"},
-            {"id": "remediation", "label": "RemediationAgent", "description": "Prioritized remediation playbook"},
+            {
+                "id": "triage",
+                "label": "TriageAgent",
+                "description": "Classify findings by severity & confidence",
+            },
+            {
+                "id": "analysis",
+                "label": "AnalysisAgent",
+                "description": "Deep analysis with RAG context",
+            },
+            {
+                "id": "correlation",
+                "label": "CorrelationAgent",
+                "description": "Group related findings & detect attack chains",
+            },
+            {
+                "id": "remediation",
+                "label": "RemediationAgent",
+                "description": "Prioritized remediation playbook",
+            },
         ],
         "edges": [
             {"from": "triage", "to": "analysis", "label": "triaged findings"},
@@ -952,10 +972,11 @@ async def pull_model(payload: dict) -> dict:
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.post(f"{ollama_url}/api/pull", json={"name": model_name})
-            return {"model": model_name, "status": "pulling" if resp.status_code == 200 else "error", "ollama_response": resp.status_code}
+            return {
+                "model": model_name,
+                "status": "pulling" if resp.status_code == 200 else "error",
+                "ollama_response": resp.status_code,
+            }
     except Exception as exc:
         logger.warning("Ollama pull failed for %s: %s", model_name, exc)
         return {"model": model_name, "status": "error", "detail": "Ollama unavailable"}
-
-
-

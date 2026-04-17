@@ -91,9 +91,7 @@ class EngineResult:
 
     @property
     def success(self) -> bool:
-        return all(
-            r.status in (StepStatus.SUCCESS, StepStatus.SKIPPED) for r in self.step_results
-        )
+        return all(r.status in (StepStatus.SUCCESS, StepStatus.SKIPPED) for r in self.step_results)
 
     @property
     def summary(self) -> dict[str, int]:
@@ -463,7 +461,9 @@ class HybridEngine:
         for dep_id in step.depends_on:
             dep_result = self._completed_steps.get(dep_id)
             if dep_result and dep_result.output:
-                context_outputs.append(f"[{dep_id}] {dep_result.output[:_MAX_CONTEXT_OUTPUT_LENGTH]}")
+                context_outputs.append(
+                    f"[{dep_id}] {dep_result.output[:_MAX_CONTEXT_OUTPUT_LENGTH]}"
+                )
 
         # For now, provide a structured summary
         summary = f"Analysis requested. Context from {len(context_outputs)} previous step(s)."
@@ -510,9 +510,7 @@ class HybridEngine:
         """Evaluate a step condition based on completed steps."""
         # Simple condition evaluation — expand in future phases
         if "findings.count > 0" in condition:
-            total_findings = sum(
-                len(r.findings) for r in self._completed_steps.values()
-            )
+            total_findings = sum(len(r.findings) for r in self._completed_steps.values())
             return total_findings > 0
         return True  # Default: execute
 
@@ -608,6 +606,8 @@ class HybridEngine:
         console.print(
             Panel(
                 "\n".join(lines),
-                title="[bold green]✨ Complete[/bold green]" if result.success else "[bold red]⚠ Issues[/bold red]",
+                title="[bold green]✨ Complete[/bold green]"
+                if result.success
+                else "[bold red]⚠ Issues[/bold red]",
             )
         )

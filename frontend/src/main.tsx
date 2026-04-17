@@ -30,10 +30,7 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
           const newSW = registration.installing;
           if (!newSW) return;
           newSW.addEventListener("statechange", () => {
-            if (
-              newSW.state === "installed" &&
-              navigator.serviceWorker.controller
-            ) {
+            if (newSW.state === "installed" && navigator.serviceWorker.controller) {
               window.dispatchEvent(new CustomEvent("cosmicsec:sw-update-available"));
             }
           });

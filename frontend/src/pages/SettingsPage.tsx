@@ -1,14 +1,5 @@
 import { useState } from "react";
-import {
-  Globe,
-  Lock,
-  Moon,
-  Save,
-  Shield,
-  Sun,
-  Trash2,
-  User,
-} from "lucide-react";
+import { Globe, Lock, Moon, Save, Shield, Sun, Trash2, User } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -27,7 +18,11 @@ type ApiError = {
 // Section wrapper
 // ---------------------------------------------------------------------------
 
-function Section({ title, description, children }: {
+function Section({
+  title,
+  description,
+  children,
+}: {
   title: string;
   description?: string;
   children: React.ReactNode;
@@ -90,7 +85,8 @@ function ToggleRow({
 
 export function SettingsPage() {
   const { user, logout } = useAuth();
-  const { theme, setTheme, highContrast, setHighContrast, reducedMotion, setReducedMotion } = useTheme();
+  const { theme, setTheme, highContrast, setHighContrast, reducedMotion, setReducedMotion } =
+    useTheme();
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   // Notification preferences
@@ -229,10 +225,7 @@ export function SettingsPage() {
         {/* ------------------------------------------------------------------ */}
         {/* Appearance */}
         {/* ------------------------------------------------------------------ */}
-        <Section
-          title="Appearance"
-          description="Customise the look and feel of CosmicSec"
-        >
+        <Section title="Appearance" description="Customise the look and feel of CosmicSec">
           <div>
             <p className="mb-2 text-sm font-medium text-slate-200">Theme</p>
             <div className="flex gap-3">
@@ -270,10 +263,7 @@ export function SettingsPage() {
         {/* ------------------------------------------------------------------ */}
         {/* Notifications */}
         {/* ------------------------------------------------------------------ */}
-        <Section
-          title="Notifications"
-          description="Choose how and when you receive alerts"
-        >
+        <Section title="Notifications" description="Choose how and when you receive alerts">
           <ToggleRow
             label="Email notifications"
             description="Receive scan completion and finding alerts by email"
@@ -293,7 +283,9 @@ export function SettingsPage() {
             onChange={setNotifCriticalOnly}
           />
           <button
-            onClick={() => addNotification({ type: "success", message: "Notification preferences saved." })}
+            onClick={() =>
+              addNotification({ type: "success", message: "Notification preferences saved." })
+            }
             className="flex items-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-600"
           >
             <Save className="h-4 w-4" />
@@ -304,13 +296,13 @@ export function SettingsPage() {
         {/* ------------------------------------------------------------------ */}
         {/* Scan defaults */}
         {/* ------------------------------------------------------------------ */}
-        <Section
-          title="Scan Defaults"
-          description="Default settings applied to every new scan"
-        >
+        <Section title="Scan Defaults" description="Default settings applied to every new scan">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-300" htmlFor="scanTimeout">
+              <label
+                className="mb-1 block text-sm font-medium text-slate-300"
+                htmlFor="scanTimeout"
+              >
                 Scan timeout (seconds)
               </label>
               <input
@@ -341,13 +333,13 @@ export function SettingsPage() {
         {/* ------------------------------------------------------------------ */}
         {/* Security */}
         {/* ------------------------------------------------------------------ */}
-        <Section
-          title="Security"
-          description="Account security and session settings"
-        >
+        <Section title="Security" description="Account security and session settings">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-300" htmlFor="sessionTimeout">
+              <label
+                className="mb-1 block text-sm font-medium text-slate-300"
+                htmlFor="sessionTimeout"
+              >
                 Session timeout (seconds)
               </label>
               <select
@@ -376,7 +368,11 @@ export function SettingsPage() {
             className="flex items-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-600"
           >
             <Shield className="h-4 w-4" />
-            {savingSecurity ? "Saving..." : toggling2fa ? "Updating 2FA..." : "Save security settings"}
+            {savingSecurity
+              ? "Saving..."
+              : toggling2fa
+                ? "Updating 2FA..."
+                : "Save security settings"}
           </button>
         </Section>
 
@@ -418,9 +414,7 @@ export function SettingsPage() {
 
           <div className="space-y-4">
             <div>
-              <p className="mb-2 text-sm font-medium text-slate-300">
-                Delete account
-              </p>
+              <p className="mb-2 text-sm font-medium text-slate-300">Delete account</p>
               <p className="mb-3 text-xs text-slate-500">
                 Type your email address <strong className="text-slate-300">{user?.email}</strong> to
                 confirm deletion. All data will be permanently removed.

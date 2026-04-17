@@ -39,4 +39,3 @@ class MetasploitParser:
                 }
             )
         return findings
-

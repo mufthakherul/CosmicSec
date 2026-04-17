@@ -73,7 +73,9 @@ class AuditLogStore:
             )
             conn.commit()
 
-    def list(self, *, limit: int = 20, since: str | None = None, action: str | None = None) -> list[dict]:
+    def list(
+        self, *, limit: int = 20, since: str | None = None, action: str | None = None
+    ) -> list[dict]:
         query = "SELECT * FROM cli_audit_log"
         clauses = []
         params: list = []
