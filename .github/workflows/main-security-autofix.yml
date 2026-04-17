@@ -9,6 +9,8 @@ jobs:
   security-quality-scan:
     name: Security, dependency, and quality checks
     runs-on: ubuntu-latest
+    env:
+      BANDIT_EXCLUDE_PATHS: services/common/db.py
     permissions:
       actions: read
       contents: read
@@ -75,11 +77,11 @@ jobs:
       - name: Run Bandit scan (best effort)
         run: |
           bandit -r services/ \
-            -x services/common/db.py \
+            -x "$BANDIT_EXCLUDE_PATHS" \
             -ll \
             --format json \
             --output bandit-main.json || true
-          bandit -r services/ -ll -x services/common/db.py || true
+          bandit -r services/ -ll -x "$BANDIT_EXCLUDE_PATHS" || true
 
       - name: Upload Bandit artifact
         if: always()
@@ -133,6 +135,7 @@ jobs:
 
       - name: Apply safe autofixes
         run: |
+          # Keep the job running to collect all possible autofix results in one run.
           set +e
           failures=0
 
