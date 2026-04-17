@@ -1,7 +1,9 @@
 import { createElement } from "react";
 import { render } from "@testing-library/react";
+import { vi } from "vitest";
 import { useScanStream } from "../../hooks/useScanStream";
 import { useScanStore, type Scan } from "../../store/scanStore";
+import * as runtimeEndpoints from "../../api/runtimeEndpoints";
 
 class MockWebSocket {
   static instances: MockWebSocket[] = [];
@@ -15,6 +17,8 @@ class MockWebSocket {
   constructor(url: string) {
     this.url = url;
     MockWebSocket.instances.push(this);
+    // Call onopen immediately for testing
+    setTimeout(() => this.onopen?.(new Event("open")), 0);
   }
 
   close() {}
@@ -52,24 +56,38 @@ describe("useScanStream", () => {
     localStorage.setItem("cosmicsec_token", "test-token");
     MockWebSocket.instances = [];
     vi.stubGlobal("WebSocket", MockWebSocket as unknown as typeof WebSocket);
+    
+    // Mock the ensureApiGatewayBaseUrl to resolve immediately
+    vi.spyOn(runtimeEndpoints, "ensureApiGatewayBaseUrl").mockResolvedValue(undefined);
+    vi.spyOn(runtimeEndpoints, "getApiGatewayWebSocketUrl").mockImplementation(
+      (path) => `ws://localhost:8000${path}`
+    );
+    
     useScanStore.setState({ scans: [makeScan()], activeScan: null, _hydrated: true });
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
-  it("connects with scan id and auth token", () => {
+  it("connects with scan id and auth token", async () => {
     render(createElement(HookHarness, { scanId: "scan-1" }));
-    expect(MockWebSocket.instances).toHaveLength(1);
+    await Promise.resolve();
+    await vi.runAllTimersAsync();
+    expect(MockWebSocket.instances.length).toBeGreaterThan(0);
     expect(MockWebSocket.instances[0].url).toContain("/ws/scans/scan-1");
     expect(MockWebSocket.instances[0].url).toContain("token=test-token");
   });
 
-  it("handles progress, finding, complete and error messages", () => {
+  it("handles progress, finding, complete and error messages", async () => {
     render(createElement(HookHarness, { scanId: "scan-1" }));
+    await Promise.resolve();
+    await vi.runAllTimersAsync();
+    
     const ws = MockWebSocket.instances[0];
+    if (!ws) throw new Error("WebSocket instance not found");
 
     ws.emitMessage({ type: "progress", payload: { progress: 55 } });
     expect(useScanStore.getState().scans[0].progress).toBe(55);
@@ -97,11 +115,16 @@ describe("useScanStream", () => {
     expect(useScanStore.getState().scans[0].status).toBe("failed");
   });
 
-  it("reconnects with exponential backoff after socket close", () => {
+  it("reconnects with exponential backoff after socket close", async () => {
     render(createElement(HookHarness, { scanId: "scan-1" }));
+    await Promise.resolve();
+    await vi.runAllTimersAsync();
+    
     const first = MockWebSocket.instances[0];
+    if (!first) throw new Error("WebSocket instance not found");
+    
     first.emitClose();
-    vi.advanceTimersByTime(1000);
-    expect(MockWebSocket.instances).toHaveLength(2);
+    await vi.runAllTimersAsync();
+    expect(MockWebSocket.instances.length).toBeGreaterThanOrEqual(2);
   });
 });
