@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import os
+import tempfile
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -27,9 +28,12 @@ try:
 
     _CHROMA_AVAILABLE = True
 except Exception:
-    pass
+    logger.debug("chromadb not available; vector store will use TF-IDF fallback")
 
-_PERSIST_DIR = os.getenv("CHROMA_PERSIST_DIR", "/tmp/cosmicsec_chroma")
+_PERSIST_DIR = os.getenv(
+    "CHROMA_PERSIST_DIR",
+    str(Path(tempfile.gettempdir()) / "cosmicsec_chroma"),
+)
 
 # ---------------------------------------------------------------------------
 # Document corpus — CVE categories + technique-level MITRE knowledge

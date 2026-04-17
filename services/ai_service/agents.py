@@ -118,7 +118,7 @@ async def analysis_agent(state: AgentState) -> AgentState:
                 if mapping:
                     techniques = [mapping]
             except Exception:
-                pass
+                logger.debug("MITRE mapping failed for finding %s", finding.get("id"), exc_info=True)
 
             analysed.append(
                 {

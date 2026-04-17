@@ -25,7 +25,7 @@ def list_algorithms() -> dict[str, object]:
 def hybrid_key_exchange(client_nonce: str, server_nonce: str) -> dict[str, str]:
     seed = f"{client_nonce}:{server_nonce}:{secrets.token_hex(16)}".encode()
     shared_key = hashlib.sha256(seed).hexdigest()
-    session_id = hashlib.sha1(seed).hexdigest()[:16]  # nosec B303 - non-security identifier only
+    session_id = hashlib.sha256(seed).hexdigest()[:16]
     return {
         "session_id": session_id,
         "shared_secret": shared_key,

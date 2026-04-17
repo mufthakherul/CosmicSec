@@ -704,7 +704,7 @@ async def correlate_findings(req: CorrelationRequest):
             if guidance:
                 recommendations.append(guidance[0] if isinstance(guidance, list) else str(guidance))
     except Exception:
-        pass
+        logger.debug("RAG recommendation retrieval failed", exc_info=True)
     if not recommendations:
         severities = [f.severity.lower() for f in findings]
         if "critical" in severities or "high" in severities:

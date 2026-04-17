@@ -28,7 +28,7 @@ try:
 
     _SKLEARN_AVAILABLE = True
 except Exception:
-    pass
+    logger.debug("sklearn/numpy not available; anomaly detector will use z-score fallback")
 
 # ---------------------------------------------------------------------------
 # Feature extraction
