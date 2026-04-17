@@ -57,7 +57,10 @@ def main() -> None:
             conn.commit()
 
             print(f"Admin user '{admin_email}' created.")
-            print(f"Generated password: {password}")  # noqa: S101 — intentional one-time display
+            print(
+                "A one-time admin password was generated. Set COSMICSEC_ADMIN_PASSWORD before "
+                "running in shared environments to avoid interactive secret disclosure."
+            )
     finally:
         conn.close()
 

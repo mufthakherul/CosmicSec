@@ -186,12 +186,11 @@ export function TwoFactorPage() {
                 className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-center font-mono text-lg tracking-widest text-slate-100 placeholder-slate-500 outline-none transition focus:ring-2 focus:ring-cyan-500"
                 placeholder="xxxx-xxxx-xxxx"
                 aria-label="Backup code"
-                aria-invalid={useBackup && !!codeError}
-                aria-describedby={useBackup && codeError ? "twofa-code-error" : undefined}
+                aria-describedby={codeError ? "twofa-code-error" : undefined}
                 autoComplete="one-time-code"
                 disabled={isLoading}
               />
-              {useBackup && codeError && (
+              {codeError && (
                 <p id="twofa-code-error" className="text-xs text-rose-400">
                   {codeError}
                 </p>
@@ -218,14 +217,13 @@ export function TwoFactorPage() {
                     onPaste={i === 0 ? handlePaste : undefined}
                     className="h-12 w-12 rounded-md border border-slate-700 bg-slate-950 text-center font-mono text-xl text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500"
                     aria-label={`Digit ${i + 1} of ${CODE_LENGTH}`}
-                    aria-invalid={!useBackup && !!codeError}
-                    aria-describedby={!useBackup && codeError ? "twofa-code-error" : undefined}
+                    aria-describedby={codeError ? "twofa-code-error" : undefined}
                     autoComplete={i === 0 ? "one-time-code" : "off"}
                     disabled={isLoading}
                   />
                 ))}
               </div>
-              {!useBackup && codeError && (
+              {codeError && (
                 <p id="twofa-code-error" className="text-center text-xs text-rose-400">
                   {codeError}
                 </p>

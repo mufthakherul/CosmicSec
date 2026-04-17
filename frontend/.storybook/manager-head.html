@@ -1,0 +1,13 @@
+<script>
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var hasStoryPath = params.has("path") || params.has("id");
+    if (hasStoryPath) {
+      return;
+    }
+
+    var target = new URL(window.location.href);
+    target.search = "?path=/story/welcome-cosmicsec-showcase--overview";
+    window.location.replace(target.toString());
+  })();
+</script>

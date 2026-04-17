@@ -1,4 +1,4 @@
-import { AlertTriangle, Brain, Globe, Info, Link as LinkIcon, Radar, Shield } from "lucide-react";
+import { AlertTriangle, Brain, Globe, Info, Radar, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { DEMO_AI_ANALYSIS, DEMO_FINDINGS, DEMO_RECON, DEMO_SCAN } from "../data/demoFixtures";
 

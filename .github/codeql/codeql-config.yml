@@ -1,0 +1,11 @@
+name: cosmicsec-codeql-config
+
+paths-ignore:
+  - Archives/**
+  - frontend/node_modules/**
+  - frontend/storybook-static/**
+  - frontend/public/service-worker.js
+  - services/api_gateway/ingest_pb2.py
+  - tests/**
+  - cli/agent/tests/**
+  - '**/__pycache__/**'
