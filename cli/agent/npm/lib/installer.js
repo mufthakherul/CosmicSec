@@ -74,7 +74,9 @@ function installWithPip(pythonExec) {
 function installAgent(verbose = true) {
   const pythonExec = detectPython();
   if (!pythonExec) {
-    console.error("Python 3.11+ is required. Install Python, then rerun cosmicsec-agent-install.");
+    console.error(
+      "Python 3.11+ is required. Install Python from python.org, then run: cosmicsec-agent-install",
+    );
     return { ok: false, pythonExec: null };
   }
 
@@ -87,7 +89,9 @@ function installAgent(verbose = true) {
   if (installWithPipx()) return { ok: true, pythonExec };
   if (installWithPip(pythonExec)) return { ok: true, pythonExec };
 
-  console.error("Unable to install cosmicsec-agent automatically. Try: pipx install cosmicsec-agent");
+  console.error(
+    "Unable to install cosmicsec-agent automatically. Try manually: pipx install cosmicsec-agent OR pip install --user cosmicsec-agent",
+  );
   return { ok: false, pythonExec };
 }
 
@@ -101,7 +105,7 @@ function runAgentCLI(args) {
 
   const pythonModuleArgs = pythonArgs(install.pythonExec, ["-m", "cosmicsec_agent.main", ...args]);
   const result = spawnSync(install.pythonExec.command, pythonModuleArgs, { stdio: "inherit" });
-  process.exitCode = result.status ?? 1;
+  process.exitCode = result.status != null && result.status >= 0 ? result.status : 1;
 }
 
 module.exports = {
