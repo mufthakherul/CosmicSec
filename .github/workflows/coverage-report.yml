@@ -47,7 +47,7 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run coverage gate
-        run: pytest tests/ -q --cov=services --cov-report=term-missing --cov-report=xml --cov-fail-under=""
+        run: pytest tests/ -q --cov=services --cov-report=term-missing --cov-report=xml --cov-fail-under="${COVERAGE_THRESHOLD}"
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
