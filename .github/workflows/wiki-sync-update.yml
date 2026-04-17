@@ -23,6 +23,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: wiki-sync-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sync-wiki:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
@@ -68,15 +72,9 @@ jobs:
           DEV_DOC="docs/generated/DEVELOPER_DEVELOPMENT_DETAILED.md"
           PROD_DOC="docs/generated/PRODUCTION_STATUS_PROGRESS_DETAILED.md"
 
-          if [ ! -f "${USER_DOC}" ]; then
-            USER_DOC="README.md"
-          fi
-          if [ ! -f "${DEV_DOC}" ]; then
-            DEV_DOC="docs/DIRECTORY_STRUCTURE.md"
-          fi
-          if [ ! -f "${PROD_DOC}" ]; then
-            PROD_DOC="docs/PROJECT_GOAL_AND_PROGRESS.md"
-          fi
+          [ -f "${USER_DOC}" ] || USER_DOC="README.md"
+          [ -f "${DEV_DOC}" ] || DEV_DOC="docs/DIRECTORY_STRUCTURE.md"
+          [ -f "${PROD_DOC}" ] || PROD_DOC="docs/PROJECT_GOAL_AND_PROGRESS.md"
 
           {
             echo "# CosmicSec Wiki"
@@ -114,3 +112,11 @@ jobs:
           fi
           git commit -m "docs(wiki): sync repository docs into wiki"
           git push origin HEAD
+
+      - name: Wiki sync summary
+        run: |
+          {
+            echo "## Wiki Sync Summary"
+            echo "- Updated from generated docs outputs when available"
+            echo "- Trigger: `${{ github.event_name }}`"
+          } >> "$GITHUB_STEP_SUMMARY"

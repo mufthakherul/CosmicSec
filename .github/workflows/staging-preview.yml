@@ -3,21 +3,39 @@ name: Staging Preview
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - "frontend/**"
+      - "services/**"
+      - "Dockerfile"
+      - "docker-compose*.yml"
+      - ".github/workflows/staging-preview.yml"
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: staging-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   preview:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
+    outputs:
+      preview-url: ${{ steps.meta.outputs.preview_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Build preview images
+      - name: Build preview image
+        run: docker build -t cosmicsec-preview:${{ github.sha }} .
+
+      - name: Generate preview metadata
+        id: meta
         run: |
-          docker build -t cosmicsec-preview:${{ github.sha }} .
+          PREVIEW_URL="https://preview.example.internal/${{ github.event.pull_request.number || github.run_id }}"
+          echo "preview_url=${PREVIEW_URL}" >> "$GITHUB_OUTPUT"
 
       - name: Preview deployment scaffold
         run: |
@@ -33,6 +51,8 @@ jobs:
             const body = [
               "✅ Staging preview workflow executed.",
               "",
+              `Preview URL: ${process.env.PREVIEW_URL}`,
+              "",
               "This repository is configured with a deployment scaffold.",
               "Wire provider-specific deployment commands in `.github/workflows/staging-preview.yml` to publish per-PR preview URLs."
             ].join("\n");
@@ -42,3 +62,13 @@ jobs:
               issue_number: context.payload.pull_request.number,
               body
             });
+        env:
+          PREVIEW_URL: ${{ steps.meta.outputs.preview_url }}
+
+      - name: Publish step summary
+        run: |
+          {
+            echo "## Staging Preview Summary"
+            echo "- Preview image: `cosmicsec-preview:${{ github.sha }}`"
+            echo "- Preview URL: `${{ steps.meta.outputs.preview_url }}`"
+          } >> "$GITHUB_STEP_SUMMARY"
