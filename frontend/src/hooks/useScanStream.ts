@@ -1,10 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useScanStore } from "../store/scanStore";
 import type { Finding } from "../store/scanStore";
-import {
-  ensureApiGatewayBaseUrl,
-  getApiGatewayWebSocketUrl,
-} from "../api/runtimeEndpoints";
+import { ensureApiGatewayBaseUrl, getApiGatewayWebSocketUrl } from "../api/runtimeEndpoints";
 
 const BASE_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 30_000;

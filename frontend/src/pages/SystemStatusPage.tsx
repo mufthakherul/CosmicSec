@@ -43,7 +43,8 @@ async function checkRoute(baseUrl: string, route: string): Promise<RouteCheck> {
       credentials: "omit",
     });
     const latencyMs = Math.round(performance.now() - started);
-    const ok = response.ok || response.status === 401 || response.status === 403 || response.status === 405;
+    const ok =
+      response.ok || response.status === 401 || response.status === 403 || response.status === 405;
     return { route, ok, statusCode: response.status, latencyMs };
   } catch {
     const latencyMs = Math.round(performance.now() - started);
@@ -86,7 +87,9 @@ export function SystemStatusPage() {
       );
 
       const gatewayBase = getApiGatewayBaseUrl();
-      const routes = await Promise.all(GATEWAY_ROUTE_CHECKS.map((route) => checkRoute(gatewayBase, route)));
+      const routes = await Promise.all(
+        GATEWAY_ROUTE_CHECKS.map((route) => checkRoute(gatewayBase, route)),
+      );
 
       setServiceProbes(probes);
       setRouteChecks(routes);
@@ -153,7 +156,9 @@ export function SystemStatusPage() {
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">Gateway Base URL</p>
-            <p className="mt-1 break-all font-mono text-xs text-cyan-300">{getApiGatewayBaseUrl()}</p>
+            <p className="mt-1 break-all font-mono text-xs text-cyan-300">
+              {getApiGatewayBaseUrl()}
+            </p>
           </div>
         </section>
 
@@ -201,7 +206,10 @@ export function SystemStatusPage() {
             </h2>
             <div className="space-y-2">
               {routeChecks.map((route) => (
-                <div key={route.route} className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2">
+                <div
+                  key={route.route}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2"
+                >
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-mono text-xs text-slate-300">{route.route}</p>
                     <span

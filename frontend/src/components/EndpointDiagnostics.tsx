@@ -69,7 +69,10 @@ export function EndpointDiagnostics() {
                   <p className="mb-1 text-slate-500">Probe Results</p>
                   <ul className="space-y-1">
                     {snapshot.probes.map((probe) => (
-                      <li key={probe.url} className="rounded border border-slate-800 bg-slate-900/70 px-2 py-1">
+                      <li
+                        key={probe.url}
+                        className="rounded border border-slate-800 bg-slate-900/70 px-2 py-1"
+                      >
                         <p className="font-mono text-slate-300 break-all">{probe.url}</p>
                         <p className={probe.healthy ? "text-emerald-400" : "text-rose-400"}>
                           {probe.healthy ? "Healthy" : "Unreachable"}
