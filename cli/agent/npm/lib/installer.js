@@ -46,7 +46,10 @@ function pythonArgs(pythonExec, args) {
 }
 
 function hasCosmicsecAgentModule(pythonExec) {
-  const result = run(pythonExec.command, pythonArgs(pythonExec, ["-c", "import cosmicsec_agent"]));
+  const result = run(
+    pythonExec.command,
+    pythonArgs(pythonExec, ["-c", "import cosmicsec_agent.main"]),
+  );
   return result.status === 0;
 }
 
