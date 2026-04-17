@@ -141,7 +141,7 @@ export function LoginPage() {
                             disabled={isLoading}
                         />
                         {fieldErrors.email && (
-                            <p id="login-email-error" className="text-xs text-rose-400">{fieldErrors.email}</p>
+                            <p id="login-email-error" role="alert" className="text-xs text-rose-400">{fieldErrors.email}</p>
                         )}
                     </div>
 
@@ -173,7 +173,7 @@ export function LoginPage() {
                             </button>
                         </div>
                         {fieldErrors.password && (
-                            <p id="login-password-error" className="text-xs text-rose-400">{fieldErrors.password}</p>
+                            <p id="login-password-error" role="alert" className="text-xs text-rose-400">{fieldErrors.password}</p>
                         )}
                     </div>
 
