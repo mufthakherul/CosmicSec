@@ -297,7 +297,10 @@ export function SettingsPage() {
         {/* ------------------------------------------------------------------ */}
         {/* Diagnostics */}
         {/* ------------------------------------------------------------------ */}
-        <Section title="Diagnostics" description="Inspect platform health and gateway route readiness">
+        <Section
+          title="Diagnostics"
+          description="Inspect platform health and gateway route readiness"
+        >
           <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4">
             <p className="text-sm text-slate-300">
               Open the live System Status dashboard to verify service availability, probe latency,
