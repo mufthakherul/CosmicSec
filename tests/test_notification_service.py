@@ -72,11 +72,15 @@ def test_delete_unknown_config_returns_404() -> None:
 def test_send_notification_filters_channels(monkeypatch) -> None:
     calls: list[dict] = []
 
-    def fake_post(url: str, json: dict, timeout: int) -> object:
-        calls.append({"url": url, "json": json, "timeout": timeout})
+    def fake_request(
+        method: str, url: str, json: dict, headers: dict | None = None, timeout: int = 10
+    ) -> object:
+        calls.append(
+            {"method": method, "url": url, "json": json, "headers": headers or {}, "timeout": timeout}
+        )
         return object()
 
-    monkeypatch.setattr("services.notification_service.main.httpx.post", fake_post)
+    monkeypatch.setattr("services.notification_service.main.httpx.request", fake_request)
     client.post(
         "/notify/config",
         json={"channel": "webhook", "name": "w", "config": {"url": "https://example.org/webhook"}},
@@ -102,6 +106,7 @@ def test_send_notification_filters_channels(monkeypatch) -> None:
     data = response.json()
     assert data["sent"] == 1
     assert len(calls) == 1
+    assert calls[0]["method"] == "POST"
     assert calls[0]["url"] == "https://example.org/webhook"
 
 
@@ -127,7 +132,9 @@ def test_send_notification_records_delivery_error(monkeypatch) -> None:
     assert response.status_code == 200
     data = response.json()
     assert data["sent"] == 0
-    assert data["errors"] == [f"Failed to send to config {config_id}"]
+    assert data["errors"] == [
+        {"id": config_id, "channel": "slack", "error": "delivery failed"}
+    ]
 
 
 def test_test_notification_success_for_webhook(monkeypatch) -> None:

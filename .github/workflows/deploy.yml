@@ -2,14 +2,27 @@ name: Deploy
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows: ["Test"]
+    types: [completed]
 
 jobs:
   deploy:
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.head_branch == 'main')
+      }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-main
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
