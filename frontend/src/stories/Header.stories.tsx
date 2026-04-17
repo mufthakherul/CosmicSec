@@ -40,7 +40,7 @@ const meta: Meta<typeof Header> = {
     (Story) => (
       <MemoryRouter initialEntries={["/dashboard"]}>
         <SeededProviders>
-          <div className="min-h-[180px] bg-slate-950 p-4">
+          <div className="min-h-45 bg-slate-950 p-4">
             <Story />
           </div>
         </SeededProviders>

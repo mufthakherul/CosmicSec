@@ -181,6 +181,8 @@ export function AdminDashboardPage() {
             <select
               className="rounded border border-slate-700 bg-slate-950 p-2"
               value={newUserRole}
+              aria-label="Select role for new user"
+              title="Select role for new user"
               onChange={(e) => setNewUserRole(e.target.value)}
             >
               <option value="user">user</option>
@@ -239,10 +241,14 @@ export function AdminDashboardPage() {
                   readOnly
                   className="w-1/3 rounded border border-slate-700 bg-slate-950 p-2"
                   value={key}
+                  aria-label={`Configuration key ${key}`}
+                  title={`Configuration key ${key}`}
                 />
                 <input
                   className="w-2/3 rounded border border-slate-700 bg-slate-950 p-2"
                   value={value}
+                  aria-label={`Configuration value for ${key}`}
+                  title={`Configuration value for ${key}`}
                   onChange={(e) => setConfig((prev) => ({ ...prev, [key]: e.target.value }))}
                   onBlur={() => saveConfig(key, config[key])}
                 />

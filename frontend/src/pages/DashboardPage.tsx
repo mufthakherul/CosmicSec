@@ -198,7 +198,7 @@ function SecurityScoreGauge({ score }: { score: number }) {
           strokeWidth="14"
           strokeLinecap="round"
           strokeDasharray={`${filled} ${circumference}`}
-          style={{ transition: "stroke-dasharray 1s ease, stroke 0.5s ease" }}
+          className="transition-[stroke-dasharray,stroke] duration-700 ease-out"
         />
         {/* Score text */}
         <text
@@ -216,7 +216,11 @@ function SecurityScoreGauge({ score }: { score: number }) {
           / 100
         </text>
       </svg>
-      <p className="mt-1 text-sm font-medium" style={{ color }}>
+      <p
+        className={`mt-1 text-sm font-medium ${
+          clamped >= 80 ? "text-cyan-400" : clamped >= 60 ? "text-amber-400" : "text-rose-400"
+        }`}
+      >
         {clamped >= 80 ? "Strong" : clamped >= 60 ? "Moderate" : "Needs Attention"}
       </p>
     </div>
@@ -331,7 +335,7 @@ function QuickActions() {
             to={a.to}
             className="group flex min-h-12 items-center gap-3 rounded-lg border border-slate-800 bg-slate-950 p-3 transition-all hover:border-slate-700 hover:bg-slate-800"
           >
-            <div className={`rounded-lg bg-gradient-to-br p-2 ${a.color}`}>
+            <div className={`rounded-lg bg-linear-to-br p-2 ${a.color}`}>
               <a.icon className="h-4 w-4 text-white" />
             </div>
             <div className="min-w-0">
@@ -474,7 +478,7 @@ export function DashboardPage() {
 
           {/* Stats cards (4 cols) */}
           <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:col-span-4">
-            <div className="min-w-[220px] snap-start sm:min-w-0">
+            <div className="min-w-55 snap-start sm:min-w-0">
               <StatCard
                 label="Total Scans"
                 value={loading ? "…" : totalScansCount}
@@ -486,7 +490,7 @@ export function DashboardPage() {
                 className="animate-slide-in"
               />
             </div>
-            <div className="min-w-[220px] snap-start sm:min-w-0">
+            <div className="min-w-55 snap-start sm:min-w-0">
               <StatCard
                 label="Critical Findings"
                 value={loading ? "…" : criticalCount}
@@ -504,7 +508,7 @@ export function DashboardPage() {
                 className="animate-slide-in [animation-delay:60ms]"
               />
             </div>
-            <div className="min-w-[220px] snap-start sm:min-w-0">
+            <div className="min-w-55 snap-start sm:min-w-0">
               <StatCard
                 label="Active Agents"
                 value={loading ? "…" : activeAgentsCount}
@@ -514,7 +518,7 @@ export function DashboardPage() {
                 className="animate-slide-in [animation-delay:120ms]"
               />
             </div>
-            <div className="min-w-[220px] snap-start sm:min-w-0">
+            <div className="min-w-55 snap-start sm:min-w-0">
               <StatCard
                 label="Open Bug Reports"
                 value={loading ? "…" : openBugsCount}
@@ -552,14 +556,18 @@ export function DashboardPage() {
                     <span>{label}</span>
                     <span>{pct}%</span>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-800">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-700 ${
-                        pct >= 80 ? "bg-emerald-500" : pct >= 60 ? "bg-amber-500" : "bg-rose-500"
-                      }`}
-                      style={{ width: `${animateBars ? pct : 0}%` }}
-                    />
-                  </div>
+                  <progress
+                    className={`h-2 w-full overflow-hidden rounded-full bg-slate-800 ${
+                      pct >= 80
+                        ? "text-emerald-500"
+                        : pct >= 60
+                          ? "text-amber-500"
+                          : "text-rose-500"
+                    } [&::-webkit-progress-bar]:bg-slate-800 [&::-webkit-progress-value]:bg-current [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-700 [&::-moz-progress-bar]:bg-current`}
+                    max={100}
+                    value={animateBars ? pct : 0}
+                    aria-label={`${label} compliance percentage`}
+                  />
                 </div>
               ))}
             </div>
@@ -584,28 +592,27 @@ export function DashboardPage() {
             </Link>
           </div>
           <div className="divide-y divide-slate-800">
-            {activity.map((ev, idx) => {
+            {activity.map((ev) => {
               const Icon = ACTIVITY_ICON[ev.type] ?? Activity;
               const colorClass = ACTIVITY_COLOR[ev.type] ?? "text-slate-400 bg-slate-800";
               return (
                 <div
                   key={ev.id}
                   className="animate-slide-in flex items-start gap-3 px-4 py-3"
-                  style={{ animationDelay: `${idx * 50}ms` }}
                 >
-                  <div className={`mt-0.5 flex-shrink-0 rounded-lg p-2 ${colorClass}`}>
+                  <div className={`mt-0.5 shrink-0 rounded-lg p-2 ${colorClass}`}>
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <p className="truncate text-sm font-medium text-slate-200">{ev.title}</p>
-                      <div className="flex flex-shrink-0 items-center gap-2">
+                      <div className="flex shrink-0 items-center gap-2">
                         {ev.severity && (
                           <span
                             className={`inline-block h-2 w-2 rounded-full ${SEVERITY_DOT[ev.severity] ?? "bg-slate-500"}`}
                           />
                         )}
-                        <span className="flex-shrink-0 text-xs text-slate-500">
+                        <span className="shrink-0 text-xs text-slate-500">
                           <Clock className="mr-0.5 inline h-3 w-3" />
                           {relativeTime(ev.timestamp)}
                         </span>

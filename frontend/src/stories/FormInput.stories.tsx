@@ -8,7 +8,7 @@ const meta: Meta<typeof FormInput> = {
     layout: "centered",
   },
   render: (args) => (
-    <div className="w-[360px] bg-slate-950 p-4">
+    <div className="w-90 bg-slate-950 p-4">
       <FormInput {...args} />
     </div>
   ),

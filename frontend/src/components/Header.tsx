@@ -312,9 +312,6 @@ function GlobalSearch() {
             ? "border-cyan-500 ring-1 ring-cyan-500/30 w-80"
             : "border-slate-700 hover:border-slate-600",
         ].join(" ")}
-        role="combobox"
-        aria-expanded={open}
-        aria-controls="global-search-results"
         aria-label="Global search"
       />
       {open && (
@@ -345,11 +342,7 @@ function GlobalSearch() {
           ) : resultItems.length === 0 ? (
             <div className="px-4 py-6 text-sm text-slate-400">No matching results found.</div>
           ) : (
-            <ul
-              className="max-h-80 overflow-y-auto py-1"
-              role="listbox"
-              aria-label="Search results"
-            >
+            <ul className="max-h-80 overflow-y-auto py-1" aria-label="Search results">
               {sections.map((section) => (
                 <li key={section.title}>
                   <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -370,7 +363,7 @@ function GlobalSearch() {
                           isActive ? "bg-cyan-500/10" : "hover:bg-slate-800/80",
                         ].join(" ")}
                       >
-                        <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-cyan-400" />
+                        <Icon className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-medium text-slate-100">
                             {item.label}
@@ -421,7 +414,6 @@ function NotificationBell() {
         className="relative rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
         aria-haspopup="true"
-        aria-expanded={open}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
@@ -508,13 +500,12 @@ function UserMenu() {
         onClick={() => setOpen((prev) => !prev)}
         className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
         aria-haspopup="true"
-        aria-expanded={open}
         aria-label="User menu"
       >
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 text-xs font-bold text-white">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-cyan-500 to-blue-600 text-xs font-bold text-white">
           {initials}
         </div>
-        <span className="hidden text-sm font-medium md:block max-w-[120px] truncate">
+        <span className="hidden max-w-30 truncate text-sm font-medium md:block">
           {user?.full_name ?? user?.email ?? "User"}
         </span>
         <ChevronDown className="h-3.5 w-3.5 text-slate-500" />
@@ -636,7 +627,7 @@ export function Header() {
 
       {shortcutsOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Keyboard shortcuts"

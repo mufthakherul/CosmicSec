@@ -27,7 +27,7 @@ function ToastPreview() {
   }, []);
 
   return (
-    <div className="h-40 w-[420px] bg-slate-950">
+    <div className="h-40 w-105 bg-slate-950">
       <Toast />
     </div>
   );

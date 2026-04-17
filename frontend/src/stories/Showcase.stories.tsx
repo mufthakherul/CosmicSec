@@ -137,9 +137,9 @@ function ShowcasePage() {
   return (
     <div className="min-h-screen bg-[#050816] text-slate-100">
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute left-1/2 top-[-10rem] h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="absolute right-[-8rem] top-[12rem] h-[26rem] w-[26rem] rounded-full bg-indigo-500/10 blur-3xl" />
-        <div className="absolute bottom-[-10rem] left-[-8rem] h-[24rem] w-[24rem] rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="absolute left-1/2 -top-40 h-112 w-md -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
+        <div className="absolute -right-32 top-48 h-104 w-104 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
       </div>
 
       <MemoryRouter>
@@ -199,7 +199,7 @@ function ShowcasePage() {
                 {metrics.map((metric) => (
                   <div
                     key={metric.label}
-                    className="rounded-2xl border border-white/6 bg-white/[0.03] p-4 backdrop-blur"
+                    className="rounded-2xl border border-white/6 bg-white/3 p-4 backdrop-blur"
                   >
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
                       {metric.label}
@@ -211,7 +211,7 @@ function ShowcasePage() {
             </div>
 
             <div className="grid gap-4">
-              <div className="rounded-[2rem] border border-cyan-500/20 bg-slate-900/80 p-6 shadow-2xl shadow-cyan-950/20">
+              <div className="rounded-4xl border border-cyan-500/20 bg-slate-900/80 p-6 shadow-2xl shadow-cyan-950/20">
                 <div className="mb-5 flex items-center justify-between text-sm text-slate-400">
                   <span className="inline-flex items-center gap-2 text-cyan-300">
                     <BadgeCheck className="h-4 w-4" />
@@ -220,7 +220,7 @@ function ShowcasePage() {
                   <span>Optimized for GitHub Pages</span>
                 </div>
 
-                <div className="rounded-3xl border border-white/8 bg-gradient-to-br from-cyan-500/10 via-slate-900 to-indigo-500/10 p-6">
+                <div className="rounded-3xl border border-white/8 bg-linear-to-br from-cyan-500/10 via-slate-900 to-indigo-500/10 p-6">
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
                     Live surfaces
                   </p>
@@ -248,7 +248,7 @@ function ShowcasePage() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl border border-white/8 bg-white/[0.03] p-5">
+                <div className="rounded-3xl border border-white/8 bg-white/3 p-5">
                   <div className="flex items-center gap-3">
                     <Layers3 className="h-5 w-5 text-cyan-300" />
                     <h2 className="font-semibold text-white">Modular by design</h2>
@@ -259,7 +259,7 @@ function ShowcasePage() {
                     site.
                   </p>
                 </div>
-                <div className="rounded-3xl border border-white/8 bg-white/[0.03] p-5">
+                <div className="rounded-3xl border border-white/8 bg-white/3 p-5">
                   <div className="flex items-center gap-3">
                     <TrendingUp className="h-5 w-5 text-emerald-300" />
                     <h2 className="font-semibold text-white">Ready for evolution</h2>
@@ -295,7 +295,7 @@ function ShowcasePage() {
           </section>
 
           <section id="workflow" className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-            <div className="rounded-[2rem] border border-white/8 bg-slate-900/70 p-6">
+            <div className="rounded-4xl border border-white/8 bg-slate-900/70 p-6">
               <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
                 Workflow
               </p>
@@ -309,7 +309,7 @@ function ShowcasePage() {
                 {pipeline.map((item) => (
                   <div
                     key={item.step}
-                    className="rounded-2xl border border-white/8 bg-white/[0.03] p-4"
+                    className="rounded-2xl border border-white/8 bg-white/3 p-4"
                   >
                     <div className="flex items-center gap-3">
                       <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/10 text-sm font-bold text-cyan-300">
@@ -332,7 +332,7 @@ function ShowcasePage() {
                 ))}
               </div>
 
-              <div className="rounded-[2rem] border border-white/8 bg-slate-900/70 p-6">
+              <div className="rounded-4xl border border-white/8 bg-slate-900/70 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
@@ -371,7 +371,7 @@ function ShowcasePage() {
                       {stack.map((item) => (
                         <span
                           key={item}
-                          className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1 text-xs text-slate-300"
+                          className="rounded-full border border-white/8 bg-white/3 px-3 py-1 text-xs text-slate-300"
                         >
                           {item}
                         </span>
@@ -383,7 +383,7 @@ function ShowcasePage() {
             </div>
           </section>
 
-          <section className="grid gap-6 rounded-[2rem] border border-white/8 bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-cyan-500/[0.06] p-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <section className="grid gap-6 rounded-4xl border border-white/8 bg-linear-to-br from-white/4 via-white/2 to-cyan-500/6 p-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
                 Delivery
@@ -397,7 +397,7 @@ function ShowcasePage() {
               </p>
             </div>
 
-            <div className="rounded-[1.5rem] border border-white/8 bg-slate-950/80 p-6">
+            <div className="rounded-3xl border border-white/8 bg-slate-950/80 p-6">
               <div className="flex items-center gap-3 text-cyan-300">
                 <Zap className="h-5 w-5" />
                 <span className="font-semibold">Included in this public preview</span>
