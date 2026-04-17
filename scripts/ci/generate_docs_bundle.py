@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-import re
 
 EXCLUDE_PARTS = {
     ".git",
@@ -83,7 +83,7 @@ def _parse_markdown(path: Path) -> DocInfo:
 def _git_recent_commits(limit: int = 8) -> list[str]:
     try:
         out = subprocess.check_output(
-            ["git", "--no-pager", "log", f"--oneline", f"-{limit}"],
+            ["git", "--no-pager", "log", "--oneline", f"-{limit}"],
             cwd=ROOT,
             text=True,
         )
@@ -97,14 +97,22 @@ def _repo_metrics() -> dict[str, int]:
         "python_files": len(list(ROOT.rglob("*.py"))),
         "typescript_files": len(list(ROOT.rglob("*.ts"))) + len(list(ROOT.rglob("*.tsx"))),
         "workflow_files": len(list((ROOT / ".github" / "workflows").glob("*.yml"))),
-        "service_directories": len(list((ROOT / "services").glob("*/"))) if (ROOT / "services").exists() else 0,
-        "test_files": len(list((ROOT / "tests").rglob("test_*.py"))) if (ROOT / "tests").exists() else 0,
+        "service_directories": len(list((ROOT / "services").glob("*/")))
+        if (ROOT / "services").exists()
+        else 0,
+        "test_files": len(list((ROOT / "tests").rglob("test_*.py")))
+        if (ROOT / "tests").exists()
+        else 0,
     }
 
 
 def _docs_scan(markdown_files: list[Path]) -> dict:
     infos = [_parse_markdown(p) for p in markdown_files]
-    missing_titles = [str(i.path.relative_to(ROOT)) for i in infos if i.title.lower() in {"untitled", i.path.stem.lower()}]
+    missing_titles = [
+        str(i.path.relative_to(ROOT))
+        for i in infos
+        if i.title.lower() in {"untitled", i.path.stem.lower()}
+    ]
     small_docs = [str(i.path.relative_to(ROOT)) for i in infos if i.word_count < 30]
 
     return {
@@ -127,7 +135,9 @@ def _docs_scan(markdown_files: list[Path]) -> dict:
     }
 
 
-def _top_docs_by_keywords(infos: list[DocInfo], keywords: list[str], limit: int = 20) -> list[DocInfo]:
+def _top_docs_by_keywords(
+    infos: list[DocInfo], keywords: list[str], limit: int = 20
+) -> list[DocInfo]:
     scored: list[tuple[int, DocInfo]] = []
     for info in infos:
         hay = f"{info.title} {info.path.name} {info.first_paragraph}".lower()
@@ -157,7 +167,18 @@ def _generate_markdown(profile: str, infos: list[DocInfo], scan: dict) -> str:
     if profile == "user":
         focus = _top_docs_by_keywords(
             infos,
-            ["readme", "deploy", "guide", "runbook", "cli", "mobile", "frontend", "quick", "start", "usage"],
+            [
+                "readme",
+                "deploy",
+                "guide",
+                "runbook",
+                "cli",
+                "mobile",
+                "frontend",
+                "quick",
+                "start",
+                "usage",
+            ],
             limit=30,
         )
         audience = "End users, operators, and security analysts"
@@ -169,7 +190,18 @@ def _generate_markdown(profile: str, infos: list[DocInfo], scan: dict) -> str:
     elif profile == "developer":
         focus = _top_docs_by_keywords(
             infos,
-            ["architecture", "contributing", "testing", "directory", "roadmap", "development", "sdk", "service", "api", "security"],
+            [
+                "architecture",
+                "contributing",
+                "testing",
+                "directory",
+                "roadmap",
+                "development",
+                "sdk",
+                "service",
+                "api",
+                "security",
+            ],
             limit=35,
         )
         audience = "Developers, maintainers, and platform engineers"
@@ -181,7 +213,18 @@ def _generate_markdown(profile: str, infos: list[DocInfo], scan: dict) -> str:
     else:
         focus = _top_docs_by_keywords(
             infos,
-            ["production", "deploy", "health", "status", "progress", "security", "compliance", "roadmap", "monitor", "runbook"],
+            [
+                "production",
+                "deploy",
+                "health",
+                "status",
+                "progress",
+                "security",
+                "compliance",
+                "roadmap",
+                "monitor",
+                "runbook",
+            ],
             limit=35,
         )
         audience = "Production operators, release owners, and leadership stakeholders"
@@ -191,7 +234,9 @@ def _generate_markdown(profile: str, infos: list[DocInfo], scan: dict) -> str:
 - Track release health using generated reports and CI artifacts."""
         title = "CosmicSec Production Status & Progress Documentation (Detailed)"
 
-    commit_lines = "\n".join(f"- `{line}`" for line in commits) if commits else "- No commit data available."
+    commit_lines = (
+        "\n".join(f"- `{line}`" for line in commits) if commits else "- No commit data available."
+    )
 
     md = f"""# {title}
 
@@ -200,16 +245,16 @@ def _generate_markdown(profile: str, infos: list[DocInfo], scan: dict) -> str:
 ## Metadata
 - Generated at: {now}
 - Audience: {audience}
-- Markdown files scanned: {scan['total_markdown_files']}
-- Aggregate documentation words: {scan['total_words']}
-- Average words per document: {scan['avg_words_per_doc']}
+- Markdown files scanned: {scan["total_markdown_files"]}
+- Aggregate documentation words: {scan["total_words"]}
+- Average words per document: {scan["avg_words_per_doc"]}
 
 ## Project Snapshot
-- Python files: {metrics['python_files']}
-- TypeScript files: {metrics['typescript_files']}
-- Service directories: {metrics['service_directories']}
-- Test files: {metrics['test_files']}
-- Workflow files: {metrics['workflow_files']}
+- Python files: {metrics["python_files"]}
+- TypeScript files: {metrics["typescript_files"]}
+- Service directories: {metrics["service_directories"]}
+- Test files: {metrics["test_files"]}
+- Workflow files: {metrics["workflow_files"]}
 
 ## Action Checklist
 {checklist}
@@ -221,8 +266,8 @@ def _generate_markdown(profile: str, infos: list[DocInfo], scan: dict) -> str:
 {commit_lines}
 
 ## Documentation Quality Flags
-- Candidate docs missing explicit top title: {len(scan['missing_top_title_candidates'])}
-- Candidate very small docs (<30 words): {len(scan['small_docs_candidates'])}
+- Candidate docs missing explicit top title: {len(scan["missing_top_title_candidates"])}
+- Candidate very small docs (<30 words): {len(scan["small_docs_candidates"])}
 
 ### Missing Top Title Candidates
 """
