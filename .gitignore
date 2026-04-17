@@ -14,6 +14,9 @@ lib/
 lib64/
 # Allow frontend/src/lib (TS source utilities — not a Python lib directory)
 !frontend/src/lib/
+# Allow npm launcher implementation library
+!cli/agent/npm/lib/
+!cli/agent/npm/lib/installer.js
 parts/
 sdist/
 var/
