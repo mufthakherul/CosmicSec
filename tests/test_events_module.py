@@ -1,9 +1,9 @@
 """
 Tests for services/common/events.py — NATS event bus Python module.
 """
-import asyncio
+
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 

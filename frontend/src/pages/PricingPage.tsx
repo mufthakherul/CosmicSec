@@ -114,9 +114,7 @@ export function PricingPage() {
               <h2 className="text-xl font-bold">{tier.name}</h2>
               <div className="mt-2 flex items-baseline gap-1">
                 <span className="text-4xl font-extrabold">{tier.price}</span>
-                {tier.period && (
-                  <span className="text-sm text-slate-400">/ {tier.period}</span>
-                )}
+                {tier.period && <span className="text-sm text-slate-400">/ {tier.period}</span>}
               </div>
               <p className="mt-2 text-sm text-slate-400">{tier.description}</p>
             </div>
@@ -147,8 +145,8 @@ export function PricingPage() {
       {/* FAQ-style comparison note */}
       <div className="border-t border-slate-800 py-12 px-6 text-center">
         <p className="text-slate-400 text-sm">
-          All plans include a 14-day free trial of Pro features. No credit card required for
-          the Free tier.
+          All plans include a 14-day free trial of Pro features. No credit card required for the
+          Free tier.
         </p>
       </div>
     </div>

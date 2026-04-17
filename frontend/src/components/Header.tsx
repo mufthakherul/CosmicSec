@@ -269,25 +269,25 @@ function GlobalSearch() {
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
-       setActiveIndex((idx) => (resultItems.length ? (idx + 1) % resultItems.length : 0));
-       return;
-     }
+      setActiveIndex((idx) => (resultItems.length ? (idx + 1) % resultItems.length : 0));
+      return;
+    }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
-       setActiveIndex((idx) =>
-         resultItems.length ? (idx - 1 + resultItems.length) % resultItems.length : 0,
-       );
-       return;
-     }
+      setActiveIndex((idx) =>
+        resultItems.length ? (idx - 1 + resultItems.length) % resultItems.length : 0,
+      );
+      return;
+    }
 
-     if (event.key === "Enter") {
-       event.preventDefault();
-       if (resultItems[activeIndex]) {
-         goTo(resultItems[activeIndex].path);
-       }
-       return;
-     }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (resultItems[activeIndex]) {
+        goTo(resultItems[activeIndex].path);
+      }
+      return;
+    }
 
     if (event.key === "Escape") {
       setOpen(false);
@@ -327,7 +327,10 @@ function GlobalSearch() {
             <kbd className="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-300">
               {shortcutLabel}
             </kbd>{" "}
-            to focus, <kbd className="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-300">↑↓</kbd>{" "}
+            to focus,{" "}
+            <kbd className="rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-300">
+              ↑↓
+            </kbd>{" "}
             to navigate
           </div>
 
@@ -342,7 +345,11 @@ function GlobalSearch() {
           ) : resultItems.length === 0 ? (
             <div className="px-4 py-6 text-sm text-slate-400">No matching results found.</div>
           ) : (
-            <ul className="max-h-80 overflow-y-auto py-1" role="listbox" aria-label="Search results">
+            <ul
+              className="max-h-80 overflow-y-auto py-1"
+              role="listbox"
+              aria-label="Search results"
+            >
               {sections.map((section) => (
                 <li key={section.title}>
                   <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -429,10 +436,7 @@ function NotificationBell() {
           <div className="flex items-center justify-between border-b border-slate-700 px-4 py-3">
             <span className="text-sm font-semibold text-slate-200">Notifications</span>
             {unreadCount > 0 && (
-              <button
-                onClick={clearAll}
-                className="text-xs text-cyan-400 hover:text-cyan-300"
-              >
+              <button onClick={clearAll} className="text-xs text-cyan-400 hover:text-cyan-300">
                 Clear all
               </button>
             )}
@@ -450,9 +454,13 @@ function NotificationBell() {
                   key={n.id}
                   className={[
                     "border-b border-slate-800 px-4 py-3 text-sm last:border-0",
-                    n.type === "error" ? "text-rose-300" :
-                    n.type === "warning" ? "text-amber-300" :
-                    n.type === "success" ? "text-emerald-300" : "text-slate-300",
+                    n.type === "error"
+                      ? "text-rose-300"
+                      : n.type === "warning"
+                        ? "text-amber-300"
+                        : n.type === "success"
+                          ? "text-emerald-300"
+                          : "text-slate-300",
                   ].join(" ")}
                 >
                   {n.message}
@@ -486,8 +494,13 @@ function UserMenu() {
   }, []);
 
   const initials = user?.full_name
-    ? user.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
-    : user?.email?.slice(0, 2).toUpperCase() ?? "?";
+    ? user.full_name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : (user?.email?.slice(0, 2).toUpperCase() ?? "?");
 
   return (
     <div ref={ref} className="relative">
@@ -540,7 +553,10 @@ function UserMenu() {
 
           <div className="border-t border-slate-700 p-1">
             <button
-              onClick={() => { setOpen(false); logout(); }}
+              onClick={() => {
+                setOpen(false);
+                logout();
+              }}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-rose-400 transition-colors hover:bg-rose-500/10"
             >
               <LogOut className="h-4 w-4" />
@@ -640,9 +656,18 @@ export function Header() {
               </button>
             </div>
             <div className="space-y-2 text-sm text-slate-300">
-              <p><kbd className="rounded bg-slate-800 px-1.5 py-0.5">Ctrl/⌘ + K</kbd> Focus global search</p>
-              <p><kbd className="rounded bg-slate-800 px-1.5 py-0.5">?</kbd> Open this shortcuts panel</p>
-              <p><kbd className="rounded bg-slate-800 px-1.5 py-0.5">Esc</kbd> Close dialogs and overlays</p>
+              <p>
+                <kbd className="rounded bg-slate-800 px-1.5 py-0.5">Ctrl/⌘ + K</kbd> Focus global
+                search
+              </p>
+              <p>
+                <kbd className="rounded bg-slate-800 px-1.5 py-0.5">?</kbd> Open this shortcuts
+                panel
+              </p>
+              <p>
+                <kbd className="rounded bg-slate-800 px-1.5 py-0.5">Esc</kbd> Close dialogs and
+                overlays
+              </p>
             </div>
           </div>
         </div>

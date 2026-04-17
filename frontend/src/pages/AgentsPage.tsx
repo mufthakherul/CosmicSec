@@ -118,7 +118,9 @@ function AgentCard({ agent }: { agent: Agent }) {
         </div>
 
         <div className={`flex items-center gap-1.5 ${sc.color}`}>
-          <span className={`h-2 w-2 rounded-full ${sc.dot} ${agent.status === "online" ? "animate-pulse" : ""}`} />
+          <span
+            className={`h-2 w-2 rounded-full ${sc.dot} ${agent.status === "online" ? "animate-pulse" : ""}`}
+          />
           <span className="text-xs font-medium">{sc.label}</span>
         </div>
       </div>
@@ -127,7 +129,9 @@ function AgentCard({ agent }: { agent: Agent }) {
       <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
         <div className="rounded-lg bg-slate-800/60 px-3 py-2">
           <p className="text-slate-500">Platform</p>
-          <p className={`font-medium capitalize ${PLATFORM_COLOR[agent.platform] ?? "text-slate-300"}`}>
+          <p
+            className={`font-medium capitalize ${PLATFORM_COLOR[agent.platform] ?? "text-slate-300"}`}
+          >
             {agent.platform}
           </p>
         </div>
@@ -150,7 +154,10 @@ function AgentCard({ agent }: { agent: Agent }) {
         <p className="mb-1.5 text-xs text-slate-500">Discovered tools</p>
         <div className="flex flex-wrap gap-1.5">
           {agent.tools.map((t) => (
-            <span key={t} className="rounded bg-slate-800 px-2 py-0.5 font-mono text-xs text-cyan-300">
+            <span
+              key={t}
+              className="rounded bg-slate-800 px-2 py-0.5 font-mono text-xs text-cyan-300"
+            >
               {t}
             </span>
           ))}
@@ -187,7 +194,9 @@ function InstallBanner() {
             Run security tools locally on your machine and stream results to CosmicSec.
           </p>
           <div className="mt-3 space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Quick install</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Quick install
+            </p>
             <code className="block rounded-lg bg-slate-800 px-4 py-2 font-mono text-sm text-cyan-300">
               pip install cosmicsec-agent
             </code>
@@ -236,7 +245,9 @@ export function AgentsPage() {
     setRefreshing(false);
   };
 
-  useEffect(() => { loadAgents(); }, [token]);
+  useEffect(() => {
+    loadAgents();
+  }, [token]);
 
   const onlineCount = agents.filter((a) => a.status === "online").length;
   const idleCount = agents.filter((a) => a.status === "idle").length;
@@ -248,9 +259,7 @@ export function AgentsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-100">Agents</h1>
-            <p className="mt-0.5 text-sm text-slate-400">
-              Local CLI agents connected to CosmicSec
-            </p>
+            <p className="mt-0.5 text-sm text-slate-400">Local CLI agents connected to CosmicSec</p>
           </div>
           <button
             onClick={() => loadAgents(true)}
@@ -275,7 +284,9 @@ export function AgentsPage() {
           ].map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                  {label}
+                </p>
                 <Icon className={`h-4 w-4 ${color}`} />
               </div>
               <p className="mt-1 text-2xl font-bold text-slate-100">{loading ? "…" : value}</p>

@@ -41,7 +41,9 @@ export function ScanCard({ target, tool, findings, startedAt, status, onOpen }: 
           <h3 className="text-sm font-semibold text-slate-100">{target}</h3>
           <p className="text-xs text-slate-400">{tool}</p>
         </div>
-        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs ${statusMeta.className}`}>
+        <span
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs ${statusMeta.className}`}
+        >
           {statusMeta.icon}
           {statusMeta.label}
         </span>

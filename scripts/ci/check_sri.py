@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import re
-import sys
 from pathlib import Path
 
 HTML_FILES = [
@@ -18,7 +17,7 @@ TAG_RE = re.compile(
 
 
 def _is_external(attrs: str) -> bool:
-    return "src=\"http" in attrs.lower() or "href=\"http" in attrs.lower()
+    return 'src="http' in attrs.lower() or 'href="http' in attrs.lower()
 
 
 def _has_integrity(attrs: str) -> bool:

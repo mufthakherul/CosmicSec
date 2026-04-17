@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Brain, Loader2, Shield, Zap, AlertTriangle, CheckCircle, ChevronRight } from "lucide-react";
+import {
+  Brain,
+  Loader2,
+  Shield,
+  Zap,
+  AlertTriangle,
+  CheckCircle,
+  ChevronRight,
+} from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useScanStore } from "../store/scanStore";
 import { useNotificationStore } from "../store/notificationStore";
@@ -53,10 +61,25 @@ function RiskGauge({ score }: { score: number }) {
         strokeLinecap="round"
         style={{ transition: "stroke-dasharray 0.6s ease" }}
       />
-      <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle" fill="#f1f5f9" fontSize="24" fontWeight="700">
+      <text
+        x="50%"
+        y="48%"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill="#f1f5f9"
+        fontSize="24"
+        fontWeight="700"
+      >
         {score}
       </text>
-      <text x="50%" y="65%" textAnchor="middle" dominantBaseline="middle" fill="#94a3b8" fontSize="9">
+      <text
+        x="50%"
+        y="65%"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill="#94a3b8"
+        fontSize="9"
+      >
         RISK SCORE
       </text>
     </svg>
@@ -134,18 +157,27 @@ export function AIAnalysisPage() {
         }),
       ]);
 
-      interface AnalyzeRaw { summary: string; risk_score: number; recommendations: string[] }
-      interface MitreRaw { mappings: MitreMapping[] }
+      interface AnalyzeRaw {
+        summary: string;
+        risk_score: number;
+        recommendations: string[];
+      }
+      interface MitreRaw {
+        mappings: MitreMapping[];
+      }
 
       const analyzeData = (await analyzeRes.json()) as AnalyzeRaw;
       const mitreData = (await mitreRes.json()) as MitreRaw;
 
       const riskScore = analyzeData.risk_score ?? 0;
       const riskLevel =
-        riskScore >= 80 ? "critical"
-        : riskScore >= 60 ? "high"
-        : riskScore >= 40 ? "medium"
-        : "low";
+        riskScore >= 80
+          ? "critical"
+          : riskScore >= 60
+            ? "high"
+            : riskScore >= 40
+              ? "medium"
+              : "low";
 
       setResult({
         risk_score: riskScore,
@@ -181,7 +213,9 @@ export function AIAnalysisPage() {
           <section className="lg:col-span-2">
             <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
               <div className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm">
-                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Input</h2>
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Input
+                </h2>
 
                 {scans.length > 0 && (
                   <div className="mb-3">
@@ -216,7 +250,11 @@ export function AIAnalysisPage() {
                 disabled={loading || !inputText.trim()}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Brain className="h-4 w-4" />
+                )}
                 {loading ? "Analyzing…" : "Run Analysis"}
               </button>
             </form>
@@ -238,12 +276,17 @@ export function AIAnalysisPage() {
                   <RiskGauge score={result.risk_score} />
                   <div className="flex-1 space-y-2">
                     <p className="text-xs uppercase tracking-wide text-slate-500">Risk Level</p>
-                    <p className={`text-lg font-bold capitalize ${
-                      result.risk_level === "critical" ? "text-rose-400"
-                      : result.risk_level === "high" ? "text-orange-400"
-                      : result.risk_level === "medium" ? "text-amber-400"
-                      : "text-emerald-400"
-                    }`}>
+                    <p
+                      className={`text-lg font-bold capitalize ${
+                        result.risk_level === "critical"
+                          ? "text-rose-400"
+                          : result.risk_level === "high"
+                            ? "text-orange-400"
+                            : result.risk_level === "medium"
+                              ? "text-amber-400"
+                              : "text-emerald-400"
+                      }`}
+                    >
                       {result.risk_level}
                     </p>
                     <p className="text-sm text-slate-400">{result.summary}</p>

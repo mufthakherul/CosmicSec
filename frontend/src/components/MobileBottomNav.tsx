@@ -23,7 +23,9 @@ export function MobileBottomNav() {
               className={({ isActive }) =>
                 [
                   "flex min-h-12 flex-col items-center justify-center rounded-lg text-[11px] transition-colors",
-                  isActive ? "bg-cyan-500/20 text-cyan-300" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200",
+                  isActive
+                    ? "bg-cyan-500/20 text-cyan-300"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200",
                 ].join(" ")
               }
             >

@@ -37,4 +37,3 @@ class JohnParser:
                 }
             )
         return findings
-

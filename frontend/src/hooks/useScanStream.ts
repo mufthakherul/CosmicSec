@@ -25,7 +25,9 @@ export function useScanStream(scanId: string | undefined) {
     let wsUrl: string;
     if (apiBase) {
       const httpBase = apiBase.replace(/\/+$/, "");
-      wsUrl = httpBase.replace(/^https?/, (scheme) => (scheme === "https" ? "wss" : "ws")) + `/ws/scans/${scanId}`;
+      wsUrl =
+        httpBase.replace(/^https?/, (scheme) => (scheme === "https" ? "wss" : "ws")) +
+        `/ws/scans/${scanId}`;
     } else {
       const scheme = window.location.protocol === "https:" ? "wss" : "ws";
       wsUrl = `${scheme}://${window.location.host}/ws/scans/${scanId}`;
@@ -34,7 +36,9 @@ export function useScanStream(scanId: string | undefined) {
     // Append auth token as query parameter for WebSocket authentication
     const authToken = localStorage.getItem("cosmicsec_token");
     const separator = wsUrl.includes("?") ? "&" : "?";
-    const authenticatedUrl = authToken ? `${wsUrl}${separator}token=${encodeURIComponent(authToken)}` : wsUrl;
+    const authenticatedUrl = authToken
+      ? `${wsUrl}${separator}token=${encodeURIComponent(authToken)}`
+      : wsUrl;
 
     const ws = new WebSocket(authenticatedUrl);
     wsRef.current = ws;
@@ -77,10 +81,7 @@ export function useScanStream(scanId: string | undefined) {
   }, [connect]);
 }
 
-function handleMessage(
-  scanId: string,
-  msg: WsMessage,
-): void {
+function handleMessage(scanId: string, msg: WsMessage): void {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const p = msg.payload as any;
   switch (msg.type) {

@@ -22,8 +22,8 @@ export function NotFoundPage() {
 
         <h2 className="mb-3 text-2xl font-semibold text-slate-100">Page Not Found</h2>
         <p className="mx-auto mb-8 max-w-sm text-slate-400">
-          The route you're looking for doesn't exist or has been moved. Check the URL or go back
-          to safety.
+          The route you're looking for doesn't exist or has been moved. Check the URL or go back to
+          safety.
         </p>
 
         {/* Actions */}

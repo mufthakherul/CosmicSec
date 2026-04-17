@@ -55,10 +55,12 @@ def _try_load_toml(path: Path) -> dict[str, Any]:
     try:
         try:
             import tomllib  # Python 3.11+
+
             return tomllib.loads(path.read_text())
         except ImportError:
             try:
                 import tomli  # third-party
+
                 return tomli.loads(path.read_text())
             except ImportError:
                 # Fallback: very simple TOML parser for key = value lines
@@ -89,13 +91,15 @@ def _try_load_toml(path: Path) -> dict[str, Any]:
 def _write_toml(path: Path, data: dict[str, Any]) -> None:
     """Write dict as TOML (simple key = value format)."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    lines = ["# CosmicSec Agent Settings\n# Edit directly or use: cosmicsec-agent config set <key> <value>\n"]
+    lines = [
+        "# CosmicSec Agent Settings\n# Edit directly or use: cosmicsec-agent config set <key> <value>\n"
+    ]
     for key, value in sorted(data.items()):
         desc = DESCRIPTIONS.get(key, "")
         if desc:
             lines.append(f"# {desc}")
         if isinstance(value, bool):
-            lines.append(f'{key} = {"true" if value else "false"}')
+            lines.append(f"{key} = {'true' if value else 'false'}")
         elif isinstance(value, str):
             lines.append(f'{key} = "{value}"')
         else:
@@ -149,13 +153,15 @@ class SettingsStore:
         for key in sorted(DEFAULTS):
             current = self._data.get(key, DEFAULTS[key])
             default = DEFAULTS[key]
-            rows.append({
-                "key": key,
-                "value": str(current),
-                "default": str(default),
-                "description": DESCRIPTIONS.get(key, ""),
-                "modified": current != default,
-            })
+            rows.append(
+                {
+                    "key": key,
+                    "value": str(current),
+                    "default": str(default),
+                    "description": DESCRIPTIONS.get(key, ""),
+                    "modified": current != default,
+                }
+            )
         return rows
 
     def edit(self) -> None:

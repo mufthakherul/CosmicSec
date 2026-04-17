@@ -48,16 +48,13 @@ export const useScanStore = create<ScanState>()(
 
       setScans: (scans) => set({ scans }),
 
-      addScan: (scan) =>
-        set((state) => ({ scans: [scan, ...state.scans] })),
+      addScan: (scan) => set((state) => ({ scans: [scan, ...state.scans] })),
 
       updateScan: (id, patch) =>
         set((state) => ({
           scans: state.scans.map((s) => (s.id === id ? { ...s, ...patch } : s)),
           activeScan:
-            state.activeScan?.id === id
-              ? { ...state.activeScan, ...patch }
-              : state.activeScan,
+            state.activeScan?.id === id ? { ...state.activeScan, ...patch } : state.activeScan,
         })),
 
       setActiveScan: (scan) => set({ activeScan: scan }),
@@ -87,9 +84,7 @@ export const useScanStore = create<ScanState>()(
           state._hydrated = true;
           // Clear scans older than TTL
           const cutoff = Date.now() - CACHE_TTL_MS;
-          state.scans = state.scans.filter(
-            (s) => new Date(s.createdAt).getTime() > cutoff,
-          );
+          state.scans = state.scans.filter((s) => new Date(s.createdAt).getTime() > cutoff);
         }
       },
     },

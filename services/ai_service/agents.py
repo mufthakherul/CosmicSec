@@ -118,7 +118,9 @@ async def analysis_agent(state: AgentState) -> AgentState:
                 if mapping:
                     techniques = [mapping]
             except Exception:
-                logger.debug("MITRE mapping failed for finding %s", finding.get("id"), exc_info=True)
+                logger.debug(
+                    "MITRE mapping failed for finding %s", finding.get("id"), exc_info=True
+                )
 
             analysed.append(
                 {
@@ -204,8 +206,10 @@ async def remediation_agent(state: AgentState) -> AgentState:
     try:
         plan = []
         for rank, group in enumerate(state["correlation_groups"], start=1):
-            severity_level = "immediate" if group["aggregate_risk"] >= 8 else (
-                "soon" if group["aggregate_risk"] >= 5 else "scheduled"
+            severity_level = (
+                "immediate"
+                if group["aggregate_risk"] >= 8
+                else ("soon" if group["aggregate_risk"] >= 5 else "scheduled")
             )
             plan.append(
                 {
@@ -280,7 +284,9 @@ async def run_assessment_workflow(
         return result
 
     except ImportError:
-        logger.info("langgraph not installed — using sequential async fallback for scan %s", scan_id)
+        logger.info(
+            "langgraph not installed — using sequential async fallback for scan %s", scan_id
+        )
 
     # Sequential fallback pipeline
     state = initial_state
@@ -395,9 +401,7 @@ def _generate_fix_steps(findings: list[dict[str, Any]]) -> list[str]:
         if cat not in seen_cats:
             seen_cats.add(cat)
             template = _REMEDIATION_TEMPLATES.get(str(cat), _REMEDIATION_TEMPLATES["default"])
-            steps.extend(
-                [line.strip() for line in template.splitlines() if line.strip()]
-            )
+            steps.extend([line.strip() for line in template.splitlines() if line.strip()])
     return steps[:10]  # cap at 10 steps per group
 
 

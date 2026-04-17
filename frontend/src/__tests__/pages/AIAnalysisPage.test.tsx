@@ -70,7 +70,9 @@ describe("AIAnalysisPage", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            mappings: [{ technique_id: "T1078", technique_name: "Valid Accounts", tactic: "Initial Access" }],
+            mappings: [
+              { technique_id: "T1078", technique_name: "Valid Accounts", tactic: "Initial Access" },
+            ],
           }),
           { status: 200 },
         ),
