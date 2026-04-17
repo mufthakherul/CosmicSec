@@ -190,7 +190,9 @@ async function probeHealth(baseUrl: string): Promise<boolean> {
   }
 }
 
-export async function checkEndpointHealth(baseUrl: string): Promise<{ healthy: boolean; latencyMs: number }> {
+export async function checkEndpointHealth(
+  baseUrl: string,
+): Promise<{ healthy: boolean; latencyMs: number }> {
   const started = typeof performance !== "undefined" ? performance.now() : Date.now();
   const healthy = await probeHealth(baseUrl);
   const ended = typeof performance !== "undefined" ? performance.now() : Date.now();
@@ -200,7 +202,9 @@ export async function checkEndpointHealth(baseUrl: string): Promise<{ healthy: b
   };
 }
 
-export async function resolveServiceBaseUrl(service: KnownService = "api-gateway"): Promise<string> {
+export async function resolveServiceBaseUrl(
+  service: KnownService = "api-gateway",
+): Promise<string> {
   const cached = resolved.get(service);
   if (cached) {
     return cached;
