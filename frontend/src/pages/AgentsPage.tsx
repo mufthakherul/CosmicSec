@@ -101,7 +101,6 @@ const PLATFORM_COLOR: Record<string, string> = {
 
 function AgentCard({ agent }: { agent: Agent }) {
   const sc = STATUS_CONFIG[agent.status];
-  const StatusIcon = sc.icon;
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition-colors hover:border-slate-700">

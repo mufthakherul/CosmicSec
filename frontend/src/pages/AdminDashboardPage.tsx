@@ -46,7 +46,7 @@ export function AdminDashboardPage() {
   const [newUserRole, setNewUserRole] = useState("user");
   const [reportValues, setReportValues] = useState<number[]>([3, 6, 4, 8, 5, 7]);
 
-  const [scanQueue, setScanQueue] = useState<string[]>(["Network Scan", "Web Scan", "API Scan"]);
+  const [scanQueue] = useState<string[]>(["Network Scan", "Web Scan", "API Scan"]);
   const [scheduledScans, setScheduledScans] = useState<string[]>([]);
 
   const barWidth = useMemo(() => 30, []);

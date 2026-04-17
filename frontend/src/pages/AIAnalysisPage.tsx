@@ -4,7 +4,6 @@ import {
   Loader2,
   Shield,
   Zap,
-  AlertTriangle,
   CheckCircle,
   ChevronRight,
 } from "lucide-react";

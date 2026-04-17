@@ -104,6 +104,6 @@ describe("ScanPage", () => {
       _hydrated: true,
     });
     renderPage();
-    expect(screen.getByText(/example\.com/i)).toBeInTheDocument();
+    expect(screen.getByText(/^example\.com$/i)).toBeInTheDocument();
   });
 });

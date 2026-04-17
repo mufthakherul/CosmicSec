@@ -103,29 +103,22 @@ class TestSubjectConstants:
     """Verify that all expected subject constants are defined."""
 
     def test_scan_subjects_defined(self):
-        from services.common.events import (
-            SUBJECT_SCAN_COMPLETED,
-            SUBJECT_SCAN_FAILED,
-            SUBJECT_SCAN_STARTED,
-        )
+        import services.common.events as ev_module
 
-        assert SUBJECT_SCAN_STARTED == "cosmicsec.scan.started"
-        assert SUBJECT_SCAN_COMPLETED == "cosmicsec.scan.completed"
-        assert SUBJECT_SCAN_FAILED == "cosmicsec.scan.failed"
+        assert ev_module.SUBJECT_SCAN_STARTED == "cosmicsec.scan.started"
+        assert ev_module.SUBJECT_SCAN_COMPLETED == "cosmicsec.scan.completed"
+        assert ev_module.SUBJECT_SCAN_FAILED == "cosmicsec.scan.failed"
 
     def test_finding_subjects_defined(self):
-        from services.common.events import (
-            SUBJECT_FINDING_CREATED,
-            SUBJECT_FINDING_CRITICAL,
-        )
+        import services.common.events as ev_module
 
-        assert "finding" in SUBJECT_FINDING_CREATED
-        assert "finding" in SUBJECT_FINDING_CRITICAL
+        assert "finding" in ev_module.SUBJECT_FINDING_CREATED
+        assert "finding" in ev_module.SUBJECT_FINDING_CRITICAL
 
     def test_alert_subject_defined(self):
-        from services.common.events import SUBJECT_ALERT_TRIGGERED
+        import services.common.events as ev_module
 
-        assert "alert" in SUBJECT_ALERT_TRIGGERED
+        assert "alert" in ev_module.SUBJECT_ALERT_TRIGGERED
 
 
 class TestCloseFunction:

@@ -10,7 +10,6 @@
 const CACHE_VERSION = "v2";
 const STATIC_CACHE = `cosmicsec-static-${CACHE_VERSION}`;
 const API_CACHE = `cosmicsec-api-${CACHE_VERSION}`;
-const OFFLINE_PAGE = "/offline.html";
 
 const STATIC_ASSETS = [
   "/",
@@ -19,10 +18,6 @@ const STATIC_ASSETS = [
   "/favicon.svg",
   "/og-image.svg",
   "/robots.txt",
-];
-
-const API_ROUTES_CACHE_30S = [
-  "/api/dashboard/overview",
 ];
 
 // ---------------------------------------------------------------------------

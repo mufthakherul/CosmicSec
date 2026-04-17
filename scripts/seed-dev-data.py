@@ -30,12 +30,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     import bcrypt
-    from sqlalchemy import text
     from sqlalchemy.orm import Session
 
     from services.common.db import Base, SessionLocal, engine
     from services.common.models import (
-        AuditLogModel,
         FindingModel,
         OrganizationMemberModel,
         OrganizationModel,
@@ -382,7 +380,7 @@ def print_credentials() -> None:
     print("  DEMO CREDENTIALS")
     print("=" * 60)
     for u in DEMO_USERS:
-        print(f"  {u['role']:12s} │ {u['email']:35s} │ {u['password']}")
+        print(f"  {u['role']:12s} │ {u['email']:35s} │ {'*' * 12}")
     print("=" * 60)
     print(f"\n  Organization: {DEMO_ORG['name']}")
     print(f"  Slug:         {DEMO_ORG['slug']}")
