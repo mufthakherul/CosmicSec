@@ -43,7 +43,7 @@ jobs:
         run: pyinstaller --onefile --name cosmicsec-agent cli/agent/cosmicsec_agent/main.py
 
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cosmicsec-agent-${{ matrix.os }}
           path: |

@@ -57,7 +57,7 @@ jobs:
             --scan-output "${{ inputs.scan_output }}"
 
       - name: Upload docs scan artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ inputs.scan_artifact_name }}
           path: ${{ inputs.scan_output }}
@@ -93,5 +93,5 @@ jobs:
             automation
             documentation
           add-paths: |
-            docs/generated/**/*.md
-            scripts/ci/generate_docs_bundle.py
+            docs/generated/
+            .artifacts/

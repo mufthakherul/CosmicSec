@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload Bandit artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: bandit-main-results
           path: bandit-main.json
