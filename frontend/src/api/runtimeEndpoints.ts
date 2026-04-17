@@ -173,7 +173,9 @@ async function probeHealth(baseUrl: string): Promise<boolean> {
   }
 }
 
-export async function resolveServiceBaseUrl(service: KnownService = "api-gateway"): Promise<string> {
+export async function resolveServiceBaseUrl(
+  service: KnownService = "api-gateway",
+): Promise<string> {
   const cached = resolved.get(service);
   if (cached) {
     return cached;
