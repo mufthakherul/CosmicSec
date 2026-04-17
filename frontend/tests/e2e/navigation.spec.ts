@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("landing navigation links work", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Universal Cybersecurity Intelligence Platform")).toBeVisible();
+  await expect(page.getByText("Universal Cybersecurity Intelligence Platform").first()).toBeVisible();
 
   await page.getByRole("link", { name: "Pricing" }).first().click();
   await expect(page).toHaveURL(/\/pricing$/);
