@@ -58,7 +58,7 @@ describe("useScanStream", () => {
     vi.stubGlobal("WebSocket", MockWebSocket as unknown as typeof WebSocket);
     
     // Mock the ensureApiGatewayBaseUrl to resolve immediately
-    vi.spyOn(runtimeEndpoints, "ensureApiGatewayBaseUrl").mockResolvedValue(undefined);
+    vi.spyOn(runtimeEndpoints, "ensureApiGatewayBaseUrl").mockResolvedValue("http://localhost:8000");
     vi.spyOn(runtimeEndpoints, "getApiGatewayWebSocketUrl").mockImplementation(
       (path) => `ws://localhost:8000${path}`
     );
