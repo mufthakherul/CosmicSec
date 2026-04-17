@@ -102,7 +102,7 @@ jobs:
     name: Auto-fix and open PR
     runs-on: ubuntu-latest
     needs: security-quality-scan
-    if: success() || failure()
+    if: ${{ !cancelled() }}
     permissions:
       contents: write
       pull-requests: write
@@ -160,7 +160,7 @@ jobs:
           labels: |
             automation
             security
-            dependencies
+            dependency-audit
             quality
           add-paths: |
             .
