@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  Brain,
-  Loader2,
-  Shield,
-  Zap,
-  CheckCircle,
-  ChevronRight,
-} from "lucide-react";
+import { Brain, Loader2, Shield, Zap, CheckCircle, ChevronRight } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useScanStore } from "../store/scanStore";
 import { useNotificationStore } from "../store/notificationStore";
