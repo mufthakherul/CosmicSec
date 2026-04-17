@@ -2,6 +2,13 @@ name: Docs Suite - Production Status & Progress
 
 on:
   workflow_dispatch:
+  # Auto-run docs generation when core docs/doc-generator inputs change on main.
+  push:
+    branches: [main]
+    paths:
+      - "docs/**/*.md"
+      - "scripts/ci/generate_docs_bundle.py"
+      - ".github/workflows/docs-production-status-progress.yml"
   schedule:
     - cron: "45 2 * * 2"
 

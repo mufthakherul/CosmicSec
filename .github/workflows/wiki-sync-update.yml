@@ -2,6 +2,21 @@ name: Wiki Sync & Update
 
 on:
   workflow_dispatch:
+  # Keep wiki fresh after docs merges to main.
+  push:
+    branches: [main]
+    paths:
+      - "docs/generated/**/*.md"
+      - "docs/ROADMAP_UNIFIED.md"
+      - ".github/workflows/wiki-sync-update.yml"
+  # Also run right after any docs-suite workflow completes successfully.
+  workflow_run:
+    workflows:
+      - Docs Suite - User Detailed
+      - Docs Suite - Developer & Development
+      - Docs Suite - Production Status & Progress
+    types:
+      - completed
   schedule:
     - cron: "15 3 * * 2"
 
@@ -10,6 +25,7 @@ permissions:
 
 jobs:
   sync-wiki:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
