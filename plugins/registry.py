@@ -515,7 +515,7 @@ async def sync_repository(repo_id: str) -> dict:
             repo = db_repo
         db.close()
     except Exception:
-        pass
+        logger.debug("Failed to load repository %s from DB", repo_id, exc_info=True)
 
     if repo is None:
         raise HTTPException(status_code=404, detail="Repository not found")
@@ -558,7 +558,7 @@ async def sync_repository(repo_id: str) -> dict:
             create_marketplace_entry(db, entry)
             db.close()
         except Exception:
-            pass
+            logger.debug("Failed to persist marketplace entry %s", name, exc_info=True)
 
         imported += 1
 
@@ -571,7 +571,7 @@ async def sync_repository(repo_id: str) -> dict:
         update_repository_sync(db, repo_id, imported)
         db.close()
     except Exception:
-        pass
+        logger.debug("Failed to update sync metadata for repo %s", repo_id, exc_info=True)
 
     return {
         "repo_id": repo_id,

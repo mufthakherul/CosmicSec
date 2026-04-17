@@ -7,6 +7,10 @@ Phase 2 upgrade path: swap for ChromaDB / Pinecone vector store.
 
 from __future__ import annotations
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore[import-not-found]
     from sklearn.metrics.pairwise import cosine_similarity  # type: ignore[import-not-found]
@@ -256,7 +260,7 @@ def retrieve_guidance(text: str, top_k: int = 3) -> list[str]:
             if results:
                 return results
         except Exception:
-            pass
+            logger.debug("TF-IDF retrieval failed, falling back to keyword matching", exc_info=True)
 
     # Keyword fallback
     lowered = text.lower()

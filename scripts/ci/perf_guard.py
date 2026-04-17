@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
+import subprocess  # nosec B404
 import sys
 import time
 from pathlib import Path
@@ -14,7 +14,7 @@ from pathlib import Path
 def _measure_service_import_ms() -> float:
     started = time.perf_counter()
     proc = subprocess.run(
-        [sys.executable, "-c", "import services.scan_service.main"],  # noqa: S603
+        [sys.executable, "-c", "import services.scan_service.main"],  # nosec B603
         capture_output=True,
         text=True,
         check=False,

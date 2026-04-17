@@ -147,14 +147,14 @@ try:
 
     _LANGCHAIN_AVAILABLE = True
 except Exception:
-    pass
+    logger.debug("langchain not available; autonomous agent uses deterministic fallback")
 
 try:
     from langchain_openai import ChatOpenAI  # type: ignore[import-not-found]
 
     _OPENAI_AVAILABLE = True
 except Exception:
-    pass
+    logger.debug("langchain_openai not available; OpenAI-backed autonomous agent disabled")
 
 _AGENT_SYSTEM_PROMPT = """You are Helix, an autonomous AI security analyst.
 

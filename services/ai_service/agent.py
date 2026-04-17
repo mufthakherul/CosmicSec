@@ -68,7 +68,7 @@ def _build_chain() -> object | None:
             _chain = LLMChain(llm=llm, prompt=prompt)
             return _chain
     except Exception:
-        pass
+        logger.debug("Failed to initialise OpenAI chain", exc_info=True)
 
     return None
 
@@ -136,7 +136,7 @@ def run_security_agent(
             }
         except Exception:
             # Gracefully degrade on API errors
-            pass
+            logger.debug("LangChain execution failed; using deterministic fallback", exc_info=True)
 
     # Template-based fallback (no OpenAI key or chain build failed)
     return {

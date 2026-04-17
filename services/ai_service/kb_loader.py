@@ -79,7 +79,7 @@ async def load_nvd_cves(limit: int = 50) -> int:
                 ingest_document(cve_id, f"{cve_id}: {desc}")
                 count += 1
             except Exception:
-                pass
+                logger.debug("Failed to ingest CVE %s", cve_id, exc_info=True)
 
     logger.info("Loaded %d CVEs from NVD", count)
     return count
@@ -138,7 +138,7 @@ async def load_mitre_attack() -> int:
             ingest_document(f"mitre-{t['id']}", f"{t['id']} {t['name']}: {t['description']}")
             count += 1
         except Exception:
-            pass
+            logger.debug("Failed to ingest MITRE technique %s", t.get("id"), exc_info=True)
 
     logger.info("Loaded %d MITRE ATT&CK techniques", count)
     return count
