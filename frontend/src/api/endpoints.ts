@@ -138,9 +138,7 @@ export const ai = {
 /* ---------- Reports ---------- */
 export const reports = {
   generate: (scanId: string, format = "pdf") =>
-    client
-      .post<Report>("/api/reports/generate", { scan_id: scanId, format })
-      .then((r) => r.data),
+    client.post<Report>("/api/reports/generate", { scan_id: scanId, format }).then((r) => r.data),
 
   list: (page = 1, limit = 20) =>
     client
@@ -160,22 +158,23 @@ export const settings = {
 /* ---------- Search ---------- */
 export const search = {
   query: (q: string, limit = 10) =>
-    client
-      .get<SearchResults>("/api/search", { params: { q, limit } })
-      .then((r) => r.data),
+    client.get<SearchResults>("/api/search", { params: { q, limit } }).then((r) => r.data),
 };
 
 /* ---------- Admin ---------- */
 export const admin = {
   listUsers: (page = 1, limit = 20) =>
-    client.get("/api/admin/users", { params: { limit, offset: (page - 1) * limit } }).then((r) => r.data),
+    client
+      .get("/api/admin/users", { params: { limit, offset: (page - 1) * limit } })
+      .then((r) => r.data),
 
   createUser: (data: { email: string; full_name: string; role: string; password: string }) =>
     client.post("/api/admin/users", data).then((r) => r.data),
 
-  deleteUser: (userId: string) =>
-    client.delete(`/api/admin/users/${userId}`).then((r) => r.data),
+  deleteUser: (userId: string) => client.delete(`/api/admin/users/${userId}`).then((r) => r.data),
 
   auditLogs: (page = 1, limit = 25) =>
-    client.get("/api/admin/audit-logs", { params: { limit, offset: (page - 1) * limit } }).then((r) => r.data),
+    client
+      .get("/api/admin/audit-logs", { params: { limit, offset: (page - 1) * limit } })
+      .then((r) => r.data),
 };

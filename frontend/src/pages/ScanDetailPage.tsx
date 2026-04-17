@@ -17,12 +17,31 @@ import { useScanStream } from "../hooks/useScanStream";
 
 const API = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 
-const SEV_STYLES: Record<FindingSeverity, { label: string; className: string; icon: React.ElementType }> = {
-  critical: { label: "Critical", className: "bg-red-500/20 text-red-400 border-red-500/30", icon: ShieldAlert },
-  high: { label: "High", className: "bg-rose-500/20 text-rose-400 border-rose-500/30", icon: AlertCircle },
-  medium: { label: "Medium", className: "bg-amber-500/20 text-amber-400 border-amber-500/30", icon: AlertTriangle },
+const SEV_STYLES: Record<
+  FindingSeverity,
+  { label: string; className: string; icon: React.ElementType }
+> = {
+  critical: {
+    label: "Critical",
+    className: "bg-red-500/20 text-red-400 border-red-500/30",
+    icon: ShieldAlert,
+  },
+  high: {
+    label: "High",
+    className: "bg-rose-500/20 text-rose-400 border-rose-500/30",
+    icon: AlertCircle,
+  },
+  medium: {
+    label: "Medium",
+    className: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    icon: AlertTriangle,
+  },
   low: { label: "Low", className: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: Info },
-  info: { label: "Info", className: "bg-slate-600/40 text-slate-400 border-slate-600/30", icon: Info },
+  info: {
+    label: "Info",
+    className: "bg-slate-600/40 text-slate-400 border-slate-600/30",
+    icon: Info,
+  },
 };
 
 function FindingCard({ finding }: { finding: Finding }) {
@@ -35,13 +54,19 @@ function FindingCard({ finding }: { finding: Finding }) {
           <SevIcon className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <p className="text-sm font-medium text-slate-200">{finding.title}</p>
         </div>
-        <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${sev.className}`}>{sev.label}</span>
+        <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${sev.className}`}>
+          {sev.label}
+        </span>
       </div>
       <p className="mt-2 text-xs text-slate-400">{finding.description}</p>
       {finding.evidence && (
-        <pre className="mt-2 overflow-x-auto rounded bg-slate-900 p-2 text-xs text-slate-400">{finding.evidence}</pre>
+        <pre className="mt-2 overflow-x-auto rounded bg-slate-900 p-2 text-xs text-slate-400">
+          {finding.evidence}
+        </pre>
       )}
-      <p className="mt-2 text-xs text-slate-600">Tool: {finding.tool} · {finding.target}</p>
+      <p className="mt-2 text-xs text-slate-600">
+        Tool: {finding.tool} · {finding.target}
+      </p>
     </div>
   );
 }
@@ -115,7 +140,8 @@ export function ScanDetailPage() {
           <div>
             <h1 className="text-xl font-bold text-slate-100">{scan.target}</h1>
             <p className="mt-1 text-sm text-slate-500">
-              Scan ID: <span className="font-mono text-slate-400">{scan.id}</span> · Tools: {scan.tool}
+              Scan ID: <span className="font-mono text-slate-400">{scan.id}</span> · Tools:{" "}
+              {scan.tool}
             </p>
           </div>
           <button
@@ -135,7 +161,10 @@ export function ScanDetailPage() {
             { label: "Critical", value: String(criticalCount) },
             { label: "High", value: String(highCount) },
           ].map(({ label, value }) => (
-            <div key={label} className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm">
+            <div
+              key={label}
+              className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm"
+            >
               <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
               <p className="mt-1.5 text-lg font-semibold text-slate-100">{value}</p>
             </div>

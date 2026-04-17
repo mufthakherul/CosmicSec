@@ -107,7 +107,9 @@ class OutputFormatter:
         if isinstance(data, dict):
             val = data.get(key or "") if key else json.dumps(data, default=str)
         elif isinstance(data, list):
-            val = "\n".join(str(item.get(key, item) if isinstance(item, dict) else item) for item in data)
+            val = "\n".join(
+                str(item.get(key, item) if isinstance(item, dict) else item) for item in data
+            )
         else:
             val = str(data)
         print(val)

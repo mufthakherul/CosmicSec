@@ -35,4 +35,3 @@ class HashcatParser:
                 }
             )
         return findings
-

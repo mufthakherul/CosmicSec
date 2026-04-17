@@ -5,7 +5,6 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from services.auth_service.rbac_engine import (
-    BUILT_IN_ROLES,
     can_user,
     check_permission,
     create_custom_role,
@@ -13,10 +12,10 @@ from services.auth_service.rbac_engine import (
     list_roles,
 )
 
-
 # ---------------------------------------------------------------------------
 # Unit tests for rbac_engine
 # ---------------------------------------------------------------------------
+
 
 def test_admin_wildcard_grants_all():
     assert check_permission("admin", "scan", "read") is True
@@ -61,19 +60,25 @@ def test_custom_role_create_and_check():
         permissions=[("scan", "read"), ("report", "read")],
         org_id="org-test-rbac",
     )
-    assert check_permission(
-        "test_custom_reader",
-        "scan",
-        "read",
-        custom_roles={"test_custom_reader": {
-            "permissions": [["scan", "read"], ["report", "read"]],
-            "inherits": [],
-        }}
-    ) is True
+    assert (
+        check_permission(
+            "test_custom_reader",
+            "scan",
+            "read",
+            custom_roles={
+                "test_custom_reader": {
+                    "permissions": [["scan", "read"], ["report", "read"]],
+                    "inherits": [],
+                }
+            },
+        )
+        is True
+    )
 
 
 def test_custom_role_cannot_override_builtin():
     import pytest
+
     with pytest.raises(ValueError, match="built-in"):
         create_custom_role(
             "admin",

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from fastapi.testclient import TestClient
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from services.api_gateway.white_label import (
     WhiteLabelMiddleware,
@@ -13,10 +13,10 @@ from services.api_gateway.white_label import (
     update_branding,
 )
 
-
 # ---------------------------------------------------------------------------
 # Unit tests for branding helpers
 # ---------------------------------------------------------------------------
+
 
 def test_default_branding_present():
     branding = get_branding("default")

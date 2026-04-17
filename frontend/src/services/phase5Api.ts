@@ -78,7 +78,9 @@ export async function fetchPhase5Incidents() {
 }
 
 export async function fetchPhase5CIGateStatus() {
-  const { data } = await client.get<{ items: CIGateStatusItem[] }>("/api/phase5/devsecops/cicd/status");
+  const { data } = await client.get<{ items: CIGateStatusItem[] }>(
+    "/api/phase5/devsecops/cicd/status",
+  );
   return data.items;
 }
 

@@ -16,7 +16,6 @@ Fallback chain when a provider fails:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
 from abc import ABC, abstractmethod
@@ -226,7 +225,7 @@ def get_llm_provider(name: str | None = None) -> LLMProvider:
       2. ``COSMICSEC_DEFAULT_LLM_PROVIDER`` env var
       3. Use OpenAI if ``OPENAI_API_KEY`` is set, otherwise Ollama
     """
-    resolved = (name or os.getenv("COSMICSEC_DEFAULT_LLM_PROVIDER") or _auto_detect_provider())
+    resolved = name or os.getenv("COSMICSEC_DEFAULT_LLM_PROVIDER") or _auto_detect_provider()
     match resolved.lower():
         case "openai":
             return OpenAIProvider()
@@ -299,11 +298,17 @@ async def list_available_models() -> list[dict[str, Any]]:
     models: list[dict[str, Any]] = []
 
     # OpenAI cloud models (static list — API does not require a key to enumerate)
-    models.extend([
-        {"provider": "openai", "name": "gpt-4o", "description": "Best quality, multimodal"},
-        {"provider": "openai", "name": "gpt-4o-mini", "description": "Efficient, cost-effective"},
-        {"provider": "openai", "name": "o1-preview", "description": "Advanced reasoning"},
-    ])
+    models.extend(
+        [
+            {"provider": "openai", "name": "gpt-4o", "description": "Best quality, multimodal"},
+            {
+                "provider": "openai",
+                "name": "gpt-4o-mini",
+                "description": "Efficient, cost-effective",
+            },
+            {"provider": "openai", "name": "o1-preview", "description": "Advanced reasoning"},
+        ]
+    )
 
     # Ollama local models (dynamic from running Ollama instance)
     ollama = OllamaProvider()
@@ -311,18 +316,22 @@ async def list_available_models() -> list[dict[str, Any]]:
         try:
             local_models = await ollama.list_models()
             for m in local_models:
-                models.append({
-                    "provider": "ollama",
-                    "name": m.get("name", ""),
-                    "description": OLLAMA_MODELS.get(m.get("name", ""), "locally hosted"),
-                    "size": m.get("size"),
-                    "modified_at": m.get("modified_at"),
-                })
+                models.append(
+                    {
+                        "provider": "ollama",
+                        "name": m.get("name", ""),
+                        "description": OLLAMA_MODELS.get(m.get("name", ""), "locally hosted"),
+                        "size": m.get("size"),
+                        "modified_at": m.get("modified_at"),
+                    }
+                )
         except Exception as exc:  # noqa: BLE001
             logger.warning("Could not list Ollama models: %s", exc)
     else:
         # Return known supported models even if Ollama is offline
         for model_name, desc in OLLAMA_MODELS.items():
-            models.append({"provider": "ollama", "name": model_name, "description": desc, "available": False})
+            models.append(
+                {"provider": "ollama", "name": model_name, "description": desc, "available": False}
+            )
 
     return models

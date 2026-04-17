@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { FileText, Download, Loader2, Calendar, Search, AlertTriangle, CheckCircle } from "lucide-react";
+import {
+  FileText,
+  Download,
+  Loader2,
+  Calendar,
+  Search,
+  AlertTriangle,
+  CheckCircle,
+} from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useNotificationStore } from "../store/notificationStore";
 
@@ -40,10 +48,30 @@ export function ReportsPage() {
     const queued = reports.filter((report) => report.status === "queued").length;
     const failed = reports.filter((report) => report.status === "failed").length;
     return [
-      { label: "Ready", count: ready, pct: Math.round((ready / total) * 100), color: "bg-emerald-500" },
-      { label: "Generating", count: generatingCount, pct: Math.round((generatingCount / total) * 100), color: "bg-blue-500" },
-      { label: "Queued", count: queued, pct: Math.round((queued / total) * 100), color: "bg-slate-500" },
-      { label: "Failed", count: failed, pct: Math.round((failed / total) * 100), color: "bg-rose-500" },
+      {
+        label: "Ready",
+        count: ready,
+        pct: Math.round((ready / total) * 100),
+        color: "bg-emerald-500",
+      },
+      {
+        label: "Generating",
+        count: generatingCount,
+        pct: Math.round((generatingCount / total) * 100),
+        color: "bg-blue-500",
+      },
+      {
+        label: "Queued",
+        count: queued,
+        pct: Math.round((queued / total) * 100),
+        color: "bg-slate-500",
+      },
+      {
+        label: "Failed",
+        count: failed,
+        pct: Math.round((failed / total) * 100),
+        color: "bg-rose-500",
+      },
     ];
   }, [reports]);
 
@@ -68,7 +96,11 @@ export function ReportsPage() {
         body: JSON.stringify({ scan_id: scanId.trim(), format }),
       });
 
-      interface ReportResponse { report_id?: string; id?: string; status?: string }
+      interface ReportResponse {
+        report_id?: string;
+        id?: string;
+        status?: string;
+      }
       const data = (await res.json()) as ReportResponse;
       const newReport: Report = {
         id: data.report_id ?? data.id ?? `r-${Date.now()}`,
@@ -79,7 +111,10 @@ export function ReportsPage() {
       };
       setReports((prev) => [newReport, ...prev]);
       setScanId("");
-      addNotification({ type: "success", message: `Report generation queued (${format.toUpperCase()})` });
+      addNotification({
+        type: "success",
+        message: `Report generation queued (${format.toUpperCase()})`,
+      });
     } catch {
       addNotification({ type: "error", message: "Failed to generate report." });
     } finally {
@@ -123,7 +158,9 @@ export function ReportsPage() {
           {/* Generate form */}
           <section className="lg:col-span-2">
             <div className="rounded-xl border border-slate-800 bg-white/5 p-5 backdrop-blur-sm">
-              <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Generate Report</h2>
+              <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Generate Report
+              </h2>
               <form onSubmit={(e) => void handleGenerate(e)} className="space-y-4">
                 <div>
                   <label className="mb-1.5 block text-xs text-slate-400">Scan ID</label>
@@ -166,13 +203,19 @@ export function ReportsPage() {
                   disabled={generating || !scanId.trim()}
                   className="ripple flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                  {generating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4" />
+                  )}
                   {generating ? "Queuing…" : "Generate Report"}
                 </button>
               </form>
 
               <div className="mt-5 border-t border-slate-800 pt-4">
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Report Health</h3>
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Report Health
+                </h3>
                 <div className="space-y-2">
                   {reportHealth.map((item) => (
                     <div key={item.label}>
@@ -198,7 +241,9 @@ export function ReportsPage() {
           {/* Reports list */}
           <section className="lg:col-span-3">
             <div className="rounded-xl border border-slate-800 bg-white/5 p-5 backdrop-blur-sm">
-              <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Recent Reports</h2>
+              <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Recent Reports
+              </h2>
               {reports.length === 0 ? (
                 <div className="py-10 text-center text-sm text-slate-500">
                   No reports generated yet. Enter a scan ID above to create one.
@@ -227,7 +272,9 @@ export function ReportsPage() {
                           </div>
                         </div>
                         <div className="ml-3 flex flex-shrink-0 items-center gap-2">
-                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}>
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
+                          >
                             {badge.label}
                           </span>
                           {report.status === "ready" && (

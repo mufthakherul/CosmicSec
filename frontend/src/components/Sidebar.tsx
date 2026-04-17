@@ -54,10 +54,10 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onMobileClose();
+      if (e.key === "Escape") onMobileClose();
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [onMobileClose]);
 
   const isActive = (to: string) =>
@@ -107,34 +107,44 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed, onCollapsedChang
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               aria-expanded={!collapsed}
             >
-              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              {collapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
             </button>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav role="navigation" aria-label="Main navigation" className="flex-1 overflow-y-auto px-2 py-4">
+        <nav
+          role="navigation"
+          aria-label="Main navigation"
+          className="flex-1 overflow-y-auto px-2 py-4"
+        >
           <ul className="space-y-1">
-            {NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === "admin").map(({ label, to, icon: Icon }) => (
-              <li key={to}>
-                <Link
-                  to={to}
-                  onClick={onMobileClose}
-                  title={collapsed ? label : undefined}
-                  aria-current={isActive(to) ? "page" : undefined}
-                  className={[
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive(to)
-                      ? "bg-cyan-500/10 text-cyan-400 ring-1 ring-cyan-500/30"
-                      : "text-slate-400 hover:bg-slate-800 hover:text-slate-100",
-                    collapsed ? "justify-center" : "",
-                  ].join(" ")}
-                >
-                  <Icon className="h-4 w-4 flex-shrink-0" />
-                  {!collapsed && <span>{label}</span>}
-                </Link>
-              </li>
-            ))}
+            {NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === "admin").map(
+              ({ label, to, icon: Icon }) => (
+                <li key={to}>
+                  <Link
+                    to={to}
+                    onClick={onMobileClose}
+                    title={collapsed ? label : undefined}
+                    aria-current={isActive(to) ? "page" : undefined}
+                    className={[
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActive(to)
+                        ? "bg-cyan-500/10 text-cyan-400 ring-1 ring-cyan-500/30"
+                        : "text-slate-400 hover:bg-slate-800 hover:text-slate-100",
+                      collapsed ? "justify-center" : "",
+                    ].join(" ")}
+                  >
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    {!collapsed && <span>{label}</span>}
+                  </Link>
+                </li>
+              ),
+            )}
           </ul>
         </nav>
 

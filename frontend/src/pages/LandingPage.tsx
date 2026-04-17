@@ -116,8 +116,8 @@ export function LandingPage() {
 
           <p className="mx-auto max-w-2xl text-lg text-slate-400 mb-10">
             CosmicSec combines an AI-powered analysis engine, distributed scanning, OSINT
-            reconnaissance, and team collaboration into one platform — cloud, self-hosted, or
-            fully local.
+            reconnaissance, and team collaboration into one platform — cloud, self-hosted, or fully
+            local.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -157,12 +157,10 @@ export function LandingPage() {
       {/* ------------------------------------------------------------------ */}
       <section className="py-24 px-6">
         <div className="mx-auto max-w-7xl">
-          <h2 className="text-center text-4xl font-bold mb-4">
-            Everything in one platform
-          </h2>
+          <h2 className="text-center text-4xl font-bold mb-4">Everything in one platform</h2>
           <p className="text-center text-slate-400 mb-16 max-w-2xl mx-auto">
-            Purpose-built services for every layer of security operations — scanning, recon,
-            AI analysis, reporting, collaboration, and compliance.
+            Purpose-built services for every layer of security operations — scanning, recon, AI
+            analysis, reporting, collaboration, and compliance.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -234,12 +232,8 @@ export function LandingPage() {
       {/* ------------------------------------------------------------------ */}
       <section className="py-24 px-6 text-center">
         <div className="mx-auto max-w-2xl">
-          <h2 className="text-4xl font-bold mb-4">
-            Ready to level up your security?
-          </h2>
-          <p className="text-slate-400 mb-8">
-            Free tier available. No credit card required.
-          </p>
+          <h2 className="text-4xl font-bold mb-4">Ready to level up your security?</h2>
+          <p className="text-slate-400 mb-8">Free tier available. No credit card required.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/auth/register"

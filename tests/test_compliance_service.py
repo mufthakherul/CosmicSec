@@ -1,6 +1,5 @@
 """Tests for the Compliance Automation Service (Phase R.3)."""
 
-import pytest
 from fastapi.testclient import TestClient
 
 from services.compliance_service.main import app

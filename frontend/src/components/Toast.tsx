@@ -1,14 +1,41 @@
 import { useEffect } from "react";
 import { AlertCircle, CheckCircle, Info, X, AlertTriangle } from "lucide-react";
-import { useNotificationStore, type Notification, type NotificationType } from "../store/notificationStore";
+import {
+  useNotificationStore,
+  type Notification,
+  type NotificationType,
+} from "../store/notificationStore";
 
 const DEFAULT_DURATION = 4000;
 
-const STYLES: Record<NotificationType, { bg: string; border: string; icon: React.ElementType; iconColor: string }> = {
-  success: { bg: "bg-emerald-950/80", border: "border-emerald-500/40", icon: CheckCircle, iconColor: "text-emerald-400" },
-  error: { bg: "bg-rose-950/80", border: "border-rose-500/40", icon: AlertCircle, iconColor: "text-rose-400" },
-  warning: { bg: "bg-amber-950/80", border: "border-amber-500/40", icon: AlertTriangle, iconColor: "text-amber-400" },
-  info: { bg: "bg-blue-950/80", border: "border-blue-500/40", icon: Info, iconColor: "text-blue-400" },
+const STYLES: Record<
+  NotificationType,
+  { bg: string; border: string; icon: React.ElementType; iconColor: string }
+> = {
+  success: {
+    bg: "bg-emerald-950/80",
+    border: "border-emerald-500/40",
+    icon: CheckCircle,
+    iconColor: "text-emerald-400",
+  },
+  error: {
+    bg: "bg-rose-950/80",
+    border: "border-rose-500/40",
+    icon: AlertCircle,
+    iconColor: "text-rose-400",
+  },
+  warning: {
+    bg: "bg-amber-950/80",
+    border: "border-amber-500/40",
+    icon: AlertTriangle,
+    iconColor: "text-amber-400",
+  },
+  info: {
+    bg: "bg-blue-950/80",
+    border: "border-blue-500/40",
+    icon: Info,
+    iconColor: "text-blue-400",
+  },
 };
 
 function ToastItem({ notification }: { notification: Notification }) {
