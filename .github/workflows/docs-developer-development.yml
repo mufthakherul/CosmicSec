@@ -2,6 +2,14 @@ name: Docs Suite - Developer & Development
 
 on:
   workflow_dispatch:
+  # Auto-run docs generation when core docs/doc-generator inputs change on main.
+  push:
+    branches: [main]
+    paths:
+      - "docs/**/*.md"
+      - "!docs/generated/**/*.md"
+      - "scripts/ci/generate_docs_bundle.py"
+      - ".github/workflows/docs-developer-development.yml"
   schedule:
     - cron: "30 2 * * 2"
 
