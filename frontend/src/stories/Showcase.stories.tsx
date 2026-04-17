@@ -307,10 +307,7 @@ function ShowcasePage() {
 
               <div className="mt-6 space-y-4">
                 {pipeline.map((item) => (
-                  <div
-                    key={item.step}
-                    className="rounded-2xl border border-white/8 bg-white/3 p-4"
-                  >
+                  <div key={item.step} className="rounded-2xl border border-white/8 bg-white/3 p-4">
                     <div className="flex items-center gap-3">
                       <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/10 text-sm font-bold text-cyan-300">
                         {item.step}
