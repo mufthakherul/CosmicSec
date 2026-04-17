@@ -1,0 +1,67 @@
+name: Coverage Report
+
+on:
+  pull_request:
+    paths:
+      - "services/**"
+      - "tests/**"
+      - ".github/workflows/coverage-report.yml"
+  push:
+    branches: [main]
+    paths:
+      - "services/**"
+      - "tests/**"
+      - ".github/workflows/coverage-report.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage-report-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COVERAGE_THRESHOLD: "20"
+
+jobs:
+  backend-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run coverage gate
+        run: pytest tests/ -q --cov=services --cov-report=term-missing --cov-report=xml --cov-fail-under=${COVERAGE_THRESHOLD}
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: |
+            coverage.xml
+            htmlcov
+          if-no-files-found: warn
+
+      - name: Coverage summary
+        run: |
+          {
+            echo "## Coverage Report"
+            echo "- Backend coverage threshold: `${COVERAGE_THRESHOLD}%`"
+            echo "- Coverage XML uploaded as artifact"
+          } >> "$GITHUB_STEP_SUMMARY"

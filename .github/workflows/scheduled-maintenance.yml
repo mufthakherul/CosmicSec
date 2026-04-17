@@ -1,0 +1,61 @@
+name: Scheduled Maintenance
+
+on:
+  schedule:
+    - cron: "0 7 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-maintenance
+  cancel-in-progress: false
+
+jobs:
+  maintenance-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Generate maintenance report
+        run: |
+          mkdir -p .artifacts
+          {
+            echo "# Scheduled maintenance report"
+            echo
+            echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo "## Python outdated packages"
+            python -m pip install --upgrade pip >/dev/null 2>&1
+            pip list --outdated || true
+            echo
+            echo "## Frontend outdated packages"
+            npm --prefix frontend outdated || true
+          } > .artifacts/maintenance-report.md
+
+      - name: Upload maintenance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-maintenance-report
+          path: .artifacts/maintenance-report.md
+          if-no-files-found: error
+
+      - name: Maintenance summary
+        run: |
+          {
+            echo "## Scheduled Maintenance"
+            echo "- Weekly outdated dependency inventory generated"
+            echo "- Review maintenance-report artifact for planned updates"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,27 @@
+name: Commit Message Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commit-lint-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lint commit messages (Conventional Commits)
+        uses: wagoid/commitlint-github-action@v6
+
+      - name: Commit lint summary
+        run: |
+          {
+            echo "## Commit Message Lint"
+            echo "- Enforces Conventional Commits for PR commits"
+          } >> "$GITHUB_STEP_SUMMARY"

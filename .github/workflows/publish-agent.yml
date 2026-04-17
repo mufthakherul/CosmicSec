@@ -3,8 +3,15 @@ name: Publish cosmicsec-agent to PyPI
 on:
   push:
     tags:
-      - 'agent/v*'
+      - "agent/v*"
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-agent-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   binaries:
@@ -14,15 +21,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            cli/agent/pyproject.toml
+            requirements.txt
 
       - name: Install build dependencies
         run: |
@@ -54,7 +63,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            cli/agent/pyproject.toml
+            requirements.txt
 
       - name: Install build dependencies
         run: pip install build
@@ -71,3 +84,11 @@ jobs:
         with:
           packages-dir: cli/agent/dist/
           skip-existing: true
+
+      - name: Publish summary
+        run: |
+          {
+            echo "## Agent Publish Summary"
+            echo "- Built multi-OS binaries"
+            echo "- Published Python package to PyPI (skip-existing enabled)"
+          } >> "$GITHUB_STEP_SUMMARY"
