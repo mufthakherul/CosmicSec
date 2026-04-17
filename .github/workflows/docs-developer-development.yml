@@ -1,0 +1,65 @@
+name: Docs Suite - Developer & Development
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 2 * * 2"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: docs-suite-pr
+  cancel-in-progress: false
+
+jobs:
+  generate-developer-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Generate developer docs and full docs scan
+        run: |
+          python scripts/ci/generate_docs_bundle.py \
+            --profile developer \
+            --output docs/generated/DEVELOPER_DEVELOPMENT_DETAILED.md \
+            --scan-output .artifacts/docs-scan-developer.json
+
+      - name: Upload docs scan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-scan-developer
+          path: .artifacts/docs-scan-developer.json
+          if-no-files-found: error
+
+      - name: Create or update shared docs PR
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
+        with:
+          branch: automation/docs-suite
+          delete-branch: false
+          commit-message: "docs(dev): refresh developer and development docs"
+          title: "docs: automated documentation suite refresh"
+          body: |
+            Automated docs suite refresh (developer/development pass).
+
+            Included in this PR branch:
+            - Full markdown scan of repository docs
+            - Regenerated detailed developer/development documentation
+            - Any additional docs updates from companion docs-suite workflows
+
+            This PR is intentionally shared across docs-suite workflows.
+          labels: |
+            automation
+            documentation
+          add-paths: |
+            docs/generated/DEVELOPER_DEVELOPMENT_DETAILED.md
+            scripts/ci/generate_docs_bundle.py

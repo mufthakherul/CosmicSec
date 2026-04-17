@@ -1,0 +1,100 @@
+name: Wiki Sync & Update
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 3 * * 2"
+
+permissions:
+  contents: write
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Resolve and clone linked wiki repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WIKI_REPO_URL: ${{ vars.WIKI_REPO_URL }}
+        run: |
+          set -euo pipefail
+          REPO="${GITHUB_REPOSITORY}"
+          if [ -n "${WIKI_REPO_URL}" ]; then
+            WIKI_URL="${WIKI_REPO_URL}"
+          else
+            WIKI_URL="https://github.com/${REPO}.wiki.git"
+          fi
+
+          AUTH_URL="${WIKI_URL/https:\/\//https:\/\/x-access-token:${GH_TOKEN}@}"
+
+          echo "Using wiki source: ${WIKI_URL}"
+          if ! git clone "${AUTH_URL}" .wiki-repo; then
+            echo "::error::Unable to clone wiki repository. Ensure wiki is enabled or set vars.WIKI_REPO_URL."
+            exit 1
+          fi
+
+      - name: Build wiki pages from project docs
+        run: |
+          set -euo pipefail
+          mkdir -p .wiki-repo
+
+          USER_DOC="docs/generated/USER_GUIDE_DETAILED.md"
+          DEV_DOC="docs/generated/DEVELOPER_DEVELOPMENT_DETAILED.md"
+          PROD_DOC="docs/generated/PRODUCTION_STATUS_PROGRESS_DETAILED.md"
+
+          if [ ! -f "${USER_DOC}" ]; then
+            USER_DOC="README.md"
+          fi
+          if [ ! -f "${DEV_DOC}" ]; then
+            DEV_DOC="docs/DIRECTORY_STRUCTURE.md"
+          fi
+          if [ ! -f "${PROD_DOC}" ]; then
+            PROD_DOC="docs/PROJECT_GOAL_AND_PROGRESS.md"
+          fi
+
+          {
+            echo "# CosmicSec Wiki"
+            echo
+            echo "Auto-synced from repository documentation."
+            echo
+            echo "## Pages"
+            echo "- [[User Guide]]"
+            echo "- [[Developer Guide]]"
+            echo "- [[Production Status]]"
+            echo "- [[Roadmap]]"
+          } > .wiki-repo/Home.md
+
+          cp "${USER_DOC}" .wiki-repo/User-Guide.md
+          cp "${DEV_DOC}" .wiki-repo/Developer-Guide.md
+          cp "${PROD_DOC}" .wiki-repo/Production-Status.md
+          cp docs/ROADMAP_UNIFIED.md .wiki-repo/Roadmap.md || true
+
+          {
+            echo "* [Home](Home)"
+            echo "* [User Guide](User-Guide)"
+            echo "* [Developer Guide](Developer-Guide)"
+            echo "* [Production Status](Production-Status)"
+            echo "* [Roadmap](Roadmap)"
+          } > .wiki-repo/_Sidebar.md
+
+      - name: Commit and push wiki updates
+        run: |
+          set -euo pipefail
+          cd .wiki-repo
+          git add .
+          if git diff --cached --quiet; then
+            echo "No wiki updates detected."
+            exit 0
+          fi
+          git commit -m "docs(wiki): sync repository docs into wiki"
+          git push origin HEAD
