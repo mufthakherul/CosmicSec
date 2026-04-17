@@ -105,7 +105,7 @@ function runAgentCLI(args) {
 
   const pythonModuleArgs = pythonArgs(install.pythonExec, ["-m", "cosmicsec_agent.main", ...args]);
   const result = spawnSync(install.pythonExec.command, pythonModuleArgs, { stdio: "inherit" });
-  process.exitCode = result.status != null && result.status >= 0 ? result.status : 1;
+  process.exitCode = result.status !== null && result.status >= 0 ? result.status : 1;
 }
 
 module.exports = {
