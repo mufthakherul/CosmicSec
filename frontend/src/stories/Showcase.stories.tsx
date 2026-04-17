@@ -34,38 +34,32 @@ const pillars = [
   {
     icon: Radar,
     title: "Continuous scanning",
-    copy:
-      "Distributed recon, vulnerability discovery, and structured findings for cloud, internal, and external targets.",
+    copy: "Distributed recon, vulnerability discovery, and structured findings for cloud, internal, and external targets.",
   },
   {
     icon: Brain,
     title: "AI-assisted analysis",
-    copy:
-      "Correlation, prioritization, and remediation guidance powered by the platform's analysis pipeline.",
+    copy: "Correlation, prioritization, and remediation guidance powered by the platform's analysis pipeline.",
   },
   {
     icon: FileText,
     title: "Executive reporting",
-    copy:
-      "Professional outputs that translate raw findings into board-ready, compliance-friendly deliverables.",
+    copy: "Professional outputs that translate raw findings into board-ready, compliance-friendly deliverables.",
   },
   {
     icon: Users,
     title: "Team workflow",
-    copy:
-      "Shared dashboards, collaboration primitives, and role-aware views that work across operators and admins.",
+    copy: "Shared dashboards, collaboration primitives, and role-aware views that work across operators and admins.",
   },
   {
     icon: Globe,
     title: "Public and private surfaces",
-    copy:
-      "A modern marketing front-end, authenticated workspace, and demo sandbox all shipped from the same app.",
+    copy: "A modern marketing front-end, authenticated workspace, and demo sandbox all shipped from the same app.",
   },
   {
     icon: Lock,
     title: "Deployment flexibility",
-    copy:
-      "Run cloud-hosted, self-hosted, or locally with a stack that stays modular and easy to extend.",
+    copy: "Run cloud-hosted, self-hosted, or locally with a stack that stays modular and easy to extend.",
   },
 ];
 
@@ -92,7 +86,15 @@ const pipeline = [
   },
 ];
 
-const stack = ["React 19", "Vite", "Tailwind CSS", "Storybook", "React Router", "Zustand", "React Query"];
+const stack = [
+  "React 19",
+  "Vite",
+  "Tailwind CSS",
+  "Storybook",
+  "React Router",
+  "Zustand",
+  "React Query",
+];
 
 const scanItems = [
   {
@@ -199,7 +201,9 @@ function ShowcasePage() {
                     key={metric.label}
                     className="rounded-2xl border border-white/6 bg-white/[0.03] p-4 backdrop-blur"
                   >
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{metric.label}</p>
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
+                      {metric.label}
+                    </p>
                     <p className="mt-2 text-xl font-semibold text-white">{metric.value}</p>
                   </div>
                 ))}
@@ -217,7 +221,9 @@ function ShowcasePage() {
                 </div>
 
                 <div className="rounded-3xl border border-white/8 bg-gradient-to-br from-cyan-500/10 via-slate-900 to-indigo-500/10 p-6">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Live surfaces</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
+                    Live surfaces
+                  </p>
                   <div className="mt-5 grid gap-4">
                     <div className="rounded-2xl border border-white/8 bg-slate-950/70 p-4">
                       <p className="text-sm font-medium text-white">Landing experience</p>
@@ -248,8 +254,9 @@ function ShowcasePage() {
                     <h2 className="font-semibold text-white">Modular by design</h2>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-slate-400">
-                    The repo already separates services, shared components, SDKs, and UI pages, so this
-                    showcase can highlight the product without introducing a separate static site.
+                    The repo already separates services, shared components, SDKs, and UI pages, so
+                    this showcase can highlight the product without introducing a separate static
+                    site.
                   </p>
                 </div>
                 <div className="rounded-3xl border border-white/8 bg-white/[0.03] p-5">
@@ -258,8 +265,8 @@ function ShowcasePage() {
                     <h2 className="font-semibold text-white">Ready for evolution</h2>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-slate-400">
-                    The design language can keep growing with richer pages, motion, analytics cards, and
-                    product-specific demos while staying consistent.
+                    The design language can keep growing with richer pages, motion, analytics cards,
+                    and product-specific demos while staying consistent.
                   </p>
                 </div>
               </div>
@@ -268,7 +275,9 @@ function ShowcasePage() {
 
           <section id="platform" className="space-y-8">
             <div className="max-w-3xl space-y-3">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">Platform</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
+                Platform
+              </p>
               <h2 className="text-3xl font-bold text-white md:text-4xl">
                 The project now presents itself like a complete product page, not a placeholder.
               </h2>
@@ -287,16 +296,21 @@ function ShowcasePage() {
 
           <section id="workflow" className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
             <div className="rounded-[2rem] border border-white/8 bg-slate-900/70 p-6">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">Workflow</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
+                Workflow
+              </p>
               <h2 className="mt-3 text-3xl font-bold text-white">Operational flow</h2>
               <p className="mt-3 text-slate-400">
-                The project already has the core pieces for a full security workflow. This layout makes
-                that story easy to follow.
+                The project already has the core pieces for a full security workflow. This layout
+                makes that story easy to follow.
               </p>
 
               <div className="mt-6 space-y-4">
                 {pipeline.map((item) => (
-                  <div key={item.step} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                  <div
+                    key={item.step}
+                    className="rounded-2xl border border-white/8 bg-white/[0.03] p-4"
+                  >
                     <div className="flex items-center gap-3">
                       <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/10 text-sm font-bold text-cyan-300">
                         {item.step}
@@ -324,7 +338,9 @@ function ShowcasePage() {
                     <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
                       Design system
                     </p>
-                    <h2 className="mt-2 text-2xl font-bold text-white">A cleaner visual language</h2>
+                    <h2 className="mt-2 text-2xl font-bold text-white">
+                      A cleaner visual language
+                    </h2>
                   </div>
                   <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
                     Ready for expansion
@@ -335,7 +351,9 @@ function ShowcasePage() {
                   <div className="rounded-3xl border border-white/8 bg-slate-950/70 p-5">
                     <p className="text-sm font-medium text-white">Interactive controls</p>
                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                      <Button className="bg-cyan-400 text-slate-950 hover:bg-cyan-300">Primary</Button>
+                      <Button className="bg-cyan-400 text-slate-950 hover:bg-cyan-300">
+                        Primary
+                      </Button>
                       <Button className="border border-white/10 bg-white/5 text-white hover:bg-white/10">
                         Secondary
                       </Button>
@@ -367,13 +385,15 @@ function ShowcasePage() {
 
           <section className="grid gap-6 rounded-[2rem] border border-white/8 bg-gradient-to-br from-white/[0.04] via-white/[0.02] to-cyan-500/[0.06] p-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">Delivery</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
+                Delivery
+              </p>
               <h2 className="mt-3 text-3xl font-bold text-white md:text-4xl">
                 Published pages should feel intentional, not incidental.
               </h2>
               <p className="mt-4 max-w-2xl text-slate-400">
-                This showcase highlights the product story, while Storybook continues to document the
-                underlying components and page patterns for the team.
+                This showcase highlights the product story, while Storybook continues to document
+                the underlying components and page patterns for the team.
               </p>
             </div>
 
