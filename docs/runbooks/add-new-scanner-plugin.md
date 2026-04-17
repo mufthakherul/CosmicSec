@@ -147,4 +147,4 @@ Register the hash in `plugins/manifest.json`:
 - [ ] Plugin registered in registry
 - [ ] Plugin manifest updated with SHA-256
 - [ ] Tests added for parser and plugin
-- [ ] CLI agent tool list updated in `ROADMAP_CLI_AGENT.md`
+- [ ] CLI agent tool list updated in `docs/ROADMAP_UNIFIED.md` (Wave 4 tool registry section)

@@ -5,8 +5,7 @@
 Closes #<!-- issue number -->
 
 Roadmap impact:
-- ROADMAP_NEXT phase: <!-- e.g., Phase V -->
-- ROADMAP_CLI_AGENT phase: <!-- e.g., CA-7 -->
+- Roadmap wave / phase: <!-- e.g., Wave 2 · W2.1 — from docs/ROADMAP_UNIFIED.md -->
 
 ---
 
