@@ -596,10 +596,7 @@ export function DashboardPage() {
               const Icon = ACTIVITY_ICON[ev.type] ?? Activity;
               const colorClass = ACTIVITY_COLOR[ev.type] ?? "text-slate-400 bg-slate-800";
               return (
-                <div
-                  key={ev.id}
-                  className="animate-slide-in flex items-start gap-3 px-4 py-3"
-                >
+                <div key={ev.id} className="animate-slide-in flex items-start gap-3 px-4 py-3">
                   <div className={`mt-0.5 shrink-0 rounded-lg p-2 ${colorClass}`}>
                     <Icon className="h-4 w-4" />
                   </div>
