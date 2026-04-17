@@ -70,7 +70,7 @@ jobs:
         run: |
           {
             echo "## CodeQL Summary"
-            echo "- Matrix analysis result: `${{ needs.analyze.result }}`"
+            echo "- Matrix analysis result: ${{ needs.analyze.result }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail if CodeQL failed

@@ -123,7 +123,7 @@ jobs:
         run: |
           {
             echo "## Experience Gates Summary"
-            echo "- Performance regression: `${{ needs.performance-regression.result }}`"
-            echo "- Visual regression: `${{ needs.visual-regression.result }}`"
-            echo "- A11y audit: `${{ needs.axe-a11y-audit.result }}`"
+            echo "- Performance regression: ${{ needs.performance-regression.result }}"
+            echo "- Visual regression: ${{ needs.visual-regression.result }}"
+            echo "- A11y audit: ${{ needs.axe-a11y-audit.result }}"
           } >> "$GITHUB_STEP_SUMMARY"

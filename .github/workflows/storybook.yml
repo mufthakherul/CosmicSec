@@ -58,8 +58,8 @@ jobs:
         run: |
           {
             echo "## Storybook Build"
-            echo "- Branch: `${{ github.ref_name }}`"
-            echo "- Deployment enabled: `${{ github.ref == 'refs/heads/main' }}`"
+            echo "- Branch: ${{ github.ref_name }}"
+            echo "- Deployment enabled: ${{ github.ref == 'refs/heads/main' }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:

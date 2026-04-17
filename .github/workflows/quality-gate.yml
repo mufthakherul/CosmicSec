@@ -136,9 +136,9 @@ jobs:
         run: |
           {
             echo "## Quality Gate Summary"
-            echo "- Python static analysis: `${{ needs.python-static-analysis.result }}`"
-            echo "- CLI and backend checks: `${{ needs.cli-and-backend.result }}`"
-            echo "- Frontend checks: `${{ needs.frontend.result }}`"
+            echo "- Python static analysis: ${{ needs.python-static-analysis.result }}"
+            echo "- CLI and backend checks: ${{ needs.cli-and-backend.result }}"
+            echo "- Frontend checks: ${{ needs.frontend.result }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail if required checks failed

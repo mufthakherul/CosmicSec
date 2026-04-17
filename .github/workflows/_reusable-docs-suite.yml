@@ -67,10 +67,10 @@ jobs:
         run: |
           {
             echo "## Docs Suite Result"
-            echo "- Profile: `${{ inputs.profile }}`"
-            echo "- Output: `${{ inputs.output_file }}`"
-            echo "- Scan artifact: `${{ inputs.scan_artifact_name }}`"
-            echo "- Trigger: `${{ github.event_name }}`"
+            echo "- Profile: ${{ inputs.profile }}"
+            echo "- Output: ${{ inputs.output_file }}"
+            echo "- Scan artifact: ${{ inputs.scan_artifact_name }}"
+            echo "- Trigger: ${{ github.event_name }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create or update shared docs PR
