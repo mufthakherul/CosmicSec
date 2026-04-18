@@ -88,6 +88,7 @@ known-first-party = ["services", "cosmicsec_platform"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+addopts = "--basetemp=.pytest_tmp"
 asyncio_mode = "auto"
 markers = [
     "asyncio: mark test as asynchronous",

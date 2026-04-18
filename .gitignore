@@ -62,6 +62,7 @@ logbook.md
 *.db
 *.sqlite
 *.sqlite3
+.pytest_tmp/
 nohup.out
 .coverage
 
