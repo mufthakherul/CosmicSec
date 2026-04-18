@@ -271,7 +271,9 @@ function FindingsSnapshotCard({
       <div className="mt-4 space-y-2">
         <div className="flex items-center justify-between text-xs text-slate-500">
           <span>7-day severity trend</span>
-          <span>{daysTracked} day{daysTracked === 1 ? "" : "s"} tracked</span>
+          <span>
+            {daysTracked} day{daysTracked === 1 ? "" : "s"} tracked
+          </span>
         </div>
         <div className="space-y-2">
           {(trend.length > 0 ? trend : [{ date: "No data", severity_breakdown: {} }]).map(
@@ -282,7 +284,10 @@ function FindingsSnapshotCard({
               );
               const slots = buildTrendSlots(point);
               return (
-                <div key={point.date} className="grid grid-cols-[84px,1fr,40px] items-center gap-2 text-xs">
+                <div
+                  key={point.date}
+                  className="grid grid-cols-[84px,1fr,40px] items-center gap-2 text-xs"
+                >
                   <span className="text-slate-500">
                     {point.date === "No data"
                       ? point.date

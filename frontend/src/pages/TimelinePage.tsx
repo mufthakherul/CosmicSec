@@ -379,9 +379,12 @@ export const TimelinePage: React.FC = () => {
       },
       { web_scan: 0, agent_local: 0, api: 0, integration: 0, plugin: 0 },
     );
-    const topSource = (Object.entries(sourceCounts).sort((left, right) => right[1] - left[1])[0]?.[0] ??
-      "web_scan") as EventSource;
-    const uniqueTargets = new Set(filtered.map((event) => event.target).filter(Boolean) as string[]);
+    const topSource = (Object.entries(sourceCounts).sort(
+      (left, right) => right[1] - left[1],
+    )[0]?.[0] ?? "web_scan") as EventSource;
+    const uniqueTargets = new Set(
+      filtered.map((event) => event.target).filter(Boolean) as string[],
+    );
     return {
       total: filtered.length,
       critical,
