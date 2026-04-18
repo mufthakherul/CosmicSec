@@ -30,6 +30,18 @@ type AuditRecord = {
   detail: string;
 };
 
+type PluginRecord = {
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  tags: string[];
+  permissions?: string[];
+  signature_verified?: boolean;
+  signature_reason?: string;
+  enabled?: boolean;
+};
+
 const API = getApiGatewayBaseUrl();
 
 const DEMO_SNAPSHOT: DashboardSnapshot = {
@@ -46,6 +58,8 @@ export function AdminDashboardPage() {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [audit, setAudit] = useState<AuditRecord[]>([]);
   const [config, setConfig] = useState<Record<string, string>>({});
+  const [plugins, setPlugins] = useState<PluginRecord[]>([]);
+  const [pluginRefreshMessage, setPluginRefreshMessage] = useState<string | null>(null);
   const [moduleState, setModuleState] = useState<Record<string, boolean>>({
     scan: true,
     recon: true,
@@ -62,6 +76,12 @@ export function AdminDashboardPage() {
 
   const barWidth = useMemo(() => 30, []);
   const chartHeight = useMemo(() => 140, []);
+  const authHeaders = useMemo(() => {
+    if (!token || token.startsWith("demo-preview") || user?.role === "demo_viewer") {
+      return {} as Record<string, string>;
+    }
+    return { Authorization: `Bearer ${token}` };
+  }, [token, user?.role]);
 
   useEffect(() => {
     if (!token || token.startsWith("demo-preview") || user?.role === "demo_viewer") {
@@ -88,13 +108,15 @@ export function AdminDashboardPage() {
       setUsers([]);
       setAudit([]);
       setConfig({});
+      setPlugins([]);
       return;
     }
 
-    const [usersRes, auditRes, configRes] = await Promise.all([
-      fetch(`${API}/api/admin/users`),
-      fetch(`${API}/api/admin/audit-logs`),
-      fetch(`${API}/api/admin/config`),
+    const [usersRes, auditRes, configRes, pluginsRes] = await Promise.all([
+      fetch(`${API}/api/admin/users`, { headers: authHeaders }),
+      fetch(`${API}/api/admin/audit-logs`, { headers: authHeaders }),
+      fetch(`${API}/api/admin/config`, { headers: authHeaders }),
+      fetch(`${API}/api/plugins`, { headers: authHeaders }),
     ]);
 
     if (usersRes.ok) {
@@ -109,11 +131,16 @@ export function AdminDashboardPage() {
       const payload = (await configRes.json()) as { config: Record<string, string> };
       setConfig(payload.config ?? {});
     }
+    if (pluginsRes.ok) {
+      const payload = (await pluginsRes.json()) as { plugins?: PluginRecord[] };
+      setPlugins(payload.plugins ?? []);
+      setPluginRefreshMessage(null);
+    }
   };
 
   useEffect(() => {
     void loadAdminData();
-  }, [token, user?.role]);
+  }, [token, user?.role, authHeaders]);
 
   const createUser = async () => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
@@ -123,7 +150,7 @@ export function AdminDashboardPage() {
 
     const res = await fetch(`${API}/api/admin/users`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders },
       body: JSON.stringify({
         email: newUserEmail,
         password: tempPassword,
@@ -145,8 +172,33 @@ export function AdminDashboardPage() {
   const assignRole = async (email: string, role: string) => {
     await fetch(`${API}/api/admin/roles/assign`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders },
       body: JSON.stringify({ email, role }),
+    });
+    await loadAdminData();
+  };
+
+  const refreshPlugins = async () => {
+    if (!token || token.startsWith("demo-preview") || user?.role === "demo_viewer") return;
+    setPluginRefreshMessage("Refreshing plugin registry…");
+    const response = await fetch(`${API}/api/plugins/reload`, {
+      method: "POST",
+      headers: authHeaders,
+    });
+    if (response.ok) {
+      setPluginRefreshMessage("Plugin registry refreshed.");
+      await loadAdminData();
+    } else {
+      setPluginRefreshMessage("Plugin registry refresh failed.");
+    }
+  };
+
+  const togglePlugin = async (name: string, enabled?: boolean) => {
+    if (!token || token.startsWith("demo-preview") || user?.role === "demo_viewer") return;
+    const endpoint = enabled ? "disable" : "enable";
+    await fetch(`${API}/api/plugins/${encodeURIComponent(name)}/${endpoint}`, {
+      method: "POST",
+      headers: authHeaders,
     });
     await loadAdminData();
   };
@@ -158,7 +210,7 @@ export function AdminDashboardPage() {
   const saveConfig = async (key: string, value: string) => {
     await fetch(`${API}/api/admin/config`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders },
       body: JSON.stringify({ key, value }),
     });
     await loadAdminData();
@@ -190,6 +242,107 @@ export function AdminDashboardPage() {
           value={`CPU ${snapshot?.resource_utilization.cpu ?? 0}% | MEM ${snapshot?.resource_utilization.memory ?? 0}%`}
         />
       </div>
+
+      <section className="rounded-2xl border border-cyan-500/20 bg-linear-to-br from-slate-900 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(34,211,238,0.08)]">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-100">Plugin Trust Console</h3>
+            <p className="text-sm text-slate-400">
+              Signed plugins, runtime permissions, and registry controls in one place.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button className="bg-cyan-600 hover:bg-cyan-500" onClick={() => void refreshPlugins()}>
+              Refresh Registry
+            </Button>
+            <Button className="bg-slate-700 hover:bg-slate-600" onClick={() => void loadAdminData()}>
+              Reload Snapshot
+            </Button>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+          <MetricCard title="Plugins" value={String(plugins.length)} />
+          <MetricCard
+            title="Signed"
+            value={String(plugins.filter((plugin) => plugin.signature_verified).length)}
+          />
+          <MetricCard
+            title="Enabled"
+            value={String(plugins.filter((plugin) => plugin.enabled !== false).length)}
+          />
+          <MetricCard
+            title="Protected"
+            value={String(
+              plugins.filter((plugin) => (plugin.permissions?.length ?? 0) > 0).length,
+            )}
+          />
+        </div>
+        {pluginRefreshMessage ? (
+          <p className="mt-3 text-xs text-cyan-300">{pluginRefreshMessage}</p>
+        ) : null}
+        <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {plugins.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-700 p-4 text-sm text-slate-500 lg:col-span-2">
+              No plugins discovered yet.
+            </div>
+          ) : (
+            plugins.map((plugin) => (
+              <div
+                key={plugin.name}
+                className="rounded-xl border border-slate-800 bg-slate-950/80 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="text-base font-semibold text-slate-100">{plugin.name}</h4>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${plugin.signature_verified ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"}`}
+                      >
+                        {plugin.signature_verified ? "Signed" : "Unsigned"}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${plugin.enabled !== false ? "bg-cyan-500/15 text-cyan-300" : "bg-slate-700 text-slate-300"}`}
+                      >
+                        {plugin.enabled !== false ? "Enabled" : "Disabled"}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-slate-400">{plugin.description}</p>
+                  </div>
+                  <Button
+                    className={plugin.enabled !== false ? "bg-rose-700 hover:bg-rose-600" : "bg-emerald-600 hover:bg-emerald-500"}
+                    onClick={() => void togglePlugin(plugin.name, plugin.enabled)}
+                  >
+                    {plugin.enabled !== false ? "Disable" : "Enable"}
+                  </Button>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-400 md:grid-cols-4">
+                  <span>Version {plugin.version}</span>
+                  <span>Author {plugin.author}</span>
+                  <span>Permissions {(plugin.permissions?.length ?? 0) || 0}</span>
+                  <span>Tags {plugin.tags?.length ?? 0}</span>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(plugin.permissions ?? []).length > 0 ? (
+                    plugin.permissions?.map((permission) => (
+                      <span
+                        key={`${plugin.name}-${permission}`}
+                        className="rounded-full border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-300"
+                      >
+                        {permission}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-slate-500">No explicit permissions declared</span>
+                  )}
+                </div>
+                <p className="mt-3 text-[11px] text-slate-500">
+                  {plugin.signature_reason ?? "Signature status unavailable"}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="rounded-lg border border-slate-800 bg-slate-900 p-4">

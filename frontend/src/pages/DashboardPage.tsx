@@ -45,9 +45,19 @@ interface RecentActivity {
   timestamp: string;
 }
 
-interface TrendingPoint {
+interface FindingsTrendPoint {
   date: string;
   severity_breakdown: Record<string, number>;
+}
+
+interface FindingsSnapshot {
+  total: number;
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+  info: number;
+  latestLabel: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +73,16 @@ const EMPTY_STATS: OverviewStats = {
   scans_today: 0,
   findings_last_7d: 0,
   compliance_pct: 0,
+};
+
+const EMPTY_FINDINGS: FindingsSnapshot = {
+  total: 0,
+  critical: 0,
+  high: 0,
+  medium: 0,
+  low: 0,
+  info: 0,
+  latestLabel: "No findings yet",
 };
 
 // ---------------------------------------------------------------------------
@@ -127,13 +147,181 @@ const ACTIVITY_COLOR: Record<string, string> = {
   report: "text-blue-400 bg-blue-500/10",
 };
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: "bg-rose-500",
-  high: "bg-orange-500",
-  medium: "bg-amber-500",
-  low: "bg-blue-500",
-  info: "bg-slate-500",
-};
+const SEVERITY_ORDER: Array<keyof FindingsSnapshot> = ["critical", "high", "medium", "low", "info"];
+
+function pickSeverityColor(severity: keyof FindingsSnapshot): string {
+  switch (severity) {
+    case "critical":
+      return "bg-rose-500";
+    case "high":
+      return "bg-orange-500";
+    case "medium":
+      return "bg-amber-500";
+    case "low":
+      return "bg-sky-500";
+    default:
+      return "bg-slate-500";
+  }
+}
+
+function buildTrendSlots(point: FindingsTrendPoint): Array<keyof FindingsSnapshot | null> {
+  const total = Object.values(point.severity_breakdown).reduce((sum, value) => sum + value, 0);
+  const slotCount = 12;
+
+  if (total <= 0) {
+    return Array.from({ length: slotCount }, () => null);
+  }
+
+  const counts = SEVERITY_ORDER.map((severity) => ({
+    severity,
+    value: point.severity_breakdown[severity] ?? 0,
+  }));
+
+  return Array.from({ length: slotCount }, (_, index) => {
+    const threshold = ((index + 1) / slotCount) * total;
+    let cumulative = 0;
+    for (const entry of counts) {
+      cumulative += entry.value;
+      if (threshold <= cumulative) {
+        return entry.severity;
+      }
+    }
+    return counts[counts.length - 1]?.severity ?? null;
+  });
+}
+
+function buildFindingsSnapshot(trend: FindingsTrendPoint[]): FindingsSnapshot {
+  const totals = trend.reduce(
+    (accumulator, point) => {
+      for (const severity of SEVERITY_ORDER) {
+        accumulator[severity] += point.severity_breakdown[severity] ?? 0;
+      }
+      return accumulator;
+    },
+    {
+      critical: 0,
+      high: 0,
+      medium: 0,
+      low: 0,
+      info: 0,
+    } as Pick<FindingsSnapshot, "critical" | "high" | "medium" | "low" | "info">,
+  );
+
+  return {
+    total: Object.values(totals).reduce((sum, value) => sum + value, 0),
+    critical: totals.critical,
+    high: totals.high,
+    medium: totals.medium,
+    low: totals.low,
+    info: totals.info,
+    latestLabel:
+      trend.length > 0
+        ? `Latest activity: ${new Date(trend[trend.length - 1].date).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          })}`
+        : "No findings yet",
+  };
+}
+
+function FindingsSnapshotCard({
+  findings,
+  trend,
+  loading,
+}: {
+  findings: FindingsSnapshot;
+  trend: FindingsTrendPoint[];
+  loading: boolean;
+}) {
+  const trendLatest = trend[trend.length - 1];
+  const daysTracked = trend.length;
+
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-300">Findings Intelligence</h3>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Aggregated from recent scans and timeline events
+          </p>
+        </div>
+        <div className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-semibold text-cyan-300">
+          {loading ? "Loading…" : `${findings.total} total`}
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {[
+          { label: "Critical", value: findings.critical, severity: "critical" as const },
+          { label: "High", value: findings.high, severity: "high" as const },
+          { label: "Medium", value: findings.medium, severity: "medium" as const },
+          { label: "Low", value: findings.low, severity: "low" as const },
+          { label: "Info", value: findings.info, severity: "info" as const },
+        ].map(({ label, value, severity }) => (
+          <div key={label} className="rounded-lg border border-slate-800 bg-slate-950 px-3 py-2">
+            <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-slate-500">
+              <span>{label}</span>
+              <span className={`h-2.5 w-2.5 rounded-full ${pickSeverityColor(severity)}`} />
+            </div>
+            <p className="mt-1 text-lg font-semibold text-slate-100">{loading ? "…" : value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 space-y-2">
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <span>7-day severity trend</span>
+          <span>{daysTracked} day{daysTracked === 1 ? "" : "s"} tracked</span>
+        </div>
+        <div className="space-y-2">
+          {(trend.length > 0 ? trend : [{ date: "No data", severity_breakdown: {} }]).map(
+            (point) => {
+              const total = Object.values(point.severity_breakdown).reduce(
+                (sum, value) => sum + value,
+                0,
+              );
+              const slots = buildTrendSlots(point);
+              return (
+                <div key={point.date} className="grid grid-cols-[84px,1fr,40px] items-center gap-2 text-xs">
+                  <span className="text-slate-500">
+                    {point.date === "No data"
+                      ? point.date
+                      : new Date(point.date).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                  </span>
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                    <div className="flex h-full overflow-hidden rounded-full">
+                      {slots.map((severity, index) => (
+                        <span
+                          key={`${point.date}-${index}`}
+                          className={[
+                            "flex-1",
+                            severity ? pickSeverityColor(severity) : "bg-slate-700",
+                          ].join(" ")}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <span className="text-right text-slate-400">{total}</span>
+                </div>
+              );
+            },
+          )}
+        </div>
+        <p className="text-[11px] text-slate-500">
+          {trendLatest
+            ? `Latest activity: ${new Date(trendLatest.date).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+              })}`
+            : findings.latestLabel}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Security Score Gauge (SVG)
@@ -357,55 +545,6 @@ function PlatformModules() {
   );
 }
 
-function FindingsTrendCard({ points }: { points: TrendingPoint[] }) {
-  const latest = points.slice(-7);
-
-  return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-300">Findings Trend (7 days)</h3>
-        <span className="text-xs text-slate-500">critical/high/medium/low/info</span>
-      </div>
-      {latest.length === 0 ? (
-        <p className="text-xs text-slate-500">No trend data available yet.</p>
-      ) : (
-        <div className="space-y-2">
-          {latest.map((point) => {
-            const total = Object.values(point.severity_breakdown || {}).reduce((a, b) => a + b, 0);
-            return (
-              <div key={point.date}>
-                <div className="mb-1 flex items-center justify-between text-[11px] text-slate-500">
-                  <span>{point.date}</span>
-                  <span>{total} findings</span>
-                </div>
-                <div className="space-y-1 rounded bg-slate-800 p-2">
-                  {(["critical", "high", "medium", "low", "info"] as const).map((sev) => {
-                    const v = point.severity_breakdown?.[sev] ?? 0;
-                    return (
-                      <div key={`${point.date}-${sev}`} className="space-y-0.5">
-                        <div className="flex items-center justify-between text-[10px] text-slate-500">
-                          <span className="capitalize">{sev}</span>
-                          <span>{v}</span>
-                        </div>
-                        <progress
-                          max={Math.max(total, 1)}
-                          value={v}
-                          className={`h-1.5 w-full overflow-hidden rounded bg-slate-700 ${SEVERITY_COLORS[sev]} [&::-webkit-progress-bar]:bg-slate-700 [&::-webkit-progress-value]:bg-current [&::-moz-progress-bar]:bg-current`}
-                          aria-label={`${point.date}-${sev}`}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -414,10 +553,11 @@ export function DashboardPage() {
   const { user, token } = useAuth();
   const [stats, setStats] = useState<OverviewStats>(EMPTY_STATS);
   const [activity, setActivity] = useState<RecentActivity[]>([]);
+  const [findingsSnapshot, setFindingsSnapshot] = useState<FindingsSnapshot>(EMPTY_FINDINGS);
+  const [findingsTrend, setFindingsTrend] = useState<FindingsTrendPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [animateBars, setAnimateBars] = useState(false);
   const [loadWarning, setLoadWarning] = useState<string | null>(null);
-  const [trend, setTrend] = useState<TrendingPoint[]>([]);
 
   useEffect(() => {
     const headers: Record<string, string> = {};
@@ -478,15 +618,46 @@ export function DashboardPage() {
         }
 
         if (trendRes.status === "fulfilled" && trendRes.value.ok) {
-          const trendData = (await trendRes.value.json()) as { series?: TrendingPoint[] };
-          setTrend(Array.isArray(trendData.series) ? trendData.series : []);
+          const trendResponse = (await trendRes.value.json()) as {
+            series?: Array<{
+              date?: string;
+              severity_breakdown?: Record<string, number>;
+            }>;
+          };
+          const normalizedTrend = (trendResponse.series ?? []).map((point) => ({
+            date: point.date ?? new Date().toISOString(),
+            severity_breakdown: point.severity_breakdown ?? {},
+          }));
+          setFindingsTrend(normalizedTrend);
+          setFindingsSnapshot(buildFindingsSnapshot(normalizedTrend));
         } else {
-          setTrend([]);
+          setFindingsTrend([]);
+          if (activityRes.status === "fulfilled" && activityRes.value.ok) {
+            const findingsResponse = (await activityRes.value.json()) as {
+              items?: Array<{
+                id?: string;
+                severity?: string;
+              }>;
+            };
+            const items = findingsResponse.items ?? [];
+            setFindingsSnapshot({
+              total: items.length,
+              critical: items.filter((item) => item.severity === "critical").length,
+              high: items.filter((item) => item.severity === "high").length,
+              medium: items.filter((item) => item.severity === "medium").length,
+              low: items.filter((item) => item.severity === "low").length,
+              info: items.filter((item) => item.severity === "info").length,
+              latestLabel: items.length > 0 ? "Latest findings loaded" : "No findings yet",
+            });
+          } else {
+            setFindingsSnapshot(EMPTY_FINDINGS);
+          }
         }
       } catch {
         setStats(EMPTY_STATS);
         setActivity([]);
-        setTrend([]);
+        setFindingsSnapshot(EMPTY_FINDINGS);
+        setFindingsTrend([]);
         setLoadWarning("Live dashboard data is unavailable right now.");
       } finally {
         setLoading(false);
@@ -657,68 +828,53 @@ export function DashboardPage() {
           <PlatformModules />
         </div>
 
+        <FindingsSnapshotCard findings={findingsSnapshot} trend={findingsTrend} loading={loading} />
+
         {/* Bottom row — Recent activity */}
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-          <div className="xl:col-span-2 rounded-xl border border-slate-800 bg-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-              <h3 className="text-sm font-semibold text-slate-300">Recent Activity</h3>
-              <Link
-                to="/timeline"
-                className="flex items-center gap-0.5 text-xs text-cyan-400 hover:text-cyan-300"
-              >
-                View all <ChevronRight className="h-3 w-3" />
-              </Link>
-            </div>
-            <div className="divide-y divide-slate-800">
-              {activity.map((ev) => {
-                const Icon = ACTIVITY_ICON[ev.type] ?? Activity;
-                const colorClass = ACTIVITY_COLOR[ev.type] ?? "text-slate-400 bg-slate-800";
-                return (
-                  <div key={ev.id} className="animate-slide-in flex items-start gap-3 px-4 py-3">
-                    <div className={`mt-0.5 shrink-0 rounded-lg p-2 ${colorClass}`}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="truncate text-sm font-medium text-slate-200">{ev.title}</p>
-                        <div className="flex shrink-0 items-center gap-2">
-                          {ev.severity && (
-                            <span
-                              className={`inline-block h-2 w-2 rounded-full ${SEVERITY_DOT[ev.severity] ?? "bg-slate-500"}`}
-                            />
-                          )}
-                          <span className="shrink-0 text-xs text-slate-500">
-                            <Clock className="mr-0.5 inline h-3 w-3" />
-                            {relativeTime(ev.timestamp)}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="mt-0.5 truncate text-xs text-slate-500">{ev.description}</p>
-                    </div>
-                  </div>
-                );
-              })}
-              {activity.length === 0 ? (
-                <div className="px-4 py-6 text-center text-sm text-slate-500">
-                  No recent activity found for your account yet.
-                </div>
-              ) : null}
-            </div>
+        <div className="rounded-xl border border-slate-800 bg-slate-900">
+          <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+            <h3 className="text-sm font-semibold text-slate-300">Recent Activity</h3>
+            <Link
+              to="/timeline"
+              className="flex items-center gap-0.5 text-xs text-cyan-400 hover:text-cyan-300"
+            >
+              View all <ChevronRight className="h-3 w-3" />
+            </Link>
           </div>
-          <div className="space-y-4">
-            <FindingsTrendCard points={trend} />
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-              <h3 className="mb-2 text-sm font-semibold text-slate-300">Risk Snapshot</h3>
-              <p className="text-xs text-slate-500">
-                Critical findings: <span className="font-semibold text-rose-400">{stats.critical_findings}</span>
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                Findings (7d): <span className="font-semibold text-cyan-300">{stats.findings_last_7d}</span>
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                Compliance readiness: <span className="font-semibold text-emerald-300">{stats.compliance_pct}%</span>
-              </p>
-            </div>
+          <div className="divide-y divide-slate-800">
+            {activity.map((ev) => {
+              const Icon = ACTIVITY_ICON[ev.type] ?? Activity;
+              const colorClass = ACTIVITY_COLOR[ev.type] ?? "text-slate-400 bg-slate-800";
+              return (
+                <div key={ev.id} className="animate-slide-in flex items-start gap-3 px-4 py-3">
+                  <div className={`mt-0.5 shrink-0 rounded-lg p-2 ${colorClass}`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="truncate text-sm font-medium text-slate-200">{ev.title}</p>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {ev.severity && (
+                          <span
+                            className={`inline-block h-2 w-2 rounded-full ${SEVERITY_DOT[ev.severity] ?? "bg-slate-500"}`}
+                          />
+                        )}
+                        <span className="shrink-0 text-xs text-slate-500">
+                          <Clock className="mr-0.5 inline h-3 w-3" />
+                          {relativeTime(ev.timestamp)}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="mt-0.5 truncate text-xs text-slate-500">{ev.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+            {activity.length === 0 ? (
+              <div className="px-4 py-6 text-center text-sm text-slate-500">
+                No recent activity found for your account yet.
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
