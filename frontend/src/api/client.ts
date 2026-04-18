@@ -46,7 +46,11 @@ client.interceptors.response.use(
     // 401 — session expired
     if (error.response?.status === 401) {
       localStorage.removeItem("cosmicsec_token");
+      localStorage.removeItem("cosmicsec_refresh_token");
       localStorage.removeItem("cosmicsec_user");
+      sessionStorage.removeItem("cosmicsec_token");
+      sessionStorage.removeItem("cosmicsec_refresh_token");
+      sessionStorage.removeItem("cosmicsec_user");
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth/")) {
         window.location.href = "/auth/login";
       }

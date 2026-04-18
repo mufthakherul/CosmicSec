@@ -11,8 +11,12 @@ interface ProtectedRouteProps {
  * Optionally enforces a minimum role (e.g. "admin").
  */
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-slate-950" aria-busy="true" />;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
