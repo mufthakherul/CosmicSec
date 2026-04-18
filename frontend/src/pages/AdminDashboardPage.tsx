@@ -66,6 +66,9 @@ export function AdminDashboardPage() {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [audit, setAudit] = useState<AuditRecord[]>([]);
   const [pluginAudit, setPluginAudit] = useState<PluginAuditRecord[]>([]);
+  const [pluginAuditQuery, setPluginAuditQuery] = useState("");
+  const [pluginAuditAction, setPluginAuditAction] = useState("all");
+  const [pluginAuditStatus, setPluginAuditStatus] = useState("all");
   const [config, setConfig] = useState<Record<string, string>>({});
   const [plugins, setPlugins] = useState<PluginRecord[]>([]);
   const [pluginRefreshMessage, setPluginRefreshMessage] = useState<string | null>(null);
@@ -85,6 +88,35 @@ export function AdminDashboardPage() {
 
   const barWidth = useMemo(() => 30, []);
   const chartHeight = useMemo(() => 140, []);
+  const pluginAuditFiltered = useMemo(() => {
+    const query = pluginAuditQuery.trim().toLowerCase();
+    return pluginAudit.filter((entry) => {
+      if (pluginAuditAction !== "all" && entry.action !== pluginAuditAction) return false;
+      if (pluginAuditStatus !== "all" && (entry.status ?? "ok") !== pluginAuditStatus) return false;
+      if (
+        query &&
+        ![
+          entry.timestamp,
+          entry.action,
+          entry.plugin,
+          entry.detail,
+          entry.status ?? "ok",
+        ].some((value) => value.toLowerCase().includes(query))
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [pluginAudit, pluginAuditAction, pluginAuditQuery, pluginAuditStatus]);
+
+  const pluginAuditSummary = useMemo(() => {
+    const signed = plugins.filter((plugin) => plugin.signature_verified).length;
+    const enabled = plugins.filter((plugin) => plugin.enabled !== false).length;
+    const protectedPlugins = plugins.filter((plugin) => (plugin.permissions?.length ?? 0) > 0).length;
+    const trustScore = plugins.length > 0 ? Math.round((signed / plugins.length) * 100) : 0;
+    return { signed, enabled, protectedPlugins, trustScore };
+  }, [plugins]);
+
   const authHeaders = useMemo(() => {
     if (!token || token.startsWith("demo-preview") || user?.role === "demo_viewer") {
       return {} as Record<string, string>;
@@ -231,6 +263,18 @@ export function AdminDashboardPage() {
     await loadAdminData();
   };
 
+  const exportPluginAudit = () => {
+    const blob = new Blob([JSON.stringify(pluginAuditFiltered, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `cosmicsec-plugin-audit-${Date.now()}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
   const onDropScan = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const scanName = e.dataTransfer.getData("text/plain");
@@ -279,17 +323,15 @@ export function AdminDashboardPage() {
           <MetricCard title="Plugins" value={String(plugins.length)} />
           <MetricCard
             title="Signed"
-            value={String(plugins.filter((plugin) => plugin.signature_verified).length)}
+            value={String(pluginAuditSummary.signed)}
           />
           <MetricCard
             title="Enabled"
-            value={String(plugins.filter((plugin) => plugin.enabled !== false).length)}
+            value={String(pluginAuditSummary.enabled)}
           />
           <MetricCard
             title="Protected"
-            value={String(
-              plugins.filter((plugin) => (plugin.permissions?.length ?? 0) > 0).length,
-            )}
+            value={String(pluginAuditSummary.protectedPlugins)}
           />
         </div>
         {pluginRefreshMessage ? (
@@ -367,9 +409,49 @@ export function AdminDashboardPage() {
               Recent registry reloads, plugin enable/disable events, and execution history.
             </p>
           </div>
-          <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">
-            {pluginAudit.length} recent events
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">
+              {pluginAuditFiltered.length} visible / {pluginAudit.length} total
+            </span>
+            <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
+              Trust score {pluginAuditSummary.trustScore}%
+            </span>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-[1.6fr,0.8fr,0.8fr,auto]">
+          <input
+            value={pluginAuditQuery}
+            onChange={(e) => setPluginAuditQuery(e.target.value)}
+            placeholder="Search plugin audit…"
+            className="min-h-10 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-cyan-500/50"
+            aria-label="Search plugin audit"
+          />
+          <select
+            value={pluginAuditAction}
+            onChange={(e) => setPluginAuditAction(e.target.value)}
+            className="min-h-10 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-500/50"
+            aria-label="Filter plugin audit action"
+          >
+            <option value="all">All actions</option>
+            <option value="reload">Reload</option>
+            <option value="enable">Enable</option>
+            <option value="disable">Disable</option>
+            <option value="run">Run</option>
+          </select>
+          <select
+            value={pluginAuditStatus}
+            onChange={(e) => setPluginAuditStatus(e.target.value)}
+            className="min-h-10 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-500/50"
+            aria-label="Filter plugin audit status"
+          >
+            <option value="all">All statuses</option>
+            <option value="ok">OK</option>
+            <option value="warn">Warn</option>
+            <option value="error">Error</option>
+          </select>
+          <Button className="bg-slate-700 hover:bg-slate-600" onClick={exportPluginAudit}>
+            Export Audit
+          </Button>
         </div>
         <div className="mt-4 max-h-72 overflow-auto rounded-xl border border-slate-800">
           <table className="w-full text-left text-xs">
@@ -383,7 +465,14 @@ export function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {pluginAudit.map((entry, idx) => (
+              {pluginAuditFiltered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-slate-500">
+                    No audit events match the current filters.
+                  </td>
+                </tr>
+              ) : (
+                pluginAuditFiltered.map((entry, idx) => (
                 <tr key={`${entry.timestamp}-${entry.plugin}-${idx}`} className="border-t border-slate-800">
                   <td className="p-2 text-slate-400">{entry.timestamp}</td>
                   <td className="p-2 font-medium text-slate-200">{entry.action}</td>
@@ -391,7 +480,8 @@ export function AdminDashboardPage() {
                   <td className="p-2 text-slate-400">{entry.detail}</td>
                   <td className="p-2 text-slate-300">{entry.status ?? "ok"}</td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
