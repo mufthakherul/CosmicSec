@@ -34,10 +34,10 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 18, 2026)
 
-- **Overall roadmap completion:** **74%**
+- **Overall roadmap completion:** **76%**
 - **Phase 2.4 (Plugin trust/signing):** **60%**
 - **Phase 2.1 (CLI↔Webapp task routing):** **36%**
-- **Phase 2.2 (Result aggregation views):** **74%**
+- **Phase 2.2 (Result aggregation views):** **76%**
 
 Delivered in this iteration:
 - [x] Added admin plugin trust console with signed/unsigned visibility and registry enable/disable actions.
@@ -55,6 +55,7 @@ Delivered in this iteration:
 - [x] Added plugin audit scope indicator in admin dashboard to clarify full vs role-scoped visibility.
 - [x] Unified timeline ingestion now includes plugin trust audit events alongside scans/findings for cross-source triage.
 - [x] Marked mobile companion as pre-release/experimental so production users default to the hardened web dashboard/PWA.
+- [x] Added scan cancellation across service, gateway, and scan detail UI with cancelled terminal state support.
 
 ---
 
