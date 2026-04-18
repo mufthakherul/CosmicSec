@@ -127,7 +127,7 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 - pytest fails immediately due to SQLAlchemy error: "metadata" is reserved when using the Declarative API
 - In services/common/models.py line 166: metadata = Column(JSON...) on AgentTaskModel
 - Same issue on line 255: BugBountyActivityModel
-- Result: reserved-name blocker is addressed, but full backend suite still has environment bootstrap blockers (`DATABASE_URL` not set in local run context)
+- Result: reserved-name blocker is addressed, and shared SQLite schema bootstrap now auto-creates tables in local/test mode; remaining work is long-run full-suite completion tracking and warning cleanup.
 
 ### GAP 7: Frontend Test Gaps
 - Fixed: Settings/Login/Register/Admin/Dashboard/Scan test regressions and brittle assertions
@@ -146,11 +146,11 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
   - But only handles scan_create and recon_lookup, not arbitrary hacking tool execution
   - No execution of: sqlmap, hydra, gobuster, metasploit, hashcat, etc. from the webapp
 
-### GAP 10: No WSL Integration for CLI on Windows
-- You mentioned using WSL for better CLI experience on Windows
-- Current CLI is Windows-native Python (runs in PowerShell)
-- No WSL configuration or WSL-aware tool discovery
-- Linux security tools (nmap, nikto, etc.) typically run better in WSL
+### GAP 10: WSL Integration for CLI on Windows (Addressed)
+- Implemented WSL-aware tool discovery fallback in CLI `ToolRegistry` for Windows hosts.
+- If local binaries are unavailable, CLI can discover tools through `wsl -e sh -lc "command -v <tool>"` and run them with launcher-aware default args.
+- Feature is controllable via `COSMICSEC_ENABLE_WSL_DISCOVERY` (enabled by default).
+- Added targeted regression tests validating WSL fallback and local-binary precedence behavior.
 
 ---
 
@@ -167,9 +167,10 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 ## Test Results Summary
 
 ### Backend Tests
-- Status: Partially healthy
-- Report service tests pass after environment/dependency hardening
-- Full suite currently blocked in local run by missing `DATABASE_URL` configuration (environment issue, not immediate syntax/collection failure)
+- Status: Improved and increasingly stable
+- Shared DB bootstrap now prevents the major "no such table" failures in local SQLite test contexts.
+- Previously failing service slices for collab/org/bugbounty/professional_soc are passing after resilience updates.
+- Long-running full-suite execution still needs one uninterrupted completion pass for definitive end-state metrics.
 
 ### Frontend Tests (Vitest)
 - Status: PASS
@@ -219,7 +220,7 @@ Gap: The WebApp needs the same HybridEngine-style pipeline as the CLI, but serve
 7. [x] Fix SettingsPage tests and runtime settings API export issues
 8. [x] Harden LoginPage/RegisterPage tests to current API facade + auth lifecycle
 9. [~] Reduce remaining async warning noise in ScanPage tests
-10. WSL-aware CLI tool discovery for Windows users
+10. [x] WSL-aware CLI tool discovery for Windows users
 
 ### P3 — Production Readiness
 11. Cisco AI integration — switchable LLM backend (Phi3 Mini dev → Cisco prod)
@@ -233,10 +234,10 @@ Gap: The WebApp needs the same HybridEngine-style pipeline as the CLI, but serve
 
 | Area | Current | Target | Gap |
 |------|---------|--------|-----|
-| CLI Agent | 85% | 100% | WSL, more tools |
+| CLI Agent | 90% | 100% | Unified registry + deeper per-tool orchestration polish |
 | WebApp Chat (AI Execution) | 65% | 100% | Streaming + richer orchestration still pending |
 | Specialized Tool Panels | 15% | 100% | Need all panels |
-| Backend Tests | 55% | 80%+ | Environment bootstrapping (`DATABASE_URL`) and integration suites |
+| Backend Tests | 70% | 80%+ | Complete uninterrupted full-suite pass + warning cleanup |
 | Frontend Tests | 85% | 80%+ | Core suite green; continue depth/edge-case expansion |
 | LLM Integration | 72% | 100% | Streaming + multi-provider production switchover |
 | Streaming Output | 10% | 100% | WebSocket execution stream |

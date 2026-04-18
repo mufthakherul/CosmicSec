@@ -120,6 +120,12 @@ Completed in this execution:
 - [x] Stabilized frontend test suite by updating auth/storage assertions, router-aware page tests, and settings toggle selectors; full Vitest suite now passes (`51/51`).
 - [x] Added Poetry-side dependency + pytest configuration hardening (`jinja2`, `pytest-asyncio`, async marker registration) to improve backend test collection reliability.
 - [x] Re-validated workspace Problems tab after this implementation cycle (no active diagnostics reported).
+- [x] Added shared SQLite schema bootstrap in `services/common/db.py` (`get_db`/`get_read_db`) to auto-create missing tables in local/test environments and reduce cross-suite bootstrap failures.
+- [x] Hardened collab/org/bugbounty service behavior for degraded DB-table scenarios with graceful fallback/503 handling so route contracts remain stable under partial schema conditions.
+- [x] Added Windows WSL-aware CLI tool discovery fallback in `ToolRegistry` with opt-out env toggle (`COSMICSEC_ENABLE_WSL_DISCOVERY`) and version probing via `wsl -e`.
+- [x] Upgraded CLI scan execution to honor registry `default_args`, enabling seamless launcher-prefixed execution flows (including WSL-discovered tools).
+- [x] Added targeted CLI tests for WSL discovery behavior (`cli/agent/tests/test_tool_registry_wsl.py`) and validated pass.
+- [x] Re-ran failing backend slices (`collab`, `org`, `bugbounty`, `professional_soc`) after DB bootstrap hardening: all passing.
 
 ### Key Findings:
 

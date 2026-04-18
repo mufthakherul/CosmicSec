@@ -114,6 +114,12 @@ Delivered in this iteration:
 - [x] Completed frontend test-stability pass (auth context persistence expectations, router-wrapped page tests, resilient selectors) and reached green suite: **51 tests passed**.
 - [x] Added Python test environment reliability updates in Poetry config (`jinja2`, `pytest-asyncio`, `asyncio` marker registration) and validated report-service tests.
 - [x] Final Problems-tab verification for this execution: no active diagnostics.
+- [x] Added shared SQLite schema auto-bootstrap in `services/common/db.py` so local/test sessions initialize missing tables lazily and avoid no-table regressions across service suites.
+- [x] Added resilient degraded-schema handling for collab/org/bugbounty routes (fallback/503 semantics) to keep API behavior stable when specific tables are unavailable.
+- [x] Implemented Windows WSL-aware CLI tool discovery fallback in `cli/agent/cosmicsec_agent/tool_registry.py` with env-driven control (`COSMICSEC_ENABLE_WSL_DISCOVERY`).
+- [x] Updated CLI scan execution path to include discovered tool `default_args`, enabling launcher-aware runs for WSL-proxied tools without extra user flags.
+- [x] Added and passed dedicated CLI regression tests for WSL discovery precedence and fallback behavior (`cli/agent/tests/test_tool_registry_wsl.py`).
+- [x] Re-validated previously failing backend groups (`tests/test_collab_service.py`, `tests/test_org_service.py`, `tests/test_bugbounty_service.py`, `tests/test_phase5_service.py`) after resilience hardening: all green.
 
 ---
 
