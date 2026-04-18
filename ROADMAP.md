@@ -120,6 +120,9 @@ Delivered in this iteration:
 - [x] Updated CLI scan execution path to include discovered tool `default_args`, enabling launcher-aware runs for WSL-proxied tools without extra user flags.
 - [x] Added and passed dedicated CLI regression tests for WSL discovery precedence and fallback behavior (`cli/agent/tests/test_tool_registry_wsl.py`).
 - [x] Re-validated previously failing backend groups (`tests/test_collab_service.py`, `tests/test_org_service.py`, `tests/test_bugbounty_service.py`, `tests/test_phase5_service.py`) after resilience hardening: all green.
+- [x] Hardened ScanPage async tests to remove `act(...)` warning noise and keep UI bootstrap interactions deterministic in Vitest.
+- [x] Aligned Poetry dependencies with auth runtime imports by adding `pyotp` and `casbin` to the managed dependency contract.
+- [x] Completed uninterrupted backend full-suite validation (`240 passed, 10 skipped`) to close prior long-run confidence gap.
 
 ---
 
