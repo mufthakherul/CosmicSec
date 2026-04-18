@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
@@ -351,7 +352,12 @@ export function AdminDashboardPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="text-base font-semibold text-slate-100">{plugin.name}</h4>
+                      <Link
+                        to={`/plugins/${encodeURIComponent(plugin.name)}`}
+                        className="text-base font-semibold text-cyan-300 transition-colors hover:text-cyan-200"
+                      >
+                        {plugin.name}
+                      </Link>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${plugin.signature_verified ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"}`}
                       >

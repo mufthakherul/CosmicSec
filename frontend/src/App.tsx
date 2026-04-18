@@ -36,6 +36,9 @@ const DashboardPage = React.lazy(() =>
 const AdminDashboardPage = React.lazy(() =>
   import("./pages/AdminDashboardPage").then((m) => ({ default: m.AdminDashboardPage })),
 );
+const PluginDetailPage = React.lazy(() =>
+  import("./pages/PluginDetailPage").then((m) => ({ default: m.PluginDetailPage })),
+);
 const Phase5OperationsPage = React.lazy(() =>
   import("./pages/Phase5OperationsPage").then((m) => ({ default: m.Phase5OperationsPage })),
 );
@@ -147,6 +150,14 @@ export function App() {
                   element={
                     <ProtectedRoute requiredRole="admin">
                       <AdminDashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/plugins/:name"
+                  element={
+                    <ProtectedRoute>
+                      <PluginDetailPage />
                     </ProtectedRoute>
                   }
                 />
