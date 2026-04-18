@@ -226,7 +226,7 @@ export function AdminDashboardPage() {
         scope?: "admin" | "role";
       };
       setPluginAudit(payload.items ?? []);
-      setPluginAudit(payload.scope ?? "unknown");
+      setPluginAuditScope(payload.scope ?? "unknown");
     }
   };
 

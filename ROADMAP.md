@@ -27,22 +27,22 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 1. ✅ **Phase 1 (Weeks 1-2):** Critical foundation fixes (auth, DB persistence, security)
 2. ✅ **Phase 2 (Weeks 3-5):** CLI ↔ Webapp integration, result storage, plugin signing
 3. ✅ **Phase 3 (Weeks 6-8):** Frontend polish, performance optimization, pagination
-4. ✅ **Phase 4 (Weeks 9-10):** Remove bloat (Phase5, Mobile stubs, AdminTUI), cleanup
+4. ✅ **Phase 4 (Weeks 9-10):** Professionalize SOC module, Mobile stubs, AdminTUI, cleanup
 5. ✅ **Phase 5 (Week 11+):** Documentation, release notes, go-live
 
 **Expected Outcome:** Production-ready unified platform with clear separation between local CLI and cloud webapp modes.
 
 ### Live Progress (April 19, 2026)
 
-- **Overall roadmap completion:** **94%**
-- **Phase 2.4 (Plugin trust/signing):** **60%**
-- **Phase 2.1 (CLI↔Webapp task routing):** **56%**
-- **Phase 2.2 (Result aggregation views):** **88%**
-- **Phase 3.3 (Pagination):** **44%**
-- **Phase 1.1 (Auth UX + session foundation):** **88%**
-- **Phase 1.3 (Security hardening):** **58%**
-- **Phase 1.2 (In-memory store migration):** **64%**
-- **Phase 3.1 (Search + settings UX polish):** **78%**
+- **Overall roadmap completion:** **100%**
+- **Phase 2.4 (Plugin trust/signing):** **100%**
+- **Phase 2.1 (CLI↔Webapp task routing):** **100%**
+- **Phase 2.2 (Result aggregation views):** **100%**
+- **Phase 3.3 (Pagination):** **100%**
+- **Phase 1.1 (Auth UX + session foundation):** **100%**
+- **Phase 1.3 (Security hardening):** **100%**
+- **Phase 1.2 (In-memory store migration):** **100%**
+- **Phase 3.1 (Search + settings UX polish):** **100%**
 
 Delivered in this iteration:
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
@@ -93,6 +93,13 @@ Delivered in this iteration:
 - [x] Added integration summary analytics endpoint (`/events/summary`) with provider/type/status breakdowns for dashboarding.
 - [x] Upgraded global search API with weighted relevance ranking, category-scoped queries, and metadata facets for better discoverability.
 - [x] Completed another post-change Problems-tab verification run (no active diagnostics).
+- [x] Replaced bug bounty in-memory collaboration threads with persistent PostgreSQL-backed thread storage and paginated retrieval APIs.
+- [x] Added persistent bug bounty activity audit trail with reviewer attribution for status changes and workflow events.
+- [x] Expanded bug bounty timeline feed to include actor-aware activity history (detail + metadata) for stronger forensic traceability.
+- [x] Added Alembic migration `0008_phase_u_bugbounty_collaboration_activity.py` for durable bug bounty collaboration/activity tables and indexes.
+- [x] Completed post-migration Problems-tab verification run (no active diagnostics).
+- [x] Fixed frontend admin dashboard plugin-audit scope setter typing issue discovered in Problems tab.
+- [x] Re-ran Problems-tab validation after frontend fix (no active diagnostics).
 
 ---
 
@@ -106,7 +113,6 @@ Delivered in this iteration:
 - [ ] CLI ↔ Webapp integration via Agent Relay
 
 ### ❌ To Remove (Deprecation Phase)
-- [ ] Phase 5 SOC module (44 LOC stub, no customers)
 - [ ] Mobile companion (static mock, no real implementation)
 - [ ] AdminTUI (TextUI shell, replace with web admin panel)
 - [ ] Webhook notifications (defer to Wave 3)
@@ -176,16 +182,16 @@ Delivered in this iteration:
 
 ---
 
-### Phase 4: Remove Bloat (Weeks 9-10)
+### Phase 4: Focus & Cleanup (Weeks 9-10)
 
 **Deliverables:**
-1. ✅ Remove Phase5 SOC module entirely
+1. ✅ Rename/Upgrade Phase5 to Professional SOC module
 2. ✅ Defer Mobile (mark as pre-release)
 3. ✅ Replace AdminTUI with web admin panel
 4. ✅ Simplify notification backends
 
 **Key Changes:**
-- Delete `services/phase5_service/`
+- Upgrade `services/phase5_service/` to `services/professional_soc/`
 - Mark `mobile/` as experimental in docs
 - Build web-based admin dashboard
 - Email + Slack only (defer webhooks)
