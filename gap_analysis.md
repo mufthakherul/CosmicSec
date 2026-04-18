@@ -88,9 +88,10 @@ Current reality:
 - AI service has a /query endpoint that does intent classification (heuristic + Ollama)
 - Intent coverage now includes a broader command set: scan_create, whois_lookup, recon_lookup, nmap_scan, nikto_scan, nuclei_scan, sqlmap_scan, gobuster_scan, hydra_audit, metasploit_check, hashcat_audit
 - Remaining gap: orchestration is still scan/recon-service-centric (not yet full per-tool backend executors for every command)
-- MISSING: Streaming LLM responses back to the user in real-time (chat-style)
+- Addressed: streaming responses now supported through ai-service `/query/stream`, gateway `/api/ai/query/stream`, and frontend live stream rendering
+- Remaining: websocket-native execution telemetry and deeper per-tool orchestration are still pending
 - MISSING: The CLI's HybridEngine does NOT connect to the AI service — it uses its own local AI planner
-- AIChatPage is now wired to backend `/api/ai/query` and surfaces command execution responses; streaming output is still pending
+- AIChatPage is now wired to backend `/api/ai/query` and `/api/ai/query/stream` with progressive command/model output rendering
 
 ### GAP 2: The AI Chat in WebApp Doesn't Execute Commands
 - AIChatPage.tsx exists but it's a static chat UI — messages don't trigger tool execution
@@ -134,10 +135,10 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 - Current status: frontend vitest suite is green (`51/51` passing)
 - Remaining improvement area: expand edge-case coverage and enforce stricter coverage thresholds (major ScanPage `act()` warning noise has been cleaned up)
 
-### GAP 8: No Real-Time Command Execution Streaming in WebApp
-- When a user types "scan example.com" in the AI chat, no WebSocket stream shows live tool output
-- CLI has Rich live output, but WebApp has no equivalent real-time execution output
-- WebSocket exists in API gateway for agent management, but not for real-time tool execution output in chat
+### GAP 8: Real-Time Command Execution Streaming in WebApp (Partially Addressed)
+- Implemented: AI chat now consumes progressive stream events and renders live status, command-result, guidance/action, and model text chunks.
+- Implemented: API gateway now proxies AI query stream with NDJSON pass-through and stream-safe error propagation.
+- Remaining: websocket-native execution output and per-tool timing/progress telemetry are still pending for full parity with CLI Rich live output.
 
 ### GAP 9: "Server-Side Execution" Pipeline Not Fully Wired
 - The scan service can run tools (nmap, nikto, etc.) BUT:
@@ -159,7 +160,7 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 - CLI natural language to execution: Works well via HybridEngine + AITaskPlanner
 - WebApp natural language: broader command routing now in place, but still needs richer per-tool orchestration and streaming
 - AI Model Integration: `phi3:mini` default aligned across gateway, ai-service, and chat UI
-- No streaming chat responses (only batch generation)
+- Streaming chat responses now supported via NDJSON progressive events; websocket-native parity still pending
 - Tool Execution from WebApp: Scan service runs actual tools via subprocess but not via natural language
 
 ---
@@ -197,10 +198,10 @@ Local/Server LLM (Phi3 Mini in dev)
 
 CURRENT IMPLEMENTATION:
 CLI:  User Input → LocalIntentParser + AITaskPlanner (Ollama/OpenAI) → HybridEngine → Executor WORKS
-WebApp: User Input → /query API → basic heuristic + Ollama → scan_create/recon_lookup only LIMITED
+WebApp: User Input → /query + /query/stream APIs → intent routing + command execution + progressive output PARTIAL
 ```
 
-Gap: The WebApp needs the same HybridEngine-style pipeline as the CLI, but server-side.
+Gap: The WebApp still needs fuller HybridEngine-style server orchestration and unified CLI/Web registry alignment.
 
 ---
 
@@ -212,7 +213,7 @@ Gap: The WebApp needs the same HybridEngine-style pipeline as the CLI, but serve
 
 ### P1 — Core Vision Completeness
 3. [x] Expand AI service `/query` to support broader tool-command roster (sqlmap/gobuster/hydra/nuclei/metasploit/hashcat/nmap/nikto)
-4. Add streaming chat responses — WebSocket stream from AI service → Frontend chat UI
+4. [x] Add streaming chat responses — progressive stream from AI service → Frontend chat UI
 5. [x] Wire AIChatPage to backend `/api/ai/query` with command/result rendering
 6. Implement specialized tool panels — at minimum: Pentest, SOC, Bug Bounty, OSINT panels
 
@@ -224,7 +225,7 @@ Gap: The WebApp needs the same HybridEngine-style pipeline as the CLI, but serve
 
 ### P3 — Production Readiness
 11. Cisco AI integration — switchable LLM backend (Phi3 Mini dev → Cisco prod)
-12. Real-time execution streaming in WebApp (WebSocket tool output)
+12. Upgrade real-time execution streaming in WebApp to websocket-native tool telemetry
 13. Unified tool registry shared between CLI and WebApp
 14. Tool categorization UI — "Tools for Pentesters" vs "Tools for SOC Analysts" view
 
@@ -235,10 +236,10 @@ Gap: The WebApp needs the same HybridEngine-style pipeline as the CLI, but serve
 | Area | Current | Target | Gap |
 |------|---------|--------|-----|
 | CLI Agent | 90% | 100% | Unified registry + deeper per-tool orchestration polish |
-| WebApp Chat (AI Execution) | 65% | 100% | Streaming + richer orchestration still pending |
+| WebApp Chat (AI Execution) | 80% | 100% | Richer orchestration depth and websocket telemetry still pending |
 | Specialized Tool Panels | 15% | 100% | Need all panels |
 | Backend Tests | 85% | 80%+ | Keep deprecation/warning cleanup and CI runtime consistency |
 | Frontend Tests | 85% | 80%+ | Core suite green; continue depth/edge-case expansion |
-| LLM Integration | 72% | 100% | Streaming + multi-provider production switchover |
-| Streaming Output | 10% | 100% | WebSocket execution stream |
+| LLM Integration | 78% | 100% | Multi-provider production switchover + deeper executor reasoning loop |
+| Streaming Output | 70% | 100% | WebSocket execution stream + per-tool runtime telemetry layers |
 | Phi3 to Cisco switchover | 0% | 100% | Config-driven LLM selection |
