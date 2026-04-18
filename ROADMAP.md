@@ -34,11 +34,11 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 18, 2026)
 
-- **Overall roadmap completion:** **31%**
-- **Phase 1 completion:** **53%**
+- **Overall roadmap completion:** **38%**
+- **Phase 1 completion:** **61%**
 - **Phase 1.1 (Auth UX + session foundation):** **82%**
-- **Phase 1.2 (Persistence migration):** **41%**
-- **Phase 1.3 (Security hardening):** **35%**
+- **Phase 1.2 (Persistence migration):** **52%**
+- **Phase 1.3 (Security hardening):** **42%**
 
 Delivered in this iteration:
 - [x] Centralized frontend API service layer (`frontend/src/services/api.ts`).
@@ -52,6 +52,10 @@ Delivered in this iteration:
 - [x] Added WebSocket payload sanitization and per-user event rate limiting in collaboration service.
 - [x] Removed implicit insecure 2FA fallback unless explicitly enabled via environment configuration.
 - [x] Added resend-2FA endpoint throttling for anti-abuse protection.
+- [x] Upgraded scan service to DB-first scan retrieval for execution and queueing reliability.
+- [x] Corrected scan deletion semantics for DB-backed records when cache is stale.
+- [x] Added scan analytics APIs: `/findings` (filterable, paginated) and `/findings/trending` (severity trends by day).
+- [x] Switched scan completion counters and severity calculations to database-backed aggregation.
 
 ---
 

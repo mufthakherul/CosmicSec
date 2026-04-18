@@ -13,10 +13,10 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 
 ### Implementation Progress Update (April 18, 2026)
 
-- **Phase 1 overall:** **53% complete**
+- **Phase 1 overall:** **61% complete**
 - **P1.1 Auth UX + session foundation:** **82% complete**
-- **P1.2 In-memory store migration:** **41% complete**
-- **P1.3 Security hardening:** **35% complete**
+- **P1.2 In-memory store migration:** **52% complete**
+- **P1.3 Security hardening:** **42% complete**
 
 Completed in this execution:
 - [x] Upgraded `AuthContext` with access+refresh token lifecycle, remember-me persistence, and bootstrapped `/api/auth/me` validation.
@@ -31,6 +31,11 @@ Completed in this execution:
 - [x] Improved collaboration WebSocket safety with token extraction fallback (`query token` or `Authorization: Bearer`), payload sanitization, and per-user event rate limiting.
 - [x] Removed insecure default 2FA fallback code path unless explicitly enabled by environment flag.
 - [x] Added resend-2FA abuse throttling to reduce brute-force and spam behavior.
+- [x] Made scan execution DB-first resilient by loading scans from DB when cache misses occur.
+- [x] Switched scan completion metrics (`findings_count`, `severity_breakdown`) to DB-derived values with in-memory fallback.
+- [x] Fixed scan enqueue path to work with DB-only scans (not only in-memory cache).
+- [x] Fixed scan deletion behavior to correctly return success when deleted in DB but missing from in-memory cache.
+- [x] Added premium analytics endpoints in scan service: `/findings` (paginated/filterable feed) and `/findings/trending` (daily severity trends).
 
 ### Key Findings:
 
