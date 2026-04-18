@@ -5,7 +5,7 @@ const ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/scans", label: "Scans", icon: Radar },
   { to: "/recon", label: "Recon", icon: ScanSearch },
-  { to: "/ai", label: "AI", icon: Brain },
+  { to: "/ai/chat", label: "AI", icon: Brain },
   { to: "/profile", label: "Profile", icon: UserCircle2 },
 ] as const;
 

@@ -1,0 +1,7 @@
+{
+  "client_type": "web",
+  "intent": "command",
+  "command": "scan_create",
+  "executor": "server",
+  "should_execute": true
+}

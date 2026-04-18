@@ -145,6 +145,7 @@ def _resolve_server_and_headers(profile: str) -> tuple[str, dict[str, str]]:
             f"Profile '{profile}' has no server URL. Run 'cosmicsec-agent auth login'."
         )
     headers = AuthManager().require_auth_headers(profile)
+    headers["X-CosmicSec-Client"] = "cli"
     return server, headers
 
 
