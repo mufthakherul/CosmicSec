@@ -110,6 +110,55 @@ class AgentStreamClient:
         except Exception:
             self._connected = False
 
+    async def send_task_ack(self, task_id: str, accepted: bool, reason: str | None = None) -> None:
+        """Acknowledge task receipt/validation outcome to server."""
+        if not self._connected or self._ws is None:
+            return
+        payload = {
+            "type": "task_ack",
+            "task_id": task_id,
+            "accepted": accepted,
+            "reason": reason,
+        }
+        try:
+            await self._send_raw(payload)
+        except Exception:
+            self._connected = False
+
+    async def send_task_progress(
+        self,
+        task_id: str,
+        percent: int,
+        message: str | None = None,
+    ) -> None:
+        """Send lightweight task progress updates (0-100)."""
+        if not self._connected or self._ws is None:
+            return
+        payload = {
+            "type": "task_progress",
+            "task_id": task_id,
+            "percent": max(0, min(percent, 100)),
+            "message": message,
+        }
+        try:
+            await self._send_raw(payload)
+        except Exception:
+            self._connected = False
+
+    async def send_task_result(self, task_id: str, result: dict) -> None:
+        """Send final task execution result payload."""
+        if not self._connected or self._ws is None:
+            return
+        payload = {
+            "type": "task_result",
+            "task_id": task_id,
+            "result": result,
+        }
+        try:
+            await self._send_raw(payload)
+        except Exception:
+            self._connected = False
+
     # ------------------------------------------------------------------
     # Receive
     # ------------------------------------------------------------------

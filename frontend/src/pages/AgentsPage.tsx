@@ -77,7 +77,15 @@ const PLATFORM_COLOR: Record<string, string> = {
 // Agent card
 // ---------------------------------------------------------------------------
 
-function AgentCard({ agent }: { agent: Agent }) {
+function AgentCard({
+  agent,
+  onDispatch,
+  dispatching,
+}: {
+  agent: Agent;
+  onDispatch: (agent: Agent) => void;
+  dispatching: boolean;
+}) {
   const sc = STATUS_CONFIG[agent.status];
 
   return (
@@ -144,9 +152,13 @@ function AgentCard({ agent }: { agent: Agent }) {
       {/* Actions */}
       {agent.status !== "offline" && (
         <div className="mt-4 flex gap-2">
-          <button className="flex items-center gap-1.5 rounded-lg bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-400 transition-colors hover:bg-cyan-500/20">
-            <Zap className="h-3.5 w-3.5" />
-            Dispatch task
+          <button
+            onClick={() => onDispatch(agent)}
+            disabled={dispatching}
+            className="flex items-center gap-1.5 rounded-lg bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-400 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {dispatching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+            {dispatching ? "Dispatching..." : "Dispatch task"}
           </button>
         </div>
       )}
@@ -197,6 +209,8 @@ export function AgentsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [dispatchingAgentId, setDispatchingAgentId] = useState<string | null>(null);
+  const [dispatchStatus, setDispatchStatus] = useState<string | null>(null);
 
   const normalizeStatus = (status?: string): Agent["status"] => {
     if (status === "connected") return "online";
@@ -274,6 +288,40 @@ export function AgentsPage() {
   const onlineCount = agents.filter((a) => a.status === "online").length;
   const idleCount = agents.filter((a) => a.status === "idle").length;
 
+  const dispatchQuickTask = useCallback(
+    async (agent: Agent) => {
+      if (!token) return;
+      setDispatchingAgentId(agent.agent_id);
+      setDispatchStatus(null);
+      try {
+        const res = await fetch(`${API}/api/agents/${agent.agent_id}/tasks`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            tool: "nmap",
+            target: "127.0.0.1",
+            args: ["-sV"],
+            metadata: { source: "agents-page-quick-dispatch" },
+          }),
+        });
+        if (!res.ok) {
+          setDispatchStatus("Failed to dispatch task.");
+          return;
+        }
+        const data = (await res.json()) as { task_id?: string };
+        setDispatchStatus(`Task dispatched successfully${data.task_id ? ` (${data.task_id})` : ""}.`);
+      } catch {
+        setDispatchStatus("Failed to dispatch task.");
+      } finally {
+        setDispatchingAgentId(null);
+      }
+    },
+    [token],
+  );
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -300,6 +348,12 @@ export function AgentsPage() {
         {loadError ? (
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
             {loadError}
+          </div>
+        ) : null}
+
+        {dispatchStatus ? (
+          <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200">
+            {dispatchStatus}
           </div>
         ) : null}
 
@@ -338,7 +392,12 @@ export function AgentsPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {agents.map((a) => (
-              <AgentCard key={a.agent_id} agent={a} />
+              <AgentCard
+                key={a.agent_id}
+                agent={a}
+                onDispatch={dispatchQuickTask}
+                dispatching={dispatchingAgentId === a.agent_id}
+              />
             ))}
           </div>
         )}
