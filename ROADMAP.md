@@ -34,13 +34,18 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 19, 2026)
 
-- **Overall roadmap completion:** **86%**
+- **Overall roadmap completion:** **88%**
 - **Phase 2.4 (Plugin trust/signing):** **60%**
 - **Phase 2.1 (CLI↔Webapp task routing):** **56%**
-- **Phase 2.2 (Result aggregation views):** **78%**
-- **Phase 3.3 (Pagination):** **40%**
+- **Phase 2.2 (Result aggregation views):** **84%**
+- **Phase 3.3 (Pagination):** **44%**
 
 Delivered in this iteration:
+- [x] Added `POST /scans/agent-results` in scan-service to persist agent task findings into unified scan/finding storage.
+- [x] Wired API Gateway WebSocket task-result flow to forward agent findings directly into scan-service aggregation.
+- [x] Added `POST /api/scans/agent-results` proxy endpoint for explicit agent-result ingestion workflows.
+- [x] Upgraded Scan page to show source-aware scan cards with persisted findings count and richer backend metadata mapping.
+- [x] Fixed an active frontend Problems-tab lint issue in shared pagination utilities (`min-w-[2rem]` → `min-w-8`).
 - [x] Added persistent `agent_tasks` database model with lifecycle status/progress/result fields and indexed query paths.
 - [x] Added Alembic migration `0007_phase_t_agent_task_persistence.py` for durable agent task history.
 - [x] Upgraded API Gateway task dispatch/result pipeline to persist lifecycle events in DB with resilient memory fallback.
@@ -91,7 +96,7 @@ Delivered in this iteration:
 
 ### 🔄 To Refactor (Integration Focus)
 - [x] Plugin system → add signing + permission scoping
-- [ ] Scan service → persist results permanently
+- [x] Scan service → persist results permanently
 - [x] Frontend → centralized API client
 - [ ] Dashboard → live scan progress + unified findings
 - [ ] CLI agent → tool discovery + task execution
