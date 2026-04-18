@@ -936,7 +936,7 @@ def scan(
         store.save_scan(scan_id, target, tool_info.name, "running")
         _audit("scan_start", target=target, detail=f"tool={tool_info.name}", success=True)
 
-        extra_args = flags.split() if flags else []
+        extra_args = [*tool_info.default_args, *(flags.split() if flags else [])]
         if output_format == "xml" and tool_info.name == "nmap":
             extra_args = ["-oX", "-"] + extra_args
 
