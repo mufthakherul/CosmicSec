@@ -2,6 +2,10 @@
 
 Optional companion client for quick SOC visibility and scan status on mobile.
 
+## Status
+
+This client is currently pre-release and experimental. Production workflows should use the web dashboard/PWA until mobile reaches general availability.
+
 ## Stack
 
 - Expo + React Native + TypeScript
