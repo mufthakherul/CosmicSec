@@ -174,9 +174,12 @@ export function ReconPage() {
 
       const data = (await res.json()) as unknown;
       const rejected =
-        typeof data === "object" && data !== null && (data as { status?: string }).status === "rejected";
+        typeof data === "object" &&
+        data !== null &&
+        (data as { status?: string }).status === "rejected";
       if (rejected) {
-        const reason = (data as { reason?: string }).reason ?? "Recon request was rejected by server policy.";
+        const reason =
+          (data as { reason?: string }).reason ?? "Recon request was rejected by server policy.";
         addNotification({ type: "error", message: reason });
         setResult(normalizeReconResult(data, trimmedTarget));
         return;

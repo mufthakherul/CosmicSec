@@ -84,10 +84,9 @@ class PluginLoader:
         self._disabled: set[str] = set()
         self._sources: dict[str, Path] = {}
         self._signature_status: dict[str, dict[str, str | bool]] = {}
-        self._enforce_signatures = (
-            os.getenv("COSMICSEC_ENFORCE_PLUGIN_SIGNATURES", "false").strip().lower()
-            in {"1", "true", "yes", "on"}
-        )
+        self._enforce_signatures = os.getenv(
+            "COSMICSEC_ENFORCE_PLUGIN_SIGNATURES", "false"
+        ).strip().lower() in {"1", "true", "yes", "on"}
 
     # ------------------------------------------------------------------
     # Discovery
@@ -255,12 +254,11 @@ class PluginLoader:
         if not allowed:
             return PluginResult(
                 success=False,
-                errors=[
-                    (
-                        f"Plugin '{name}' missing required permissions: {', '.join(missing)}"
-                    )
-                ],
-                metadata={"required_permissions": meta.permissions, "granted_permissions": granted_permissions or []},
+                errors=[(f"Plugin '{name}' missing required permissions: {', '.join(missing)}")],
+                metadata={
+                    "required_permissions": meta.permissions,
+                    "granted_permissions": granted_permissions or [],
+                },
             )
 
         sig = self._signature_status.get(name, {"verified": False, "reason": "unknown"})
@@ -270,7 +268,10 @@ class PluginLoader:
                 errors=[
                     f"Plugin '{name}' signature verification failed: {sig.get('reason', 'unknown')}"
                 ],
-                metadata={"signature_verified": False, "signature_reason": sig.get("reason", "unknown")},
+                metadata={
+                    "signature_verified": False,
+                    "signature_reason": sig.get("reason", "unknown"),
+                },
             )
         # Re-use cached instance to avoid repeated init overhead
         if name not in self._instances:
