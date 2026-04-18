@@ -1,11 +1,9 @@
 import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
-
-const API = getApiGatewayBaseUrl();
+import { api } from "../services/api";
 
 interface FieldErrors {
   name?: string;
@@ -85,7 +83,7 @@ export function RegisterPage() {
 
     setIsLoading(true);
     try {
-      await axios.post(`${API}/api/auth/register`, {
+      await api.auth.register({
         full_name: name.trim(),
         email,
         password,

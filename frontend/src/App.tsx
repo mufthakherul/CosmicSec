@@ -10,6 +10,7 @@ import { SWUpdateBanner } from "./components/SWUpdateBanner";
 import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { RouteProgressBar } from "./components/RouteProgressBar";
 import { EndpointDiagnostics } from "./components/EndpointDiagnostics";
+import { useTokenRefresh } from "./hooks/useTokenRefresh";
 
 // Public pages (eagerly loaded — above the fold)
 import { LandingPage } from "./pages/LandingPage";
@@ -78,6 +79,11 @@ const NotFoundPage = React.lazy(() =>
   import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })),
 );
 
+function SessionGuard() {
+  useTokenRefresh();
+  return null;
+}
+
 export function App() {
   const location = useLocation();
   const mainRef = useRef<HTMLElement | null>(null);
@@ -95,6 +101,7 @@ export function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <SessionGuard />
         <ErrorBoundary>
           <SkipLink />
           <RouteProgressBar />

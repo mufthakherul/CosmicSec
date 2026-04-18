@@ -23,11 +23,11 @@ function decodeJwtPayload(token: string): { exp?: number; [key: string]: unknown
 }
 
 export function useTokenRefresh() {
-  const { token, login, logout } = useAuth();
+  const { token, refreshToken, updateTokens, logout } = useAuth();
   const refreshingRef = useRef(false);
 
   const checkAndRefresh = useCallback(async () => {
-    if (!token || refreshingRef.current) return;
+    if (!token || !refreshToken || refreshingRef.current) return;
 
     const payload = decodeJwtPayload(token);
     if (!payload?.exp) return;
@@ -45,9 +45,9 @@ export function useTokenRefresh() {
     if (remaining <= REFRESH_THRESHOLD) {
       refreshingRef.current = true;
       try {
-        const response = await authApi.refresh();
-        if (response.access_token && response.user) {
-          login(response.access_token, response.user);
+        const response = await authApi.refresh(refreshToken);
+        if (response.access_token) {
+          updateTokens(response.access_token, response.refresh_token);
         }
       } catch {
         // Refresh failed — user must re-login
@@ -56,7 +56,7 @@ export function useTokenRefresh() {
         refreshingRef.current = false;
       }
     }
-  }, [token, login, logout]);
+  }, [token, refreshToken, updateTokens, logout]);
 
   useEffect(() => {
     // Initial check

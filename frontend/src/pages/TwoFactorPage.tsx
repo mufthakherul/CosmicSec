@@ -8,13 +8,11 @@ import {
   useState,
 } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
-import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
-
-const API = getApiGatewayBaseUrl();
+import { api } from "../services/api";
 const CODE_LENGTH = 6;
 const COUNTDOWN_SECONDS = 30;
 
@@ -110,21 +108,19 @@ export function TwoFactorPage() {
 
     setIsLoading(true);
     try {
-      const { data } = await axios.post(
-        `${API}/api/auth/verify-2fa`,
-        {
-          email,
-          temp_token: tempToken,
-          code,
-          is_backup: useBackup,
-        },
-        { timeout: 10000 },
-      );
+      const data = await api.auth.verify2FA({
+        email: email ?? "",
+        code,
+        temp_token: tempToken,
+        is_backup: useBackup,
+      });
       const token = data.token ?? data.access_token;
       if (!token || !data.user) {
         throw new Error("Invalid two-factor response");
       }
-      login(token, data.user);
+      login(token, data.user, {
+        refreshToken: typeof data?.refresh_token === "string" ? data.refresh_token : undefined,
+      });
       navigate("/dashboard", { replace: true });
     } catch (err) {
       if (err instanceof AxiosError) {
@@ -141,10 +137,7 @@ export function TwoFactorPage() {
     if (countdown > 0) return;
     setError(null);
     try {
-      await axios.post(`${API}/api/auth/resend-2fa`, {
-        email,
-        temp_token: tempToken,
-      });
+      await api.auth.resend2FA({ email: email ?? "", temp_token: tempToken });
       setCountdown(COUNTDOWN_SECONDS);
       setDigits(Array(CODE_LENGTH).fill(""));
       inputRefs.current[0]?.focus();

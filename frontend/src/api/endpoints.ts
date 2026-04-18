@@ -9,8 +9,29 @@ import client from "./client";
 /* ---------- Types ---------- */
 export interface AuthResponse {
   access_token: string;
+  refresh_token?: string;
   token_type: string;
+  expires_in?: number;
   user?: { id: string; email: string; full_name: string; role: string };
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+}
+
+export interface Verify2FAPayload {
+  email: string;
+  code: string;
+  temp_token?: string;
+  is_backup?: boolean;
+}
+
+export interface Resend2FAPayload {
+  email: string;
+  temp_token?: string;
 }
 
 export interface Scan {
@@ -83,8 +104,10 @@ export interface SearchResults {
 
 /* ---------- Auth ---------- */
 export const auth = {
-  login: (email: string, password: string) =>
-    client.post<AuthResponse>("/api/auth/login", { email, password }).then((r) => r.data),
+  login: (email: string, password: string, rememberMe = false) =>
+    client
+      .post<AuthResponse>("/api/auth/login", { email, password, remember_me: rememberMe })
+      .then((r) => r.data),
 
   register: (data: { email: string; password: string; full_name: string }) =>
     client.post<AuthResponse>("/api/auth/register", data).then((r) => r.data),
@@ -92,10 +115,18 @@ export const auth = {
   forgotPassword: (email: string) =>
     client.post("/api/auth/forgot-password", { email }).then((r) => r.data),
 
-  verify2FA: (code: string, token: string) =>
-    client.post("/api/auth/verify-2fa", { code, token }).then((r) => r.data),
+  verify2FA: (payload: Verify2FAPayload) =>
+    client.post<AuthResponse>("/api/auth/verify-2fa", payload).then((r) => r.data),
 
-  refresh: () => client.post<AuthResponse>("/api/auth/refresh").then((r) => r.data),
+  resend2FA: (payload: Resend2FAPayload) =>
+    client.post("/api/auth/resend-2fa", payload).then((r) => r.data),
+
+  refresh: (refreshToken: string) =>
+    client
+      .post<AuthResponse>("/api/auth/refresh", { refresh_token: refreshToken })
+      .then((r) => r.data),
+
+  me: () => client.get<AuthUser>("/api/auth/me").then((r) => r.data),
 
   revokeAllSessions: () => client.post("/api/auth/sessions/revoke-all").then((r) => r.data),
 };

@@ -1,11 +1,9 @@
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
-
-const API = getApiGatewayBaseUrl();
+import { api } from "../services/api";
 const RESEND_COOLDOWN = 60;
 
 function validateEmail(email: string): string | null {
@@ -32,7 +30,7 @@ export function ForgotPasswordPage() {
     setIsLoading(true);
     setError(null);
     try {
-      await axios.post(`${API}/api/auth/forgot-password`, { email });
+      await api.auth.forgotPassword(email);
       setSent(true);
       setCooldown(RESEND_COOLDOWN);
     } catch (err) {

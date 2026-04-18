@@ -5,6 +5,7 @@ import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
+import { api } from "../services/api";
 
 const API = getApiGatewayBaseUrl();
 
@@ -51,28 +52,7 @@ export function LoginPage() {
 
     setIsLoading(true);
     try {
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 20000);
-      const response = await fetch(`${API}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          remember_me: rememberMe,
-        }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        const detail =
-          typeof data?.detail === "string" && data.detail.trim()
-            ? data.detail
-            : "Invalid email or password";
-        throw new Error(detail);
-      }
+      const data = await api.auth.login(email, password, rememberMe);
 
       if (data.requires_2fa) {
         navigate("/auth/2fa", { state: { email, tempToken: data.temp_token } });
@@ -99,7 +79,10 @@ export function LoginPage() {
       if (!token || !user) {
         throw new Error("Invalid authentication response");
       }
-      login(token, user);
+      login(token, user, {
+        remember: rememberMe,
+        refreshToken: typeof data?.refresh_token === "string" ? data.refresh_token : undefined,
+      });
       navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
