@@ -11,7 +11,7 @@ const API = getApiGatewayBaseUrl();
 // Types
 // ---------------------------------------------------------------------------
 
-type EventSource = "web_scan" | "agent_local" | "api" | "integration";
+type EventSource = "web_scan" | "agent_local" | "api" | "integration" | "plugin";
 type Severity = "critical" | "high" | "medium" | "low" | "info";
 type FilterSource = "all" | EventSource;
 type FilterSeverity = "all" | Severity;
@@ -26,6 +26,21 @@ interface TimelineEvent {
   target?: string;
   scan_id?: string;
   timestamp: string; // ISO-8601
+}
+
+interface PluginAuditEvent {
+  timestamp?: string;
+  action?: string;
+  plugin?: string;
+  detail?: string;
+  status?: "ok" | "warn" | "error" | string;
+  actor?: string;
+  actor_role?: string;
+  context?: {
+    scan_id?: string | null;
+    target?: string;
+    success?: boolean;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -146,6 +161,7 @@ const SOURCE_BADGE: Record<EventSource, string> = {
   agent_local: "bg-green-500/20 text-green-300 ring-green-500/30",
   api: "bg-blue-500/20 text-blue-300 ring-blue-500/30",
   integration: "bg-yellow-500/20 text-yellow-300 ring-yellow-500/30",
+  plugin: "bg-indigo-500/20 text-indigo-300 ring-indigo-500/30",
 };
 
 const SOURCE_LABELS: Record<EventSource, string> = {
@@ -153,6 +169,7 @@ const SOURCE_LABELS: Record<EventSource, string> = {
   agent_local: "Agent",
   api: "API",
   integration: "Integration",
+  plugin: "Plugin",
 };
 
 // ---------------------------------------------------------------------------
@@ -201,9 +218,10 @@ export const TimelinePage: React.FC = () => {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const [scansRes, findingsRes] = await Promise.all([
+      const [scansRes, findingsRes, pluginAuditRes] = await Promise.all([
         fetch(`${API}/api/scans`, { headers }),
         fetch(`${API}/api/findings`, { headers }),
+        fetch(`${API}/api/plugins/audit?limit=40`, { headers }),
       ]);
 
       const combined: TimelineEvent[] = [];
@@ -282,6 +300,32 @@ export const TimelinePage: React.FC = () => {
         }
       }
 
+      const statusToSeverity = (status: string | undefined): Severity => {
+        if (status === "error") return "high";
+        if (status === "warn") return "medium";
+        return "info";
+      };
+
+      if (headers.Authorization && pluginAuditRes.ok) {
+        const payload = (await pluginAuditRes.json()) as { items?: PluginAuditEvent[] };
+        const items = payload.items ?? [];
+        for (const item of items) {
+          const pluginName = item.plugin ?? "registry";
+          const action = item.action ?? "event";
+          const target = item.context?.target ?? `plugin:${pluginName}`;
+          combined.push({
+            id: `plugin-${pluginName}-${item.timestamp ?? Math.random()}`,
+            title: `Plugin ${action}: ${pluginName}`,
+            description: item.detail ?? "Plugin trust event",
+            severity: statusToSeverity(item.status),
+            source: "plugin",
+            target,
+            scan_id: item.context?.scan_id ?? undefined,
+            timestamp: item.timestamp ?? new Date().toISOString(),
+          });
+        }
+      }
+
       if (combined.length === 0 && !scansRes.ok && !findingsRes.ok) {
         throw new Error("Both API calls failed");
       }
@@ -333,7 +377,7 @@ export const TimelinePage: React.FC = () => {
         accumulator[event.source] += 1;
         return accumulator;
       },
-      { web_scan: 0, agent_local: 0, api: 0, integration: 0 },
+      { web_scan: 0, agent_local: 0, api: 0, integration: 0, plugin: 0 },
     );
     const topSource = (Object.entries(sourceCounts).sort((left, right) => right[1] - left[1])[0]?.[0] ??
       "web_scan") as EventSource;
@@ -443,6 +487,7 @@ export const TimelinePage: React.FC = () => {
             <option value="agent_local">Agent</option>
             <option value="api">API</option>
             <option value="integration">Integration</option>
+            <option value="plugin">Plugin</option>
           </select>
 
           {/* Severity */}
