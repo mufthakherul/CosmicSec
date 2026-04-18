@@ -36,11 +36,15 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 - **Overall roadmap completion:** **84%**
 - **Phase 2.4 (Plugin trust/signing):** **60%**
-- **Phase 2.1 (CLI↔Webapp task routing):** **46%**
+- **Phase 2.1 (CLI↔Webapp task routing):** **56%**
 - **Phase 2.2 (Result aggregation views):** **78%**
 - **Phase 3.3 (Pagination):** **40%**
 
 Delivered in this iteration:
+- [x] Added persistent `agent_tasks` database model with lifecycle status/progress/result fields and indexed query paths.
+- [x] Added Alembic migration `0007_phase_t_agent_task_persistence.py` for durable agent task history.
+- [x] Upgraded API Gateway task dispatch/result pipeline to persist lifecycle events in DB with resilient memory fallback.
+- [x] Upgraded agent task history API to read from DB first and expose response source metadata for observability.
 - [x] Added professional agent task history query controls in API Gateway (`status`, `limit`, `offset`) with status-count summaries.
 - [x] Added rich Agent Operations history panel in frontend with per-agent drill-down, status filtering, and incremental history loading.
 - [x] Improved operator UX with inline lifecycle visibility for dispatch/accepted/running/completed/failed task states.
@@ -440,5 +444,5 @@ Week 11+:  [P5: Docs, Release]
 
 ---
 
-**Last updated:** April 18, 2026  
+**Last updated:** April 19, 2026  
 **Next review:** End of Week 2 (Phase 1 checkpoint)

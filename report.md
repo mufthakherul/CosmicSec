@@ -18,12 +18,16 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 - **P1.2 In-memory store migration:** **58% complete**
 - **P1.3 Security hardening:** **47% complete**
 - **P2.4 Plugin trust/signing:** **60% complete**
-- **P2.1 CLI↔Webapp task routing:** **46% complete**
+- **P2.1 CLI↔Webapp task routing:** **56% complete**
 - **P2.2 Result aggregation views:** **78% complete**
 - **P3.1 Search + settings UX polish:** **62% complete**
 - **P3.3 Pagination & list ergonomics:** **40% complete**
 
 Completed in this execution:
+- [x] Added persistent DB-backed agent task ledger model (`AgentTaskModel`) with lifecycle/progress metadata and query indexes.
+- [x] Added Alembic migration (`0007_phase_t_agent_task_persistence.py`) to create the `agent_tasks` table and indexes.
+- [x] Upgraded API Gateway task lifecycle flow to persist create/update events in DB with graceful in-memory fallback.
+- [x] Upgraded agent task history endpoint to read from DB first (with source metadata) and automatically fall back to in-memory when unavailable.
 - [x] Upgraded API Gateway agent task history endpoint with professional filtering + pagination (`status`, `limit`, `offset`) and lifecycle status summaries.
 - [x] Added advanced Agent Operations UX in frontend with per-agent task history drill-down, status filter, and incremental history loading.
 - [x] Added proactive task lifecycle visibility controls to the Agents page so operators can review dispatch/run/failure state without leaving context.
@@ -120,7 +124,7 @@ Completed in this execution:
 | **Recon Service** | 🟡 Partial | 68% | Cache strategy exists but premium onion policy/rate controls are still incomplete | Expand policy controls + metered recon governance |
 | **Report Service** | 🟡 Partial | 65% | XSS risk in HTML generation (f-string concat) | Use templating engine (Jinja2) |
 | **Collab Service** | 🟡 Partial | 55% | No auth on WebSocket upgrade, in-memory rooms | Add auth middleware, persist rooms |
-| **Plugin Registry** | 🟡 Partial | 60% | No signed plugins, no permission scoping | Implement plugin signing, capability model |
+| **Plugin Registry** | 🟡 Partial | 72% | Signing + permissions exist, but sandboxing and strict provenance policy are still incomplete | Enforce signed-only policy + add sandbox/runtime isolation |
 | **Integration Service** | 🟡 Partial | 50% | In-memory SIEM integration state | Persist integrations, implement webhooks |
 | **BugBounty Service** | 🟡 Partial | 50% | In-memory submissions, incomplete workflow | Add DB models, implement status transitions |
 | **Phase 5 SOC Module** | 🔴 Stubbed | 30% | Barely implemented, unclear requirements | Clarify SOC workflows or deprecate |
@@ -138,7 +142,7 @@ Completed in this execution:
 | ScanPage | 🟡 Partial | Live updates work via mocked data | Connect to real scan service |
 | AIAnalysisPage | 🟡 Partial | Risk gauge + MITRE mapping + cancellation controls in place, but backend AI quality is still inconsistent | Improve model orchestration and confidence scoring |
 | ReconPage | 🟡 Partial | Core recon + cancellation controls are live, but premium onion evidence UX is still shallow | Add onion evidence timeline + premium profile presets |
-| SettingsPage | 🟡 Partial | Save button non-functional | Implement settings API |
+| SettingsPage | 🟡 Partial | Core scan defaults persistence restored; advanced profile controls remain incomplete | Expand settings API coverage and profile-level controls |
 | GlobalSearch | 🔴 Stub | Visible but non-functional | Build search backend & UI |
 | Phase5OperationsPage | 🔴 Stub | 44 LOC, 30% complete | Evaluate if needed or remove |
 
@@ -213,10 +217,10 @@ Layer 3 - Result Aggregation
 ```
 
 **Files to create/modify:**
-- [ ] `services/api_gateway/main.py` — Add `/ws/agent/{agent_id}` endpoint for CLI
+- [x] `services/api_gateway/main.py` — Added `/ws/agent/{agent_id}` endpoint and task lifecycle handling
 - [ ] `services/scan_service/main.py` — Accept agent-submitted scan results
-- [ ] `cli/agent/stream.py` — Client-side WebSocket handler
-- [ ] `services/common/models.py` — Add AgentSession model
+- [x] `cli/agent/stream.py` — Client-side WebSocket handler + task lifecycle publishers
+- [x] `services/common/models.py` — Added `AgentSessionModel` and `AgentTaskModel`
 - [ ] Frontend scan page — Show findings from both cloud + local agents
 
 **Effort:** 2-3 weeks
@@ -241,7 +245,7 @@ Layer 3 - Result Aggregation
 **Solution:** Migrate each to PostgreSQL using existing ORM models
 
 **Status:**
-- ✅ Database models already defined in `services/common/models.py` (16 tables)
+- ✅ Database models already defined in `services/common/models.py` (17+ tables including agent session/task persistence)
 - ✅ Alembic migration framework in place
 - 🔄 Auth service migration is in progress (DB-first for users/sessions/2FA paths)
 - ⏳ Remaining services still need migration scripts and code updates
