@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Brain, Loader2, Shield, Zap, CheckCircle, ChevronRight } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useScanStore } from "../store/scanStore";
@@ -98,6 +98,23 @@ export function AIAnalysisPage() {
   const [selectedScan, setSelectedScan] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
+  const requestTimeoutRef = useRef<number | null>(null);
+
+  const clearActiveRequest = () => {
+    if (requestTimeoutRef.current !== null) {
+      window.clearTimeout(requestTimeoutRef.current);
+      requestTimeoutRef.current = null;
+    }
+    activeRequestRef.current = null;
+  };
+
+  useEffect(() => {
+    return () => {
+      activeRequestRef.current?.abort();
+      clearActiveRequest();
+    };
+  }, []);
 
   const handleScanLoad = (scanId: string) => {
     setSelectedScan(scanId);
@@ -113,9 +130,16 @@ export function AIAnalysisPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
+    activeRequestRef.current?.abort();
+    clearActiveRequest();
+
     setLoading(true);
     setResult(null);
     try {
+      const controller = new AbortController();
+      activeRequestRef.current = controller;
+      requestTimeoutRef.current = window.setTimeout(() => controller.abort(), 30000);
+
       const token = localStorage.getItem("cosmicsec_token");
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -142,13 +166,21 @@ export function AIAnalysisPage() {
           method: "POST",
           headers,
           body: JSON.stringify({ target, findings }),
+          signal: controller.signal,
         }),
         fetch(`${API}/api/ai/analyze/mitre`, {
           method: "POST",
           headers,
           body: JSON.stringify({ findings: findingLines }),
+          signal: controller.signal,
         }),
       ]);
+
+      clearActiveRequest();
+
+      if (!analyzeRes.ok || !mitreRes.ok) {
+        throw new Error("AI analysis endpoints failed");
+      }
 
       interface AnalyzeRaw {
         summary: string;
@@ -180,11 +212,23 @@ export function AIAnalysisPage() {
         recommendations: analyzeData.recommendations ?? [],
       });
       addNotification({ type: "success", message: "AI analysis complete." });
-    } catch {
-      addNotification({ type: "error", message: "AI analysis request failed." });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        addNotification({ type: "warning", message: "AI analysis cancelled or timed out." });
+      } else {
+        addNotification({ type: "error", message: "AI analysis request failed." });
+      }
     } finally {
+      clearActiveRequest();
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    activeRequestRef.current?.abort();
+    clearActiveRequest();
+    setLoading(false);
+    addNotification({ type: "warning", message: "AI analysis cancelled." });
   };
 
   return (
@@ -252,6 +296,16 @@ export function AIAnalysisPage() {
                 )}
                 {loading ? "Analyzing…" : "Run Analysis"}
               </button>
+
+              {loading ? (
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="w-full rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
+                >
+                  Cancel Analysis
+                </button>
+              ) : null}
             </form>
           </section>
 
