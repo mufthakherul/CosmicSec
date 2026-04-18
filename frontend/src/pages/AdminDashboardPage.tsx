@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { Button } from "../components/ui/button";
+import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
@@ -93,6 +94,10 @@ export function AdminDashboardPage() {
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState("user");
   const [reportValues, setReportValues] = useState<number[]>([3, 6, 4, 8, 5, 7]);
+  const [userPage, setUserPage] = useState(1);
+  const [auditPage, setAuditPage] = useState(1);
+  const PAGE_SIZE = 5;
+  const AUDIT_PAGE_SIZE = 8;
 
   const [scanQueue] = useState<string[]>(["Network Scan", "Web Scan", "API Scan"]);
   const [scheduledScans, setScheduledScans] = useState<string[]>([]);
@@ -135,6 +140,21 @@ export function AdminDashboardPage() {
     const trustScore = plugins.length > 0 ? Math.round((signed / plugins.length) * 100) : 0;
     return { signed, enabled, protectedPlugins, trustScore };
   }, [plugins]);
+
+  const userPageCount = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const auditPageCount = Math.max(1, Math.ceil(audit.length / AUDIT_PAGE_SIZE));
+  const pagedUsers = useMemo(
+    () => users.slice((userPage - 1) * PAGE_SIZE, userPage * PAGE_SIZE),
+    [users, userPage],
+  );
+  const pagedAudit = useMemo(
+    () =>
+      audit
+        .slice()
+        .reverse()
+        .slice((auditPage - 1) * AUDIT_PAGE_SIZE, auditPage * AUDIT_PAGE_SIZE),
+    [audit, auditPage],
+  );
 
   const authHeaders = useMemo(() => {
     if (!token || token.startsWith("demo-preview") || user?.role === "demo_viewer") {
@@ -184,10 +204,12 @@ export function AdminDashboardPage() {
     if (usersRes.ok) {
       const payload = (await usersRes.json()) as { items: UserRecord[] };
       setUsers(payload.items ?? []);
+      setUserPage(1);
     }
     if (auditRes.ok) {
       const payload = (await auditRes.json()) as { items: AuditRecord[] };
       setAudit(payload.items ?? []);
+      setAuditPage(1);
     }
     if (configRes.ok) {
       const payload = (await configRes.json()) as { config: Record<string, string> };
@@ -211,6 +233,14 @@ export function AdminDashboardPage() {
   useEffect(() => {
     void loadAdminData();
   }, [token, user?.role, authHeaders]);
+
+  useEffect(() => {
+    setUserPage((page) => Math.min(page, Math.max(1, Math.ceil(users.length / PAGE_SIZE))));
+  }, [users.length]);
+
+  useEffect(() => {
+    setAuditPage((page) => Math.min(page, Math.max(1, Math.ceil(audit.length / AUDIT_PAGE_SIZE))));
+  }, [audit.length]);
 
   const createUser = async () => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
@@ -587,7 +617,7 @@ export function AdminDashboardPage() {
             <Button onClick={createUser}>Create</Button>
           </div>
           <ul className="space-y-2 text-sm">
-            {users.map((u) => (
+            {pagedUsers.map((u) => (
               <li
                 key={u.email}
                 className="flex items-center justify-between rounded border border-slate-800 p-2"
@@ -612,6 +642,9 @@ export function AdminDashboardPage() {
               </li>
             ))}
           </ul>
+          <div className="mt-4 flex justify-center">
+            <Pagination page={userPage} totalPages={userPageCount} onPageChange={setUserPage} />
+          </div>
         </section>
 
         <section className="rounded-lg border border-slate-800 bg-slate-900 p-4">
@@ -732,10 +765,7 @@ export function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {audit
-                .slice()
-                .reverse()
-                .map((entry, idx) => (
+              {pagedAudit.map((entry, idx) => (
                   <tr key={`${entry.timestamp}-${idx}`} className="border-t border-slate-800">
                     <td className="p-2">{entry.timestamp}</td>
                     <td className="p-2">{entry.action}</td>
@@ -746,6 +776,9 @@ export function AdminDashboardPage() {
             </tbody>
           </table>
         </div>
+          <div className="mt-4 flex justify-center">
+            <Pagination page={auditPage} totalPages={auditPageCount} onPageChange={setAuditPage} />
+          </div>
       </section>
     </section>
   );
