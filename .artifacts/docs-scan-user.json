@@ -1,0 +1,477 @@
+{
+  "generated_at_utc": "2026-04-17T21:36:22.719697+00:00",
+  "total_markdown_files": 58,
+  "total_words": 0,
+  "avg_words_per_doc": 0,
+  "missing_top_title_candidates": [
+    "CHANGELOG.md"
+  ],
+  "small_docs_candidates": [
+    ".github/ISSUE_TEMPLATE/bug_report.md",
+    ".github/ISSUE_TEMPLATE/feature_request.md",
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "DEPENDENCY_AUDIT.md",
+    "IMPLEMENTATION_CHECKLIST.md",
+    "IMPROVEMENTS_SUMMARY.md",
+    "QUICK_START.md",
+    "README.md",
+    "ROADMAP.md",
+    "ROADMAP_CLI_AGENT.md",
+    "ROADMAP_NEXT.md",
+    "SECURITY.md",
+    "cli/README.md",
+    "cli/agent/README.md",
+    "cli/agent/npm/README.md",
+    "docs/CROSS_PLATFORM_GUIDE.md",
+    "docs/DEPLOYMENT_GUIDE.md",
+    "docs/DIRECTORY_STRUCTURE.md",
+    "docs/DOCKER_TROUBLESHOOTING.md",
+    "docs/HOSTING_REQUIREMENTS.md",
+    "docs/IMPLEMENTATION_SUMMARY.md",
+    "docs/PROJECT_GOAL_AND_PROGRESS.md",
+    "docs/ROADMAP_CHANNEL_EXPANSION.md",
+    "docs/ROADMAP_UNIFIED.md",
+    "docs/SERVICE_DISCOVERY_FIX.md",
+    "docs/TESTING_GUIDE.md",
+    "docs/adr/ADR-001-fastapi-over-flask.md",
+    "docs/adr/ADR-002-postgresql-over-mysql.md",
+    "docs/adr/ADR-003-rust-for-ingest.md",
+    "docs/adr/ADR-004-nats-for-events.md",
+    "docs/adr/ADR-005-zustand-over-redux.md",
+    "docs/archive/roadmaps/README.md",
+    "docs/archive/roadmaps/ROADMAP_CLI_AGENT_ORIGINAL.md",
+    "docs/archive/roadmaps/ROADMAP_NEXT_ORIGINAL.md",
+    "docs/archive/roadmaps/ROADMAP_ORIGINAL.md",
+    "docs/cli/ai-features.md",
+    "docs/cli/authentication.md",
+    "docs/cli/ci-cd.md",
+    "docs/cli/getting-started.md",
+    "docs/cli/installation.md",
+    "docs/cli/plugins.md",
+    "docs/cli/scanning.md",
+    "docs/cli/troubleshooting.md",
+    "docs/cli/workflows.md",
+    "docs/generated/USER_GUIDE_DETAILED.md",
+    "docs/runbooks/MULTI_CHANNEL_NOTIFICATIONS.md",
+    "docs/runbooks/add-new-scanner-plugin.md",
+    "docs/runbooks/add-new-service.md",
+    "docs/runbooks/database-migration.md",
+    "docs/runbooks/deploy-production.md",
+    "docs/runbooks/incident-response.md",
+    "frontend/src/store/REDUX_SETUP_GUIDE.md",
+    "mobile/README.md",
+    "sdk/go/README.md",
+    "sdk/typescript/README.md"
+  ],
+  "documents": [
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.md",
+      "title": "bug report",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "--- name: Bug Report about: Report unexpected behaviour or errors in CosmicSec title: \"[BUG] \" labels: bug assignees: '' ---"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature_request.md",
+      "title": "feature request",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "--- name: Feature Request about: Suggest a new feature or enhancement for CosmicSec title: \"[FEAT] \" labels: enhancement assignees: '' ---"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "title": "PULL REQUEST TEMPLATE",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "<!-- Provide a concise summary of what this PR does and why. Link any related issues. -->"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "title": "Changelog",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "* add DX linting/docs uplift and roadmap progress updates ([0d61e1d](https://github.com/mufthakherul/CosmicSec/commit/0d61e1d3c7f30cca2df4ca6dd45a9c1a905e959a)) * add UUID validation for agent_id, regenerate frontend lockfile, additional improvements ([5c26498](https://github.com/mufthakherul/CosmicSec/commit/5c26498a2d296819e34ba1cc08e3bf1e4675d9a8)) * **api:** add SSO authorization and callback routes for external "
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "title": "Code of Conduct",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "CosmicSec exists to advance **ethical cybersecurity** \u2014 protecting systems, educating defenders, and empowering authorized security professionals. As contributors and maintainers, we pledge to make participation in this project a respectful, harassment-free experience for everyone, regardless of background, experience level, or identity."
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "title": "Contributing to CosmicSec",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "Thank you for your interest in contributing to CosmicSec! We welcome contributions that advance **ethical cybersecurity research, education, and authorized security tooling**. By contributing, you agree to uphold the ethical standards described in our [LICENSE](LICENSE) and [Code of Conduct](CODE_OF_CONDUCT.md)."
+    },
+    {
+      "path": "DEPENDENCY_AUDIT.md",
+      "title": "CosmicSec \u2014 Dependency & Technology Audit Report",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> **Original audit date**: 2026-04-15 | **Last updated**: 2026-04-15 (Bulk Upgrade Applied) > **Scope**: All languages, tools, frameworks, Docker images, CI actions, pre-commit hooks > **Method**: Extracted all pinned/required versions from source \u2192 compared against latest available on PyPI, npm, Docker Hub, GitHub"
+    },
+    {
+      "path": "IMPLEMENTATION_CHECKLIST.md",
+      "title": "Implementation Verification Checklist",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> **Date:** April 17, 2026"
+    },
+    {
+      "path": "IMPROVEMENTS_SUMMARY.md",
+      "title": "CosmicSec Project Improvements and Enhancements",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "This document summarizes all the improvements, fixes, and enhancements made to the CosmicSec platform to make it more powerful, advanced, professional, modern, and production-ready."
+    },
+    {
+      "path": "QUICK_START.md",
+      "title": "Quick Start Guide - Implementation Summary",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Problem Solved:** Developers no longer need to reconfigure services when switching between Windows, Linux, and macOS."
+    },
+    {
+      "path": "README.md",
+      "title": "CosmicSec",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "<div align=\"center\">"
+    },
+    {
+      "path": "ROADMAP.md",
+      "title": "CosmicSec Roadmap \u2192 Moved",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> \u26a0\ufe0f **This file has been replaced.** The active roadmap is now in: > > **[`docs/ROADMAP_UNIFIED.md`](docs/ROADMAP_UNIFIED.md)** > > Historical snapshots of the old roadmap phases A\u2013J, K\u2013V, and CA-1\u2013CA-10 are preserved in: > > **[`docs/archive/roadmaps/`](docs/archive/roadmaps/)**"
+    },
+    {
+      "path": "ROADMAP_CLI_AGENT.md",
+      "title": "CosmicSec CLI Agent Roadmap \u2192 Moved",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> \u26a0\ufe0f **This file has been replaced.** The active roadmap is now in: > > **[`docs/ROADMAP_UNIFIED.md`](docs/ROADMAP_UNIFIED.md)** > > Historical snapshots of the old CLI agent phases CA-1\u2013CA-10 are preserved in: > > **[`docs/archive/roadmaps/ROADMAP_CLI_AGENT_ORIGINAL.md`](docs/archive/roadmaps/ROADMAP_CLI_AGENT_ORIGINAL.md)**"
+    },
+    {
+      "path": "ROADMAP_NEXT.md",
+      "title": "CosmicSec Next-Generation Roadmap \u2192 Moved",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> \u26a0\ufe0f **This file has been replaced.** The active roadmap is now in: > > **[`docs/ROADMAP_UNIFIED.md`](docs/ROADMAP_UNIFIED.md)** > > Historical snapshots of the old roadmap phases K\u2013V are preserved in: > > **[`docs/archive/roadmaps/ROADMAP_NEXT_ORIGINAL.md`](docs/archive/roadmaps/ROADMAP_NEXT_ORIGINAL.md)**"
+    },
+    {
+      "path": "SECURITY.md",
+      "title": "Security Policy",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "CosmicSec is a cybersecurity platform. We take security seriously and are committed to responsible disclosure. If you discover a vulnerability in CosmicSec itself, please follow the process below."
+    },
+    {
+      "path": "cli/README.md",
+      "title": "CosmicSec CLI Agent",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "The CosmicSec local agent discovers and runs security tools on your machine, streams findings to the CosmicSec cloud platform, and supports full offline operation with automatic sync on reconnect."
+    },
+    {
+      "path": "cli/agent/README.md",
+      "title": "CosmicSec Agent CLI",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "CosmicSec Agent is a local-first security automation CLI that discovers tools on your machine, executes scans, and syncs results to CosmicSec cloud when available."
+    },
+    {
+      "path": "cli/agent/npm/README.md",
+      "title": "@mufthakherul/cosmicsec-agent-cli",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "Official npm launcher for the CosmicSec Python CLI agent."
+    },
+    {
+      "path": "docs/CROSS_PLATFORM_GUIDE.md",
+      "title": "Cross-Platform Development Guide",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> Seamless development across Windows, Linux, and macOS without reconfiguration."
+    },
+    {
+      "path": "docs/DEPLOYMENT_GUIDE.md",
+      "title": "Docker Compose with monitoring and best practices",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "\"\"\" CosmicSec Modern Deployment Configurations Multi-environment setup with automated scaling and observability \"\"\""
+    },
+    {
+      "path": "docs/DIRECTORY_STRUCTURE.md",
+      "title": "CosmicSec \u2014 Project Directory Structure",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> **Last updated:** 2026-04-14 \u2014 Phase J additions included."
+    },
+    {
+      "path": "docs/DOCKER_TROUBLESHOOTING.md",
+      "title": "Docker Troubleshooting and Best Practices Guide",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "```bash cp .env.example .env"
+    },
+    {
+      "path": "docs/HOSTING_REQUIREMENTS.md",
+      "title": "CosmicSec Hosting & Deployment Requirements",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> **Last Updated:** April 2026 > **Document Version:** 1.0"
+    },
+    {
+      "path": "docs/IMPLEMENTATION_SUMMARY.md",
+      "title": "CosmicSec Cross-Platform & Self-Hosting Implementation Summary",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> **Implementation Date:** April 17, 2026"
+    },
+    {
+      "path": "docs/PROJECT_GOAL_AND_PROGRESS.md",
+      "title": "CosmicSec Project Goal and Progress",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "Last updated: 2026-04-17"
+    },
+    {
+      "path": "docs/ROADMAP_CHANNEL_EXPANSION.md",
+      "title": "CosmicSec Multi-Channel Method Expansion Roadmap",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "- Program scope completion: 100% - Document completion: 100% - Implementation status: Completed for defined channel-integration scope"
+    },
+    {
+      "path": "docs/ROADMAP_UNIFIED.md",
+      "title": "CosmicSec \u2014 Unified Platform Roadmap",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> **Canonical roadmap** \u2014 the single source of truth for all future planning. > **Version**: 1.0.0 (2026-04-17) > **Audience**: Human developers, AI coding agents (Copilot, Claude, Codex), project managers, security professionals > **Archived history**: [`docs/archive/roadmaps/`](archive/roadmaps/)"
+    },
+    {
+      "path": "docs/SERVICE_DISCOVERY_FIX.md",
+      "title": "Service Discovery & Console Log Fix",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Before Implementation:** ``` Issue: Inconsistent service routing in console logs - Console shows: \"Connecting to api-gateway:8000\" - Local dev expects: \"Connecting to localhost:8000\" - Causes confusion and connectivity errors"
+    },
+    {
+      "path": "docs/TESTING_GUIDE.md",
+      "title": "Test Configuration for Vitest (Frontend)",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "\"\"\" CosmicSec Testing & Quality Assurance Setup Comprehensive testing strategy covering unit, integration, E2E, and performance tests \"\"\""
+    },
+    {
+      "path": "docs/adr/ADR-001-fastapi-over-flask.md",
+      "title": "ADR-001: Why FastAPI (vs Flask, Django)",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Status**: Accepted **Date**: 2026-01-15 **Authors**: CosmicSec Platform Team"
+    },
+    {
+      "path": "docs/adr/ADR-002-postgresql-over-mysql.md",
+      "title": "ADR-002: Why PostgreSQL (vs MySQL, CockroachDB)",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Status**: Accepted **Date**: 2026-01-15 **Authors**: CosmicSec Platform Team"
+    },
+    {
+      "path": "docs/adr/ADR-003-rust-for-ingest.md",
+      "title": "ADR-003: Why Rust for the Ingest Engine (vs Go, C++)",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Status**: Accepted **Date**: 2026-02-01 **Authors**: CosmicSec Platform Team"
+    },
+    {
+      "path": "docs/adr/ADR-004-nats-for-events.md",
+      "title": "ADR-004: Why NATS JetStream (vs Kafka, RabbitMQ)",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Status**: Accepted **Date**: 2026-02-15 **Authors**: CosmicSec Platform Team"
+    },
+    {
+      "path": "docs/adr/ADR-005-zustand-over-redux.md",
+      "title": "ADR-005: Why Zustand (vs Redux Toolkit, Jotai, MobX)",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Status**: Accepted **Date**: 2026-01-20 **Authors**: CosmicSec Frontend Team"
+    },
+    {
+      "path": "docs/archive/roadmaps/README.md",
+      "title": "Archived Roadmaps",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "These files are **read-only historical snapshots**. They document the planning work that led to the CosmicSec v1 release and the platform's initial growth phases (A\u2013J, K\u2013V, CA-1\u2013CA-10)."
+    },
+    {
+      "path": "docs/archive/roadmaps/ROADMAP_CLI_AGENT_ORIGINAL.md",
+      "title": "CosmicSec CLI Agent \u2014 Dedicated Implementation Roadmap",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> \u26a0\ufe0f **ARCHIVED** \u2014 This is a read-only historical snapshot (formerly `ROADMAP_CLI_AGENT.md`). > Active planning is in [`docs/ROADMAP_UNIFIED.md`](../../ROADMAP_UNIFIED.md). Do not edit this file."
+    },
+    {
+      "path": "docs/archive/roadmaps/ROADMAP_NEXT_ORIGINAL.md",
+      "title": "CosmicSec \u2014 Next-Generation Implementation Roadmap (v2)",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> \u26a0\ufe0f **ARCHIVED** \u2014 This is a read-only historical snapshot (formerly `ROADMAP_NEXT.md`). > Active planning is in [`docs/ROADMAP_UNIFIED.md`](../../ROADMAP_UNIFIED.md). Do not edit this file."
+    },
+    {
+      "path": "docs/archive/roadmaps/ROADMAP_ORIGINAL.md",
+      "title": "CosmicSec \u2014 Hybrid Platform Roadmap",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> \u26a0\ufe0f **ARCHIVED** \u2014 This is a read-only historical snapshot (formerly `ROADMAP.md`). > Active planning is in [`docs/ROADMAP_UNIFIED.md`](../../ROADMAP_UNIFIED.md). Do not edit this file."
+    },
+    {
+      "path": "docs/cli/ai-features.md",
+      "title": "CosmicSec CLI AI Features",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "- `static`: rule-based planning only - `dynamic`: AI planning first - `hybrid`: AI + static fallback"
+    },
+    {
+      "path": "docs/cli/authentication.md",
+      "title": "CosmicSec CLI Authentication",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "```bash cosmicsec-agent auth login --server https://app.cosmicsec.io --api-key <API_KEY> ```"
+    },
+    {
+      "path": "docs/cli/ci-cd.md",
+      "title": "CosmicSec CLI in CI/CD",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "```bash pip install ./cli/agent ```"
+    },
+    {
+      "path": "docs/cli/getting-started.md",
+      "title": "CosmicSec CLI \u2014 Getting Started",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "```bash cd cli/agent pip install -e . ```"
+    },
+    {
+      "path": "docs/cli/installation.md",
+      "title": "CosmicSec CLI Installation & Distribution",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "```bash cd cli/agent pip install -e . ```"
+    },
+    {
+      "path": "docs/cli/plugins.md",
+      "title": "CosmicSec CLI Plugins",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "Plugins are stored in:"
+    },
+    {
+      "path": "docs/cli/scanning.md",
+      "title": "CosmicSec CLI Scanning",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "```bash cosmicsec-agent discover ```"
+    },
+    {
+      "path": "docs/cli/troubleshooting.md",
+      "title": "CosmicSec CLI Troubleshooting",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "Run:"
+    },
+    {
+      "path": "docs/cli/workflows.md",
+      "title": "CosmicSec CLI Workflows",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "```bash cosmicsec-agent run \"scan 10.0.0.0/24 with nmap and then generate report\" ```"
+    },
+    {
+      "path": "docs/generated/USER_GUIDE_DETAILED.md",
+      "title": "CosmicSec User Documentation (Detailed)",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "> Generated automatically from repository documentation and metadata."
+    },
+    {
+      "path": "docs/runbooks/MULTI_CHANNEL_NOTIFICATIONS.md",
+      "title": "Multi-Channel Notification Runbook",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "Configure and operate CosmicSec notifications across Telegram, Discord, webhook, Redis pub/sub, email, Slack, and SSH command channels."
+    },
+    {
+      "path": "docs/runbooks/add-new-scanner-plugin.md",
+      "title": "Runbook: Adding a New Scanner Plugin",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Audience**: Security engineers, plugin contributors **Last updated**: 2026-04-16"
+    },
+    {
+      "path": "docs/runbooks/add-new-service.md",
+      "title": "Runbook: Adding a New Microservice",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Audience**: Backend developers **Last updated**: 2026-04-16"
+    },
+    {
+      "path": "docs/runbooks/database-migration.md",
+      "title": "Runbook: Database Migration",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "**Audience**: Platform engineers, backend developers **Last updated**: 2026-04-16"
+    },
+    {
+      "path": "docs/runbooks/deploy-production.md",
+      "title": "Deploy CosmicSec to Production",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "- Docker 24+ and Docker Compose 2.20+ - PostgreSQL 16 instance (managed or self-hosted) - Redis 7+ instance - Domain name with DNS control - TLS certificate (Let's Encrypt recommended)"
+    },
+    {
+      "path": "docs/runbooks/incident-response.md",
+      "title": "CosmicSec Incident Response Runbook",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "| Level | Response Time | Examples | |-------|--------------|---------| | **P1 \u2014 Critical** | 15 min | Service completely down, data breach, auth bypass | | **P2 \u2014 High** | 1 hour | Performance degradation >50%, partial outage | | **P3 \u2014 Medium** | 4 hours | Single feature broken, minor data inconsistency | | **P4 \u2014 Low** | Next business day | UI glitch, non-critical feature degraded |"
+    },
+    {
+      "path": "frontend/src/store/REDUX_SETUP_GUIDE.md",
+      "title": "This is TypeScript-targeted, but showing the structure and setup guide",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "\"\"\" Frontend State Management Configuration using Redux Toolkit Advanced state management with built-in async support and DevTools \"\"\""
+    },
+    {
+      "path": "mobile/README.md",
+      "title": "CosmicSec Mobile Companion (React Native)",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "Optional companion client for quick SOC visibility and scan status on mobile."
+    },
+    {
+      "path": "sdk/go/README.md",
+      "title": "cosmicsec-go-sdk",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "Official Go SDK for the [CosmicSec](https://cosmicsec.io) Universal Cybersecurity Intelligence Platform."
+    },
+    {
+      "path": "sdk/typescript/README.md",
+      "title": "@cosmicsec/sdk \u2014 TypeScript SDK",
+      "word_count": 0,
+      "heading_count": 0,
+      "summary": "Official TypeScript/JavaScript SDK for the [CosmicSec](https://cosmicsec.io) Universal Cybersecurity Intelligence Platform."
+    }
+  ]
+}
