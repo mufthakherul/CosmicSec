@@ -132,22 +132,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [token, rememberMe]);
 
-  const login = useCallback((newToken: string, newUser: User, options?: LoginOptions) => {
-    const remember = options?.remember ?? rememberMe;
-    setRememberMe(remember);
-    localStorage.setItem(REMEMBER_KEY, remember ? "true" : "false");
+  const login = useCallback(
+    (newToken: string, newUser: User, options?: LoginOptions) => {
+      const remember = options?.remember ?? rememberMe;
+      setRememberMe(remember);
+      localStorage.setItem(REMEMBER_KEY, remember ? "true" : "false");
 
-    setStoredValue(TOKEN_KEY, newToken, remember);
-    setStoredValue(USER_KEY, JSON.stringify(newUser), remember);
+      setStoredValue(TOKEN_KEY, newToken, remember);
+      setStoredValue(USER_KEY, JSON.stringify(newUser), remember);
 
-    if (options?.refreshToken) {
-      setStoredValue(REFRESH_TOKEN_KEY, options.refreshToken, remember);
-      setRefreshToken(options.refreshToken);
-    }
+      if (options?.refreshToken) {
+        setStoredValue(REFRESH_TOKEN_KEY, options.refreshToken, remember);
+        setRefreshToken(options.refreshToken);
+      }
 
-    setToken(newToken);
-    setUser(newUser);
-  }, [rememberMe]);
+      setToken(newToken);
+      setUser(newUser);
+    },
+    [rememberMe],
+  );
 
   const updateTokens = useCallback(
     (accessToken: string, nextRefreshToken?: string) => {

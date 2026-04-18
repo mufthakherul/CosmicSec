@@ -37,7 +37,9 @@ def verify_plugin_file_signature(plugin_file: str | Path) -> tuple[bool, str]:
         from cryptography.hazmat.primitives import serialization
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
     except Exception as exc:  # pragma: no cover
-        raise PluginSignatureError("cryptography dependency is required for signature checks") from exc
+        raise PluginSignatureError(
+            "cryptography dependency is required for signature checks"
+        ) from exc
 
     try:
         payload = path.read_bytes()

@@ -103,7 +103,8 @@ export function AdminDashboardPage() {
     const query = pluginAuditQuery.trim().toLowerCase();
     return pluginAudit.filter((entry) => {
       if (pluginAuditAction !== "all" && entry.action !== pluginAuditAction) return false;
-      if (pluginAuditRole !== "all" && (entry.actor_role ?? "system") !== pluginAuditRole) return false;
+      if (pluginAuditRole !== "all" && (entry.actor_role ?? "system") !== pluginAuditRole)
+        return false;
       if (pluginAuditStatus !== "all" && (entry.status ?? "ok") !== pluginAuditStatus) return false;
       if (
         query &&
@@ -128,7 +129,9 @@ export function AdminDashboardPage() {
   const pluginAuditSummary = useMemo(() => {
     const signed = plugins.filter((plugin) => plugin.signature_verified).length;
     const enabled = plugins.filter((plugin) => plugin.enabled !== false).length;
-    const protectedPlugins = plugins.filter((plugin) => (plugin.permissions?.length ?? 0) > 0).length;
+    const protectedPlugins = plugins.filter(
+      (plugin) => (plugin.permissions?.length ?? 0) > 0,
+    ).length;
     const trustScore = plugins.length > 0 ? Math.round((signed / plugins.length) * 100) : 0;
     return { signed, enabled, protectedPlugins, trustScore };
   }, [plugins]);
@@ -334,25 +337,19 @@ export function AdminDashboardPage() {
             <Button className="bg-cyan-600 hover:bg-cyan-500" onClick={() => void refreshPlugins()}>
               Refresh Registry
             </Button>
-            <Button className="bg-slate-700 hover:bg-slate-600" onClick={() => void loadAdminData()}>
+            <Button
+              className="bg-slate-700 hover:bg-slate-600"
+              onClick={() => void loadAdminData()}
+            >
               Reload Snapshot
             </Button>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
           <MetricCard title="Plugins" value={String(plugins.length)} />
-          <MetricCard
-            title="Signed"
-            value={String(pluginAuditSummary.signed)}
-          />
-          <MetricCard
-            title="Enabled"
-            value={String(pluginAuditSummary.enabled)}
-          />
-          <MetricCard
-            title="Protected"
-            value={String(pluginAuditSummary.protectedPlugins)}
-          />
+          <MetricCard title="Signed" value={String(pluginAuditSummary.signed)} />
+          <MetricCard title="Enabled" value={String(pluginAuditSummary.enabled)} />
+          <MetricCard title="Protected" value={String(pluginAuditSummary.protectedPlugins)} />
         </div>
         {pluginRefreshMessage ? (
           <p className="mt-3 text-xs text-cyan-300">{pluginRefreshMessage}</p>
@@ -391,7 +388,11 @@ export function AdminDashboardPage() {
                     <p className="mt-1 text-sm text-slate-400">{plugin.description}</p>
                   </div>
                   <Button
-                    className={plugin.enabled !== false ? "bg-rose-700 hover:bg-rose-600" : "bg-emerald-600 hover:bg-emerald-500"}
+                    className={
+                      plugin.enabled !== false
+                        ? "bg-rose-700 hover:bg-rose-600"
+                        : "bg-emerald-600 hover:bg-emerald-500"
+                    }
                     onClick={() => void togglePlugin(plugin.name, plugin.enabled)}
                   >
                     {plugin.enabled !== false ? "Disable" : "Enable"}
@@ -439,7 +440,11 @@ export function AdminDashboardPage() {
               {pluginAuditFiltered.length} visible / {pluginAudit.length} total
             </span>
             <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs text-indigo-300">
-              {pluginAuditScope === "admin" ? "Full audit scope" : pluginAuditScope === "role" ? "Role-scoped audit" : "Scope pending"}
+              {pluginAuditScope === "admin"
+                ? "Full audit scope"
+                : pluginAuditScope === "role"
+                  ? "Role-scoped audit"
+                  : "Scope pending"}
             </span>
             <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
               Trust score {pluginAuditSummary.trustScore}%
@@ -515,39 +520,42 @@ export function AdminDashboardPage() {
                 </tr>
               ) : (
                 pluginAuditFiltered.map((entry, idx) => (
-                <tr key={`${entry.timestamp}-${entry.plugin}-${idx}`} className="border-t border-slate-800">
-                  <td className="p-2 text-slate-400">{entry.timestamp}</td>
-                  <td className="p-2 font-medium text-slate-200">{entry.action}</td>
-                  <td className="p-2">
-                    <button
-                      onClick={() => navigate(`/plugins/${encodeURIComponent(entry.plugin)}`)}
-                      className="text-cyan-300 hover:text-cyan-200"
-                    >
-                      {entry.plugin}
-                    </button>
-                  </td>
-                  <td className="p-2 text-slate-300">{entry.actor ?? "system"}</td>
-                  <td className="p-2 text-slate-300">{entry.actor_role ?? "system"}</td>
-                  <td className="p-2 text-slate-400">{entry.detail}</td>
-                  <td className="p-2">
-                    <div className="flex flex-wrap gap-1.5">
-                      {entry.context?.scan_id ? (
-                        <button
-                          onClick={() => navigate(`/scans/${entry.context?.scan_id}`)}
-                          className="rounded bg-cyan-500/20 px-2 py-0.5 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/30"
-                        >
-                          Scan
-                        </button>
-                      ) : null}
-                      {entry.context?.target ? (
-                        <span className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">
-                          {entry.context.target}
-                        </span>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className="p-2 text-slate-300">{entry.status ?? "ok"}</td>
-                </tr>
+                  <tr
+                    key={`${entry.timestamp}-${entry.plugin}-${idx}`}
+                    className="border-t border-slate-800"
+                  >
+                    <td className="p-2 text-slate-400">{entry.timestamp}</td>
+                    <td className="p-2 font-medium text-slate-200">{entry.action}</td>
+                    <td className="p-2">
+                      <button
+                        onClick={() => navigate(`/plugins/${encodeURIComponent(entry.plugin)}`)}
+                        className="text-cyan-300 hover:text-cyan-200"
+                      >
+                        {entry.plugin}
+                      </button>
+                    </td>
+                    <td className="p-2 text-slate-300">{entry.actor ?? "system"}</td>
+                    <td className="p-2 text-slate-300">{entry.actor_role ?? "system"}</td>
+                    <td className="p-2 text-slate-400">{entry.detail}</td>
+                    <td className="p-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        {entry.context?.scan_id ? (
+                          <button
+                            onClick={() => navigate(`/scans/${entry.context?.scan_id}`)}
+                            className="rounded bg-cyan-500/20 px-2 py-0.5 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/30"
+                          >
+                            Scan
+                          </button>
+                        ) : null}
+                        {entry.context?.target ? (
+                          <span className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">
+                            {entry.context.target}
+                          </span>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td className="p-2 text-slate-300">{entry.status ?? "ok"}</td>
+                  </tr>
                 ))
               )}
             </tbody>

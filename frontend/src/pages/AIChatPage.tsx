@@ -130,7 +130,9 @@ export function AIChatPage() {
     }
 
     if (blocks.length === 0) {
-      blocks.push("No actionable output returned. Add target/context or use a command-style prompt.");
+      blocks.push(
+        "No actionable output returned. Add target/context or use a command-style prompt.",
+      );
     }
 
     return blocks.join("\n\n");
@@ -256,7 +258,11 @@ export function AIChatPage() {
                 disabled={loading || !query.trim()}
                 className="inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
                 Send
               </button>
               <button
