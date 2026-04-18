@@ -132,7 +132,7 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 ### GAP 7: Frontend Test Gaps
 - Fixed: Settings/Login/Register/Admin/Dashboard/Scan test regressions and brittle assertions
 - Current status: frontend vitest suite is green (`51/51` passing)
-- Remaining improvement area: remove residual act() warnings in complex async page tests and raise coverage thresholds
+- Remaining improvement area: expand edge-case coverage and enforce stricter coverage thresholds (major ScanPage `act()` warning noise has been cleaned up)
 
 ### GAP 8: No Real-Time Command Execution Streaming in WebApp
 - When a user types "scan example.com" in the AI chat, no WebSocket stream shows live tool output
@@ -170,7 +170,7 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 - Status: Improved and increasingly stable
 - Shared DB bootstrap now prevents the major "no such table" failures in local SQLite test contexts.
 - Previously failing service slices for collab/org/bugbounty/professional_soc are passing after resilience updates.
-- Long-running full-suite execution still needs one uninterrupted completion pass for definitive end-state metrics.
+- Full uninterrupted suite execution completed: `240 passed, 10 skipped` (non-blocking FastAPI deprecation warnings remain).
 
 ### Frontend Tests (Vitest)
 - Status: PASS
@@ -219,7 +219,7 @@ Gap: The WebApp needs the same HybridEngine-style pipeline as the CLI, but serve
 ### P2 — Quality & DX
 7. [x] Fix SettingsPage tests and runtime settings API export issues
 8. [x] Harden LoginPage/RegisterPage tests to current API facade + auth lifecycle
-9. [~] Reduce remaining async warning noise in ScanPage tests
+9. [x] Reduce remaining async warning noise in ScanPage tests
 10. [x] WSL-aware CLI tool discovery for Windows users
 
 ### P3 — Production Readiness
@@ -237,7 +237,7 @@ Gap: The WebApp needs the same HybridEngine-style pipeline as the CLI, but serve
 | CLI Agent | 90% | 100% | Unified registry + deeper per-tool orchestration polish |
 | WebApp Chat (AI Execution) | 65% | 100% | Streaming + richer orchestration still pending |
 | Specialized Tool Panels | 15% | 100% | Need all panels |
-| Backend Tests | 70% | 80%+ | Complete uninterrupted full-suite pass + warning cleanup |
+| Backend Tests | 85% | 80%+ | Keep deprecation/warning cleanup and CI runtime consistency |
 | Frontend Tests | 85% | 80%+ | Core suite green; continue depth/edge-case expansion |
 | LLM Integration | 72% | 100% | Streaming + multi-provider production switchover |
 | Streaming Output | 10% | 100% | WebSocket execution stream |

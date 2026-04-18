@@ -126,6 +126,9 @@ Completed in this execution:
 - [x] Upgraded CLI scan execution to honor registry `default_args`, enabling seamless launcher-prefixed execution flows (including WSL-discovered tools).
 - [x] Added targeted CLI tests for WSL discovery behavior (`cli/agent/tests/test_tool_registry_wsl.py`) and validated pass.
 - [x] Re-ran failing backend slices (`collab`, `org`, `bugbounty`, `professional_soc`) after DB bootstrap hardening: all passing.
+- [x] Eliminated ScanPage test `act(...)` warning noise by hardening async bootstrap/test isolation in `frontend/src/__tests__/pages/ScanPage.test.tsx`; targeted suite now clean and green.
+- [x] Added missing auth dependencies (`pyotp`, `casbin`) to Poetry dependency manifest to align editor/runtime dependency contracts.
+- [x] Completed uninterrupted backend full-suite verification pass: `240 passed, 10 skipped` (with non-blocking FastAPI deprecation warnings only).
 
 ### Key Findings:
 
