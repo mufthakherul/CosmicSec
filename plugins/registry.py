@@ -75,6 +75,10 @@ class RunPluginRequest(BaseModel):
     scan_id: str | None = None
     user: str | None = None
     config: dict[str, Any] | None = None
+    granted_permissions: list[str] = Field(
+        default_factory=list,
+        description="Permissions granted by caller context, e.g. ['scan:read','findings:write']",
+    )
 
 
 class PublishPluginRequest(BaseModel):
@@ -157,7 +161,9 @@ async def run_plugin(name: str, payload: RunPluginRequest) -> dict:
         scan_id=payload.scan_id,
         user=payload.user,
     )
-    result = _loader.run(name, ctx, config=payload.config)
+    run_config = dict(payload.config or {})
+    run_config["granted_permissions"] = payload.granted_permissions
+    result = _loader.run(name, ctx, config=run_config)
     return {
         "plugin": name,
         "success": result.success,
@@ -166,6 +172,24 @@ async def run_plugin(name: str, payload: RunPluginRequest) -> dict:
         "errors": result.errors,
         "metadata": result.metadata,
         "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+@app.get("/plugins/{name}/trust")
+async def plugin_trust(name: str) -> dict:
+    """Return signature and permission trust profile for a plugin."""
+    meta = _loader.get_metadata(name)
+    if meta is None:
+        raise HTTPException(status_code=404, detail=f"Plugin '{name}' not found")
+    signature = _loader.signature_status(name)
+    return {
+        "plugin": name,
+        "required_permissions": meta.permissions,
+        "signature": signature,
+        "enforce_signatures": bool(
+            os.getenv("COSMICSEC_ENFORCE_PLUGIN_SIGNATURES", "false").strip().lower()
+            in {"1", "true", "yes", "on"}
+        ),
     }
 
 

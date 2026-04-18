@@ -13,9 +13,13 @@ import contextlib
 import importlib.util
 import inspect
 import logging
+import os
 import sys
 import traceback
 from pathlib import Path
+
+from plugins.permissions import validate_required_permissions
+from plugins.signing import PluginSignatureError, verify_plugin_file_signature
 
 from .base import PluginBase, PluginContext, PluginMetadata, PluginResult
 
@@ -78,6 +82,12 @@ class PluginLoader:
         self._registry: dict[str, type[PluginBase]] = {}
         self._instances: dict[str, PluginBase] = {}
         self._disabled: set[str] = set()
+        self._sources: dict[str, Path] = {}
+        self._signature_status: dict[str, dict[str, str | bool]] = {}
+        self._enforce_signatures = (
+            os.getenv("COSMICSEC_ENFORCE_PLUGIN_SIGNATURES", "false").strip().lower()
+            in {"1", "true", "yes", "on"}
+        )
 
     # ------------------------------------------------------------------
     # Discovery
@@ -102,6 +112,17 @@ class PluginLoader:
                 try:
                     _validate(cls)
                     meta = cls().metadata()
+                    self._sources[meta.name] = pyfile
+                    self._signature_status[meta.name] = self._verify_plugin_signature(pyfile)
+                    if self._enforce_signatures and not bool(
+                        self._signature_status[meta.name].get("verified", False)
+                    ):
+                        logger.warning(
+                            "Plugin %s rejected because signature verification failed (%s)",
+                            meta.name,
+                            self._signature_status[meta.name].get("reason", "unknown"),
+                        )
+                        continue
                     self._registry[meta.name] = cls
                     loaded.append(meta.name)
                     logger.info("Plugin registered: %s v%s", meta.name, meta.version)
@@ -125,6 +146,7 @@ class PluginLoader:
         out = []
         for name, cls in self._registry.items():
             meta = cls().metadata()
+            sig = self._signature_status.get(name, {"verified": False, "reason": "unknown"})
             out.append(
                 {
                     "name": meta.name,
@@ -132,10 +154,31 @@ class PluginLoader:
                     "description": meta.description,
                     "author": meta.author,
                     "tags": meta.tags,
+                    "permissions": meta.permissions,
+                    "signature_verified": bool(sig.get("verified", False)),
+                    "signature_reason": str(sig.get("reason", "unknown")),
                     "enabled": name not in self._disabled,
                 }
             )
         return out
+
+    def _verify_plugin_signature(self, plugin_file: Path) -> dict[str, str | bool]:
+        try:
+            ok, reason = verify_plugin_file_signature(plugin_file)
+            return {"verified": ok, "reason": reason}
+        except PluginSignatureError as exc:
+            return {"verified": False, "reason": str(exc)}
+
+    def signature_status(self, name: str) -> dict[str, str | bool]:
+        status = self._signature_status.get(name)
+        if status is None:
+            return {"verified": False, "reason": "plugin_not_found"}
+        source = self._sources.get(name)
+        if source:
+            out = dict(status)
+            out["source"] = str(source)
+            return out
+        return status
 
     def check_dependencies(self, name: str) -> dict[str, bool]:
         """
@@ -203,6 +246,32 @@ class PluginLoader:
             )
 
         cls = self._registry[name]
+        meta = cls().metadata()
+
+        granted_permissions = None
+        if isinstance(config, dict):
+            granted_permissions = config.get("granted_permissions")
+        allowed, missing = validate_required_permissions(meta.permissions, granted_permissions)
+        if not allowed:
+            return PluginResult(
+                success=False,
+                errors=[
+                    (
+                        f"Plugin '{name}' missing required permissions: {', '.join(missing)}"
+                    )
+                ],
+                metadata={"required_permissions": meta.permissions, "granted_permissions": granted_permissions or []},
+            )
+
+        sig = self._signature_status.get(name, {"verified": False, "reason": "unknown"})
+        if self._enforce_signatures and not bool(sig.get("verified", False)):
+            return PluginResult(
+                success=False,
+                errors=[
+                    f"Plugin '{name}' signature verification failed: {sig.get('reason', 'unknown')}"
+                ],
+                metadata={"signature_verified": False, "signature_reason": sig.get("reason", "unknown")},
+            )
         # Re-use cached instance to avoid repeated init overhead
         if name not in self._instances:
             instance = cls()
@@ -218,6 +287,9 @@ class PluginLoader:
             result = instance.run(context)
             if not isinstance(result, PluginResult):
                 result = PluginResult(success=True, data=result)
+            result.metadata.setdefault("required_permissions", meta.permissions)
+            result.metadata.setdefault("signature_verified", bool(sig.get("verified", False)))
+            result.metadata.setdefault("signature_reason", str(sig.get("reason", "unknown")))
         except Exception:
             tb = traceback.format_exc()
             logger.error("Plugin %s raised during run():\n%s", name, tb)
