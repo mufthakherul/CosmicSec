@@ -39,8 +39,9 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Phase 1.1 (Auth UX + session foundation):** **82%**
 - **Phase 1.2 (Persistence migration):** **54%**
 - **Phase 1.3 (Security hardening):** **47%**
-- **Phase 2.4 (Plugin trust/signing):** **28%**
-- **Phase 2.1 (CLI↔Webapp task routing):** **36%**
+- **Phase 2.4 (Plugin trust/signing):** **57%**
+- **Phase 2.1 (CLI↔Webapp task routing):** **48%**
+- **Phase 2.2 (Result aggregation views):** **34%**
 
 Delivered in this iteration:
 - [x] Centralized frontend API service layer (`frontend/src/services/api.ts`).
@@ -66,6 +67,9 @@ Delivered in this iteration:
 - [x] Added agent task lifecycle tracking (`dispatched`, `accepted`, `running`, `completed`, `failed`) in API gateway.
 - [x] Added CLI task execution lifecycle telemetry (`task_ack`, `task_progress`, `task_result`) streamed over WebSocket.
 - [x] Connected Agents page “Dispatch task” UI action to the new backend dispatch endpoint.
+- [x] Generated and committed signature sidecars (`.sig` + `.pub`) for all official plugins.
+- [x] Added findings trend analytics proxy endpoint in API gateway.
+- [x] Upgraded dashboard with trend aggregation and risk snapshot views for faster analyst decision-making.
 
 ---
 
