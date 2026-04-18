@@ -13,10 +13,10 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 
 ### Implementation Progress Update (April 18, 2026)
 
-- **Phase 1 overall:** **44% complete**
+- **Phase 1 overall:** **53% complete**
 - **P1.1 Auth UX + session foundation:** **82% complete**
-- **P1.2 In-memory store migration:** **36% complete**
-- **P1.3 Security hardening:** **18% complete**
+- **P1.2 In-memory store migration:** **41% complete**
+- **P1.3 Security hardening:** **35% complete**
 
 Completed in this execution:
 - [x] Upgraded `AuthContext` with access+refresh token lifecycle, remember-me persistence, and bootstrapped `/api/auth/me` validation.
@@ -27,6 +27,10 @@ Completed in this execution:
 - [x] Implemented DB-first user/session persistence helpers in auth service (`load/save user`, `save/delete/list sessions`).
 - [x] Converted auth service critical flows (`register/login/get_current_user/gdpr/2fa`) to DB-first with cache fallback.
 - [x] Added startup warm-cache for users from PostgreSQL to reduce cold-start auth misses.
+- [x] Hardened collaboration service CORS from wildcard to explicit allowlist + origin enforcement middleware.
+- [x] Improved collaboration WebSocket safety with token extraction fallback (`query token` or `Authorization: Bearer`), payload sanitization, and per-user event rate limiting.
+- [x] Removed insecure default 2FA fallback code path unless explicitly enabled by environment flag.
+- [x] Added resend-2FA abuse throttling to reduce brute-force and spam behavior.
 
 ### Key Findings:
 
