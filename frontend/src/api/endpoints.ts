@@ -124,6 +124,33 @@ export interface SearchResults {
   events: TimelineSearchResult[];
 }
 
+export type SearchCategory =
+  | "all"
+  | "scans"
+  | "findings"
+  | "agents"
+  | "reports"
+  | "plugins"
+  | "events";
+
+export interface SearchMeta {
+  query: string;
+  category: SearchCategory;
+  limit: number;
+  counts: {
+    scans: number;
+    findings: number;
+    agents: number;
+    reports: number;
+    plugins: number;
+    events: number;
+  };
+}
+
+export interface SearchResponse extends SearchResults {
+  meta?: SearchMeta;
+}
+
 /* ---------- Auth ---------- */
 export const auth = {
   login: (email: string, password: string, rememberMe = false) =>
@@ -214,8 +241,10 @@ export const settings = {
 
 /* ---------- Search ---------- */
 export const search = {
-  query: (q: string, limit = 10) =>
-    client.get<SearchResults>("/api/search", { params: { q, limit } }).then((r) => r.data),
+  query: (q: string, limit = 10, category: SearchCategory = "all") =>
+    client
+      .get<SearchResponse>("/api/search", { params: { q, limit, category } })
+      .then((r) => r.data),
 };
 
 /* ---------- Admin ---------- */
