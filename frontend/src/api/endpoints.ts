@@ -133,6 +133,8 @@ export const recon = {
 export const ai = {
   analyze: (data: Record<string, unknown>) =>
     client.post<AIAnalysis>("/api/ai/analyze", data).then((r) => r.data),
+  query: (query: string, context?: string) =>
+    client.post("/api/ai/query", { query, context }).then((r) => r.data),
 };
 
 /* ---------- Reports ---------- */

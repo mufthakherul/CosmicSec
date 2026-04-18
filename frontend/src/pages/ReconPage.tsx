@@ -14,6 +14,8 @@ const API = getApiGatewayBaseUrl();
 interface ReconResult {
   target: string;
   timestamp: string;
+  status?: string;
+  reason?: string;
   /** dns.ips: resolved IP addresses; dns.errors: any resolution errors */
   dns: { ips: string[]; errors: string[] };
   /** Shodan lookup — disabled when SHODAN_API_KEY not set */
@@ -39,6 +41,8 @@ function normalizeReconResult(payload: unknown, fallbackTarget: string): ReconRe
   return {
     target: raw.target ?? fallbackTarget,
     timestamp: raw.timestamp ?? new Date().toISOString(),
+    status: raw.status,
+    reason: raw.reason,
     dns: {
       ips: Array.isArray(raw.dns?.ips) ? raw.dns.ips : [],
       errors: Array.isArray(raw.dns?.errors) ? raw.dns.errors : [],
@@ -169,6 +173,14 @@ export function ReconPage() {
       }
 
       const data = (await res.json()) as unknown;
+      const rejected =
+        typeof data === "object" && data !== null && (data as { status?: string }).status === "rejected";
+      if (rejected) {
+        const reason = (data as { reason?: string }).reason ?? "Recon request was rejected by server policy.";
+        addNotification({ type: "error", message: reason });
+        setResult(normalizeReconResult(data, trimmedTarget));
+        return;
+      }
       setResult(normalizeReconResult(data, trimmedTarget));
       addNotification({ type: "success", message: `Recon complete for ${trimmedTarget}` });
     } catch (error) {
