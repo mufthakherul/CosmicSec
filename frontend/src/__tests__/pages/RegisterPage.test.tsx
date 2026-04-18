@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import axios from "axios";
 import { MemoryRouter } from "react-router-dom";
 import { ThemeProvider } from "../../context/ThemeContext";
 import { RegisterPage } from "../../pages/RegisterPage";
+import { api } from "../../services/api";
 
 const mockNavigate = vi.fn();
 
@@ -15,7 +15,13 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
-vi.mock("axios");
+vi.mock("../../services/api", () => ({
+  api: {
+    auth: {
+      register: vi.fn(),
+    },
+  },
+}));
 
 function renderPage() {
   render(
@@ -58,9 +64,7 @@ describe("RegisterPage", () => {
   });
 
   it("submits and redirects on successful registration", async () => {
-    vi.mocked(axios.post).mockResolvedValueOnce({
-      data: { message: "Registration successful" },
-    });
+    vi.mocked(api.auth.register).mockResolvedValueOnce({ message: "Registration successful" });
 
     renderPage();
     fireEvent.change(screen.getByLabelText(/full name/i), {
@@ -82,7 +86,11 @@ describe("RegisterPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalled();
+      expect(api.auth.register).toHaveBeenCalledWith({
+        full_name: "Alice Tester",
+        email: "alice@cosmicsec.dev",
+        password: "Password1!",
+      });
     });
   });
 

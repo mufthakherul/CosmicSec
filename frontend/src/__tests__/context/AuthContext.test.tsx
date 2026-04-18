@@ -31,6 +31,7 @@ function AuthProbe() {
 describe("AuthContext", () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it("starts unauthenticated when storage is empty", () => {
@@ -77,12 +78,14 @@ describe("AuthContext", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
     expect(screen.getByTestId("auth-state")).toHaveTextContent("authenticated");
-    expect(localStorage.getItem("cosmicsec_token")).toBe("token-123");
-    expect(localStorage.getItem("cosmicsec_user")).toContain("tester@cosmicsec.dev");
+    expect(sessionStorage.getItem("cosmicsec_token")).toBe("token-123");
+    expect(sessionStorage.getItem("cosmicsec_user")).toContain("tester@cosmicsec.dev");
 
     fireEvent.click(screen.getByRole("button", { name: "Logout" }));
     expect(screen.getByTestId("auth-state")).toHaveTextContent("anonymous");
     expect(localStorage.getItem("cosmicsec_token")).toBeNull();
+    expect(sessionStorage.getItem("cosmicsec_token")).toBeNull();
     expect(localStorage.getItem("cosmicsec_user")).toBeNull();
+    expect(sessionStorage.getItem("cosmicsec_user")).toBeNull();
   });
 });

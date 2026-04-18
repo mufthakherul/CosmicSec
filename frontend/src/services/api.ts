@@ -33,6 +33,8 @@ export type {
   SearchResults,
 };
 
+export { settings, admin, scans, findings, recon, ai, reports, search };
+
 export const api = {
   auth: {
     login: (email: string, password: string, rememberMe = false) =>

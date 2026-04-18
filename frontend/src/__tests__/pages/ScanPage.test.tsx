@@ -81,9 +81,15 @@ describe("ScanPage", () => {
     // The submit button text is "Launch Scan"
     const submitBtn = screen.getByRole("button", { name: /launch scan/i });
     fireEvent.click(submitBtn);
-    // fetch should NOT be called since target is empty
+    // Page bootstrap may fetch existing scans; ensure no scan-create POST was sent.
     await vi.waitFor(() => {
-      expect(globalThis.fetch).not.toHaveBeenCalled();
+      const calls = vi.mocked(globalThis.fetch).mock.calls;
+      const postedToScans = calls.some(([url, init]) => {
+        const requestUrl = String(url);
+        const method = (init as RequestInit | undefined)?.method ?? "GET";
+        return requestUrl.includes("/api/scans") && method.toUpperCase() === "POST";
+      });
+      expect(postedToScans).toBe(false);
     });
   });
 

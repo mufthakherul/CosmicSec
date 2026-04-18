@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { MemoryRouter } from "react-router-dom";
 import client from "../../api/client";
 import { SettingsPage } from "../../pages/SettingsPage";
 
@@ -15,6 +16,7 @@ vi.mock("../../components/AppLayout", () => ({
 
 vi.mock("../../api/client", () => ({
   default: {
+    get: vi.fn().mockResolvedValue({ data: { defaults: {} } }),
     post: vi.fn(),
     delete: vi.fn(),
   },
@@ -49,21 +51,28 @@ vi.mock("../../store/notificationStore", () => ({
 }));
 
 describe("SettingsPage", () => {
+  function renderPage() {
+    render(
+      <MemoryRouter>
+        <SettingsPage />
+      </MemoryRouter>,
+    );
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("renders account information from auth context", () => {
-    render(<SettingsPage />);
+    renderPage();
     expect(screen.getByText(/demo user/i)).toBeInTheDocument();
     expect(screen.getAllByText(/user@cosmicsec\.dev/i).length).toBeGreaterThan(0);
   });
 
   it("updates accessibility appearance toggles", () => {
-    render(<SettingsPage />);
-    const switches = screen.getAllByRole("switch");
-    fireEvent.click(switches[0]);
-    fireEvent.click(switches[1]);
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: /high contrast mode/i }));
+    fireEvent.click(screen.getByRole("button", { name: /reduced motion mode/i }));
 
     expect(setHighContrast).toHaveBeenCalledWith(true);
     expect(setReducedMotion).toHaveBeenCalledWith(true);
@@ -71,7 +80,7 @@ describe("SettingsPage", () => {
 
   it("saves scan defaults through API client", async () => {
     vi.mocked(client.post).mockResolvedValueOnce({ data: {} });
-    render(<SettingsPage />);
+    renderPage();
 
     fireEvent.click(screen.getByRole("button", { name: /save defaults/i }));
 
@@ -88,7 +97,7 @@ describe("SettingsPage", () => {
   });
 
   it("keeps delete action disabled until email confirmation matches", () => {
-    render(<SettingsPage />);
+    renderPage();
     const deleteButton = screen.getByRole("button", { name: /^delete$/i });
 
     expect(deleteButton).toBeDisabled();
@@ -100,10 +109,11 @@ describe("SettingsPage", () => {
 
   it("enables two-factor authentication and shows success message", async () => {
     vi.mocked(client.post).mockResolvedValueOnce({ data: {} });
-    render(<SettingsPage />);
+    renderPage();
 
-    const switches = screen.getAllByRole("switch");
-    fireEvent.click(switches[switches.length - 1]);
+    fireEvent.click(
+      screen.getByRole("button", { name: /require two-factor authentication/i }),
+    );
 
     await waitFor(() => {
       expect(client.post).toHaveBeenCalledWith("/api/auth/2fa/enable");
