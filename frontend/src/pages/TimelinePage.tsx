@@ -295,6 +295,28 @@ export const TimelinePage: React.FC = () => {
     });
   }, [events, dismissedIds, filterSource, filterSeverity, filterDateRange, filterTarget]);
 
+  const summary = useMemo(() => {
+    const critical = filtered.filter((event) => event.severity === "critical").length;
+    const high = filtered.filter((event) => event.severity === "high").length;
+    const sourceCounts = filtered.reduce<Record<EventSource, number>>(
+      (accumulator, event) => {
+        accumulator[event.source] += 1;
+        return accumulator;
+      },
+      { web_scan: 0, agent_local: 0, api: 0, integration: 0 },
+    );
+    const topSource = (Object.entries(sourceCounts).sort((left, right) => right[1] - left[1])[0]?.[0] ??
+      "web_scan") as EventSource;
+    const uniqueTargets = new Set(filtered.map((event) => event.target).filter(Boolean) as string[]);
+    return {
+      total: filtered.length,
+      critical,
+      high,
+      topSource,
+      uniqueTargets: uniqueTargets.size,
+    };
+  }, [filtered]);
+
   // -------------------------------------------------------------------------
   // Export
   // -------------------------------------------------------------------------
@@ -436,6 +458,29 @@ export const TimelinePage: React.FC = () => {
           <span className="ml-auto text-xs text-slate-500">
             {filtered.length} / {events.length} events
           </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Visible events</p>
+            <p className="mt-1 text-lg font-semibold text-slate-100">{summary.total}</p>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Critical / High</p>
+            <p className="mt-1 text-lg font-semibold text-slate-100">
+              {summary.critical} / {summary.high}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Top source</p>
+            <p className="mt-1 text-lg font-semibold text-slate-100 capitalize">
+              {SOURCE_LABELS[summary.topSource]}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Unique targets</p>
+            <p className="mt-1 text-lg font-semibold text-slate-100">{summary.uniqueTargets}</p>
+          </div>
         </div>
 
         {/* Timeline list */}

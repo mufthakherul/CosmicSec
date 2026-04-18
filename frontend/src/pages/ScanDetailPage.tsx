@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
@@ -68,6 +68,15 @@ function FindingCard({ finding }: { finding: Finding }) {
       <p className="mt-2 text-xs text-slate-600">
         Tool: {finding.tool} · {finding.target}
       </p>
+    </div>
+  );
+}
+
+function RiskIndicator({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-950/70 px-4 py-3">
+      <p className="text-[11px] uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-slate-100">{value}</p>
     </div>
   );
 }
@@ -212,6 +221,35 @@ export function ScanDetailPage() {
 
   const criticalCount = scan.findings.filter((f) => f.severity === "critical").length;
   const highCount = scan.findings.filter((f) => f.severity === "high").length;
+  const severitySummary = useMemo(() => {
+    const counts = {
+      critical: scan.findings.filter((f) => f.severity === "critical").length,
+      high: scan.findings.filter((f) => f.severity === "high").length,
+      medium: scan.findings.filter((f) => f.severity === "medium").length,
+      low: scan.findings.filter((f) => f.severity === "low").length,
+      info: scan.findings.filter((f) => f.severity === "info").length,
+    };
+    const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+    const weightedRisk = counts.critical * 5 + counts.high * 3 + counts.medium * 2 + counts.low;
+    const posture =
+      counts.critical > 0
+        ? "Immediate action required"
+        : counts.high > 1
+          ? "Priority review needed"
+          : counts.high === 1 || counts.medium > 2
+            ? "Review recommended"
+            : "Stable posture";
+    const focus =
+      counts.critical > 0
+        ? "Escalate critical findings first"
+        : counts.high > 0
+          ? "Patch high-risk exposure and validate remediation"
+          : counts.medium > 0
+            ? "Track medium findings and schedule follow-up"
+            : "No immediate remediation required";
+
+    return { counts, total, weightedRisk, posture, focus };
+  }, [scan.findings]);
   const isRunning = scan.status === "running";
   return (
     <AppLayout>
@@ -261,6 +299,77 @@ export function ScanDetailPage() {
             </div>
           ))}
         </div>
+
+        <section className="rounded-2xl border border-cyan-500/20 bg-linear-to-br from-slate-900 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(34,211,238,0.08)]">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-100">Risk Snapshot</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                Aggregated severity posture for this scan and a recommended next move.
+              </p>
+            </div>
+            <div className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1 text-xs text-slate-400">
+              {severitySummary.total} findings analyzed
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-5">
+            <RiskIndicator label="Critical" value={String(severitySummary.counts.critical)} />
+            <RiskIndicator label="High" value={String(severitySummary.counts.high)} />
+            <RiskIndicator label="Medium" value={String(severitySummary.counts.medium)} />
+            <RiskIndicator label="Low" value={String(severitySummary.counts.low)} />
+            <RiskIndicator label="Risk Score" value={String(severitySummary.weightedRisk)} />
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1.1fr,0.9fr]">
+            <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Posture</p>
+              <p className="mt-1 text-base font-semibold text-slate-100">{severitySummary.posture}</p>
+              <p className="mt-2 text-sm text-slate-400">{severitySummary.focus}</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Severity mix</p>
+              <div className="mt-3 space-y-2">
+                {(
+                  [
+                    ["critical", "Critical"],
+                    ["high", "High"],
+                    ["medium", "Medium"],
+                    ["low", "Low"],
+                    ["info", "Info"],
+                  ] as const
+                ).map(([key, label]) => {
+                  const value = severitySummary.counts[key];
+                  const total = Math.max(severitySummary.total, 1);
+                  return (
+                    <div key={key}>
+                      <div className="mb-1 flex items-center justify-between text-[11px] text-slate-500">
+                        <span>{label}</span>
+                        <span>{value}</span>
+                      </div>
+                      <progress
+                        max={total}
+                        value={value}
+                        className={`h-2 w-full overflow-hidden rounded-full bg-slate-800 [&::-webkit-progress-bar]:bg-slate-800 [&::-webkit-progress-value]:rounded-full [&::-moz-progress-bar]:rounded-full ${
+                          key === "critical"
+                            ? "[&::-webkit-progress-value]:bg-rose-500 [&::-moz-progress-bar]:bg-rose-500"
+                            : key === "high"
+                              ? "[&::-webkit-progress-value]:bg-orange-500 [&::-moz-progress-bar]:bg-orange-500"
+                              : key === "medium"
+                                ? "[&::-webkit-progress-value]:bg-amber-500 [&::-moz-progress-bar]:bg-amber-500"
+                                : key === "low"
+                                  ? "[&::-webkit-progress-value]:bg-sky-500 [&::-moz-progress-bar]:bg-sky-500"
+                                  : "[&::-webkit-progress-value]:bg-slate-500 [&::-moz-progress-bar]:bg-slate-500"
+                        }`}
+                        aria-label={`${label} severity share`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Progress bar */}
         <div className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm">
