@@ -157,7 +157,11 @@ function AgentCard({
             disabled={dispatching}
             className="flex items-center gap-1.5 rounded-lg bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-400 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {dispatching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+            {dispatching ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Zap className="h-3.5 w-3.5" />
+            )}
             {dispatching ? "Dispatching..." : "Dispatch task"}
           </button>
         </div>
@@ -312,7 +316,9 @@ export function AgentsPage() {
           return;
         }
         const data = (await res.json()) as { task_id?: string };
-        setDispatchStatus(`Task dispatched successfully${data.task_id ? ` (${data.task_id})` : ""}.`);
+        setDispatchStatus(
+          `Task dispatched successfully${data.task_id ? ` (${data.task_id})` : ""}.`,
+        );
       } catch {
         setDispatchStatus("Failed to dispatch task.");
       } finally {

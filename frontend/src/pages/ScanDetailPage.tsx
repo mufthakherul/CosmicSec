@@ -324,7 +324,9 @@ export function ScanDetailPage() {
           <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1.1fr,0.9fr]">
             <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4">
               <p className="text-xs uppercase tracking-wide text-slate-500">Posture</p>
-              <p className="mt-1 text-base font-semibold text-slate-100">{severitySummary.posture}</p>
+              <p className="mt-1 text-base font-semibold text-slate-100">
+                {severitySummary.posture}
+              </p>
               <p className="mt-2 text-sm text-slate-400">{severitySummary.focus}</p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-4">
