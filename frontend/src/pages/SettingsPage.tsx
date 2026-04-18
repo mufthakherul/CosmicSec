@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Globe, Lock, Moon, Save, Shield, Sun, Trash2, User } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useNetworkPreferencesStore } from "../store/networkPreferencesStore";
 import { useNotificationStore } from "../store/notificationStore";
+import { settings as settingsApi } from "../services/api";
 
 type ApiError = {
   response?: {
@@ -113,6 +114,31 @@ export function SettingsPage() {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [revokingSessions, setRevokingSessions] = useState(false);
   const [toggling2fa, setToggling2fa] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void settingsApi
+      .getScanDefaults()
+      .then((payload) => {
+        if (!active) return;
+        const defaults = payload?.defaults as
+          | { scan_timeout_seconds?: number; auto_analyze?: boolean }
+          | undefined;
+        if (typeof defaults?.scan_timeout_seconds === "number") {
+          setDefaultScanTimeout(String(defaults.scan_timeout_seconds));
+        }
+        if (typeof defaults?.auto_analyze === "boolean") {
+          setAutoAnalyze(defaults.auto_analyze);
+        }
+      })
+      .catch(() => {
+        // Keep local defaults if the backend is unavailable.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const getErrorMessage = (error: unknown, fallback: string) => {
     if (

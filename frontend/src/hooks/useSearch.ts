@@ -1,12 +1,19 @@
 /**
- * useSearch — Debounced global search across scans, findings, agents, and reports.
+ * useSearch — Debounced global search across scans, findings, agents, reports, plugins, and events.
  *
  * Returns categorized results. Falls back to "Search unavailable" when API fails.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { search as searchApi, type SearchResults } from "../api/endpoints";
 
-const EMPTY: SearchResults = { scans: [], findings: [], agents: [], reports: [] };
+const EMPTY: SearchResults = {
+  scans: [],
+  findings: [],
+  agents: [],
+  reports: [],
+  plugins: [],
+  events: [],
+};
 const DEBOUNCE_MS = 300;
 
 export function useSearch() {

@@ -207,11 +207,29 @@ function GlobalSearch() {
       icon: FileText,
     }));
 
+    const pluginItems: SearchRow[] = apiResults.plugins.map((plugin) => ({
+      id: `plugin-${plugin.name}`,
+      label: plugin.name,
+      description: `${plugin.author ?? "Unknown author"} • ${plugin.version ?? "n/a"}`,
+      path: `/plugins/${encodeURIComponent(plugin.name)}`,
+      icon: Shield,
+    }));
+
+    const eventItems: SearchRow[] = apiResults.events.map((event) => ({
+      id: `event-${event.id}`,
+      label: event.title,
+      description: event.description || `${event.status ?? "event"} • ${event.plugin ?? "timeline"}`,
+      path: event.scan_id ? `/scans/${event.scan_id}` : event.plugin ? `/plugins/${encodeURIComponent(event.plugin)}` : "/timeline",
+      icon: Clock,
+    }));
+
     return [
       { title: "Scans", items: scanItems },
       { title: "Findings", items: findingItems },
       { title: "Agents", items: agentItems },
       { title: "Reports", items: reportItems },
+      { title: "Plugins", items: pluginItems },
+      { title: "Events", items: eventItems },
     ].filter((section) => section.items.length > 0);
   }, [apiResults, error, fallbackLinks, normalized]);
 
