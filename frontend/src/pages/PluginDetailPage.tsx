@@ -36,6 +36,8 @@ type PluginAudit = {
   plugin: string;
   detail: string;
   status?: string;
+  actor?: string;
+  actor_role?: string;
 };
 
 function Badge({ children, tone }: { children: string; tone: "good" | "bad" | "neutral" | "warn" }) {
@@ -57,6 +59,10 @@ export function PluginDetailPage() {
   const [plugin, setPlugin] = useState<PluginMeta | null>(null);
   const [trust, setTrust] = useState<PluginTrust | null>(null);
   const [audit, setAudit] = useState<PluginAudit[]>([]);
+  const [auditQuery, setAuditQuery] = useState("");
+  const [auditAction, setAuditAction] = useState("all");
+  const [auditRole, setAuditRole] = useState("all");
+  const [auditStatus, setAuditStatus] = useState("all");
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
@@ -140,6 +146,40 @@ export function PluginDetailPage() {
   const signed = Boolean(trust?.signature?.verified ?? plugin?.signature_verified);
   const enabled = plugin?.enabled !== false;
   const requiredPermissions = trust?.required_permissions ?? plugin?.permissions ?? [];
+  const filteredAudit = useMemo(() => {
+    const query = auditQuery.trim().toLowerCase();
+    return audit.filter((entry) => {
+      if (auditAction !== "all" && entry.action !== auditAction) return false;
+      if (auditRole !== "all" && (entry.actor_role ?? "system") !== auditRole) return false;
+      if (auditStatus !== "all" && (entry.status ?? "ok") !== auditStatus) return false;
+      if (
+        query &&
+        ![
+          entry.timestamp,
+          entry.action,
+          entry.detail,
+          entry.status ?? "ok",
+          entry.actor ?? "system",
+          entry.actor_role ?? "system",
+        ].some((value) => value.toLowerCase().includes(query))
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [audit, auditAction, auditQuery, auditRole, auditStatus]);
+
+  const auditSummary = useMemo(() => {
+    const adminEvents = audit.filter((entry) => (entry.actor_role ?? "system") === "admin").length;
+    const operatorEvents = audit.filter((entry) => (entry.actor_role ?? "system") === "operator").length;
+    const total = audit.length || 1;
+    return {
+      adminEvents,
+      operatorEvents,
+      adminShare: Math.round((adminEvents / total) * 100),
+      operatorShare: Math.round((operatorEvents / total) * 100),
+    };
+  }, [audit]);
 
   return (
     <AppLayout>
@@ -278,28 +318,97 @@ export function PluginDetailPage() {
             </Link>
           </div>
 
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+              <p className="text-[11px] uppercase tracking-wide text-slate-500">Visible</p>
+              <p className="mt-1 text-lg font-semibold text-slate-100">{filteredAudit.length}</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+              <p className="text-[11px] uppercase tracking-wide text-slate-500">Admin share</p>
+              <p className="mt-1 text-lg font-semibold text-slate-100">{auditSummary.adminShare}%</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+              <p className="text-[11px] uppercase tracking-wide text-slate-500">Operator share</p>
+              <p className="mt-1 text-lg font-semibold text-slate-100">{auditSummary.operatorShare}%</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+              <p className="text-[11px] uppercase tracking-wide text-slate-500">Trust mode</p>
+              <p className="mt-1 text-lg font-semibold text-slate-100">
+                {trust?.enforce_signatures ? "Strict" : "Advisory"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-[1.5fr,0.8fr,0.8fr,0.8fr]">
+            <input
+              value={auditQuery}
+              onChange={(e) => setAuditQuery(e.target.value)}
+              placeholder="Search audit trail…"
+              className="min-h-10 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-cyan-500/50"
+              aria-label="Search plugin audit trail"
+            />
+            <select
+              value={auditAction}
+              onChange={(e) => setAuditAction(e.target.value)}
+              className="min-h-10 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-500/50"
+              aria-label="Filter audit action"
+            >
+              <option value="all">All actions</option>
+              <option value="reload">Reload</option>
+              <option value="enable">Enable</option>
+              <option value="disable">Disable</option>
+              <option value="run">Run</option>
+            </select>
+            <select
+              value={auditRole}
+              onChange={(e) => setAuditRole(e.target.value)}
+              className="min-h-10 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-500/50"
+              aria-label="Filter actor role"
+            >
+              <option value="all">All roles</option>
+              <option value="admin">Admin</option>
+              <option value="operator">Operator</option>
+              <option value="system">System</option>
+            </select>
+            <select
+              value={auditStatus}
+              onChange={(e) => setAuditStatus(e.target.value)}
+              className="min-h-10 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-500/50"
+              aria-label="Filter audit status"
+            >
+              <option value="all">All statuses</option>
+              <option value="ok">OK</option>
+              <option value="warn">Warn</option>
+              <option value="error">Error</option>
+            </select>
+          </div>
+
           <div className="mt-4 max-h-96 overflow-auto rounded-xl border border-slate-800">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-800 text-slate-300">
                 <tr>
                   <th className="p-2">Timestamp</th>
                   <th className="p-2">Action</th>
+                  <th className="p-2">Actor</th>
+                  <th className="p-2">Role</th>
                   <th className="p-2">Detail</th>
                   <th className="p-2">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {audit.length === 0 ? (
+                {filteredAudit.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-4 text-center text-slate-500">
+                    <td colSpan={6} className="p-4 text-center text-slate-500">
                       No plugin audit events found.
                     </td>
                   </tr>
                 ) : (
-                  audit.map((entry, index) => (
+                  filteredAudit.map((entry, index) => (
                     <tr key={`${entry.timestamp}-${index}`} className="border-t border-slate-800">
                       <td className="p-2 text-slate-400">{entry.timestamp}</td>
                       <td className="p-2 font-medium text-slate-200">{entry.action}</td>
+                      <td className="p-2 text-slate-300">{entry.actor ?? "system"}</td>
+                      <td className="p-2 text-slate-300">{entry.actor_role ?? "system"}</td>
                       <td className="p-2 text-slate-400">{entry.detail}</td>
                       <td className="p-2 text-slate-300">{entry.status ?? "ok"}</td>
                     </tr>
