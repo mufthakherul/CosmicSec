@@ -50,6 +50,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Phase 1.3 (Security hardening):** **100%**
 - **Phase 1.2 (In-memory store migration):** **100%**
 - **Phase 3.1 (Search + settings UX polish):** **100%**
+- **Phase 3.4 (Test reliability + quality gates):** **100%**
 
 Delivered in this iteration:
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
@@ -107,6 +108,12 @@ Delivered in this iteration:
 - [x] Completed post-migration Problems-tab verification run (no active diagnostics).
 - [x] Fixed frontend admin dashboard plugin-audit scope setter typing issue discovered in Problems tab.
 - [x] Re-ran Problems-tab validation after frontend fix (no active diagnostics).
+- [x] Expanded AI-service natural-language intent routing to cover additional execution-class commands (`nmap_scan`, `nikto_scan`, `nuclei_scan`, `sqlmap_scan`, `gobuster_scan`, `hydra_audit`, `metasploit_check`, `hashcat_audit`) with scan-service tool-hint bridging.
+- [x] Standardized `phi3:mini` as AI-chat preferred model in frontend query payload path for consistent local model behavior.
+- [x] Fixed `frontend/src/services/api.ts` named export gap for `settings`, removing runtime undefined-access risk in settings initialization flows.
+- [x] Completed frontend test-stability pass (auth context persistence expectations, router-wrapped page tests, resilient selectors) and reached green suite: **51 tests passed**.
+- [x] Added Python test environment reliability updates in Poetry config (`jinja2`, `pytest-asyncio`, `asyncio` marker registration) and validated report-service tests.
+- [x] Final Problems-tab verification for this execution: no active diagnostics.
 
 ---
 
