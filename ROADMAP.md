@@ -34,8 +34,8 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 18, 2026)
 
-- **Overall roadmap completion:** **64%**
-- **Phase 2.4 (Plugin trust/signing):** **46%**
+- **Overall roadmap completion:** **66%**
+- **Phase 2.4 (Plugin trust/signing):** **50%**
 - **Phase 2.1 (CLI↔Webapp task routing):** **36%**
 - **Phase 2.2 (Result aggregation views):** **62%**
 
@@ -43,6 +43,7 @@ Delivered in this iteration:
 - [x] Added admin plugin trust console with signed/unsigned visibility and registry enable/disable actions.
 - [x] Added plugin trust audit trail with registry reload, enable/disable, and execution event capture.
 - [x] Added plugin audit filters, trust score, and export support in admin dashboard.
+- [x] Added role-aware plugin audit visibility with actor, role, and trust-state filtering.
 - [x] Added scan detail risk snapshot with severity mix and remediation posture.
 - [x] Added timeline aggregation summary cards for event volume, severity mix, and source mix.
 - [x] Added plugin detail route with trust metadata, audit history, and enable/disable controls.

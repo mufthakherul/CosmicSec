@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-CosmicSec has **excellent foundational architecture** but suffers from **incomplete workflow integration** between CLI and webapp, **disconnected modules**, and **unnecessary feature bloat**. The platform is currently at ~72% implementation maturity.
+CosmicSec has **excellent foundational architecture** but suffers from **incomplete workflow integration** between CLI and webapp, **disconnected modules**, and **unnecessary feature bloat**. The platform is currently at ~74% implementation maturity.
 
 ### Implementation Progress Update (April 18, 2026)
 
@@ -17,7 +17,7 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 - **P1.1 Auth UX + session foundation:** **82% complete**
 - **P1.2 In-memory store migration:** **54% complete**
 - **P1.3 Security hardening:** **47% complete**
-- **P2.4 Plugin trust/signing:** **46% complete**
+- **P2.4 Plugin trust/signing:** **50% complete**
 - **P2.1 CLI↔Webapp task routing:** **36% complete**
 - **P2.2 Result aggregation views:** **62% complete**
 
@@ -54,6 +54,7 @@ Completed in this execution:
 - [x] Added admin plugin trust console with signature, permission, and enable/disable visibility.
 - [x] Added plugin trust audit trail with registry reload, enable/disable, and execution event capture.
 - [x] Added plugin audit filters, status search, trust score, and export support for operators.
+- [x] Added role-aware plugin audit visibility with actor, role, and trust-state filtering.
 - [x] Added scan detail risk snapshot with severity mix and remediation posture.
 - [x] Added timeline aggregation summary cards for event volume, severity mix, and source mix.
 - [x] Added plugin detail route with trust metadata, audit history, and enable/disable controls.
