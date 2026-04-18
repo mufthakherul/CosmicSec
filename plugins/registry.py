@@ -116,6 +116,21 @@ _marketplace: dict[str, dict[str, Any]] = {}
 _ratings: dict[str, list[dict[str, Any]]] = {}
 # _repositories[repo_id] = {repo metadata + last_sync + imported_count}
 _repositories: dict[str, dict[str, Any]] = {}
+# _audit_log = ordered list of plugin trust and lifecycle events
+_audit_log: list[dict[str, Any]] = []
+
+
+def _append_audit(action: str, plugin: str, detail: str, status: str = "ok") -> None:
+    _audit_log.append(
+        {
+            "timestamp": datetime.utcnow().isoformat(),
+            "action": action,
+            "plugin": plugin,
+            "detail": detail,
+            "status": status,
+        }
+    )
+    del _audit_log[:-200]
 
 
 # ---------------------------------------------------------------------------
@@ -136,6 +151,12 @@ async def health() -> dict:
 @app.get("/plugins")
 async def list_plugins() -> dict:
     return {"plugins": _loader.list_plugins()}
+
+
+@app.get("/plugins/audit")
+async def plugin_audit(limit: int = 50) -> dict:
+    limit = max(1, min(limit, 200))
+    return {"items": list(reversed(_audit_log[-limit:])), "total": len(_audit_log)}
 
 
 @app.get("/plugins/{name}")
@@ -164,6 +185,12 @@ async def run_plugin(name: str, payload: RunPluginRequest) -> dict:
     run_config = dict(payload.config or {})
     run_config["granted_permissions"] = payload.granted_permissions
     result = _loader.run(name, ctx, config=run_config)
+    _append_audit(
+        "run",
+        name,
+        f"target={payload.target} scan_id={payload.scan_id or 'n/a'} success={result.success}",
+        "ok" if result.success else "warn",
+    )
     return {
         "plugin": name,
         "success": result.success,
@@ -198,6 +225,7 @@ async def enable_plugin(name: str) -> dict:
     ok = _loader.enable(name)
     if not ok:
         raise HTTPException(status_code=404, detail=f"Plugin '{name}' not found")
+    _append_audit("enable", name, "Plugin enabled by operator")
     return {"plugin": name, "status": "enabled"}
 
 
@@ -206,6 +234,7 @@ async def disable_plugin(name: str) -> dict:
     ok = _loader.disable(name)
     if not ok:
         raise HTTPException(status_code=404, detail=f"Plugin '{name}' not found")
+    _append_audit("disable", name, "Plugin disabled by operator")
     return {"plugin": name, "status": "disabled"}
 
 
@@ -213,6 +242,7 @@ async def disable_plugin(name: str) -> dict:
 async def reload_plugins() -> dict:
     """Re-scan plugin directories for new or updated plugins."""
     loaded = _loader.discover()
+    _append_audit("reload", "registry", f"Reloaded {len(loaded)} plugin(s)")
     return {
         "newly_loaded": loaded,
         "total": len(_loader.list_plugins()),

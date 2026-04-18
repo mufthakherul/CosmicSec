@@ -30,6 +30,14 @@ type AuditRecord = {
   detail: string;
 };
 
+type PluginAuditRecord = {
+  timestamp: string;
+  action: string;
+  plugin: string;
+  detail: string;
+  status?: string;
+};
+
 type PluginRecord = {
   name: string;
   version: string;
@@ -57,6 +65,7 @@ export function AdminDashboardPage() {
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [audit, setAudit] = useState<AuditRecord[]>([]);
+  const [pluginAudit, setPluginAudit] = useState<PluginAuditRecord[]>([]);
   const [config, setConfig] = useState<Record<string, string>>({});
   const [plugins, setPlugins] = useState<PluginRecord[]>([]);
   const [pluginRefreshMessage, setPluginRefreshMessage] = useState<string | null>(null);
@@ -107,16 +116,18 @@ export function AdminDashboardPage() {
     if (!token || token.startsWith("demo-preview") || user?.role === "demo_viewer") {
       setUsers([]);
       setAudit([]);
+      setPluginAudit([]);
       setConfig({});
       setPlugins([]);
       return;
     }
 
-    const [usersRes, auditRes, configRes, pluginsRes] = await Promise.all([
+    const [usersRes, auditRes, configRes, pluginsRes, pluginAuditRes] = await Promise.all([
       fetch(`${API}/api/admin/users`, { headers: authHeaders }),
       fetch(`${API}/api/admin/audit-logs`, { headers: authHeaders }),
       fetch(`${API}/api/admin/config`, { headers: authHeaders }),
       fetch(`${API}/api/plugins`, { headers: authHeaders }),
+      fetch(`${API}/api/plugins/audit?limit=20`, { headers: authHeaders }),
     ]);
 
     if (usersRes.ok) {
@@ -135,6 +146,10 @@ export function AdminDashboardPage() {
       const payload = (await pluginsRes.json()) as { plugins?: PluginRecord[] };
       setPlugins(payload.plugins ?? []);
       setPluginRefreshMessage(null);
+    }
+    if (pluginAuditRes.ok) {
+      const payload = (await pluginAuditRes.json()) as { items?: PluginAuditRecord[] };
+      setPluginAudit(payload.items ?? []);
     }
   };
 
@@ -341,6 +356,44 @@ export function AdminDashboardPage() {
               </div>
             ))
           )}
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold">Plugin Trust Audit</h3>
+            <p className="text-sm text-slate-400">
+              Recent registry reloads, plugin enable/disable events, and execution history.
+            </p>
+          </div>
+          <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">
+            {pluginAudit.length} recent events
+          </span>
+        </div>
+        <div className="mt-4 max-h-72 overflow-auto rounded-xl border border-slate-800">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-800 text-slate-300">
+              <tr>
+                <th className="p-2">Timestamp</th>
+                <th className="p-2">Action</th>
+                <th className="p-2">Plugin</th>
+                <th className="p-2">Detail</th>
+                <th className="p-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pluginAudit.map((entry, idx) => (
+                <tr key={`${entry.timestamp}-${entry.plugin}-${idx}`} className="border-t border-slate-800">
+                  <td className="p-2 text-slate-400">{entry.timestamp}</td>
+                  <td className="p-2 font-medium text-slate-200">{entry.action}</td>
+                  <td className="p-2 text-slate-300">{entry.plugin}</td>
+                  <td className="p-2 text-slate-400">{entry.detail}</td>
+                  <td className="p-2 text-slate-300">{entry.status ?? "ok"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
