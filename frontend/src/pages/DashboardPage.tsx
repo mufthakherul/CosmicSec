@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Activity,
@@ -41,6 +41,7 @@ interface RecentActivity {
   type: "scan" | "finding" | "agent" | "report";
   title: string;
   description: string;
+  source?: string;
   severity?: "critical" | "high" | "medium" | "low" | "info";
   timestamp: string;
 }
@@ -563,112 +564,127 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [animateBars, setAnimateBars] = useState(false);
   const [loadWarning, setLoadWarning] = useState<string | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadDashboardData = useCallback(async () => {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    (async () => {
-      try {
-        setLoadWarning(null);
-        const [statsRes, activityRes, trendRes] = await Promise.allSettled([
-          fetch(`${API}/api/dashboard/overview`, { headers }),
-          fetch(`${API}/api/findings?limit=5`, { headers }),
-          fetch(`${API}/api/findings/trending?days=7`, { headers }),
-        ]);
+    try {
+      setLoadWarning(null);
+      const [statsRes, activityRes, trendRes] = await Promise.allSettled([
+        fetch(`${API}/api/dashboard/overview`, { headers }),
+        fetch(`${API}/api/findings?limit=5`, { headers }),
+        fetch(`${API}/api/findings/trending?days=7`, { headers }),
+      ]);
 
-        if (statsRes.status === "fulfilled" && statsRes.value.ok) {
-          const data = (await statsRes.value.json()) as Partial<OverviewStats>;
-          setStats({
-            total_scans: data.total_scans ?? 0,
-            critical_findings: data.critical_findings ?? 0,
-            active_agents: data.active_agents ?? 0,
-            open_bugs: data.open_bugs ?? 0,
-            security_score: data.security_score ?? 0,
-            scans_today: data.scans_today ?? 0,
-            findings_last_7d: data.findings_last_7d ?? 0,
-            compliance_pct: data.compliance_pct ?? 0,
-          });
-        } else {
-          setStats(EMPTY_STATS);
-          setLoadWarning("Dashboard metrics are temporarily unavailable.");
-        }
+      if (statsRes.status === "fulfilled" && statsRes.value.ok) {
+        const data = (await statsRes.value.json()) as Partial<OverviewStats>;
+        setStats({
+          total_scans: data.total_scans ?? 0,
+          critical_findings: data.critical_findings ?? 0,
+          active_agents: data.active_agents ?? 0,
+          open_bugs: data.open_bugs ?? 0,
+          security_score: data.security_score ?? 0,
+          scans_today: data.scans_today ?? 0,
+          findings_last_7d: data.findings_last_7d ?? 0,
+          compliance_pct: data.compliance_pct ?? 0,
+        });
+      } else {
+        setStats(EMPTY_STATS);
+        setLoadWarning("Dashboard metrics are temporarily unavailable.");
+      }
 
+      if (activityRes.status === "fulfilled" && activityRes.value.ok) {
+        const data = (await activityRes.value.json()) as {
+          items?: Array<{
+            id?: string;
+            title?: string;
+            description?: string;
+            recommendation?: string;
+            source?: string;
+            severity?: RecentActivity["severity"];
+            detected_at?: string;
+            scan_id?: string;
+          }>;
+        };
+
+        const mappedActivity: RecentActivity[] = (data.items ?? []).slice(0, 5).map((item) => ({
+          id: item.id ?? item.scan_id ?? `finding-${Math.random().toString(36).slice(2, 10)}`,
+          type: "finding",
+          title: item.title ?? "Security finding",
+          description: item.description ?? item.recommendation ?? "No details available.",
+          severity: item.severity ?? "info",
+          source: item.source,
+          timestamp: item.detected_at ?? new Date().toISOString(),
+        }));
+
+        setActivity(mappedActivity);
+      } else {
+        setActivity([]);
+        setLoadWarning("Recent activity feed is temporarily unavailable.");
+      }
+
+      if (trendRes.status === "fulfilled" && trendRes.value.ok) {
+        const trendResponse = (await trendRes.value.json()) as {
+          series?: Array<{
+            date?: string;
+            severity_breakdown?: Record<string, number>;
+          }>;
+          points?: Array<{
+            date?: string;
+            severity_breakdown?: Record<string, number>;
+          }>;
+        };
+        const rawTrend = trendResponse.series ?? trendResponse.points ?? [];
+        const normalizedTrend = rawTrend.map((point) => ({
+          date: point.date ?? new Date().toISOString(),
+          severity_breakdown: point.severity_breakdown ?? {},
+        }));
+        setFindingsTrend(normalizedTrend);
+        setFindingsSnapshot(buildFindingsSnapshot(normalizedTrend));
+      } else {
+        setFindingsTrend([]);
         if (activityRes.status === "fulfilled" && activityRes.value.ok) {
-          const data = (await activityRes.value.json()) as {
+          const findingsResponse = (await activityRes.value.json()) as {
             items?: Array<{
               id?: string;
-              title?: string;
-              description?: string;
-              recommendation?: string;
-              severity?: RecentActivity["severity"];
-              detected_at?: string;
-              scan_id?: string;
+              severity?: string;
             }>;
           };
-
-          const mappedActivity: RecentActivity[] = (data.items ?? []).slice(0, 5).map((item) => ({
-            id: item.id ?? item.scan_id ?? `finding-${Math.random().toString(36).slice(2, 10)}`,
-            type: "finding",
-            title: item.title ?? "Security finding",
-            description: item.description ?? item.recommendation ?? "No details available.",
-            severity: item.severity ?? "info",
-            timestamp: item.detected_at ?? new Date().toISOString(),
-          }));
-
-          setActivity(mappedActivity);
+          const items = findingsResponse.items ?? [];
+          setFindingsSnapshot({
+            total: items.length,
+            critical: items.filter((item) => item.severity === "critical").length,
+            high: items.filter((item) => item.severity === "high").length,
+            medium: items.filter((item) => item.severity === "medium").length,
+            low: items.filter((item) => item.severity === "low").length,
+            info: items.filter((item) => item.severity === "info").length,
+            latestLabel: items.length > 0 ? "Latest findings loaded" : "No findings yet",
+          });
         } else {
-          setActivity([]);
-          setLoadWarning("Recent activity feed is temporarily unavailable.");
+          setFindingsSnapshot(EMPTY_FINDINGS);
         }
-
-        if (trendRes.status === "fulfilled" && trendRes.value.ok) {
-          const trendResponse = (await trendRes.value.json()) as {
-            series?: Array<{
-              date?: string;
-              severity_breakdown?: Record<string, number>;
-            }>;
-          };
-          const normalizedTrend = (trendResponse.series ?? []).map((point) => ({
-            date: point.date ?? new Date().toISOString(),
-            severity_breakdown: point.severity_breakdown ?? {},
-          }));
-          setFindingsTrend(normalizedTrend);
-          setFindingsSnapshot(buildFindingsSnapshot(normalizedTrend));
-        } else {
-          setFindingsTrend([]);
-          if (activityRes.status === "fulfilled" && activityRes.value.ok) {
-            const findingsResponse = (await activityRes.value.json()) as {
-              items?: Array<{
-                id?: string;
-                severity?: string;
-              }>;
-            };
-            const items = findingsResponse.items ?? [];
-            setFindingsSnapshot({
-              total: items.length,
-              critical: items.filter((item) => item.severity === "critical").length,
-              high: items.filter((item) => item.severity === "high").length,
-              medium: items.filter((item) => item.severity === "medium").length,
-              low: items.filter((item) => item.severity === "low").length,
-              info: items.filter((item) => item.severity === "info").length,
-              latestLabel: items.length > 0 ? "Latest findings loaded" : "No findings yet",
-            });
-          } else {
-            setFindingsSnapshot(EMPTY_FINDINGS);
-          }
-        }
-      } catch {
-        setStats(EMPTY_STATS);
-        setActivity([]);
-        setFindingsSnapshot(EMPTY_FINDINGS);
-        setFindingsTrend([]);
-        setLoadWarning("Live dashboard data is unavailable right now.");
-      } finally {
-        setLoading(false);
       }
-    })();
+      setLastUpdatedAt(new Date().toISOString());
+    } catch {
+      setStats(EMPTY_STATS);
+      setActivity([]);
+      setFindingsSnapshot(EMPTY_FINDINGS);
+      setFindingsTrend([]);
+      setLoadWarning("Live dashboard data is unavailable right now.");
+    } finally {
+      setLoading(false);
+    }
   }, [token]);
+
+  useEffect(() => {
+    void loadDashboardData();
+    const timer = window.setInterval(() => {
+      void loadDashboardData();
+    }, 20_000);
+    return () => window.clearInterval(timer);
+  }, [loadDashboardData]);
 
   useEffect(() => {
     if (loading) {
@@ -711,6 +727,15 @@ export function DashboardPage() {
             <Play className="h-4 w-4" />
             New Scan
           </Link>
+        </div>
+
+        <div className="flex items-center gap-2 text-[11px] text-slate-500">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>
+            {lastUpdatedAt
+              ? `Auto-refreshing every 20s · Last update ${new Date(lastUpdatedAt).toLocaleTimeString()}`
+              : "Auto-refreshing every 20s"}
+          </span>
         </div>
 
         {loadWarning ? (
@@ -870,7 +895,14 @@ export function DashboardPage() {
                         </span>
                       </div>
                     </div>
-                    <p className="mt-0.5 truncate text-xs text-slate-500">{ev.description}</p>
+                    <div className="mt-0.5 flex items-center gap-2">
+                      <p className="truncate text-xs text-slate-500">{ev.description}</p>
+                      {ev.source ? (
+                        <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-slate-400">
+                          {ev.source.replace("_", " ")}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               );
