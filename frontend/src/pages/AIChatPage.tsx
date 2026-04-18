@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from "react";
-import { BrainCircuit, Loader2, MessageSquare, Send, ShieldAlert, Sparkles } from "lucide-react";
+import { BrainCircuit, Loader2, MessageSquare, Play, RotateCcw, ShieldAlert } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useNotificationStore } from "../store/notificationStore";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
@@ -12,7 +12,6 @@ interface ChatMessage {
   id: string;
   role: ChatRole;
   content: string;
-  createdAt: string;
 }
 
 interface AIQueryResponse {
@@ -22,14 +21,29 @@ interface AIQueryResponse {
   actions?: string[];
   source?: string;
   timestamp?: string;
+  llm_response?: string | null;
+  execution?: {
+    client_type?: string;
+    intent?: string;
+    command?: string | null;
+    executor?: string;
+    should_execute?: boolean;
+  };
+  command_result?: {
+    status?: string;
+    command?: string;
+    executor?: string;
+    target?: string;
+    reason?: string;
+    result?: Record<string, unknown>;
+  } | null;
+  model?: {
+    provider?: string;
+    preferred_model?: string;
+    active?: boolean;
+    reason?: string;
+  };
 }
-
-const STARTER_PROMPTS = [
-  "Summarize my latest scan failures and likely root causes.",
-  "Give me a prioritized remediation plan for high-risk findings.",
-  "Create a hardening checklist for API gateway and recon service.",
-  "Explain what to monitor for Tor and onion egress reliability.",
-];
 
 function nextId() {
   return `msg-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
@@ -45,45 +59,81 @@ export function AIChatPage() {
       id: nextId(),
       role: "assistant",
       content:
-        "Security Copilot online. Ask about findings, recon data, exploit chains, defense-in-depth, or incident response playbooks.",
-      createdAt: new Date().toISOString(),
+        "AI service ready. Send natural language prompts. Command-like prompts are routed through AI service execution policy (web: server tools, cli: local tools).",
     },
   ]);
 
   const token = useMemo(() => localStorage.getItem("cosmicsec_token"), []);
 
   const appendMessage = (role: ChatRole, content: string) => {
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: nextId(),
-        role,
-        content,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+    setMessages((prev) => [...prev, { id: nextId(), role, content }]);
   };
 
   const formatAssistantReply = (payload: AIQueryResponse): string => {
-    const guidance = Array.isArray(payload.guidance) ? payload.guidance.slice(0, 6) : [];
-    const actions = Array.isArray(payload.actions) ? payload.actions.slice(0, 6) : [];
-    const chunks: string[] = [];
+    const blocks: string[] = [];
+    const isCommandResponse = Boolean(payload.command_result?.status);
 
-    if (guidance.length > 0) {
-      chunks.push("Guidance:\n" + guidance.map((item, idx) => `${idx + 1}. ${item}`).join("\n"));
+    if (payload.command_result?.status) {
+      const result = payload.command_result.result ?? {};
+      const scanId = typeof result.id === "string" ? result.id : undefined;
+
+      blocks.push(
+        [
+          `Execution: ${payload.command_result.status}`,
+          `Command: ${payload.command_result.command ?? payload.execution?.command ?? "n/a"}`,
+          `Executor: ${payload.command_result.executor ?? payload.execution?.executor ?? "n/a"}`,
+          `Target: ${payload.command_result.target ?? "n/a"}`,
+          scanId ? `Scan ID: ${scanId}` : null,
+          payload.command_result.reason ? `Reason: ${payload.command_result.reason}` : null,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      );
+
+      if (
+        payload.command_result.command === "whois_lookup" ||
+        payload.command_result.command === "recon_lookup"
+      ) {
+        const reconBody = result as {
+          rdap?: { handle?: string; status?: string[]; nameservers?: string[]; error?: string };
+        };
+        if (reconBody.rdap) {
+          blocks.push(
+            [
+              "Recon Summary:",
+              `Handle: ${reconBody.rdap.handle ?? "n/a"}`,
+              `Status: ${Array.isArray(reconBody.rdap.status) ? reconBody.rdap.status.join(", ") : "n/a"}`,
+              `Nameservers: ${Array.isArray(reconBody.rdap.nameservers) ? reconBody.rdap.nameservers.join(", ") : "n/a"}`,
+              reconBody.rdap.error ? `RDAP Error: ${reconBody.rdap.error}` : null,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          );
+        }
+      }
     }
 
-    if (actions.length > 0) {
-      chunks.push("Recommended Actions:\n" + actions.map((item, idx) => `${idx + 1}. ${item}`).join("\n"));
+    if (payload.llm_response && payload.llm_response.trim()) {
+      blocks.push(`Model Response:\n${payload.llm_response.trim()}`);
     }
 
-    if (chunks.length === 0) {
-      chunks.push("No structured guidance returned. Try adding more context from findings, logs, or target details.");
+    if (!isCommandResponse) {
+      const guidance = Array.isArray(payload.guidance) ? payload.guidance.slice(0, 6) : [];
+      if (guidance.length > 0) {
+        blocks.push(`Guidance:\n${guidance.map((item, idx) => `${idx + 1}. ${item}`).join("\n")}`);
+      }
+
+      const actions = Array.isArray(payload.actions) ? payload.actions.slice(0, 6) : [];
+      if (actions.length > 0) {
+        blocks.push(`Actions:\n${actions.map((item, idx) => `${idx + 1}. ${item}`).join("\n")}`);
+      }
     }
 
-    const source = payload.source ? `\n\nSource: ${payload.source}` : "";
-    const mode = payload.response_mode ? ` | Mode: ${payload.response_mode}` : "";
-    return chunks.join("\n\n") + source + mode;
+    if (blocks.length === 0) {
+      blocks.push("No actionable output returned. Add target/context or use a command-style prompt.");
+    }
+
+    return blocks.join("\n\n");
   };
 
   const sendQuery = async (input: string, ctx = context) => {
@@ -91,17 +141,24 @@ export function AIChatPage() {
     if (!text || loading) return;
 
     appendMessage("user", text);
-    setLoading(true);
     setQuery("");
+    setLoading(true);
 
     try {
       const res = await fetch(`${API}/api/ai/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-CosmicSec-Client": "web",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ query: text, context: ctx.trim() || undefined }),
+        body: JSON.stringify({
+          query: text,
+          context: ctx.trim() || undefined,
+          source: "web",
+          preferred_model: "pie:mini",
+          enable_model_response: true,
+        }),
       });
 
       if (!res.ok) {
@@ -115,7 +172,7 @@ export function AIChatPage() {
     } catch {
       appendMessage(
         "assistant",
-        "I could not reach the AI service right now. Verify gateway/AI health and try again.",
+        "AI service request failed. Verify ai-service/api-gateway health and local model runtime if you expect model output.",
       );
       addNotification({ type: "error", message: "AI chat request failed." });
     } finally {
@@ -137,31 +194,12 @@ export function AIChatPage() {
             <h1 className="text-2xl font-bold text-slate-100">AI Security Chat</h1>
           </div>
           <p className="mt-2 text-sm text-slate-300">
-            Conversational cyber assistant for triage, remediation strategy, and security playbooks.
+            Clean chat mode with AI-service orchestration and channel-aware execution.
           </p>
         </header>
 
         <section className="grid gap-6 lg:grid-cols-5">
           <div className="space-y-4 lg:col-span-2">
-            <div className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm">
-              <h2 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                <Sparkles className="h-4 w-4 text-cyan-300" />
-                Prompt Starters
-              </h2>
-              <div className="space-y-2">
-                {STARTER_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => void sendQuery(prompt)}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-left text-xs text-slate-200 transition-colors hover:border-cyan-500/50 hover:text-cyan-300"
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <div className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm">
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <ShieldAlert className="h-4 w-4 text-amber-300" />
@@ -170,8 +208,8 @@ export function AIChatPage() {
               <textarea
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
-                rows={8}
-                placeholder="Paste scan summaries, logs, stack traces, or threat intel for more precise responses."
+                rows={12}
+                placeholder="Add supporting logs, findings, or constraints for better responses."
                 className="w-full resize-y rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
               />
             </div>
@@ -197,19 +235,20 @@ export function AIChatPage() {
                   {message.content}
                 </article>
               ))}
-              {loading && (
+
+              {loading ? (
                 <div className="mr-auto inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-200 ring-1 ring-slate-700">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Generating response...
+                  Processing...
                 </div>
-              )}
+              ) : null}
             </div>
 
             <form onSubmit={(e) => void onSubmit(e)} className="flex gap-2">
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask about vulnerabilities, attack paths, mitigations, or SOC response..."
+                placeholder="Example: whois lookup for mufthakherul.me domain"
                 className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
               />
               <button
@@ -217,8 +256,16 @@ export function AIChatPage() {
                 disabled={loading || !query.trim()}
                 className="inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 Send
+              </button>
+              <button
+                type="button"
+                onClick={() => setMessages((prev) => prev.slice(0, 1))}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:border-slate-600 hover:text-slate-100"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset
               </button>
             </form>
           </div>

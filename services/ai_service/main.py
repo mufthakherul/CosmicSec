@@ -12,6 +12,7 @@ import hashlib
 import json as _json_module
 import logging
 import os as _os_module
+import re
 import uuid
 from datetime import UTC, datetime
 
@@ -19,6 +20,7 @@ import httpx
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
+from cosmicsec_platform.service_discovery import get_service_url
 from services.common.observability import setup_observability
 
 from .agent import run_security_agent
@@ -27,6 +29,7 @@ from .ai_agents import get_exploit_guidance, run_autonomous_agent
 from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
 from .defensive_ai import DefensiveAI
 from .kb_loader import load_all as kb_load_all
+from .llm_providers import OllamaProvider, get_llm_provider, list_available_models
 from .mitre_attack import map_multiple
 from .prompt_templates import SUMMARY_TEMPLATE
 from .quantum_security import decrypt_payload, encrypt_payload, hybrid_key_exchange, list_algorithms
@@ -77,6 +80,13 @@ class AgentResponse(BaseModel):
 class NLQueryRequest(BaseModel):
     query: str = Field(..., description="Natural language security query")
     context: str | None = Field(default=None, description="Optional additional context")
+    source: str | None = Field(default="web", description="Request source channel: web or cli")
+    preferred_model: str | None = Field(
+        default="pie:mini", description="Preferred local model for response generation"
+    )
+    enable_model_response: bool = Field(
+        default=True, description="Try model generation when local model is available"
+    )
 
 
 class MitreRequest(BaseModel):
@@ -263,24 +273,293 @@ async def analyze_with_agent(payload: AnalyzeRequest) -> AgentResponse:
 
 @app.post("/query")
 async def natural_language_query(payload: NLQueryRequest) -> dict:
-    """Natural language security query — blends ChromaDB semantic search with TF-IDF RAG."""
+    """Natural language query with source-aware intent routing and optional local model response."""
+
+    def _normalize_source(source: str | None) -> str:
+        value = (source or "web").strip().lower()
+        if value in {"browser", "frontend", "dashboard"}:
+            return "web"
+        if value in {"terminal", "local", "agent"}:
+            return "cli"
+        return "cli" if value == "cli" else "web"
+
+    def _extract_domain(text: str) -> str | None:
+        match = re.search(
+            r"([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+)",
+            text.lower(),
+        )
+        return match.group(1) if match else None
+
+    def _extract_url(text: str) -> str | None:
+        match = re.search(r"(https?://[^\s]+)", text.strip(), flags=re.IGNORECASE)
+        if not match:
+            return None
+        return match.group(1).rstrip(".,;)")
+
+    def _extract_target(text: str) -> str | None:
+        return _extract_url(text) or _extract_domain(text)
+
+    def _infer_scan_types(query_text: str) -> list[str]:
+        q = query_text.lower()
+        scan_types: list[str] = []
+        if "api" in q:
+            scan_types.append("api")
+        if "container" in q or "docker" in q or "image" in q:
+            scan_types.append("container")
+        if "cloud" in q:
+            scan_types.append("cloud")
+        if "web" in q or "http" in q or "https" in q:
+            scan_types.append("web")
+        if "network" in q or not scan_types:
+            scan_types.append("network")
+
+        return list(dict.fromkeys(scan_types))
+
+    def _classify_intent(query_text: str) -> dict:
+        q = query_text.lower()
+        target = _extract_target(q)
+        domain = _extract_domain(q)
+        if any(token in q for token in ["scan", "run scan", "start scan"]) and target:
+            return {"kind": "command", "command": "scan_create", "target": target}
+        if "whois" in q and domain:
+            return {"kind": "command", "command": "whois_lookup", "target": domain}
+        if any(word in q for word in ["recon", "lookup", "dns"]) and domain:
+            return {"kind": "command", "command": "recon_lookup", "target": domain}
+        return {"kind": "information", "command": None, "target": target}
+
+    def _parse_json_object(text: str) -> dict | None:
+        raw = text.strip()
+        if raw.startswith("```"):
+            raw = raw.strip("`")
+            if raw.startswith("json"):
+                raw = raw[4:].strip()
+
+        try:
+            parsed = _json_module.loads(raw)
+            return parsed if isinstance(parsed, dict) else None
+        except Exception:
+            start = raw.find("{")
+            end = raw.rfind("}")
+            if start == -1 or end == -1 or end <= start:
+                return None
+            with contextlib.suppress(Exception):
+                parsed = _json_module.loads(raw[start : end + 1])
+                if isinstance(parsed, dict):
+                    return parsed
+            return None
+
+    def _normalize_intent(raw_intent: dict, query_text: str) -> dict:
+        kind = str(raw_intent.get("kind", "information")).strip().lower()
+        if kind not in {"information", "command"}:
+            kind = "information"
+
+        command = raw_intent.get("command")
+        if command is not None:
+            command = str(command).strip().lower() or None
+
+        allowed_commands = {"scan_create", "whois_lookup", "recon_lookup"}
+        if command not in allowed_commands:
+            command = None
+
+        target = raw_intent.get("target")
+        target_text = str(target).strip() if isinstance(target, str) else ""
+        target_value = target_text or _extract_target(query_text)
+
+        if kind == "command" and command is None:
+            q = query_text.lower()
+            if "scan" in q:
+                command = "scan_create"
+            elif "whois" in q:
+                command = "whois_lookup"
+            elif any(word in q for word in ["recon", "lookup", "dns"]):
+                command = "recon_lookup"
+
+        if kind == "command" and not target_value:
+            kind = "information"
+            command = None
+
+        return {"kind": kind, "command": command, "target": target_value}
+
+    async def _classify_intent_with_llm(query_text: str, preferred_model: str) -> dict | None:
+        prompt = (
+            "Classify the user request for cybersecurity assistant execution policy. "
+            "Return ONLY valid JSON object with fields: kind, command, target. "
+            "Rules:\n"
+            "- kind must be 'command' or 'information'.\n"
+            "- command allowed values: scan_create, whois_lookup, recon_lookup, null.\n"
+            "- target is URL/domain/IP when command is needed, otherwise null.\n"
+            "- Use 'information' when user is asking explanation/planning only.\n"
+            "Example: {'kind':'command','command':'scan_create','target':'https://example.com'}\n"
+            f"User request: {query_text}"
+        )
+
+        try:
+            provider = OllamaProvider(model=preferred_model)
+            raw = await provider.generate(
+                prompt,
+                system="You are an intent classifier. Return only JSON.",
+                max_tokens=180,
+                temperature=0,
+            )
+            parsed = _parse_json_object(raw)
+            if not parsed:
+                return None
+            return _normalize_intent(parsed, query_text)
+        except Exception:
+            return None
+
+    async def _resolve_model_status(preferred_model: str) -> dict:
+        ollama = OllamaProvider(model=preferred_model)
+        available = await ollama.is_available()
+        if not available:
+            return {
+                "provider": "ollama",
+                "preferred_model": preferred_model,
+                "active": False,
+                "reason": "Ollama endpoint unavailable",
+            }
+
+        try:
+            models = await ollama.list_models()
+        except Exception as exc:
+            return {
+                "provider": "ollama",
+                "preferred_model": preferred_model,
+                "active": False,
+                "reason": f"Could not list models: {exc}",
+            }
+
+        names = {str(model.get("name", "")) for model in models}
+        has_preferred = preferred_model in names
+        return {
+            "provider": "ollama",
+            "preferred_model": preferred_model,
+            "active": has_preferred,
+            "available_models": sorted(names),
+        }
+
+    async def _execute_server_command(intent: dict, query_text: str) -> dict:
+        target = str(intent.get("target") or "")
+        if not target:
+            return {"status": "rejected", "reason": "No command target found"}
+
+        command = str(intent.get("command") or "")
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                if command == "scan_create":
+                    scan_url = get_service_url("scan")
+                    scan_payload = {
+                        "target": target,
+                        "scan_types": _infer_scan_types(query_text),
+                        "depth": 1,
+                        "timeout": 300,
+                        "options": {},
+                    }
+                    resp = await client.post(f"{scan_url}/scans", json=scan_payload)
+                else:
+                    recon_url = get_service_url("recon")
+                    resp = await client.post(f"{recon_url}/recon", json={"target": target})
+
+                body = resp.json() if resp.content else {}
+                return {
+                    "status": "executed" if resp.status_code == 200 else "failed",
+                    "command": command,
+                    "executor": "server",
+                    "target": target,
+                    "http_status": resp.status_code,
+                    "result": body,
+                }
+        except Exception as exc:
+            return {
+                "status": "failed",
+                "command": command,
+                "executor": "server",
+                "target": target,
+                "reason": str(exc),
+            }
+
+    source = _normalize_source(payload.source)
+    preferred_model = (payload.preferred_model or "pie:mini").strip() or "pie:mini"
     combined = f"{payload.query} {payload.context or ''}".strip()
-    # Phase 2: ChromaDB first, fall back to TF-IDF
-    chroma_hits = chroma_search(combined, n_results=5)
-    tfidf_hits = retrieve_guidance(combined, top_k=5)
-    # Deduplicate: prefer ChromaDB results when available
-    guidance = chroma_hits if chroma_hits else tfidf_hits
-    agent_result = run_security_agent(
-        target=payload.query,
-        finding_titles=[],
-        query=combined,
-    )
+
+    model_status = await _resolve_model_status(preferred_model)
+
+    intent_source = "heuristic"
+    intent = _classify_intent(payload.query)
+    if payload.enable_model_response and model_status.get("active"):
+        llm_intent = await _classify_intent_with_llm(payload.query, preferred_model)
+        if llm_intent:
+            intent = llm_intent
+            intent_source = "llm"
+
+    guidance: list[str] = []
+    actions: list[str] = []
+    source_label = "none"
+    response_mode = "command_execution"
+
+    if intent["kind"] != "command":
+        # Phase 2: ChromaDB first, fall back to TF-IDF
+        chroma_hits = chroma_search(combined, n_results=5)
+        tfidf_hits = retrieve_guidance(combined, top_k=5)
+        guidance = chroma_hits if chroma_hits else tfidf_hits
+        source_label = "chromadb" if chroma_hits else "tfidf"
+        agent_result = run_security_agent(
+            target=payload.query,
+            finding_titles=[],
+            query=combined,
+        )
+        actions = agent_result["actions"]
+        response_mode = agent_result["strategy"]
+
+    command_result: dict | None = None
+    execution = {
+        "client_type": source,
+        "intent": intent["kind"],
+        "command": intent.get("command"),
+        "executor": "server" if source == "web" else "client",
+        "should_execute": intent["kind"] == "command",
+        "policy_source": intent_source,
+    }
+
+    if intent["kind"] == "command":
+        if source == "web":
+            command_result = await _execute_server_command(intent, payload.query)
+        else:
+            command_result = {
+                "status": "planned",
+                "executor": "client",
+                "command": intent.get("command"),
+                "target": intent.get("target"),
+                "reason": "CLI requests execute tools locally on the device",
+            }
+
+    llm_text: str | None = None
+    if payload.enable_model_response and model_status.get("active"):
+        try:
+            provider = get_llm_provider("ollama")
+            if isinstance(provider, OllamaProvider):
+                provider = OllamaProvider(model=preferred_model)
+            llm_text = await provider.generate(
+                combined,
+                system="You are CosmicSec AI. Keep answers concise, actionable, and security-focused.",
+                max_tokens=500,
+                temperature=0.2,
+            )
+        except Exception as exc:
+            llm_text = None
+            model_status["generation_error"] = str(exc)
+
     return {
         "query": payload.query,
-        "response_mode": agent_result["strategy"],
+        "response_mode": response_mode,
         "guidance": guidance,
-        "source": "chromadb" if chroma_hits else "tfidf",
-        "actions": agent_result["actions"],
+        "source": source_label,
+        "actions": actions,
+        "client_type": source,
+        "execution": execution,
+        "command_result": command_result,
+        "model": model_status,
+        "llm_response": llm_text,
         "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 
@@ -952,12 +1231,44 @@ async def workflow_graph(run_id: str) -> dict:
 @app.get("/ai/models")
 async def list_models() -> dict:
     """List all available AI models (local Ollama + configured cloud providers)."""
-    from .llm_providers import list_available_models
-
-    models = await asyncio.to_thread(list_available_models)
+    models = await list_available_models()
+    preferred = (_os_module.getenv("OLLAMA_MODEL") or "pie:mini").strip() or "pie:mini"
+    active = any(
+        m.get("provider") == "ollama" and str(m.get("name", "")).strip() == preferred
+        for m in models
+    )
     return {
         "models": models,
+        "preferred_local_model": preferred,
+        "preferred_model_active": active,
         "default_provider": _os_module.getenv("COSMICSEC_DEFAULT_LLM_PROVIDER", "auto"),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
+    }
+
+
+@app.get("/ai/model/status")
+async def model_status(model: str = "pie:mini") -> dict:
+    """Quick status endpoint for a specific local Ollama model."""
+    preferred = model.strip() or "pie:mini"
+    ollama = OllamaProvider(model=preferred)
+    available = await ollama.is_available()
+
+    if not available:
+        return {
+            "provider": "ollama",
+            "model": preferred,
+            "active": False,
+            "reason": "Ollama endpoint unavailable",
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+        }
+
+    models = await ollama.list_models()
+    active = any(str(item.get("name", "")) == preferred for item in models)
+    return {
+        "provider": "ollama",
+        "model": preferred,
+        "active": active,
+        "available_models": [str(item.get("name", "")) for item in models],
         "timestamp": datetime.now(tz=UTC).isoformat(),
     }
 

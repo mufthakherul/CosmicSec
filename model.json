@@ -1,0 +1,6 @@
+{
+  "provider": "ollama",
+  "preferred_model": "pie:mini",
+  "active": false,
+  "reason": "Ollama endpoint unavailable"
+}
