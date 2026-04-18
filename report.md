@@ -17,8 +17,9 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 - **P1.1 Auth UX + session foundation:** **82% complete**
 - **P1.2 In-memory store migration:** **54% complete**
 - **P1.3 Security hardening:** **47% complete**
-- **P2.4 Plugin trust/signing:** **28% complete**
-- **P2.1 CLI↔Webapp task routing:** **36% complete**
+- **P2.4 Plugin trust/signing:** **57% complete**
+- **P2.1 CLI↔Webapp task routing:** **48% complete**
+- **P2.2 Result aggregation views:** **34% complete**
 
 Completed in this execution:
 - [x] Upgraded `AuthContext` with access+refresh token lifecycle, remember-me persistence, and bootstrapped `/api/auth/me` validation.
@@ -49,6 +50,10 @@ Completed in this execution:
 - [x] Upgraded CLI stream client with structured task lifecycle publishers (`ack`, `progress`, `result`).
 - [x] Implemented real task execution loop in CLI connect mode: validates tool availability, executes local tools, and streams lifecycle telemetry.
 - [x] Wired Agents UI dispatch button to real backend task dispatch endpoint with user feedback.
+- [x] Rolled out real detached signatures for all official plugins (`.sig` + `.pub` sidecar files).
+- [x] Added gateway proxy endpoint for findings trend analytics (`GET /api/findings/trending`).
+- [x] Added dashboard findings trend aggregation panel with per-severity daily visualization.
+- [x] Added dashboard risk snapshot block to surface critical findings, 7-day findings volume, and compliance posture at a glance.
 
 ### Key Findings:
 
@@ -303,10 +308,10 @@ Layer 4 — Audit
 ```
 
 **Files to create/modify:**
-- [ ] `plugins/signing.py` — Ed25519 signature validation
-- [ ] `plugins/permissions.py` — capability-based permission check
-- [ ] `plugins/sdk/base.py` — Add permissions field to PluginMetadata
-- [ ] `plugins/official/*/` — Add signatures to all official plugins
+- [x] `plugins/signing.py` — Ed25519 signature validation
+- [x] `plugins/permissions.py` — capability-based permission check
+- [x] `plugins/sdk/base.py` — Add permissions field to PluginMetadata
+- [x] `plugins/official/*/` — Add signatures to all official plugins
 - [ ] `services/admin_service/` — Add plugin audit log view to frontend
 
 **Effort:** 2-3 weeks
@@ -627,4 +632,4 @@ CosmicSec has a **strong foundation** but needs **integration, stabilization, an
 ---
 
 **Report prepared by:** Architecture Analysis  
-**Next step:** Continue Phase 2 integration by rolling out signatures to official plugin files and adding result aggregation views on scan dashboard.
+**Next step:** Continue Phase 2 integration with scan result ingestion from agent task telemetry into unified scan timelines and findings pages.
