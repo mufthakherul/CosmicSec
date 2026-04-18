@@ -94,7 +94,9 @@ def test_tor_requires_configured_proxy(monkeypatch) -> None:
 
 
 def test_recon_response_includes_network_profile() -> None:
-    response = client.post("/recon", json={"target": "example.com", "client_profile": "android_mobile"})
+    response = client.post(
+        "/recon", json={"target": "example.com", "client_profile": "android_mobile"}
+    )
     assert response.status_code == 200
     payload = response.json()
     assert "network_profile" in payload

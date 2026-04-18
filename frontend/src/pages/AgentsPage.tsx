@@ -208,7 +208,7 @@ export function AgentsPage() {
     const tools = manifest?.tools;
     if (!Array.isArray(tools)) return [];
     return tools
-      .map((tool) => (typeof tool === "string" ? tool : tool?.name ?? ""))
+      .map((tool) => (typeof tool === "string" ? tool : (tool?.name ?? "")))
       .filter((name) => Boolean(name));
   };
 
@@ -264,7 +264,7 @@ export function AgentsPage() {
       setLoading(false);
       setRefreshing(false);
     },
-    [token, user?.role]
+    [token, user?.role],
   );
 
   useEffect(() => {
@@ -330,8 +330,8 @@ export function AgentsPage() {
         ) : agents.length === 0 ? (
           <div className="space-y-3">
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-400">
-              No connected agents found for your account. Connect an agent to run live tools and
-              see execution outputs.
+              No connected agents found for your account. Connect an agent to run live tools and see
+              execution outputs.
             </div>
             <InstallBanner />
           </div>

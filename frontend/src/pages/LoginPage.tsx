@@ -105,7 +105,9 @@ export function LoginPage() {
       if (err instanceof DOMException && err.name === "AbortError") {
         setError("Login request timed out. Please try again.");
       } else {
-        setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
+        setError(
+          err instanceof Error ? err.message : "An unexpected error occurred. Please try again.",
+        );
       }
     } finally {
       setIsLoading(false);
