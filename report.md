@@ -19,11 +19,14 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 - **P1.3 Security hardening:** **47% complete**
 - **P2.4 Plugin trust/signing:** **60% complete**
 - **P2.1 CLI↔Webapp task routing:** **56% complete**
-- **P2.2 Result aggregation views:** **84% complete**
-- **P3.1 Search + settings UX polish:** **66% complete**
-- **P3.3 Pagination & list ergonomics:** **40% complete**
+- **P2.2 Result aggregation views:** **88% complete**
+- **P3.1 Search + settings UX polish:** **70% complete**
+- **P3.3 Pagination & list ergonomics:** **44% complete**
 
 Completed in this execution:
+- [x] Upgraded dashboard overview aggregation to use real severity breakdown, 7-day findings trend totals, scan recency, and connected agent metrics.
+- [x] Added live auto-refresh behavior to Dashboard page (20s refresh cadence) with last-update indicator and safer refresh lifecycle.
+- [x] Upgraded dashboard activity rendering with source-aware event labels for clearer cross-source triage context.
 - [x] Added scan-service endpoint `POST /scans/agent-results` to ingest CLI agent task findings into the persistent scan/finding pipeline.
 - [x] Added gateway support to forward WebSocket `task_result` findings into scan-service aggregation automatically.
 - [x] Added gateway proxy endpoint `POST /api/scans/agent-results` for explicit agent-result ingestion workflows.
@@ -143,7 +146,7 @@ Completed in this execution:
 |---|---|---|---|
 | LoginPage | 🟢 Implemented | Production-style form, remember-me, SSO start, token persistence | Complete backend/session contract hardening |
 | RegisterPage | 🟢 Implemented | Validation + password strength + policy checks | Connect telemetry + optional invite flow |
-| DashboardPage | 🟡 Partial | No live updates, no pagination | Add WebSocket scanner integration |
+| DashboardPage | 🟡 Partial | Live auto-refresh and unified findings are active, but full WebSocket-native per-scan progress widgets are still partial | Add per-scan WebSocket stream widgets and richer inline execution telemetry |
 | ScanPage | 🟡 Partial | Backend scan data + source/finding summaries now wired, but advanced live orchestration still needs refinement | Add deeper real-time orchestration and multi-source drill-down |
 | AIAnalysisPage | 🟡 Partial | Risk gauge + MITRE mapping + cancellation controls in place, but backend AI quality is still inconsistent | Improve model orchestration and confidence scoring |
 | ReconPage | 🟡 Partial | Core recon + cancellation controls are live, but premium onion evidence UX is still shallow | Add onion evidence timeline + premium profile presets |
@@ -223,10 +226,10 @@ Layer 3 - Result Aggregation
 
 **Files to create/modify:**
 - [x] `services/api_gateway/main.py` — Added `/ws/agent/{agent_id}` endpoint and task lifecycle handling
-- [ ] `services/scan_service/main.py` — Accept agent-submitted scan results
+- [x] `services/scan_service/main.py` — Accept agent-submitted scan results
 - [x] `cli/agent/stream.py` — Client-side WebSocket handler + task lifecycle publishers
 - [x] `services/common/models.py` — Added `AgentSessionModel` and `AgentTaskModel`
-- [ ] Frontend scan page — Show findings from both cloud + local agents
+- [x] Frontend scan page — Show findings from both cloud + local agents with source-aware metadata
 
 **Effort:** 2-3 weeks
 
