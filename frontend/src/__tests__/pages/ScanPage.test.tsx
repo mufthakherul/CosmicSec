@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "../../context/ThemeContext";
@@ -34,7 +34,11 @@ globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
-function renderPage() {
+vi.mock("../../components/AppLayout", () => ({
+  AppLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+async function renderPage() {
   render(
     <ThemeProvider>
       <QueryClientProvider client={qc}>
@@ -44,40 +48,44 @@ function renderPage() {
       </QueryClientProvider>
     </ThemeProvider>,
   );
+  await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled());
 }
 
 describe("ScanPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    } as Response);
     useScanStore.setState({ scans: [], activeScan: null, _hydrated: true });
   });
 
-  it("renders the target input field", () => {
-    renderPage();
+  it("renders the target input field", async () => {
+    await renderPage();
     expect(screen.getByPlaceholderText(/example\.com|target/i)).toBeInTheDocument();
   });
 
-  it("renders scan type options", () => {
-    renderPage();
+  it("renders scan type options", async () => {
+    await renderPage();
     expect(screen.getByText(/quick/i)).toBeInTheDocument();
     expect(screen.getByText(/full/i)).toBeInTheDocument();
   });
 
-  it("renders tool checkboxes", () => {
-    renderPage();
+  it("renders tool checkboxes", async () => {
+    await renderPage();
     expect(screen.getByText(/nmap/i)).toBeInTheDocument();
     expect(screen.getByText(/nuclei/i)).toBeInTheDocument();
   });
 
   it("shows a scans heading", async () => {
-    renderPage();
+    await renderPage();
     // Use findByRole with level:1 to get just the h1
     expect(await screen.findByRole("heading", { level: 1, name: /scans/i })).toBeInTheDocument();
   });
 
   it("does not submit when target is empty", async () => {
-    renderPage();
+    await renderPage();
     // The submit button text is "Launch Scan"
     const submitBtn = screen.getByRole("button", { name: /launch scan/i });
     fireEvent.click(submitBtn);
@@ -93,7 +101,24 @@ describe("ScanPage", () => {
     });
   });
 
-  it("populates scan list from store", () => {
+  it("populates scan list from store", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: "scan-1",
+          target: "example.com",
+          scan_types: ["network"],
+          status: "completed",
+          progress: 100,
+          findings_count: 0,
+          severity_breakdown: {},
+          source: "web_scan",
+          created_at: new Date().toISOString(),
+        },
+      ],
+    } as Response);
+
     useScanStore.setState({
       scans: [
         {
@@ -109,7 +134,7 @@ describe("ScanPage", () => {
       activeScan: null,
       _hydrated: true,
     });
-    renderPage();
+    await renderPage();
     expect(screen.getByText(/^example\.com$/i)).toBeInTheDocument();
   });
 });
