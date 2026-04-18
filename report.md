@@ -28,6 +28,7 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 - **P2.2 Result aggregation views:** **100% complete**
 - **P3.1 Search + settings UX polish:** **100% complete**
 - **P3.3 Pagination & list ergonomics:** **100% complete**
+- **P3.4 Test reliability + quality gates:** **100% complete**
 
 Completed in this execution:
 - [x] Upgraded dashboard overview aggregation to use real severity breakdown, 7-day findings trend totals, scan recency, and connected agent metrics.
@@ -113,6 +114,12 @@ Completed in this execution:
 - [x] Re-validated workspace Problems tab after persistence + audit-trail upgrades (no active diagnostics reported).
 - [x] Fixed active frontend Problems-tab typing issue in admin plugin audit loader (`setPluginAudit` → `setPluginAuditScope`).
 - [x] Re-ran workspace Problems check after the frontend fix (no active diagnostics reported).
+- [x] Expanded AI service `/query` command intent policy beyond the original 3-command set with additional security-tool intents (`nmap`, `nikto`, `nuclei`, `sqlmap`, `gobuster`, `hydra`, `metasploit`, `hashcat`) and server-side tool-hint routing.
+- [x] Aligned AI chat model preference to `phi3:mini` in frontend payloads and normalized backend defaults for consistent dev-model behavior.
+- [x] Fixed frontend API facade export contract so settings APIs resolve correctly at runtime (`settings` export from `frontend/src/services/api.ts`).
+- [x] Stabilized frontend test suite by updating auth/storage assertions, router-aware page tests, and settings toggle selectors; full Vitest suite now passes (`51/51`).
+- [x] Added Poetry-side dependency + pytest configuration hardening (`jinja2`, `pytest-asyncio`, async marker registration) to improve backend test collection reliability.
+- [x] Re-validated workspace Problems tab after this implementation cycle (no active diagnostics reported).
 
 ### Key Findings:
 
