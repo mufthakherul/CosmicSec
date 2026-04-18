@@ -40,6 +40,12 @@ const STATUS_BADGE: Record<
   failed: { label: "Failed", className: "bg-rose-500/20 text-rose-400", icon: AlertCircle },
 };
 
+const SOURCE_BADGE: Record<string, string> = {
+  web_scan: "bg-blue-500/10 text-blue-300 ring-blue-500/30",
+  agent_local: "bg-cyan-500/10 text-cyan-300 ring-cyan-500/30",
+  offline_sync: "bg-amber-500/10 text-amber-300 ring-amber-500/30",
+};
+
 /** Map UI scan type + selected tools to ScanConfig.scan_types array. */
 function toScanTypes(scanType: "quick" | "full" | "custom", tools: Set<Tool>): string[] {
   if (scanType === "quick") return ["network", "web"];
@@ -153,6 +159,9 @@ export function ScanPage() {
         progress: 0,
         findings: [],
         createdAt: new Date().toISOString(),
+        findingsCount: 0,
+        severityBreakdown: {},
+        source: "web_scan",
       };
       addScan(newScan);
       addNotification({ type: "success", message: `Scan queued for ${trimmedTarget}` });
@@ -182,6 +191,9 @@ export function ScanPage() {
         id?: string;
         target?: string;
         scan_types?: string[];
+        source?: string;
+        findings_count?: number;
+        severity_breakdown?: Record<string, number>;
         status?: ScanStatus;
         progress?: number;
         created_at?: string;
@@ -191,6 +203,7 @@ export function ScanPage() {
         id: item.id ?? `scan-${Date.now()}`,
         target: item.target ?? "unknown",
         tool: item.scan_types && item.scan_types.length > 0 ? item.scan_types.join(", ") : "remote",
+        source: item.source ?? "web_scan",
         status: (item.status ?? "pending") as ScanStatus,
         progress:
           typeof item.progress === "number"
@@ -201,6 +214,8 @@ export function ScanPage() {
                 ? 60
                 : 0,
         findings: [],
+              findingsCount: typeof item.findings_count === "number" ? item.findings_count : 0,
+              severityBreakdown: item.severity_breakdown ?? {},
         createdAt: item.created_at ?? new Date().toISOString(),
       }));
       setScans(mapped);
@@ -459,6 +474,16 @@ export function ScanPage() {
                               <p className="mt-0.5 truncate text-xs text-slate-500">
                                 {scan.tool} · {new Date(scan.createdAt).toLocaleString()}
                               </p>
+                              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                <span
+                                  className={`rounded px-2 py-0.5 text-[10px] font-medium ring-1 ${SOURCE_BADGE[scan.source ?? ""] ?? "bg-slate-700/50 text-slate-300 ring-slate-600"}`}
+                                >
+                                  {(scan.source ?? "web_scan").replace("_", " ")}
+                                </span>
+                                <span className="text-[11px] text-slate-500">
+                                  {scan.findingsCount ?? scan.findings.length} finding(s)
+                                </span>
+                              </div>
                             </div>
                             <span
                               className={`ml-3 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}

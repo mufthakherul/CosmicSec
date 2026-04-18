@@ -46,7 +46,7 @@ export function Pagination({ page, totalPages, onPageChange, className = "" }: P
             onClick={() => onPageChange(p as number)}
             aria-current={p === page ? "page" : undefined}
             aria-label={`Page ${p}`}
-            className={`min-w-[2rem] h-8 rounded-lg text-sm font-medium transition-colors
+            className={`min-w-8 h-8 rounded-lg text-sm font-medium transition-colors
               ${
                 p === page
                   ? "bg-indigo-600 text-white"
