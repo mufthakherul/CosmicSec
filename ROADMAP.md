@@ -34,11 +34,12 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 18, 2026)
 
-- **Overall roadmap completion:** **38%**
-- **Phase 1 completion:** **61%**
+- **Overall roadmap completion:** **45%**
+- **Phase 1 completion:** **63%**
 - **Phase 1.1 (Auth UX + session foundation):** **82%**
-- **Phase 1.2 (Persistence migration):** **52%**
-- **Phase 1.3 (Security hardening):** **42%**
+- **Phase 1.2 (Persistence migration):** **54%**
+- **Phase 1.3 (Security hardening):** **47%**
+- **Phase 2.4 (Plugin trust/signing):** **28%**
 
 Delivered in this iteration:
 - [x] Centralized frontend API service layer (`frontend/src/services/api.ts`).
@@ -56,6 +57,10 @@ Delivered in this iteration:
 - [x] Corrected scan deletion semantics for DB-backed records when cache is stale.
 - [x] Added scan analytics APIs: `/findings` (filterable, paginated) and `/findings/trending` (severity trends by day).
 - [x] Switched scan completion counters and severity calculations to database-backed aggregation.
+- [x] Added plugin signing verification primitives with Ed25519 signature checks.
+- [x] Added plugin capability permission validator and integrated permission gating into runtime execution.
+- [x] Added plugin trust introspection endpoint and caller-granted permission controls in plugin run API.
+- [x] Added optional environment-driven signature enforcement in plugin loader.
 
 ---
 

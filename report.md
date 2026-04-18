@@ -13,10 +13,11 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 
 ### Implementation Progress Update (April 18, 2026)
 
-- **Phase 1 overall:** **61% complete**
+- **Phase 1 overall:** **63% complete**
 - **P1.1 Auth UX + session foundation:** **82% complete**
-- **P1.2 In-memory store migration:** **52% complete**
-- **P1.3 Security hardening:** **42% complete**
+- **P1.2 In-memory store migration:** **54% complete**
+- **P1.3 Security hardening:** **47% complete**
+- **P2.4 Plugin trust/signing:** **28% complete**
 
 Completed in this execution:
 - [x] Upgraded `AuthContext` with access+refresh token lifecycle, remember-me persistence, and bootstrapped `/api/auth/me` validation.
@@ -36,6 +37,11 @@ Completed in this execution:
 - [x] Fixed scan enqueue path to work with DB-only scans (not only in-memory cache).
 - [x] Fixed scan deletion behavior to correctly return success when deleted in DB but missing from in-memory cache.
 - [x] Added premium analytics endpoints in scan service: `/findings` (paginated/filterable feed) and `/findings/trending` (daily severity trends).
+- [x] Added plugin signature verification core module (`plugins/signing.py`) with Ed25519 verification flow for `.sig` + `.pub` sidecar files.
+- [x] Added plugin permission validation module (`plugins/permissions.py`) and runtime missing-capability detection.
+- [x] Upgraded plugin loader to track source files, expose signature status, and optionally enforce signature verification via `COSMICSEC_ENFORCE_PLUGIN_SIGNATURES`.
+- [x] Added runtime permission gating in plugin execution path to block under-privileged execution contexts.
+- [x] Added plugin trust inspection endpoint `/plugins/{name}/trust` and enhanced run payload with caller-granted permissions.
 
 ### Key Findings:
 
