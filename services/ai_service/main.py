@@ -81,7 +81,7 @@ class NLQueryRequest(BaseModel):
     context: str | None = Field(default=None, description="Optional additional context")
     source: str | None = Field(default="web", description="Request source channel: web or cli")
     preferred_model: str | None = Field(
-        default="pie:mini", description="Preferred local model for response generation"
+        default="phi3:mini", description="Preferred local model for response generation"
     )
     enable_model_response: bool = Field(
         default=True, description="Try model generation when local model is available"
@@ -298,6 +298,17 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
     def _extract_target(text: str) -> str | None:
         return _extract_url(text) or _extract_domain(text)
 
+    command_tool_hints = {
+        "nmap_scan": {"scan_types": ["network"]},
+        "nikto_scan": {"scan_types": ["web"]},
+        "nuclei_scan": {"scan_types": ["web"]},
+        "sqlmap_scan": {"scan_types": ["web", "api"]},
+        "gobuster_scan": {"scan_types": ["web"]},
+        "hydra_audit": {"scan_types": ["network"]},
+        "metasploit_check": {"scan_types": ["network"]},
+        "hashcat_audit": {"scan_types": ["network"]},
+    }
+
     def _infer_scan_types(query_text: str) -> list[str]:
         q = query_text.lower()
         scan_types: list[str] = []
@@ -318,8 +329,21 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
         q = query_text.lower()
         target = _extract_target(q)
         domain = _extract_domain(q)
+        tool_signatures = [
+            ("nmap_scan", ["nmap"]),
+            ("nikto_scan", ["nikto"]),
+            ("nuclei_scan", ["nuclei"]),
+            ("sqlmap_scan", ["sqlmap"]),
+            ("gobuster_scan", ["gobuster", "dirb", "directory bust"]),
+            ("hydra_audit", ["hydra", "bruteforce", "brute force"]),
+            ("metasploit_check", ["metasploit", "msfconsole", "msf"]),
+            ("hashcat_audit", ["hashcat", "password cracking"]),
+        ]
         if any(token in q for token in ["scan", "run scan", "start scan"]) and target:
             return {"kind": "command", "command": "scan_create", "target": target}
+        for command, signatures in tool_signatures:
+            if any(signature in q for signature in signatures) and target:
+                return {"kind": "command", "command": command, "target": target}
         if "whois" in q and domain:
             return {"kind": "command", "command": "whois_lookup", "target": domain}
         if any(word in q for word in ["recon", "lookup", "dns"]) and domain:
@@ -356,7 +380,19 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
         if command is not None:
             command = str(command).strip().lower() or None
 
-        allowed_commands = {"scan_create", "whois_lookup", "recon_lookup"}
+        allowed_commands = {
+            "scan_create",
+            "whois_lookup",
+            "recon_lookup",
+            "nmap_scan",
+            "nikto_scan",
+            "nuclei_scan",
+            "sqlmap_scan",
+            "gobuster_scan",
+            "hydra_audit",
+            "metasploit_check",
+            "hashcat_audit",
+        }
         if command not in allowed_commands:
             command = None
 
@@ -368,6 +404,22 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
             q = query_text.lower()
             if "scan" in q:
                 command = "scan_create"
+            elif "nmap" in q:
+                command = "nmap_scan"
+            elif "nikto" in q:
+                command = "nikto_scan"
+            elif "nuclei" in q:
+                command = "nuclei_scan"
+            elif "sqlmap" in q:
+                command = "sqlmap_scan"
+            elif "gobuster" in q or "dirb" in q:
+                command = "gobuster_scan"
+            elif "hydra" in q or "bruteforce" in q or "brute force" in q:
+                command = "hydra_audit"
+            elif "metasploit" in q or "msfconsole" in q or "msf" in q:
+                command = "metasploit_check"
+            elif "hashcat" in q:
+                command = "hashcat_audit"
             elif "whois" in q:
                 command = "whois_lookup"
             elif any(word in q for word in ["recon", "lookup", "dns"]):
@@ -385,7 +437,7 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
             "Return ONLY valid JSON object with fields: kind, command, target. "
             "Rules:\n"
             "- kind must be 'command' or 'information'.\n"
-            "- command allowed values: scan_create, whois_lookup, recon_lookup, null.\n"
+            "- command allowed values: scan_create, whois_lookup, recon_lookup, nmap_scan, nikto_scan, nuclei_scan, sqlmap_scan, gobuster_scan, hydra_audit, metasploit_check, hashcat_audit, null.\n"
             "- target is URL/domain/IP when command is needed, otherwise null.\n"
             "- Use 'information' when user is asking explanation/planning only.\n"
             "Example: {'kind':'command','command':'scan_create','target':'https://example.com'}\n"
@@ -445,14 +497,22 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
         command = str(intent.get("command") or "")
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
-                if command == "scan_create":
+                if command == "scan_create" or command in command_tool_hints:
                     scan_url = get_service_url("scan")
+                    inferred_scan_types = _infer_scan_types(query_text)
+                    if command in command_tool_hints:
+                        hinted_scan_types = command_tool_hints[command].get("scan_types")
+                        if isinstance(hinted_scan_types, list) and hinted_scan_types:
+                            inferred_scan_types = [str(scan_type) for scan_type in hinted_scan_types]
                     scan_payload = {
                         "target": target,
-                        "scan_types": _infer_scan_types(query_text),
+                        "scan_types": inferred_scan_types,
                         "depth": 1,
                         "timeout": 300,
-                        "options": {},
+                        "options": {
+                            "requested_tool": command,
+                            "execution_mode": "tool_hint",
+                        },
                     }
                     resp = await client.post(f"{scan_url}/scans", json=scan_payload)
                 else:
@@ -478,7 +538,7 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
             }
 
     source = _normalize_source(payload.source)
-    preferred_model = (payload.preferred_model or "pie:mini").strip() or "pie:mini"
+    preferred_model = (payload.preferred_model or "phi3:mini").strip() or "phi3:mini"
     combined = f"{payload.query} {payload.context or ''}".strip()
 
     model_status = await _resolve_model_status(preferred_model)
@@ -1231,7 +1291,7 @@ async def workflow_graph(run_id: str) -> dict:
 async def list_models() -> dict:
     """List all available AI models (local Ollama + configured cloud providers)."""
     models = await list_available_models()
-    preferred = (_os_module.getenv("OLLAMA_MODEL") or "pie:mini").strip() or "pie:mini"
+    preferred = (_os_module.getenv("OLLAMA_MODEL") or "phi3:mini").strip() or "phi3:mini"
     active = any(
         m.get("provider") == "ollama" and str(m.get("name", "")).strip() == preferred
         for m in models
@@ -1246,9 +1306,9 @@ async def list_models() -> dict:
 
 
 @app.get("/ai/model/status")
-async def model_status(model: str = "pie:mini") -> dict:
+async def model_status(model: str = "phi3:mini") -> dict:
     """Quick status endpoint for a specific local Ollama model."""
-    preferred = model.strip() or "pie:mini"
+    preferred = model.strip() or "phi3:mini"
     ollama = OllamaProvider(model=preferred)
     available = await ollama.is_available()
 
