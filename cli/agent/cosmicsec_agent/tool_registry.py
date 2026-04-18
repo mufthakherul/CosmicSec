@@ -6,6 +6,8 @@ The registry provides capability-based lookup for the hybrid execution engine.
 
 from __future__ import annotations
 
+import os
+import platform
 import shutil
 import subprocess
 from dataclasses import dataclass, field
@@ -169,6 +171,39 @@ class ToolRegistry:
 
     def __init__(self) -> None:
         self._dynamic_tools: dict[str, dict] = {}
+        self._wsl_binary = shutil.which("wsl")
+
+    def _wsl_discovery_enabled(self) -> bool:
+        raw = os.getenv("COSMICSEC_ENABLE_WSL_DISCOVERY", "1").strip().lower()
+        return raw not in {"0", "false", "no", "off"}
+
+    def _resolve_tool_path(self, tool_name: str) -> tuple[str | None, bool]:
+        """Resolve executable path, including optional WSL fallback on Windows."""
+        local_path = shutil.which(tool_name)
+        if local_path:
+            return local_path, False
+
+        if (
+            platform.system().lower() != "windows"
+            or not self._wsl_discovery_enabled()
+            or not self._wsl_binary
+        ):
+            return None, False
+
+        try:
+            result = subprocess.run(
+                [self._wsl_binary, "-e", "sh", "-lc", f"command -v {tool_name}"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except (subprocess.TimeoutExpired, OSError):
+            return None, False
+
+        if result.returncode != 0 or not (result.stdout or "").strip():
+            return None, False
+
+        return self._wsl_binary, True
 
     def register_dynamic(
         self,
@@ -202,11 +237,14 @@ class ToolRegistry:
 
         # Static tools
         for tool_name, meta in _KNOWN_TOOLS.items():
-            path = shutil.which(tool_name)
+            path, discovered_via_wsl = self._resolve_tool_path(tool_name)
             if path is None:
                 continue
-            version = self.probe_version(tool_name, path)
+            version = self.probe_version(tool_name, path, via_wsl=discovered_via_wsl)
             friendly_name = _BINARY_TO_ALIAS.get(tool_name, tool_name)
+            default_args = list(meta.get("default_args", []))
+            if discovered_via_wsl:
+                default_args = ["-e", tool_name, *default_args]
             found.append(
                 ToolInfo(
                     name=friendly_name,
@@ -216,7 +254,7 @@ class ToolRegistry:
                     capabilities=list(meta["capabilities"]),
                     category=meta.get("category", "unknown"),
                     description=meta.get("description", ""),
-                    default_args=list(meta.get("default_args", [])),
+                    default_args=default_args,
                     is_dynamic=False,
                 )
             )
@@ -251,7 +289,7 @@ class ToolRegistry:
         """Find all discovered tools in the given category."""
         return [t for t in self.discover() if t.category == category]
 
-    def probe_version(self, name: str, path: str) -> str:
+    def probe_version(self, name: str, path: str, *, via_wsl: bool = False) -> str:
         """Run the version command for *name* and return a version string.
 
         Falls back to ``"unknown"`` if the command fails or times out.
@@ -260,6 +298,8 @@ class ToolRegistry:
         if meta is None:
             return "unknown"
         cmd = [path] + meta["version_cmd"][1:]
+        if via_wsl:
+            cmd = [path, "-e", name, *meta["version_cmd"][1:]]
         try:
             result = subprocess.run(
                 cmd,
