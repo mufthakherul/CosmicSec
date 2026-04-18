@@ -341,6 +341,7 @@ async def perform_scan(scan_id: str, config: ScanConfig):
         return
 
     try:
+
         def _is_cancelled() -> bool:
             return str(scan.get("status", "")).lower() == ScanStatus.CANCELLED.value
 
