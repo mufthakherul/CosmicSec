@@ -1,7 +1,7 @@
 # CosmicSec Comprehensive Redesign Roadmap
 
 **Version:** 2.0 — Unified Platform Architecture  
-**Last Updated:** April 18, 2026  
+**Last Updated:** April 19, 2026  
 **Target Release:** Q3 2026 (12 weeks)
 
 ---
@@ -32,15 +32,20 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 **Expected Outcome:** Production-ready unified platform with clear separation between local CLI and cloud webapp modes.
 
-### Live Progress (April 18, 2026)
+### Live Progress (April 19, 2026)
 
-- **Overall roadmap completion:** **81%**
+- **Overall roadmap completion:** **84%**
 - **Phase 2.4 (Plugin trust/signing):** **60%**
-- **Phase 2.1 (CLI↔Webapp task routing):** **36%**
+- **Phase 2.1 (CLI↔Webapp task routing):** **46%**
 - **Phase 2.2 (Result aggregation views):** **78%**
 - **Phase 3.3 (Pagination):** **40%**
 
 Delivered in this iteration:
+- [x] Added professional agent task history query controls in API Gateway (`status`, `limit`, `offset`) with status-count summaries.
+- [x] Added rich Agent Operations history panel in frontend with per-agent drill-down, status filtering, and incremental history loading.
+- [x] Improved operator UX with inline lifecycle visibility for dispatch/accepted/running/completed/failed task states.
+- [x] Added recon request cancellation and unmount-safe abort handling with explicit cancel actions.
+- [x] Added AI analysis request cancellation and unmount-safe abort handling with explicit cancel actions.
 - [x] Added admin plugin trust console with signed/unsigned visibility and registry enable/disable actions.
 - [x] Added plugin trust audit trail with registry reload, enable/disable, and execution event capture.
 - [x] Added plugin audit filters, trust score, and export support in admin dashboard.
@@ -81,7 +86,7 @@ Delivered in this iteration:
 - [ ] Multiple SIEM integrations (Splunk-only initially)
 
 ### 🔄 To Refactor (Integration Focus)
-- [ ] Plugin system → add signing + permission scoping
+- [x] Plugin system → add signing + permission scoping
 - [ ] Scan service → persist results permanently
 - [x] Frontend → centralized API client
 - [ ] Dashboard → live scan progress + unified findings
