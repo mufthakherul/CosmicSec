@@ -9,10 +9,11 @@ import {
   Download,
   Info,
   Loader2,
+  PauseCircle,
   ShieldAlert,
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
-import { useScanStore, type Finding, type FindingSeverity } from "../store/scanStore";
+import { useScanStore, type Finding, type FindingSeverity, type ScanStatus } from "../store/scanStore";
 import { useScanStream } from "../hooks/useScanStream";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
@@ -110,7 +111,7 @@ export function ScanDetailPage() {
 
         if (scanRes.ok) {
           const remoteScan = (await scanRes.json()) as {
-            status?: "pending" | "running" | "completed" | "failed";
+            status?: "pending" | "running" | "completed" | "cancelled" | "failed";
             progress?: number;
             scan_types?: string[];
             target?: string;
@@ -208,6 +209,33 @@ export function ScanDetailPage() {
     }
   };
 
+  const handleCancel = async () => {
+    try {
+      const token = localStorage.getItem("cosmicsec_token");
+      const res = await fetch(`${API}/api/scans/${id}/cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (res.ok) {
+        const payload = (await res.json()) as { status?: string; cancelled?: boolean };
+        const nextStatus: ScanStatus =
+          payload.status === "pending" ||
+          payload.status === "running" ||
+          payload.status === "completed" ||
+          payload.status === "cancelled" ||
+          payload.status === "failed"
+            ? payload.status
+            : "cancelled";
+        updateScan(id, { status: nextStatus, progress: scan.progress });
+      }
+    } catch {
+      // silent fallback
+    }
+  };
+
   if (!scan) {
     return (
       <AppLayout>
@@ -281,6 +309,18 @@ export function ScanDetailPage() {
             Export Report
           </button>
         </header>
+
+        <div className="flex flex-wrap gap-2">
+          {(scan.status === "pending" || scan.status === "running") && (
+            <button
+              onClick={() => void handleCancel()}
+              className="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-medium text-amber-300 hover:bg-amber-500/20"
+            >
+              <PauseCircle className="h-4 w-4" />
+              Cancel scan
+            </button>
+          )}
+        </div>
 
         {/* Status cards */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
