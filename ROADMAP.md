@@ -34,11 +34,11 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 18, 2026)
 
-- **Overall roadmap completion:** **24%**
-- **Phase 1 completion:** **44%**
+- **Overall roadmap completion:** **31%**
+- **Phase 1 completion:** **53%**
 - **Phase 1.1 (Auth UX + session foundation):** **82%**
-- **Phase 1.2 (Persistence migration):** **36%**
-- **Phase 1.3 (Security hardening):** **18%**
+- **Phase 1.2 (Persistence migration):** **41%**
+- **Phase 1.3 (Security hardening):** **35%**
 
 Delivered in this iteration:
 - [x] Centralized frontend API service layer (`frontend/src/services/api.ts`).
@@ -48,6 +48,10 @@ Delivered in this iteration:
 - [x] Added `forgot-password`, `verify-2fa`, and `resend-2fa` routes in gateway + auth service.
 - [x] Added DB-first auth persistence helpers for users and sessions in `services/auth_service/main.py`.
 - [x] Updated register/login/current-user/GDPR/2FA flows to use DB-first reads/writes with safe in-memory fallback.
+- [x] Replaced wildcard CORS in collaboration service with explicit allowlist and origin enforcement.
+- [x] Added WebSocket payload sanitization and per-user event rate limiting in collaboration service.
+- [x] Removed implicit insecure 2FA fallback unless explicitly enabled via environment configuration.
+- [x] Added resend-2FA endpoint throttling for anti-abuse protection.
 
 ---
 
