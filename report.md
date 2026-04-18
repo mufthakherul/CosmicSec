@@ -13,14 +13,14 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 
 ### Implementation Progress Update (April 19, 2026)
 
-- **Phase 1 overall:** **69% complete**
+- **Phase 1 overall:** **72% complete**
 - **P1.1 Auth UX + session foundation:** **88% complete**
-- **P1.2 In-memory store migration:** **58% complete**
+- **P1.2 In-memory store migration:** **64% complete**
 - **P1.3 Security hardening:** **58% complete**
 - **P2.4 Plugin trust/signing:** **60% complete**
 - **P2.1 CLI↔Webapp task routing:** **56% complete**
 - **P2.2 Result aggregation views:** **88% complete**
-- **P3.1 Search + settings UX polish:** **70% complete**
+- **P3.1 Search + settings UX polish:** **78% complete**
 - **P3.3 Pagination & list ergonomics:** **44% complete**
 
 Completed in this execution:
@@ -95,6 +95,11 @@ Completed in this execution:
 - [x] Bound refresh token lifecycle to session identity (`sid`) with Redis/DB-backed refresh-session validation and secure rotation.
 - [x] Upgraded OAuth user provisioning path to DB-first persistence so SSO-created identities survive restarts.
 - [x] Checked workspace Problems tab after this implementation pass (no active diagnostics reported).
+- [x] Added professional bug bounty lifecycle APIs: filtered/paginated submission listing, submission detail retrieval, and strict status-transition workflow controls (`draft → submitted → triaged → accepted/rejected → paid`).
+- [x] Added enriched bug bounty analytics endpoints for operator visibility (`/dashboard/status-breakdown`) and improved payout metrics (pending-review + average payout).
+- [x] Added integration-service operational intelligence endpoints: persistent event feed with filtering/pagination (`/events`) and high-level provider/type/status breakdown analytics (`/events/summary`).
+- [x] Upgraded global search backend with weighted ranking, category filtering (`category=scans|findings|...`), and result facets metadata for more relevant and premium search UX.
+- [x] Re-validated workspace Problems tab after these additional backend upgrades (no active diagnostics reported).
 
 ### Key Findings:
 
@@ -137,8 +142,8 @@ Completed in this execution:
 | **Report Service** | 🟡 Partial | 65% | XSS risk in HTML generation (f-string concat) | Use templating engine (Jinja2) |
 | **Collab Service** | 🟡 Partial | 55% | No auth on WebSocket upgrade, in-memory rooms | Add auth middleware, persist rooms |
 | **Plugin Registry** | 🟡 Partial | 72% | Signing + permissions exist, but sandboxing and strict provenance policy are still incomplete | Enforce signed-only policy + add sandbox/runtime isolation |
-| **Integration Service** | 🟡 Partial | 50% | In-memory SIEM integration state | Persist integrations, implement webhooks |
-| **BugBounty Service** | 🟡 Partial | 50% | In-memory submissions, incomplete workflow | Add DB models, implement status transitions |
+| **Integration Service** | 🟡 Partial | 68% | Core persistence + analytics are active, but customer-validated connector strategy is still evolving | Prioritize Splunk-first hardened connector profile and staged provider rollout |
+| **BugBounty Service** | 🟡 Partial | 66% | DB-backed submissions and lifecycle transitions are active, but collaboration threads are still ephemeral | Persist collaboration threads and add reviewer attribution trail |
 | **Phase 5 SOC Module** | 🔴 Stubbed | 30% | Barely implemented, unclear requirements | Clarify SOC workflows or deprecate |
 | **Admin Service** | 🟡 Partial | 65% | TUI mock, MFA audit incomplete | Implement full admin panel in frontend |
 | **Agent Relay** | 🟢 Functional | 80% | In-memory agent sessions, no persistence | Add agent session DB |

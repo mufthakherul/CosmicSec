@@ -34,13 +34,15 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 19, 2026)
 
-- **Overall roadmap completion:** **92%**
+- **Overall roadmap completion:** **94%**
 - **Phase 2.4 (Plugin trust/signing):** **60%**
 - **Phase 2.1 (CLI↔Webapp task routing):** **56%**
 - **Phase 2.2 (Result aggregation views):** **88%**
 - **Phase 3.3 (Pagination):** **44%**
 - **Phase 1.1 (Auth UX + session foundation):** **88%**
 - **Phase 1.3 (Security hardening):** **58%**
+- **Phase 1.2 (In-memory store migration):** **64%**
+- **Phase 3.1 (Search + settings UX polish):** **78%**
 
 Delivered in this iteration:
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
@@ -84,6 +86,13 @@ Delivered in this iteration:
 - [x] Added refresh-session binding (`sid`) and Redis/DB-backed refresh token validation + rotation safeguards.
 - [x] Upgraded OAuth user bootstrap flow to DB-first persistence for restart-safe SSO identities.
 - [x] Completed Problems-tab verification after this implementation pass (no active diagnostics).
+- [x] Added bug bounty lifecycle workflow controls with strict status transition API (`draft/submitted/triaged/accepted/rejected/paid`) for professional triage operations.
+- [x] Added bug bounty submission list/detail APIs with server-side filtering + pagination for scalable analyst workflows.
+- [x] Added bug bounty dashboard status-breakdown analytics plus enriched earnings metrics (pending review, average payout).
+- [x] Added integration event operations feed endpoint (`/events`) with provider/type/status filters and pagination.
+- [x] Added integration summary analytics endpoint (`/events/summary`) with provider/type/status breakdowns for dashboarding.
+- [x] Upgraded global search API with weighted relevance ranking, category-scoped queries, and metadata facets for better discoverability.
+- [x] Completed another post-change Problems-tab verification run (no active diagnostics).
 
 ---
 
