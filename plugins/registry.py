@@ -120,6 +120,27 @@ _repositories: dict[str, dict[str, Any]] = {}
 _audit_log: list[dict[str, Any]] = []
 
 
+def _is_truthy(value: str | None) -> bool:
+    if value is None:
+        return False
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _scope_audit_entries(entries: list[dict[str, Any]], viewer: str, is_admin: bool) -> list[dict[str, Any]]:
+    if is_admin:
+        return entries
+    if not viewer:
+        return [entry for entry in entries if (entry.get("actor_role") or "system") == "system"]
+
+    scoped: list[dict[str, Any]] = []
+    for entry in entries:
+        actor = str(entry.get("actor") or "").strip().lower()
+        actor_role = str(entry.get("actor_role") or "system").strip().lower()
+        if actor == viewer.lower() or actor_role == "system":
+            scoped.append(entry)
+    return scoped
+
+
 def _append_audit(
     action: str,
     plugin: str,
@@ -165,9 +186,13 @@ async def list_plugins() -> dict:
 
 
 @app.get("/plugins/audit")
-async def plugin_audit(limit: int = 50) -> dict:
+async def plugin_audit(request: Request, limit: int = 50) -> dict:
     limit = max(1, min(limit, 200))
-    return {"items": list(reversed(_audit_log[-limit:])), "total": len(_audit_log)}
+    items = list(reversed(_audit_log[-limit:]))
+    viewer = request.headers.get("X-CosmicSec-Viewer", "")
+    is_admin = _is_truthy(request.headers.get("X-CosmicSec-Viewer-Admin", "false"))
+    scoped = _scope_audit_entries(items, viewer=viewer, is_admin=is_admin)
+    return {"items": scoped, "total": len(scoped), "scope": "admin" if is_admin else "role"}
 
 
 @app.get("/plugins/{name}")
