@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from services.common.db import SessionLocal
@@ -120,7 +120,14 @@ _repositories: dict[str, dict[str, Any]] = {}
 _audit_log: list[dict[str, Any]] = []
 
 
-def _append_audit(action: str, plugin: str, detail: str, status: str = "ok") -> None:
+def _append_audit(
+    action: str,
+    plugin: str,
+    detail: str,
+    status: str = "ok",
+    actor: str = "system",
+    actor_role: str = "system",
+) -> None:
     _audit_log.append(
         {
             "timestamp": datetime.utcnow().isoformat(),
@@ -128,6 +135,8 @@ def _append_audit(action: str, plugin: str, detail: str, status: str = "ok") -> 
             "plugin": plugin,
             "detail": detail,
             "status": status,
+            "actor": actor,
+            "actor_role": actor_role,
         }
     )
     del _audit_log[:-200]
@@ -175,7 +184,7 @@ async def get_plugin(name: str) -> dict:
 
 
 @app.post("/plugins/{name}/run")
-async def run_plugin(name: str, payload: RunPluginRequest) -> dict:
+async def run_plugin(request: Request, name: str, payload: RunPluginRequest) -> dict:
     ctx = PluginContext(
         target=payload.target,
         options=payload.options,
@@ -185,11 +194,15 @@ async def run_plugin(name: str, payload: RunPluginRequest) -> dict:
     run_config = dict(payload.config or {})
     run_config["granted_permissions"] = payload.granted_permissions
     result = _loader.run(name, ctx, config=run_config)
+    actor = request.headers.get("X-CosmicSec-Actor", payload.user or "system")
+    actor_role = request.headers.get("X-CosmicSec-Actor-Role", "operator")
     _append_audit(
         "run",
         name,
         f"target={payload.target} scan_id={payload.scan_id or 'n/a'} success={result.success}",
         "ok" if result.success else "warn",
+        actor=actor,
+        actor_role=actor_role,
     )
     return {
         "plugin": name,
@@ -221,28 +234,46 @@ async def plugin_trust(name: str) -> dict:
 
 
 @app.post("/plugins/{name}/enable")
-async def enable_plugin(name: str) -> dict:
+async def enable_plugin(request: Request, name: str) -> dict:
     ok = _loader.enable(name)
     if not ok:
         raise HTTPException(status_code=404, detail=f"Plugin '{name}' not found")
-    _append_audit("enable", name, "Plugin enabled by operator")
+    _append_audit(
+        "enable",
+        name,
+        "Plugin enabled by operator",
+        actor=request.headers.get("X-CosmicSec-Actor", "system"),
+        actor_role=request.headers.get("X-CosmicSec-Actor-Role", "operator"),
+    )
     return {"plugin": name, "status": "enabled"}
 
 
 @app.post("/plugins/{name}/disable")
-async def disable_plugin(name: str) -> dict:
+async def disable_plugin(request: Request, name: str) -> dict:
     ok = _loader.disable(name)
     if not ok:
         raise HTTPException(status_code=404, detail=f"Plugin '{name}' not found")
-    _append_audit("disable", name, "Plugin disabled by operator")
+    _append_audit(
+        "disable",
+        name,
+        "Plugin disabled by operator",
+        actor=request.headers.get("X-CosmicSec-Actor", "system"),
+        actor_role=request.headers.get("X-CosmicSec-Actor-Role", "operator"),
+    )
     return {"plugin": name, "status": "disabled"}
 
 
 @app.post("/plugins/reload")
-async def reload_plugins() -> dict:
+async def reload_plugins(request: Request) -> dict:
     """Re-scan plugin directories for new or updated plugins."""
     loaded = _loader.discover()
-    _append_audit("reload", "registry", f"Reloaded {len(loaded)} plugin(s)")
+    _append_audit(
+        "reload",
+        "registry",
+        f"Reloaded {len(loaded)} plugin(s)",
+        actor=request.headers.get("X-CosmicSec-Actor", "system"),
+        actor_role=request.headers.get("X-CosmicSec-Actor-Role", "operator"),
+    )
     return {
         "newly_loaded": loaded,
         "total": len(_loader.list_plugins()),
