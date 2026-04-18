@@ -34,42 +34,13 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 18, 2026)
 
-- **Overall roadmap completion:** **52%**
-- **Phase 1 completion:** **63%**
-- **Phase 1.1 (Auth UX + session foundation):** **82%**
-- **Phase 1.2 (Persistence migration):** **54%**
-- **Phase 1.3 (Security hardening):** **47%**
-- **Phase 2.4 (Plugin trust/signing):** **57%**
-- **Phase 2.1 (CLI↔Webapp task routing):** **48%**
-- **Phase 2.2 (Result aggregation views):** **34%**
+- **Overall roadmap completion:** **56%**
+- **Phase 2.4 (Plugin trust/signing):** **34%**
+- **Phase 2.1 (CLI↔Webapp task routing):** **36%**
+- **Phase 2.2 (Result aggregation views):** **46%**
 
 Delivered in this iteration:
-- [x] Centralized frontend API service layer (`frontend/src/services/api.ts`).
-- [x] Auth context upgraded with remember-me, refresh token storage, and session bootstrap checks.
-- [x] Automatic silent token refresh flow wired into app lifecycle.
-- [x] Auth pages migrated to centralized API usage where relevant.
-- [x] Added `forgot-password`, `verify-2fa`, and `resend-2fa` routes in gateway + auth service.
-- [x] Added DB-first auth persistence helpers for users and sessions in `services/auth_service/main.py`.
-- [x] Updated register/login/current-user/GDPR/2FA flows to use DB-first reads/writes with safe in-memory fallback.
-- [x] Replaced wildcard CORS in collaboration service with explicit allowlist and origin enforcement.
-- [x] Added WebSocket payload sanitization and per-user event rate limiting in collaboration service.
-- [x] Removed implicit insecure 2FA fallback unless explicitly enabled via environment configuration.
-- [x] Added resend-2FA endpoint throttling for anti-abuse protection.
-- [x] Upgraded scan service to DB-first scan retrieval for execution and queueing reliability.
-- [x] Corrected scan deletion semantics for DB-backed records when cache is stale.
-- [x] Added scan analytics APIs: `/findings` (filterable, paginated) and `/findings/trending` (severity trends by day).
-- [x] Switched scan completion counters and severity calculations to database-backed aggregation.
-- [x] Added plugin signing verification primitives with Ed25519 signature checks.
-- [x] Added plugin capability permission validator and integrated permission gating into runtime execution.
-- [x] Added plugin trust introspection endpoint and caller-granted permission controls in plugin run API.
-- [x] Added optional environment-driven signature enforcement in plugin loader.
-- [x] Added gateway APIs for agent task dispatch and task history with owner/admin authorization checks.
-- [x] Added agent task lifecycle tracking (`dispatched`, `accepted`, `running`, `completed`, `failed`) in API gateway.
-- [x] Added CLI task execution lifecycle telemetry (`task_ack`, `task_progress`, `task_result`) streamed over WebSocket.
-- [x] Connected Agents page “Dispatch task” UI action to the new backend dispatch endpoint.
-- [x] Generated and committed signature sidecars (`.sig` + `.pub`) for all official plugins.
-- [x] Added findings trend analytics proxy endpoint in API gateway.
-- [x] Upgraded dashboard with trend aggregation and risk snapshot views for faster analyst decision-making.
+- [x] Added admin plugin trust console with signed/unsigned visibility and registry enable/disable actions.
 
 ---
 
