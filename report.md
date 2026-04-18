@@ -11,6 +11,23 @@
 
 CosmicSec has **excellent foundational architecture** but suffers from **incomplete workflow integration** between CLI and webapp, **disconnected modules**, and **unnecessary feature bloat**. The platform is currently at ~60% implementation maturity.
 
+### Implementation Progress Update (April 18, 2026)
+
+- **Phase 1 overall:** **44% complete**
+- **P1.1 Auth UX + session foundation:** **82% complete**
+- **P1.2 In-memory store migration:** **36% complete**
+- **P1.3 Security hardening:** **18% complete**
+
+Completed in this execution:
+- [x] Upgraded `AuthContext` with access+refresh token lifecycle, remember-me persistence, and bootstrapped `/api/auth/me` validation.
+- [x] Implemented silent token refresh flow (`useTokenRefresh`) and wired session guard into app runtime.
+- [x] Added centralized frontend API facade at `frontend/src/services/api.ts` and integrated auth pages with it.
+- [x] Added missing auth API routes for `forgot-password`, `verify-2fa`, and `resend-2fa` in API Gateway.
+- [x] Added corresponding backend auth-service handlers for `forgot-password`, `verify-2fa`, and `resend-2fa`.
+- [x] Implemented DB-first user/session persistence helpers in auth service (`load/save user`, `save/delete/list sessions`).
+- [x] Converted auth service critical flows (`register/login/get_current_user/gdpr/2fa`) to DB-first with cache fallback.
+- [x] Added startup warm-cache for users from PostgreSQL to reduce cold-start auth misses.
+
 ### Key Findings:
 
 ✅ **Strengths:**
@@ -24,9 +41,9 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 ⚠️ **Critical Issues:**
 - CLI ↔ Webapp workflow not properly integrated
 - Many services use in-memory storage (data lost on restart)
-- Authentication pages are non-functional stubs
+- Auth lifecycle still needs backend hardening despite improved frontend UX
 - Plugin system lacks trust/signing model
-- Frontend lacks centralized API client
+- Frontend API centralization is now started but not yet adopted project-wide
 - ~40% of endpoints are incomplete or stubbed
 
 ❌ **Unnecessary Features:**
@@ -63,8 +80,8 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 
 | Page/Component | Status | Issues | Recommendation |
 |---|---|---|---|
-| LoginPage | 🔴 Stub | 17 LOC, no form handling, no API calls | Rewrite with react-hook-form + validation |
-| RegisterPage | 🔴 Stub | 17 LOC, no validation | Rewrite with password strength meter |
+| LoginPage | 🟢 Implemented | Production-style form, remember-me, SSO start, token persistence | Complete backend/session contract hardening |
+| RegisterPage | 🟢 Implemented | Validation + password strength + policy checks | Connect telemetry + optional invite flow |
 | DashboardPage | 🟡 Partial | No live updates, no pagination | Add WebSocket scanner integration |
 | ScanPage | 🟡 Partial | Live updates work via mocked data | Connect to real scan service |
 | AIAnalysisPage | 🟡 Partial | Risk gauge functional, no real AI | Connect to actual AI service |
@@ -174,7 +191,8 @@ Layer 3 - Result Aggregation
 **Status:**
 - ✅ Database models already defined in `services/common/models.py` (16 tables)
 - ✅ Alembic migration framework in place
-- ⏳ Need to create migration scripts and update service code
+- 🔄 Auth service migration is in progress (DB-first for users/sessions/2FA paths)
+- ⏳ Remaining services still need migration scripts and code updates
 
 **Files to modify:**
 - `services/auth_service/main.py` — Use APIKeyModel, TOTP2FAModel
@@ -209,13 +227,13 @@ Layer 3 - Result Aggregation
 - Loading states & success/failure feedback
 
 **Files to create:**
-- [ ] `frontend/src/pages/LoginPage.tsx` (~200 LOC)
-- [ ] `frontend/src/pages/RegisterPage.tsx` (~250 LOC)
-- [ ] `frontend/src/pages/ForgotPasswordPage.tsx` (~120 LOC)
-- [ ] `frontend/src/pages/TwoFactorPage.tsx` (~180 LOC)
-- [ ] `frontend/src/context/AuthContext.tsx` (~150 LOC) — add token refresh
-- [ ] `frontend/src/router/ProtectedRoute.tsx` (~50 LOC) — auth guard
-- [ ] `frontend/src/services/api.ts` (~100 LOC) — centralized API client
+- [x] `frontend/src/pages/LoginPage.tsx` (~200 LOC)
+- [x] `frontend/src/pages/RegisterPage.tsx` (~250 LOC)
+- [x] `frontend/src/pages/ForgotPasswordPage.tsx` (~120 LOC)
+- [x] `frontend/src/pages/TwoFactorPage.tsx` (~180 LOC)
+- [x] `frontend/src/context/AuthContext.tsx` (~150 LOC) — add token refresh
+- [x] `frontend/src/router/ProtectedRoute.tsx` (~50 LOC) — auth guard
+- [x] `frontend/src/services/api.ts` (~100 LOC) — centralized API client
 
 **Dependencies to add:**
 ```json
@@ -322,15 +340,17 @@ async def finalize_scan(scan_id: str, findings: list[Finding]):
 
 **Current:** CLI design doesn't support Tor network analysis (only webapp does).
 
-**Solution:** Add Tor support to CLI:
-- [ ] Detect if Tor is installed and running locally
-- [ ] Add `--tor` flag to scan command
-- [ ] Route traffic through SOCKS5 proxy
-- [ ] Parse Onion .onion responses
+**Solution:** Keep Tor/onion as a **webapp premium capability** and avoid native CLI Tor execution.
+- [ ] Add advanced onion reconnaissance orchestrator in webapp backend
+- [ ] Add Tor session profiles (safe, stealth, aggressive) in web settings
+- [ ] Add onion evidence timeline and analyst-grade attribution hints in dashboard
+- [ ] Add usage metering/billing hooks for onion API calls from CLI-linked accounts
 
-**Files to create:**
-- [ ] `cli/agent/tornet.py` — Tor integration module
-- [ ] `cli/agent/commands/scan.py` — Add --tor flag
+**Files to create/modify:**
+- [ ] `services/recon_service/` — advanced onion workflow modules
+- [ ] `services/api_gateway/main.py` — onion profile + metering proxy endpoints
+- [ ] `frontend/src/pages/ReconPage.tsx` — premium onion controls and visualizations
+- [ ] `frontend/src/pages/SettingsPage.tsx` — onion profile customization
 
 **Effort:** 1 week
 
@@ -501,18 +521,18 @@ Recommendation:
 ## Implementation Priority
 
 ### Phase 1 (Weeks 1-2): **Critical Fixes**
-- [ ] Implement auth pages (LoginPage, RegisterPage, etc.)
+- [x] Implement auth pages (LoginPage, RegisterPage, etc.)
 - [ ] Migrate 6 in-memory stores to PostgreSQL
 - [ ] Fix CORS, rate-limiting, WebSocket auth
 - [ ] Remove hardcoded admin password
-- [ ] Add token refresh mechanism
+- [x] Add token refresh mechanism
 
 ### Phase 2 (Weeks 3-5): **Workflow Integration**
 - [ ] Implement CLI ↔ Webapp integration via Agent Relay
 - [ ] Persist scan results to database
-- [ ] Add Tor/Onion support to CLI
+- [ ] Build advanced Tor/Onion premium workflow in webapp
 - [ ] Implement plugin signing/permissions
-- [ ] Build centralized API client for frontend
+- [x] Build centralized API client for frontend
 
 ### Phase 3 (Weeks 6-8): **UI/UX Polish**
 - [ ] Implement code splitting, memoization
