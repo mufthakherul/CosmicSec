@@ -109,7 +109,9 @@ export function ScanPage() {
   );
 
   useEffect(() => {
-    setScanPage((page) => Math.min(page, Math.max(1, Math.ceil(visibleScans.length / SCANS_PER_PAGE))));
+    setScanPage((page) =>
+      Math.min(page, Math.max(1, Math.ceil(visibleScans.length / SCANS_PER_PAGE))),
+    );
   }, [visibleScans.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -214,8 +216,8 @@ export function ScanPage() {
                 ? 60
                 : 0,
         findings: [],
-              findingsCount: typeof item.findings_count === "number" ? item.findings_count : 0,
-              severityBreakdown: item.severity_breakdown ?? {},
+        findingsCount: typeof item.findings_count === "number" ? item.findings_count : 0,
+        severityBreakdown: item.severity_breakdown ?? {},
         createdAt: item.created_at ?? new Date().toISOString(),
       }));
       setScans(mapped);
@@ -443,7 +445,9 @@ export function ScanPage() {
                   )}
                   <div className="flex items-center justify-between text-xs text-slate-500">
                     <span>{visibleScans.length} visible scans</span>
-                    <span>Page {scanPage} of {scanPageCount}</span>
+                    <span>
+                      Page {scanPage} of {scanPageCount}
+                    </span>
                   </div>
                   <ul className="space-y-2">
                     {pagedScans.map((scan) => {
@@ -524,7 +528,11 @@ export function ScanPage() {
                     })}
                   </ul>
                   <div className="pt-2">
-                    <Pagination page={scanPage} totalPages={scanPageCount} onPageChange={setScanPage} />
+                    <Pagination
+                      page={scanPage}
+                      totalPages={scanPageCount}
+                      onPageChange={setScanPage}
+                    />
                   </div>
                 </div>
               )}

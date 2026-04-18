@@ -13,7 +13,12 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
-import { useScanStore, type Finding, type FindingSeverity, type ScanStatus } from "../store/scanStore";
+import {
+  useScanStore,
+  type Finding,
+  type FindingSeverity,
+  type ScanStatus,
+} from "../store/scanStore";
 import { useScanStream } from "../hooks/useScanStream";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
