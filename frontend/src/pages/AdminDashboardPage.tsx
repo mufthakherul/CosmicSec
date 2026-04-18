@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
@@ -37,6 +37,13 @@ type PluginAuditRecord = {
   plugin: string;
   detail: string;
   status?: string;
+  actor?: string;
+  actor_role?: string;
+  context?: {
+    scan_id?: string | null;
+    target?: string;
+    success?: boolean;
+  };
 };
 
 type PluginRecord = {
@@ -62,6 +69,7 @@ const DEMO_SNAPSHOT: DashboardSnapshot = {
 };
 
 export function AdminDashboardPage() {
+  const navigate = useNavigate();
   const { token, user } = useAuth();
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [users, setUsers] = useState<UserRecord[]>([]);
@@ -69,6 +77,7 @@ export function AdminDashboardPage() {
   const [pluginAudit, setPluginAudit] = useState<PluginAuditRecord[]>([]);
   const [pluginAuditQuery, setPluginAuditQuery] = useState("");
   const [pluginAuditAction, setPluginAuditAction] = useState("all");
+  const [pluginAuditRole, setPluginAuditRole] = useState("all");
   const [pluginAuditStatus, setPluginAuditStatus] = useState("all");
   const [config, setConfig] = useState<Record<string, string>>({});
   const [plugins, setPlugins] = useState<PluginRecord[]>([]);
@@ -93,14 +102,19 @@ export function AdminDashboardPage() {
     const query = pluginAuditQuery.trim().toLowerCase();
     return pluginAudit.filter((entry) => {
       if (pluginAuditAction !== "all" && entry.action !== pluginAuditAction) return false;
+      if (pluginAuditRole !== "all" && (entry.actor_role ?? "system") !== pluginAuditRole) return false;
       if (pluginAuditStatus !== "all" && (entry.status ?? "ok") !== pluginAuditStatus) return false;
       if (
         query &&
         ![
           entry.timestamp,
           entry.action,
+          entry.actor ?? "system",
+          entry.actor_role ?? "system",
           entry.plugin,
           entry.detail,
+          entry.context?.target ?? "",
+          entry.context?.scan_id ?? "",
           entry.status ?? "ok",
         ].some((value) => value.toLowerCase().includes(query))
       ) {
@@ -108,7 +122,7 @@ export function AdminDashboardPage() {
       }
       return true;
     });
-  }, [pluginAudit, pluginAuditAction, pluginAuditQuery, pluginAuditStatus]);
+  }, [pluginAudit, pluginAuditAction, pluginAuditQuery, pluginAuditRole, pluginAuditStatus]);
 
   const pluginAuditSummary = useMemo(() => {
     const signed = plugins.filter((plugin) => plugin.signature_verified).length;
@@ -424,7 +438,7 @@ export function AdminDashboardPage() {
             </span>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-[1.6fr,0.8fr,0.8fr,auto]">
+        <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-[1.4fr,0.75fr,0.75fr,0.75fr,auto]">
           <input
             value={pluginAuditQuery}
             onChange={(e) => setPluginAuditQuery(e.target.value)}
@@ -455,6 +469,17 @@ export function AdminDashboardPage() {
             <option value="warn">Warn</option>
             <option value="error">Error</option>
           </select>
+          <select
+            value={pluginAuditRole}
+            onChange={(e) => setPluginAuditRole(e.target.value)}
+            className="min-h-10 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-500/50"
+            aria-label="Filter plugin audit role"
+          >
+            <option value="all">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="operator">Operator</option>
+            <option value="system">System</option>
+          </select>
           <Button className="bg-slate-700 hover:bg-slate-600" onClick={exportPluginAudit}>
             Export Audit
           </Button>
@@ -466,14 +491,17 @@ export function AdminDashboardPage() {
                 <th className="p-2">Timestamp</th>
                 <th className="p-2">Action</th>
                 <th className="p-2">Plugin</th>
+                <th className="p-2">Actor</th>
+                <th className="p-2">Role</th>
                 <th className="p-2">Detail</th>
+                <th className="p-2">Context</th>
                 <th className="p-2">Status</th>
               </tr>
             </thead>
             <tbody>
               {pluginAuditFiltered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-4 text-center text-slate-500">
+                  <td colSpan={8} className="p-4 text-center text-slate-500">
                     No audit events match the current filters.
                   </td>
                 </tr>
@@ -482,8 +510,34 @@ export function AdminDashboardPage() {
                 <tr key={`${entry.timestamp}-${entry.plugin}-${idx}`} className="border-t border-slate-800">
                   <td className="p-2 text-slate-400">{entry.timestamp}</td>
                   <td className="p-2 font-medium text-slate-200">{entry.action}</td>
-                  <td className="p-2 text-slate-300">{entry.plugin}</td>
+                  <td className="p-2">
+                    <button
+                      onClick={() => navigate(`/plugins/${encodeURIComponent(entry.plugin)}`)}
+                      className="text-cyan-300 hover:text-cyan-200"
+                    >
+                      {entry.plugin}
+                    </button>
+                  </td>
+                  <td className="p-2 text-slate-300">{entry.actor ?? "system"}</td>
+                  <td className="p-2 text-slate-300">{entry.actor_role ?? "system"}</td>
                   <td className="p-2 text-slate-400">{entry.detail}</td>
+                  <td className="p-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      {entry.context?.scan_id ? (
+                        <button
+                          onClick={() => navigate(`/scans/${entry.context?.scan_id}`)}
+                          className="rounded bg-cyan-500/20 px-2 py-0.5 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/30"
+                        >
+                          Scan
+                        </button>
+                      ) : null}
+                      {entry.context?.target ? (
+                        <span className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">
+                          {entry.context.target}
+                        </span>
+                      ) : null}
+                    </div>
+                  </td>
                   <td className="p-2 text-slate-300">{entry.status ?? "ok"}</td>
                 </tr>
                 ))
