@@ -50,6 +50,9 @@ const ReconPage = React.lazy(() =>
 const AIAnalysisPage = React.lazy(() =>
   import("./pages/AIAnalysisPage").then((m) => ({ default: m.AIAnalysisPage })),
 );
+const AIChatPage = React.lazy(() =>
+  import("./pages/AIChatPage").then((m) => ({ default: m.AIChatPage })),
+);
 const ProfilePage = React.lazy(() =>
   import("./pages/ProfilePage").then((m) => ({ default: m.ProfilePage })),
 );
@@ -177,6 +180,14 @@ export function App() {
                   element={
                     <ProtectedRoute>
                       <AIAnalysisPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ai/chat"
+                  element={
+                    <ProtectedRoute>
+                      <AIChatPage />
                     </ProtectedRoute>
                   }
                 />
