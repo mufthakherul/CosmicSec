@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 
 export type FindingSeverity = "critical" | "high" | "medium" | "low" | "info";
 /** Values mirror the scan service ScanStatus enum: pending | running | completed | failed */
-export type ScanStatus = "pending" | "running" | "completed" | "failed";
+export type ScanStatus = "pending" | "running" | "completed" | "cancelled" | "failed";
 
 export interface Finding {
   id: string;
