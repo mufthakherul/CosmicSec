@@ -108,6 +108,23 @@ function isWithinRange(isoDate: string, range: FilterDateRange): boolean {
   return true;
 }
 
+function inferPluginName(event: TimelineEvent): string | null {
+  const target = (event.target ?? "").trim();
+  if (/^plugin[:/]/i.test(target)) {
+    return target.replace(/^plugin[:/]/i, "").trim() || null;
+  }
+
+  const combined = `${event.title} ${event.description} ${target}`;
+  const match = combined.match(/plugin(?:name)?[\s:=]+([a-zA-Z0-9_.-]+)/i);
+  return match ? match[1] : null;
+}
+
+function getEventContextLabel(event: TimelineEvent): string {
+  if (event.scan_id) return "Open scan";
+  if (inferPluginName(event)) return "Open plugin";
+  return "Open scans";
+}
+
 const SEVERITY_DOT: Record<Severity, string> = {
   critical: "bg-red-500",
   high: "bg-orange-500",
@@ -159,6 +176,19 @@ export const TimelinePage: React.FC = () => {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+
+  const openEventContext = (event: TimelineEvent) => {
+    if (event.scan_id) {
+      navigate(`/scans/${event.scan_id}`);
+      return;
+    }
+    const pluginName = inferPluginName(event);
+    if (pluginName) {
+      navigate(`/plugins/${encodeURIComponent(pluginName)}`);
+      return;
+    }
+    navigate("/scans");
+  };
 
   // -------------------------------------------------------------------------
   // Fetch data
@@ -543,16 +573,17 @@ export const TimelinePage: React.FC = () => {
                     {ev.description && (
                       <p className="mt-1 text-xs text-slate-400">{ev.description}</p>
                     )}
-                    {ev.target && (
-                      <button
-                        onClick={() =>
-                          ev.scan_id ? navigate(`/scans/${ev.scan_id}`) : navigate("/scans")
-                        }
-                        className="mt-2 inline-flex min-h-8 items-center gap-1 rounded bg-slate-800 px-2 py-1 font-mono text-xs text-cyan-400 transition-colors hover:bg-slate-700"
-                      >
+                    {ev.target ? (
+                      <span className="mt-2 inline-flex min-h-8 items-center gap-1 rounded border border-slate-700 bg-slate-900 px-2 py-1 font-mono text-xs text-slate-300">
                         {ev.target}
-                      </button>
-                    )}
+                      </span>
+                    ) : null}
+                    <button
+                      onClick={() => openEventContext(ev)}
+                      className="mt-2 inline-flex min-h-8 items-center gap-1 rounded bg-slate-800 px-2 py-1 text-xs font-medium text-cyan-300 transition-colors hover:bg-slate-700"
+                    >
+                      {getEventContextLabel(ev)}
+                    </button>
                     {swipedCardId === ev.id && (
                       <div className="mt-3 grid grid-cols-3 gap-2">
                         <button
@@ -626,16 +657,19 @@ export const TimelinePage: React.FC = () => {
                         <p className="mt-1 line-clamp-2 text-xs text-slate-400">{ev.description}</p>
                       )}
 
-                      {ev.target && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {ev.target ? (
+                          <span className="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-xs text-slate-300">
+                            {ev.target}
+                          </span>
+                        ) : null}
                         <button
-                          onClick={() =>
-                            ev.scan_id ? navigate(`/scans/${ev.scan_id}`) : navigate("/scans")
-                          }
-                          className="mt-2 inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 font-mono text-xs text-cyan-400 transition-colors hover:bg-slate-700"
+                          onClick={() => openEventContext(ev)}
+                          className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 text-xs font-medium text-cyan-300 transition-colors hover:bg-slate-700"
                         >
-                          {ev.target}
+                          {getEventContextLabel(ev)}
                         </button>
-                      )}
+                      </div>
                     </div>
                   </li>
                 ))}
