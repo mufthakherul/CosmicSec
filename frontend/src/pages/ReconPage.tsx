@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Globe, Download, ChevronDown, ChevronRight, Loader2, Search } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
-import { shouldUseTorForTarget, useNetworkPreferencesStore } from "../store/networkPreferencesStore";
+import {
+  shouldUseTorForTarget,
+  useNetworkPreferencesStore,
+} from "../store/networkPreferencesStore";
 import { useNotificationStore } from "../store/notificationStore";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
@@ -310,7 +313,8 @@ export function ReconPage() {
               </label>
 
               <p className="col-span-full text-[11px] text-slate-500">
-                Use only on assets you are authorized to assess. In Auto mode, onion targets route through Tor automatically.
+                Use only on assets you are authorized to assess. In Auto mode, onion targets route
+                through Tor automatically.
               </p>
             </div>
           ) : null}

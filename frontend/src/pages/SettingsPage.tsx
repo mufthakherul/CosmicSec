@@ -330,9 +330,7 @@ export function SettingsPage() {
             <select
               id="torMode"
               value={torMode}
-              onChange={(e) =>
-                setTorMode(e.target.value as "enabled" | "disabled" | "auto")
-              }
+              onChange={(e) => setTorMode(e.target.value as "enabled" | "disabled" | "auto")}
               className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30"
             >
               <option value="disabled">Disabled: never use Tor</option>
@@ -340,8 +338,8 @@ export function SettingsPage() {
               <option value="enabled">Enabled: always route via Tor</option>
             </select>
             <p className="mt-2 text-xs text-slate-500">
-              Auto mode gives safe defaults: onion traffic is routed through Tor while normal targets
-              continue directly unless other proxy controls are configured.
+              Auto mode gives safe defaults: onion traffic is routed through Tor while normal
+              targets continue directly unless other proxy controls are configured.
             </p>
           </div>
         </Section>
