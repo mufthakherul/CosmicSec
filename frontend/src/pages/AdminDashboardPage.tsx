@@ -766,19 +766,19 @@ export function AdminDashboardPage() {
             </thead>
             <tbody>
               {pagedAudit.map((entry, idx) => (
-                  <tr key={`${entry.timestamp}-${idx}`} className="border-t border-slate-800">
-                    <td className="p-2">{entry.timestamp}</td>
-                    <td className="p-2">{entry.action}</td>
-                    <td className="p-2">{entry.actor}</td>
-                    <td className="p-2">{entry.detail}</td>
-                  </tr>
-                ))}
+                <tr key={`${entry.timestamp}-${idx}`} className="border-t border-slate-800">
+                  <td className="p-2">{entry.timestamp}</td>
+                  <td className="p-2">{entry.action}</td>
+                  <td className="p-2">{entry.actor}</td>
+                  <td className="p-2">{entry.detail}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-          <div className="mt-4 flex justify-center">
-            <Pagination page={auditPage} totalPages={auditPageCount} onPageChange={setAuditPage} />
-          </div>
+        <div className="mt-4 flex justify-center">
+          <Pagination page={auditPage} totalPages={auditPageCount} onPageChange={setAuditPage} />
+        </div>
       </section>
     </section>
   );
