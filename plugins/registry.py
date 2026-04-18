@@ -17,6 +17,7 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from services.common.db import SessionLocal
+from services.common.models import AuditLogModel
 
 from .db_repository import (
     avg_rating as db_avg_rating,
@@ -150,19 +151,82 @@ def _append_audit(
     actor_role: str = "system",
     context: dict[str, Any] | None = None,
 ) -> None:
-    _audit_log.append(
-        {
-            "timestamp": datetime.utcnow().isoformat(),
-            "action": action,
-            "plugin": plugin,
-            "detail": detail,
-            "status": status,
-            "actor": actor,
-            "actor_role": actor_role,
-            "context": context or {},
-        }
-    )
+    event = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "action": action,
+        "plugin": plugin,
+        "detail": detail,
+        "status": status,
+        "actor": actor,
+        "actor_role": actor_role,
+        "context": context or {},
+    }
+    _audit_log.append(event)
     del _audit_log[:-200]
+    _persist_audit_event(event)
+
+
+def _persist_audit_event(event: dict[str, Any]) -> None:
+    """Persist plugin lifecycle audit to shared DB audit table (best-effort)."""
+    db = None
+    try:
+        db = SessionLocal()
+        db.add(
+            AuditLogModel(
+                user_id=event.get("actor") if event.get("actor") not in {"", "system"} else None,
+                action=f"plugin.{event.get('action', 'event')}",
+                resource="plugin",
+                resource_id=event.get("plugin"),
+                extra={
+                    "detail": event.get("detail"),
+                    "status": event.get("status", "ok"),
+                    "actor": event.get("actor", "system"),
+                    "actor_role": event.get("actor_role", "system"),
+                    "context": event.get("context") or {},
+                    "source_service": "plugins",
+                },
+            )
+        )
+        db.commit()
+    except Exception:
+        if db is not None:
+            db.rollback()
+        logger.debug("Plugin audit DB persistence unavailable; using in-memory fallback", exc_info=True)
+    finally:
+        if db is not None:
+            db.close()
+
+
+def _list_plugin_audit_from_db(limit: int) -> list[dict[str, Any]]:
+    """Load plugin audit events from DB (newest first)."""
+    db = SessionLocal()
+    try:
+        rows = (
+            db.query(AuditLogModel)
+            .filter(AuditLogModel.action.like("plugin.%"))
+            .order_by(AuditLogModel.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        items: list[dict[str, Any]] = []
+        for row in rows:
+            extra = row.extra or {}
+            action = str(row.action or "plugin.event")
+            items.append(
+                {
+                    "timestamp": row.created_at.isoformat() if row.created_at else datetime.utcnow().isoformat(),
+                    "action": action.split(".", 1)[1] if "." in action else action,
+                    "plugin": extra.get("resource_id") or row.resource_id or "registry",
+                    "detail": extra.get("detail") or "",
+                    "status": extra.get("status") or "ok",
+                    "actor": extra.get("actor") or (row.user_id or "system"),
+                    "actor_role": extra.get("actor_role") or "system",
+                    "context": extra.get("context") or {},
+                }
+            )
+        return items
+    finally:
+        db.close()
 
 
 # ---------------------------------------------------------------------------
@@ -188,7 +252,10 @@ async def list_plugins() -> dict:
 @app.get("/plugins/audit")
 async def plugin_audit(request: Request, limit: int = 50) -> dict:
     limit = max(1, min(limit, 200))
-    items = list(reversed(_audit_log[-limit:]))
+    try:
+        items = _list_plugin_audit_from_db(limit)
+    except Exception:
+        items = list(reversed(_audit_log[-limit:]))
     viewer = request.headers.get("X-CosmicSec-Viewer", "")
     is_admin = _is_truthy(request.headers.get("X-CosmicSec-Viewer-Admin", "false"))
     scoped = _scope_audit_entries(items, viewer=viewer, is_admin=is_admin)
