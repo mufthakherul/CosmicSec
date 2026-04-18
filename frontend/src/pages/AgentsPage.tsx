@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  AlertTriangle,
   CheckCircle,
   Clock,
   Cpu,
@@ -46,6 +47,23 @@ interface AgentApiRecord {
   };
 }
 
+interface AgentTaskRecord {
+  task_id: string;
+  tool: string;
+  target: string;
+  status: string;
+  progress?: number;
+  message?: string;
+  created_at: number;
+  updated_at?: number;
+  result?: {
+    success?: boolean;
+    findings_count?: number;
+    output?: unknown;
+    error?: string;
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -61,6 +79,11 @@ function relativeTime(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+function relativeUnixTime(epochSeconds?: number): string {
+  if (!epochSeconds) return "unknown";
+  return relativeTime(new Date(epochSeconds * 1000).toISOString());
+}
+
 const STATUS_CONFIG = {
   online: { label: "Online", color: "text-emerald-400", dot: "bg-emerald-400", icon: Wifi },
   idle: { label: "Idle", color: "text-amber-400", dot: "bg-amber-400", icon: Clock },
@@ -73,6 +96,16 @@ const PLATFORM_COLOR: Record<string, string> = {
   darwin: "text-slate-300",
 };
 
+const TASK_STATUS_STYLE: Record<string, string> = {
+  dispatched: "bg-blue-500/10 text-blue-300 border-blue-400/20",
+  accepted: "bg-cyan-500/10 text-cyan-300 border-cyan-400/20",
+  running: "bg-amber-500/10 text-amber-300 border-amber-400/20",
+  completed: "bg-emerald-500/10 text-emerald-300 border-emerald-400/20",
+  failed: "bg-rose-500/10 text-rose-300 border-rose-400/20",
+  rejected: "bg-orange-500/10 text-orange-300 border-orange-400/20",
+  dispatch_failed: "bg-rose-500/10 text-rose-300 border-rose-400/20",
+};
+
 // ---------------------------------------------------------------------------
 // Agent card
 // ---------------------------------------------------------------------------
@@ -81,10 +114,14 @@ function AgentCard({
   agent,
   onDispatch,
   dispatching,
+  onViewHistory,
+  viewingHistory,
 }: {
   agent: Agent;
   onDispatch: (agent: Agent) => void;
   dispatching: boolean;
+  onViewHistory: (agent: Agent) => void;
+  viewingHistory: boolean;
 }) {
   const sc = STATUS_CONFIG[agent.status];
 
@@ -164,6 +201,12 @@ function AgentCard({
             )}
             {dispatching ? "Dispatching..." : "Dispatch task"}
           </button>
+          <button
+            onClick={() => onViewHistory(agent)}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700"
+          >
+            {viewingHistory ? "Hide history" : "Task history"}
+          </button>
         </div>
       )}
     </div>
@@ -215,6 +258,15 @@ export function AgentsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [dispatchingAgentId, setDispatchingAgentId] = useState<string | null>(null);
   const [dispatchStatus, setDispatchStatus] = useState<string | null>(null);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [taskFilter, setTaskFilter] = useState<
+    "all" | "dispatched" | "accepted" | "running" | "completed" | "failed"
+  >("all");
+  const [taskHistory, setTaskHistory] = useState<AgentTaskRecord[]>([]);
+  const [taskHistoryTotal, setTaskHistoryTotal] = useState(0);
+  const [taskHistoryOffset, setTaskHistoryOffset] = useState(0);
+  const [taskHistoryLoading, setTaskHistoryLoading] = useState(false);
+  const [taskHistoryError, setTaskHistoryError] = useState<string | null>(null);
 
   const normalizeStatus = (status?: string): Agent["status"] => {
     if (status === "connected") return "online";
@@ -289,6 +341,61 @@ export function AgentsPage() {
     loadAgents();
   }, [loadAgents]);
 
+  const loadTaskHistory = useCallback(
+    async (
+      agentId: string,
+      options?: {
+        reset?: boolean;
+        nextOffset?: number;
+      },
+    ) => {
+      if (!token) return;
+      const reset = Boolean(options?.reset);
+      const nextOffset = options?.nextOffset ?? (reset ? 0 : taskHistoryOffset);
+
+      setTaskHistoryLoading(true);
+      setTaskHistoryError(null);
+
+      try {
+        const params = new URLSearchParams();
+        params.set("limit", "10");
+        params.set("offset", String(nextOffset));
+        if (taskFilter !== "all") {
+          params.set("status", taskFilter);
+        }
+
+        const res = await fetch(`${API}/api/agents/${agentId}/tasks?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to load agent tasks");
+        }
+
+        const data = (await res.json()) as {
+          tasks?: AgentTaskRecord[];
+          total?: number;
+          offset?: number;
+        };
+
+        const incoming = Array.isArray(data.tasks) ? data.tasks : [];
+        setTaskHistory((prev) => (reset ? incoming : [...prev, ...incoming]));
+        setTaskHistoryTotal(data.total ?? incoming.length);
+        setTaskHistoryOffset((data.offset ?? nextOffset) + incoming.length);
+      } catch {
+        setTaskHistoryError("Unable to load task history.");
+      } finally {
+        setTaskHistoryLoading(false);
+      }
+    },
+    [taskFilter, taskHistoryOffset, token],
+  );
+
+  useEffect(() => {
+    if (!selectedAgentId) return;
+    void loadTaskHistory(selectedAgentId, { reset: true, nextOffset: 0 });
+  }, [loadTaskHistory, selectedAgentId, taskFilter]);
+
   const onlineCount = agents.filter((a) => a.status === "online").length;
   const idleCount = agents.filter((a) => a.status === "idle").length;
 
@@ -319,14 +426,19 @@ export function AgentsPage() {
         setDispatchStatus(
           `Task dispatched successfully${data.task_id ? ` (${data.task_id})` : ""}.`,
         );
+        if (selectedAgentId === agent.agent_id) {
+          void loadTaskHistory(agent.agent_id, { reset: true, nextOffset: 0 });
+        }
       } catch {
         setDispatchStatus("Failed to dispatch task.");
       } finally {
         setDispatchingAgentId(null);
       }
     },
-    [token],
+    [loadTaskHistory, selectedAgentId, token],
   );
+
+  const selectedAgent = selectedAgentId ? agents.find((a) => a.agent_id === selectedAgentId) : null;
 
   return (
     <AppLayout>
@@ -403,10 +515,128 @@ export function AgentsPage() {
                 agent={a}
                 onDispatch={dispatchQuickTask}
                 dispatching={dispatchingAgentId === a.agent_id}
+                onViewHistory={(agent) => {
+                  if (selectedAgentId === agent.agent_id) {
+                    setSelectedAgentId(null);
+                    setTaskHistory([]);
+                    setTaskHistoryOffset(0);
+                    setTaskHistoryTotal(0);
+                    return;
+                  }
+                  setSelectedAgentId(agent.agent_id);
+                  setTaskHistory([]);
+                  setTaskHistoryOffset(0);
+                  setTaskHistoryTotal(0);
+                }}
+                viewingHistory={selectedAgentId === a.agent_id}
               />
             ))}
           </div>
         )}
+
+        {selectedAgent ? (
+          <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-100">Task History</h2>
+                <p className="text-xs text-slate-500">
+                  {selectedAgent.hostname} · {taskHistoryTotal} task(s)
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-slate-500" htmlFor="task-status-filter">
+                  Status
+                </label>
+                <select
+                  id="task-status-filter"
+                  value={taskFilter}
+                  onChange={(e) => {
+                    setTaskFilter(
+                      e.target.value as
+                        | "all"
+                        | "dispatched"
+                        | "accepted"
+                        | "running"
+                        | "completed"
+                        | "failed",
+                    );
+                  }}
+                  className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
+                >
+                  <option value="all">All</option>
+                  <option value="dispatched">Dispatched</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="running">Running</option>
+                  <option value="completed">Completed</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+            </div>
+
+            {taskHistoryError ? (
+              <div className="mb-3 flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {taskHistoryError}
+              </div>
+            ) : null}
+
+            {taskHistory.length === 0 && !taskHistoryLoading ? (
+              <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-4 text-xs text-slate-500">
+                No task history available for the selected filter.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {taskHistory.map((task) => (
+                  <article
+                    key={task.task_id}
+                    className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-cyan-300">{task.tool}</span>
+                        <span className="text-xs text-slate-500">{task.target}</span>
+                      </div>
+                      <span
+                        className={`rounded border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${TASK_STATUS_STYLE[task.status] ?? "bg-slate-700/40 text-slate-300 border-slate-600"}`}
+                      >
+                        {task.status}
+                      </span>
+                    </div>
+
+                    <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                      <span>Created {relativeUnixTime(task.created_at)}</span>
+                      <span>Progress {Math.max(0, Math.min(task.progress ?? 0, 100))}%</span>
+                    </div>
+
+                    {task.message ? (
+                      <p className="mt-1 text-xs text-slate-300">{task.message}</p>
+                    ) : null}
+                    {task.result?.error ? (
+                      <p className="mt-1 text-xs text-rose-300">{task.result.error}</p>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!selectedAgentId || taskHistoryLoading) return;
+                  void loadTaskHistory(selectedAgentId, {
+                    reset: false,
+                    nextOffset: taskHistoryOffset,
+                  });
+                }}
+                disabled={taskHistoryLoading || taskHistory.length >= taskHistoryTotal}
+                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {taskHistoryLoading ? "Loading..." : "Load more"}
+              </button>
+            </div>
+          </section>
+        ) : null}
 
         {agents.length > 0 && <InstallBanner />}
       </div>

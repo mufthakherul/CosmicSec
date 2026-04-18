@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Globe, Download, ChevronDown, ChevronRight, Loader2, Search } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import {
@@ -136,15 +136,36 @@ export function ReconPage() {
   const torMode = useNetworkPreferencesStore((s) => s.torMode);
   const setTorMode = useNetworkPreferencesStore((s) => s.setTorMode);
   const addNotification = useNotificationStore((s) => s.addNotification);
+  const activeRequestRef = useRef<AbortController | null>(null);
+  const requestTimeoutRef = useRef<number | null>(null);
+
+  const clearActiveRequest = () => {
+    if (requestTimeoutRef.current !== null) {
+      window.clearTimeout(requestTimeoutRef.current);
+      requestTimeoutRef.current = null;
+    }
+    activeRequestRef.current = null;
+  };
+
+  useEffect(() => {
+    return () => {
+      activeRequestRef.current?.abort();
+      clearActiveRequest();
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!target.trim()) return;
+    activeRequestRef.current?.abort();
+    clearActiveRequest();
+
     setLoading(true);
     setResult(null);
     try {
       const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 25000);
+      activeRequestRef.current = controller;
+      requestTimeoutRef.current = window.setTimeout(() => controller.abort(), 25000);
       const token = localStorage.getItem("cosmicsec_token");
       const trimmedTarget = target.trim();
       const shouldUseTor = shouldUseTorForTarget(trimmedTarget, torMode);
@@ -166,7 +187,7 @@ export function ReconPage() {
         signal: controller.signal,
       });
 
-      window.clearTimeout(timeout);
+      clearActiveRequest();
       if (!res.ok) {
         const detail = await res.text().catch(() => "");
         throw new Error(detail || `Recon request failed with status ${res.status}`);
@@ -189,12 +210,20 @@ export function ReconPage() {
     } catch (error) {
       const message =
         error instanceof DOMException && error.name === "AbortError"
-          ? "Recon timed out. Please refine the target and try again."
+          ? "Recon request cancelled or timed out."
           : "Recon request failed. Check API connection.";
       addNotification({ type: "error", message });
     } finally {
+      clearActiveRequest();
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    activeRequestRef.current?.abort();
+    clearActiveRequest();
+    setLoading(false);
+    addNotification({ type: "warning", message: "Recon request cancelled." });
   };
 
   const handleExport = () => {
@@ -247,6 +276,15 @@ export function ReconPage() {
             )}
             {loading ? "Running…" : "Run Recon"}
           </button>
+          {loading ? (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2.5 text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-500/20"
+            >
+              Cancel
+            </button>
+          ) : null}
         </form>
 
         <div className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm">
