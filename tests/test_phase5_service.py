@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from services.phase5_service.main import app
+from services.professional_soc_service.main import app
 
 client = TestClient(app)
 
