@@ -32,15 +32,32 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 **Expected Outcome:** Production-ready unified platform with clear separation between local CLI and cloud webapp modes.
 
+### Live Progress (April 18, 2026)
+
+- **Overall roadmap completion:** **24%**
+- **Phase 1 completion:** **44%**
+- **Phase 1.1 (Auth UX + session foundation):** **82%**
+- **Phase 1.2 (Persistence migration):** **36%**
+- **Phase 1.3 (Security hardening):** **18%**
+
+Delivered in this iteration:
+- [x] Centralized frontend API service layer (`frontend/src/services/api.ts`).
+- [x] Auth context upgraded with remember-me, refresh token storage, and session bootstrap checks.
+- [x] Automatic silent token refresh flow wired into app lifecycle.
+- [x] Auth pages migrated to centralized API usage where relevant.
+- [x] Added `forgot-password`, `verify-2fa`, and `resend-2fa` routes in gateway + auth service.
+- [x] Added DB-first auth persistence helpers for users and sessions in `services/auth_service/main.py`.
+- [x] Updated register/login/current-user/GDPR/2FA flows to use DB-first reads/writes with safe in-memory fallback.
+
 ---
 
 ## Quick Reference: What Changes
 
 ### ✅ Implemented (P1 Focus)
-- [ ] Working login/register/2FA pages (17 LOC → 200+ LOC each)
+- [x] Working login/register/2FA pages (17 LOC → 200+ LOC each)
 - [ ] Move 6 in-memory stores to PostgreSQL
 - [ ] Fix 6 critical security vulnerabilities
-- [ ] Implement token refresh mechanism
+- [x] Implement token refresh mechanism
 - [ ] CLI ↔ Webapp integration via Agent Relay
 
 ### ❌ To Remove (Deprecation Phase)
@@ -53,7 +70,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 ### 🔄 To Refactor (Integration Focus)
 - [ ] Plugin system → add signing + permission scoping
 - [ ] Scan service → persist results permanently
-- [ ] Frontend → centralized API client
+- [x] Frontend → centralized API client
 - [ ] Dashboard → live scan progress + unified findings
 - [ ] CLI agent → tool discovery + task execution
 
@@ -84,7 +101,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 **Deliverables:**
 1. ✅ CLI ↔ Webapp task distribution via WebSocket
 2. ✅ Scan results persisted to database
-3. ✅ Tor/Onion network support in CLI **[NB: Intentionally reserving this features for the web app as part of a marketing strategy, since the CLI version is free and open source. We can just get charge for api calls from cli] But you can improve webapp Tor/Onion network Module to more advanced, powerfull, smart and modern**
+3. ✅ Advanced Tor/Onion premium capability in webapp (CLI Tor execution intentionally excluded)
 4. ✅ Plugin signing & trust model
 
 **Key Files:**
@@ -234,18 +251,17 @@ async def finalize_scan(scan_id, findings):
 
 **Test:** Create scan → findings appear in DB → persist after restart
 
-#### P2.3: Tor/Onion Support (7 days)
+#### P2.3: Advanced Tor/Onion Web Module (7 days)
+
+**Scope decision:** Keep onion analysis premium within webapp workflows; do not add native CLI Tor execution.
 
 **Files:**
-- `cli/agent/tornet.py` — Tor client wrapper
-- `cli/agent/commands/scan.py` — Add --tor flag
+- `services/recon_service/` — onion workflow engine (session profiles + evidence collectors)
+- `services/api_gateway/main.py` — onion profile routing + metered endpoints
+- `frontend/src/pages/ReconPage.tsx` — premium onion controls, timeline, and insights
+- `frontend/src/pages/SettingsPage.tsx` — onion behavior customization profiles
 
-**Usage:**
-```bash
-cosmicsec-agent scan 3g2upl4pq6kufc4m.onion --tor --tools nmap
-```
-
-**Test:** Scan .onion domain via Tor, verify results
+**Test:** Run onion analysis from webapp, verify evidence timeline + policy profile behavior + billing meter hooks
 
 #### P2.4: Plugin Signing (14 days)
 
