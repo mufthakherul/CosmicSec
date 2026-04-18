@@ -45,6 +45,11 @@ interface RecentActivity {
   timestamp: string;
 }
 
+interface TrendingPoint {
+  date: string;
+  severity_breakdown: Record<string, number>;
+}
+
 // ---------------------------------------------------------------------------
 // Empty defaults used until authenticated API data loads
 // ---------------------------------------------------------------------------
@@ -120,6 +125,14 @@ const ACTIVITY_COLOR: Record<string, string> = {
   finding: "text-rose-400 bg-rose-500/10",
   agent: "text-emerald-400 bg-emerald-500/10",
   report: "text-blue-400 bg-blue-500/10",
+};
+
+const SEVERITY_COLORS: Record<string, string> = {
+  critical: "bg-rose-500",
+  high: "bg-orange-500",
+  medium: "bg-amber-500",
+  low: "bg-blue-500",
+  info: "bg-slate-500",
 };
 
 // ---------------------------------------------------------------------------
@@ -344,6 +357,55 @@ function PlatformModules() {
   );
 }
 
+function FindingsTrendCard({ points }: { points: TrendingPoint[] }) {
+  const latest = points.slice(-7);
+
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-slate-300">Findings Trend (7 days)</h3>
+        <span className="text-xs text-slate-500">critical/high/medium/low/info</span>
+      </div>
+      {latest.length === 0 ? (
+        <p className="text-xs text-slate-500">No trend data available yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {latest.map((point) => {
+            const total = Object.values(point.severity_breakdown || {}).reduce((a, b) => a + b, 0);
+            return (
+              <div key={point.date}>
+                <div className="mb-1 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>{point.date}</span>
+                  <span>{total} findings</span>
+                </div>
+                <div className="space-y-1 rounded bg-slate-800 p-2">
+                  {(["critical", "high", "medium", "low", "info"] as const).map((sev) => {
+                    const v = point.severity_breakdown?.[sev] ?? 0;
+                    return (
+                      <div key={`${point.date}-${sev}`} className="space-y-0.5">
+                        <div className="flex items-center justify-between text-[10px] text-slate-500">
+                          <span className="capitalize">{sev}</span>
+                          <span>{v}</span>
+                        </div>
+                        <progress
+                          max={Math.max(total, 1)}
+                          value={v}
+                          className={`h-1.5 w-full overflow-hidden rounded bg-slate-700 ${SEVERITY_COLORS[sev]} [&::-webkit-progress-bar]:bg-slate-700 [&::-webkit-progress-value]:bg-current [&::-moz-progress-bar]:bg-current`}
+                          aria-label={`${point.date}-${sev}`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -355,6 +417,7 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [animateBars, setAnimateBars] = useState(false);
   const [loadWarning, setLoadWarning] = useState<string | null>(null);
+  const [trend, setTrend] = useState<TrendingPoint[]>([]);
 
   useEffect(() => {
     const headers: Record<string, string> = {};
@@ -363,9 +426,10 @@ export function DashboardPage() {
     (async () => {
       try {
         setLoadWarning(null);
-        const [statsRes, activityRes] = await Promise.allSettled([
+        const [statsRes, activityRes, trendRes] = await Promise.allSettled([
           fetch(`${API}/api/dashboard/overview`, { headers }),
           fetch(`${API}/api/findings?limit=5`, { headers }),
+          fetch(`${API}/api/findings/trending?days=7`, { headers }),
         ]);
 
         if (statsRes.status === "fulfilled" && statsRes.value.ok) {
@@ -412,9 +476,17 @@ export function DashboardPage() {
           setActivity([]);
           setLoadWarning("Recent activity feed is temporarily unavailable.");
         }
+
+        if (trendRes.status === "fulfilled" && trendRes.value.ok) {
+          const trendData = (await trendRes.value.json()) as { series?: TrendingPoint[] };
+          setTrend(Array.isArray(trendData.series) ? trendData.series : []);
+        } else {
+          setTrend([]);
+        }
       } catch {
         setStats(EMPTY_STATS);
         setActivity([]);
+        setTrend([]);
         setLoadWarning("Live dashboard data is unavailable right now.");
       } finally {
         setLoading(false);
@@ -586,50 +658,67 @@ export function DashboardPage() {
         </div>
 
         {/* Bottom row — Recent activity */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900">
-          <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-            <h3 className="text-sm font-semibold text-slate-300">Recent Activity</h3>
-            <Link
-              to="/timeline"
-              className="flex items-center gap-0.5 text-xs text-cyan-400 hover:text-cyan-300"
-            >
-              View all <ChevronRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="divide-y divide-slate-800">
-            {activity.map((ev) => {
-              const Icon = ACTIVITY_ICON[ev.type] ?? Activity;
-              const colorClass = ACTIVITY_COLOR[ev.type] ?? "text-slate-400 bg-slate-800";
-              return (
-                <div key={ev.id} className="animate-slide-in flex items-start gap-3 px-4 py-3">
-                  <div className={`mt-0.5 shrink-0 rounded-lg p-2 ${colorClass}`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="truncate text-sm font-medium text-slate-200">{ev.title}</p>
-                      <div className="flex shrink-0 items-center gap-2">
-                        {ev.severity && (
-                          <span
-                            className={`inline-block h-2 w-2 rounded-full ${SEVERITY_DOT[ev.severity] ?? "bg-slate-500"}`}
-                          />
-                        )}
-                        <span className="shrink-0 text-xs text-slate-500">
-                          <Clock className="mr-0.5 inline h-3 w-3" />
-                          {relativeTime(ev.timestamp)}
-                        </span>
-                      </div>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <div className="xl:col-span-2 rounded-xl border border-slate-800 bg-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+              <h3 className="text-sm font-semibold text-slate-300">Recent Activity</h3>
+              <Link
+                to="/timeline"
+                className="flex items-center gap-0.5 text-xs text-cyan-400 hover:text-cyan-300"
+              >
+                View all <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="divide-y divide-slate-800">
+              {activity.map((ev) => {
+                const Icon = ACTIVITY_ICON[ev.type] ?? Activity;
+                const colorClass = ACTIVITY_COLOR[ev.type] ?? "text-slate-400 bg-slate-800";
+                return (
+                  <div key={ev.id} className="animate-slide-in flex items-start gap-3 px-4 py-3">
+                    <div className={`mt-0.5 shrink-0 rounded-lg p-2 ${colorClass}`}>
+                      <Icon className="h-4 w-4" />
                     </div>
-                    <p className="mt-0.5 truncate text-xs text-slate-500">{ev.description}</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="truncate text-sm font-medium text-slate-200">{ev.title}</p>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {ev.severity && (
+                            <span
+                              className={`inline-block h-2 w-2 rounded-full ${SEVERITY_DOT[ev.severity] ?? "bg-slate-500"}`}
+                            />
+                          )}
+                          <span className="shrink-0 text-xs text-slate-500">
+                            <Clock className="mr-0.5 inline h-3 w-3" />
+                            {relativeTime(ev.timestamp)}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="mt-0.5 truncate text-xs text-slate-500">{ev.description}</p>
+                    </div>
                   </div>
+                );
+              })}
+              {activity.length === 0 ? (
+                <div className="px-4 py-6 text-center text-sm text-slate-500">
+                  No recent activity found for your account yet.
                 </div>
-              );
-            })}
-            {activity.length === 0 ? (
-              <div className="px-4 py-6 text-center text-sm text-slate-500">
-                No recent activity found for your account yet.
-              </div>
-            ) : null}
+              ) : null}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <FindingsTrendCard points={trend} />
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-2 text-sm font-semibold text-slate-300">Risk Snapshot</h3>
+              <p className="text-xs text-slate-500">
+                Critical findings: <span className="font-semibold text-rose-400">{stats.critical_findings}</span>
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Findings (7d): <span className="font-semibold text-cyan-300">{stats.findings_last_7d}</span>
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Compliance readiness: <span className="font-semibold text-emerald-300">{stats.compliance_pct}%</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
