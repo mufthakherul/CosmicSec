@@ -127,6 +127,7 @@ def _append_audit(
     status: str = "ok",
     actor: str = "system",
     actor_role: str = "system",
+    context: dict[str, Any] | None = None,
 ) -> None:
     _audit_log.append(
         {
@@ -137,6 +138,7 @@ def _append_audit(
             "status": status,
             "actor": actor,
             "actor_role": actor_role,
+            "context": context or {},
         }
     )
     del _audit_log[:-200]
@@ -203,6 +205,11 @@ async def run_plugin(request: Request, name: str, payload: RunPluginRequest) -> 
         "ok" if result.success else "warn",
         actor=actor,
         actor_role=actor_role,
+        context={
+            "target": payload.target,
+            "scan_id": payload.scan_id,
+            "success": result.success,
+        },
     )
     return {
         "plugin": name,
@@ -244,6 +251,7 @@ async def enable_plugin(request: Request, name: str) -> dict:
         "Plugin enabled by operator",
         actor=request.headers.get("X-CosmicSec-Actor", "system"),
         actor_role=request.headers.get("X-CosmicSec-Actor-Role", "operator"),
+        context={"enabled": True},
     )
     return {"plugin": name, "status": "enabled"}
 
@@ -259,6 +267,7 @@ async def disable_plugin(request: Request, name: str) -> dict:
         "Plugin disabled by operator",
         actor=request.headers.get("X-CosmicSec-Actor", "system"),
         actor_role=request.headers.get("X-CosmicSec-Actor-Role", "operator"),
+        context={"enabled": False},
     )
     return {"plugin": name, "status": "disabled"}
 
@@ -273,6 +282,7 @@ async def reload_plugins(request: Request) -> dict:
         f"Reloaded {len(loaded)} plugin(s)",
         actor=request.headers.get("X-CosmicSec-Actor", "system"),
         actor_role=request.headers.get("X-CosmicSec-Actor-Role", "operator"),
+        context={"loaded_count": len(loaded)},
     )
     return {
         "newly_loaded": loaded,

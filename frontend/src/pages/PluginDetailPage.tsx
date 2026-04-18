@@ -38,7 +38,20 @@ type PluginAudit = {
   status?: string;
   actor?: string;
   actor_role?: string;
+  context?: {
+    scan_id?: string | null;
+    target?: string;
+    success?: boolean;
+    enabled?: boolean;
+    loaded_count?: number;
+  };
 };
+
+function getScanIdFromAudit(entry: PluginAudit): string | null {
+  if (entry.context?.scan_id) return entry.context.scan_id;
+  const match = entry.detail.match(/scan_id=([a-zA-Z0-9-_]+)/);
+  return match ? match[1] : null;
+}
 
 function Badge({ children, tone }: { children: string; tone: "good" | "bad" | "neutral" | "warn" }) {
   const className =
@@ -392,27 +405,56 @@ export function PluginDetailPage() {
                   <th className="p-2">Actor</th>
                   <th className="p-2">Role</th>
                   <th className="p-2">Detail</th>
+                  <th className="p-2">Context</th>
                   <th className="p-2">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredAudit.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-4 text-center text-slate-500">
+                    <td colSpan={7} className="p-4 text-center text-slate-500">
                       No plugin audit events found.
                     </td>
                   </tr>
                 ) : (
-                  filteredAudit.map((entry, index) => (
-                    <tr key={`${entry.timestamp}-${index}`} className="border-t border-slate-800">
-                      <td className="p-2 text-slate-400">{entry.timestamp}</td>
-                      <td className="p-2 font-medium text-slate-200">{entry.action}</td>
-                      <td className="p-2 text-slate-300">{entry.actor ?? "system"}</td>
-                      <td className="p-2 text-slate-300">{entry.actor_role ?? "system"}</td>
-                      <td className="p-2 text-slate-400">{entry.detail}</td>
-                      <td className="p-2 text-slate-300">{entry.status ?? "ok"}</td>
-                    </tr>
-                  ))
+                  filteredAudit.map((entry, index) => {
+                    const scanId = getScanIdFromAudit(entry);
+                    return (
+                      <tr key={`${entry.timestamp}-${index}`} className="border-t border-slate-800">
+                        <td className="p-2 text-slate-400">{entry.timestamp}</td>
+                        <td className="p-2 font-medium text-slate-200">{entry.action}</td>
+                        <td className="p-2 text-slate-300">{entry.actor ?? "system"}</td>
+                        <td className="p-2 text-slate-300">{entry.actor_role ?? "system"}</td>
+                        <td className="p-2 text-slate-400">{entry.detail}</td>
+                        <td className="p-2">
+                          <div className="flex flex-wrap gap-1.5">
+                            {scanId ? (
+                              <button
+                                onClick={() => navigate(`/scans/${scanId}`)}
+                                className="rounded bg-cyan-500/20 px-2 py-0.5 text-[11px] font-medium text-cyan-300 hover:bg-cyan-500/30"
+                              >
+                                Scan
+                              </button>
+                            ) : null}
+                            {entry.action === "reload" ? (
+                              <button
+                                onClick={() => navigate("/admin")}
+                                className="rounded bg-slate-700 px-2 py-0.5 text-[11px] font-medium text-slate-200 hover:bg-slate-600"
+                              >
+                                Registry
+                              </button>
+                            ) : null}
+                            {entry.context?.target ? (
+                              <span className="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">
+                                {entry.context.target}
+                              </span>
+                            ) : null}
+                          </div>
+                        </td>
+                        <td className="p-2 text-slate-300">{entry.status ?? "ok"}</td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
