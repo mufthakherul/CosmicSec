@@ -212,6 +212,10 @@ services:
       - MONGODB_URL=mongodb://cosmicsec:${MONGO_PASSWORD:-cosmicsec_mongo_password}@mongodb:27017/cosmicsec
       - RABBITMQ_URL=amqp://cosmicsec:${RABBITMQ_PASSWORD:-cosmicsec_rabbitmq_password}@rabbitmq:5672/
       - COSMICSEC_STORAGE_MODE=${COSMICSEC_STORAGE_MODE:-dynamic}
+      - COSMICSEC_GLOBAL_PROXY_POOL=${COSMICSEC_GLOBAL_PROXY_POOL:-}
+      - COSMICSEC_GLOBAL_USER_AGENT_POOL=${COSMICSEC_GLOBAL_USER_AGENT_POOL:-}
+      - COSMICSEC_GLOBAL_TOR_PROXY_URL=${COSMICSEC_GLOBAL_TOR_PROXY_URL:-}
+      - COSMICSEC_GLOBAL_TOR_MODE=${COSMICSEC_GLOBAL_TOR_MODE:-auto}
     ports:
       - "8002:8002"
     depends_on:
@@ -248,6 +252,10 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - CHROMA_PERSIST_DIR=/tmp/cosmicsec_chroma
+      - COSMICSEC_GLOBAL_PROXY_POOL=${COSMICSEC_GLOBAL_PROXY_POOL:-}
+      - COSMICSEC_GLOBAL_USER_AGENT_POOL=${COSMICSEC_GLOBAL_USER_AGENT_POOL:-}
+      - COSMICSEC_GLOBAL_TOR_PROXY_URL=${COSMICSEC_GLOBAL_TOR_PROXY_URL:-}
+      - COSMICSEC_GLOBAL_TOR_MODE=${COSMICSEC_GLOBAL_TOR_MODE:-auto}
     ports:
       - "8003:8003"
     depends_on:
@@ -274,6 +282,13 @@ services:
     environment:
       - SHODAN_API_KEY=${SHODAN_API_KEY:-}
       - VIRUSTOTAL_API_KEY=${VIRUSTOTAL_API_KEY:-}
+      - COSMICSEC_RECON_PROXY_POOL=${COSMICSEC_RECON_PROXY_POOL:-}
+      - COSMICSEC_RECON_USER_AGENT_POOL=${COSMICSEC_RECON_USER_AGENT_POOL:-}
+      - COSMICSEC_RECON_TOR_PROXY_URL=${COSMICSEC_RECON_TOR_PROXY_URL:-}
+      - COSMICSEC_GLOBAL_PROXY_POOL=${COSMICSEC_GLOBAL_PROXY_POOL:-}
+      - COSMICSEC_GLOBAL_USER_AGENT_POOL=${COSMICSEC_GLOBAL_USER_AGENT_POOL:-}
+      - COSMICSEC_GLOBAL_TOR_PROXY_URL=${COSMICSEC_GLOBAL_TOR_PROXY_URL:-}
+      - COSMICSEC_GLOBAL_TOR_MODE=${COSMICSEC_GLOBAL_TOR_MODE:-auto}
     ports:
       - "8004:8004"
     networks:
@@ -281,6 +296,40 @@ services:
     command: uvicorn services.recon_service.main:app --host 0.0.0.0 --port 8004
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
+
+  # Tor proxy for onion-capable egress
+  tor-proxy:
+    image: dperson/torproxy:latest
+    container_name: cosmicsec-tor-proxy
+    ports:
+      - "9050:9050"
+    networks:
+      - cosmicsec-network
+
+  # Centralized outbound strategy / probe service
+  egress-service:
+    build:
+      context: .
+      dockerfile: services/egress_service/Dockerfile
+    container_name: cosmicsec-egress-service
+    environment:
+      - COSMICSEC_GLOBAL_PROXY_POOL=${COSMICSEC_GLOBAL_PROXY_POOL:-}
+      - COSMICSEC_GLOBAL_USER_AGENT_POOL=${COSMICSEC_GLOBAL_USER_AGENT_POOL:-}
+      - COSMICSEC_GLOBAL_TOR_PROXY_URL=${COSMICSEC_GLOBAL_TOR_PROXY_URL:-socks5://tor-proxy:9050}
+      - COSMICSEC_GLOBAL_TOR_MODE=${COSMICSEC_GLOBAL_TOR_MODE:-auto}
+    ports:
+      - "8016:8016"
+    depends_on:
+      - tor-proxy
+    networks:
+      - cosmicsec-network
+    command: uvicorn services.egress_service.main:app --host 0.0.0.0 --port 8016
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8016/health', timeout=3)"]
       interval: 15s
       timeout: 5s
       retries: 6
@@ -294,6 +343,10 @@ services:
     container_name: cosmicsec-report-service
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-development}
+      - COSMICSEC_GLOBAL_PROXY_POOL=${COSMICSEC_GLOBAL_PROXY_POOL:-}
+      - COSMICSEC_GLOBAL_USER_AGENT_POOL=${COSMICSEC_GLOBAL_USER_AGENT_POOL:-}
+      - COSMICSEC_GLOBAL_TOR_PROXY_URL=${COSMICSEC_GLOBAL_TOR_PROXY_URL:-}
+      - COSMICSEC_GLOBAL_TOR_MODE=${COSMICSEC_GLOBAL_TOR_MODE:-auto}
     ports:
       - "8005:8005"
     networks:
