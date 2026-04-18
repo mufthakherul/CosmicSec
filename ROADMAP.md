@@ -34,12 +34,13 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 18, 2026)
 
-- **Overall roadmap completion:** **45%**
+- **Overall roadmap completion:** **52%**
 - **Phase 1 completion:** **63%**
 - **Phase 1.1 (Auth UX + session foundation):** **82%**
 - **Phase 1.2 (Persistence migration):** **54%**
 - **Phase 1.3 (Security hardening):** **47%**
 - **Phase 2.4 (Plugin trust/signing):** **28%**
+- **Phase 2.1 (CLI↔Webapp task routing):** **36%**
 
 Delivered in this iteration:
 - [x] Centralized frontend API service layer (`frontend/src/services/api.ts`).
@@ -61,6 +62,10 @@ Delivered in this iteration:
 - [x] Added plugin capability permission validator and integrated permission gating into runtime execution.
 - [x] Added plugin trust introspection endpoint and caller-granted permission controls in plugin run API.
 - [x] Added optional environment-driven signature enforcement in plugin loader.
+- [x] Added gateway APIs for agent task dispatch and task history with owner/admin authorization checks.
+- [x] Added agent task lifecycle tracking (`dispatched`, `accepted`, `running`, `completed`, `failed`) in API gateway.
+- [x] Added CLI task execution lifecycle telemetry (`task_ack`, `task_progress`, `task_result`) streamed over WebSocket.
+- [x] Connected Agents page “Dispatch task” UI action to the new backend dispatch endpoint.
 
 ---
 

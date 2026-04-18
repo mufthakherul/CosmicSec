@@ -18,6 +18,7 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 - **P1.2 In-memory store migration:** **54% complete**
 - **P1.3 Security hardening:** **47% complete**
 - **P2.4 Plugin trust/signing:** **28% complete**
+- **P2.1 CLI↔Webapp task routing:** **36% complete**
 
 Completed in this execution:
 - [x] Upgraded `AuthContext` with access+refresh token lifecycle, remember-me persistence, and bootstrapped `/api/auth/me` validation.
@@ -42,6 +43,12 @@ Completed in this execution:
 - [x] Upgraded plugin loader to track source files, expose signature status, and optionally enforce signature verification via `COSMICSEC_ENFORCE_PLUGIN_SIGNATURES`.
 - [x] Added runtime permission gating in plugin execution path to block under-privileged execution contexts.
 - [x] Added plugin trust inspection endpoint `/plugins/{name}/trust` and enhanced run payload with caller-granted permissions.
+- [x] Added gateway task dispatch API (`POST /api/agents/{agent_id}/tasks`) with ownership enforcement and agent-task lifecycle ledger.
+- [x] Added gateway task history API (`GET /api/agents/{agent_id}/tasks`) for professional task traceability.
+- [x] Upgraded agent WebSocket handling in gateway to capture `task_ack`, `task_progress`, and `task_result` events.
+- [x] Upgraded CLI stream client with structured task lifecycle publishers (`ack`, `progress`, `result`).
+- [x] Implemented real task execution loop in CLI connect mode: validates tool availability, executes local tools, and streams lifecycle telemetry.
+- [x] Wired Agents UI dispatch button to real backend task dispatch endpoint with user feedback.
 
 ### Key Findings:
 
@@ -620,4 +627,4 @@ CosmicSec has a **strong foundation** but needs **integration, stabilization, an
 ---
 
 **Report prepared by:** Architecture Analysis  
-**Next step:** Continue Phase 2 integration (agent relay task routing + plugin signature rollout for official plugin set).
+**Next step:** Continue Phase 2 integration by rolling out signatures to official plugin files and adding result aggregation views on scan dashboard.
