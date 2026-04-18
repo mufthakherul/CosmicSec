@@ -95,11 +95,33 @@ export interface AgentSearchResult {
   status: string;
 }
 
+export interface PluginSearchResult {
+  name: string;
+  version?: string;
+  description?: string;
+  author?: string;
+  tags?: string[];
+  permissions?: string[];
+}
+
+export interface TimelineSearchResult {
+  id: string;
+  title: string;
+  description: string;
+  plugin?: string;
+  scan_id?: string | null;
+  target?: string;
+  status?: string;
+  timestamp?: string;
+}
+
 export interface SearchResults {
   scans: Scan[];
   findings: Finding[];
   agents: AgentSearchResult[];
   reports: Report[];
+  plugins: PluginSearchResult[];
+  events: TimelineSearchResult[];
 }
 
 /* ---------- Auth ---------- */
@@ -181,6 +203,8 @@ export const reports = {
 
 /* ---------- Settings ---------- */
 export const settings = {
+  getScanDefaults: () => client.get("/api/settings/scan-defaults").then((r) => r.data),
+
   saveScanDefaults: (defaults: Record<string, unknown>) =>
     client.post("/api/settings/scan-defaults", defaults).then((r) => r.data),
 
