@@ -3,18 +3,18 @@
 > Generated automatically from repository documentation and metadata.
 
 ## Metadata
-- Generated at: 2026-04-17 11:26 UTC
+- Generated at: 2026-04-17 21:36 UTC
 - Audience: End users, operators, and security analysts
-- Markdown files scanned: 48
+- Markdown files scanned: 58
 - Aggregate documentation words: 0
 - Average words per document: 0
 
 ## Project Snapshot
-- Python files: 185
-- TypeScript files: 97
+- Python files: 193
+- TypeScript files: 100
 - Service directories: 16
 - Test files: 28
-- Workflow files: 21
+- Workflow files: 28
 
 ## Action Checklist
 - Install and run local stack from repository root.
@@ -25,10 +25,14 @@
 ## Priority Documentation Map
 - **CosmicSec Mobile Companion (React Native)** (`mobile/README.md`)  
   Optional companion client for quick SOC visibility and scan status on mobile.
+- **Quick Start Guide - Implementation Summary** (`QUICK_START.md`)  
+  **Problem Solved:** Developers no longer need to reconfigure services when switching between Windows, Linux, and macOS.
 - **CosmicSec CLI Agent** (`cli/README.md`)  
   The CosmicSec local agent discovers and runs security tools on your machine, streams findings to the CosmicSec cloud platform, and supports full offline operation with automatic sync on reconnect.
 - **CosmicSec Agent CLI** (`cli/agent/README.md`)  
   CosmicSec Agent is a local-first security automation CLI that discovers tools on your machine, executes scans, and syncs results to CosmicSec cloud when available.
+- **@mufthakherul/cosmicsec-agent-cli** (`cli/agent/npm/README.md`)  
+  Official npm launcher for the CosmicSec Python CLI agent.
 - **Docker Compose with monitoring and best practices** (`docs/DEPLOYMENT_GUIDE.md`)  
   """ CosmicSec Modern Deployment Configurations Multi-environment setup with automated scaling and observability """
 - **Test Configuration for Vitest (Frontend)** (`docs/TESTING_GUIDE.md`)  
@@ -43,6 +47,12 @@
   <div align="center">
 - **CosmicSec CLI Agent Roadmap → Moved** (`ROADMAP_CLI_AGENT.md`)  
   > ⚠️ **This file has been replaced.** The active roadmap is now in: > > **[`docs/ROADMAP_UNIFIED.md`](docs/ROADMAP_UNIFIED.md)** > > Historical snapshots of the old CLI agent phases CA-1–CA-10 are preserved in: > > **[`docs/archive/roadmaps/ROADMAP_CLI_AGENT_ORIGINAL.md`](docs/archive/roadmaps/ROADMAP_CLI_AGENT_ORIGINAL.md)**
+- **Cross-Platform Development Guide** (`docs/CROSS_PLATFORM_GUIDE.md`)  
+  > Seamless development across Windows, Linux, and macOS without reconfiguration.
+- **Docker Troubleshooting and Best Practices Guide** (`docs/DOCKER_TROUBLESHOOTING.md`)  
+  ```bash cp .env.example .env
+- **CosmicSec Hosting & Deployment Requirements** (`docs/HOSTING_REQUIREMENTS.md`)  
+  > **Last Updated:** April 2026 > **Document Version:** 1.0
 - **ADR-005: Why Zustand (vs Redux Toolkit, Jotai, MobX)** (`docs/adr/ADR-005-zustand-over-redux.md`)  
   **Status**: Accepted **Date**: 2026-01-20 **Authors**: CosmicSec Frontend Team
 - **Archived Roadmaps** (`docs/archive/roadmaps/README.md`)  
@@ -65,36 +75,28 @@
   Run:
 - **CosmicSec CLI Workflows** (`docs/cli/workflows.md`)  
   ```bash cosmicsec-agent run "scan 10.0.0.0/24 with nmap and then generate report" ```
+- **CosmicSec User Documentation (Detailed)** (`docs/generated/USER_GUIDE_DETAILED.md`)  
+  > Generated automatically from repository documentation and metadata.
 - **Multi-Channel Notification Runbook** (`docs/runbooks/MULTI_CHANNEL_NOTIFICATIONS.md`)  
   Configure and operate CosmicSec notifications across Telegram, Discord, webhook, Redis pub/sub, email, Slack, and SSH command channels.
 - **Runbook: Adding a New Scanner Plugin** (`docs/runbooks/add-new-scanner-plugin.md`)  
   **Audience**: Security engineers, plugin contributors **Last updated**: 2026-04-16
 - **Runbook: Adding a New Microservice** (`docs/runbooks/add-new-service.md`)  
   **Audience**: Backend developers **Last updated**: 2026-04-16
-- **Runbook: Database Migration** (`docs/runbooks/database-migration.md`)  
-  **Audience**: Platform engineers, backend developers **Last updated**: 2026-04-16
-- **Deploy CosmicSec to Production** (`docs/runbooks/deploy-production.md`)  
-  - Docker 24+ and Docker Compose 2.20+ - PostgreSQL 16 instance (managed or self-hosted) - Redis 7+ instance - Domain name with DNS control - TLS certificate (Let's Encrypt recommended)
-- **CosmicSec Incident Response Runbook** (`docs/runbooks/incident-response.md`)  
-  | Level | Response Time | Examples | |-------|--------------|---------| | **P1 — Critical** | 15 min | Service completely down, data breach, auth bypass | | **P2 — High** | 1 hour | Performance degradation >50%, partial outage | | **P3 — Medium** | 4 hours | Single feature broken, minor data inconsistency | | **P4 — Low** | Next business day | UI glitch, non-critical feature degraded |
-- **cosmicsec-go-sdk** (`sdk/go/README.md`)  
-  Official Go SDK for the [CosmicSec](https://cosmicsec.io) Universal Cybersecurity Intelligence Platform.
-- **@cosmicsec/sdk — TypeScript SDK** (`sdk/typescript/README.md`)  
-  Official TypeScript/JavaScript SDK for the [CosmicSec](https://cosmicsec.io) Universal Cybersecurity Intelligence Platform.
 
 ## Recent Commits
-- `2165b4d Merge pull request #60 from mufthakherul/copilot/fix-session-issues-and-optimize-workflows`
-- `c00ab6f test: make notification mocks keyword-safe and keep assertions aligned`
-- `79168e0 chore: avoid docs-suite push triggers on generated docs output`
-- `a0f10a8 fix: align notification tests and enable docs/wiki auto workflow triggers`
-- `169d17b chore: outline plan for CI failure and workflow trigger fixes`
-- `3b88a95 Merge pull request #59 from mufthakherul/automation/main-security-autofix-24557978925`
-- `0354875 chore: automated security and quality autofixes`
-- `cb73412 ci(docs): add automated docs-suite and wiki sync workflows`
+- `127ef64 docs: Document all project improvements and enhancements`
+- `888cdc9 docs: Add Docker health checks and troubleshooting guide`
+- `826eab6 fix: Fix frontend TypeScript and ESLint issues`
+- `0a7d3ed fix: Fix Python code quality issues and import sorting`
+- `071098b feat: Add production-grade common service modules`
+- `19a1dee feat: Add environment variable overrides for API gateway and service discovery`
+- `068c4bc ci: update actionlint version to v1 for workflow quality checks`
+- `aaca9f9 test: mock ensureApiGatewayBaseUrl to return correct URL for useScanStream tests`
 
 ## Documentation Quality Flags
 - Candidate docs missing explicit top title: 1
-- Candidate very small docs (<30 words): 48
+- Candidate very small docs (<30 words): 58
 
 ### Missing Top Title Candidates
 - `CHANGELOG.md`
@@ -107,6 +109,9 @@
 - `CODE_OF_CONDUCT.md`
 - `CONTRIBUTING.md`
 - `DEPENDENCY_AUDIT.md`
+- `IMPLEMENTATION_CHECKLIST.md`
+- `IMPROVEMENTS_SUMMARY.md`
+- `QUICK_START.md`
 - `README.md`
 - `ROADMAP.md`
 - `ROADMAP_CLI_AGENT.md`
@@ -114,11 +119,17 @@
 - `SECURITY.md`
 - `cli/README.md`
 - `cli/agent/README.md`
+- `cli/agent/npm/README.md`
+- `docs/CROSS_PLATFORM_GUIDE.md`
 - `docs/DEPLOYMENT_GUIDE.md`
 - `docs/DIRECTORY_STRUCTURE.md`
+- `docs/DOCKER_TROUBLESHOOTING.md`
+- `docs/HOSTING_REQUIREMENTS.md`
+- `docs/IMPLEMENTATION_SUMMARY.md`
 - `docs/PROJECT_GOAL_AND_PROGRESS.md`
 - `docs/ROADMAP_CHANNEL_EXPANSION.md`
 - `docs/ROADMAP_UNIFIED.md`
+- `docs/SERVICE_DISCOVERY_FIX.md`
 - `docs/TESTING_GUIDE.md`
 - `docs/adr/ADR-001-fastapi-over-flask.md`
 - `docs/adr/ADR-002-postgresql-over-mysql.md`
@@ -138,6 +149,7 @@
 - `docs/cli/scanning.md`
 - `docs/cli/troubleshooting.md`
 - `docs/cli/workflows.md`
+- `docs/generated/USER_GUIDE_DETAILED.md`
 - `docs/runbooks/MULTI_CHANNEL_NOTIFICATIONS.md`
 - `docs/runbooks/add-new-scanner-plugin.md`
 - `docs/runbooks/add-new-service.md`
