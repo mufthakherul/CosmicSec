@@ -198,6 +198,25 @@ SHODAN_API_KEY=
 # VirusTotal API (optional)
 VIRUSTOTAL_API_KEY=
 
+# Recon network strategy (optional)
+# Comma-separated proxy list, for example:
+# COSMICSEC_RECON_PROXY_POOL=http://proxy1:8080,http://proxy2:8080
+COSMICSEC_RECON_PROXY_POOL=
+
+# Optional custom user-agent pool (comma-separated)
+COSMICSEC_RECON_USER_AGENT_POOL=
+
+# Tor SOCKS endpoint for onion routing (enable in UI with "Use Tor")
+# Example: socks5://tor-proxy:9050
+COSMICSEC_RECON_TOR_PROXY_URL=
+
+# Global egress strategy (applies to multiple services using shared egress helper)
+COSMICSEC_GLOBAL_PROXY_POOL=
+COSMICSEC_GLOBAL_USER_AGENT_POOL=
+COSMICSEC_GLOBAL_TOR_PROXY_URL=socks5://tor-proxy:9050
+# Global Tor mode: disabled | auto | enabled
+COSMICSEC_GLOBAL_TOR_MODE=auto
+
 # ==============================================================================
 # Observability
 # ==============================================================================

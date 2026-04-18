@@ -23,6 +23,8 @@ from typing import Any
 
 import httpx
 
+from services.common.egress import create_async_client
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -112,7 +114,12 @@ class OpenAIProvider(LLMProvider):
             "temperature": temperature,
         }
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        client, _ = create_async_client(
+            "ai-service",
+            target_url=f"{self._base_url}/chat/completions",
+            timeout=60.0,
+        )
+        async with client:
             resp = await client.post(
                 f"{self._base_url}/chat/completions",
                 headers=headers,
@@ -157,7 +164,12 @@ class OllamaProvider(LLMProvider):
 
     async def is_available(self) -> bool:
         try:
-            async with httpx.AsyncClient(timeout=3.0) as client:
+            client, _ = create_async_client(
+                "ai-service",
+                target_url=f"{self._base_url}/api/tags",
+                timeout=3.0,
+            )
+            async with client:
                 resp = await client.get(f"{self._base_url}/api/tags")
                 return resp.status_code == 200
         except (httpx.HTTPError, OSError):
@@ -165,14 +177,24 @@ class OllamaProvider(LLMProvider):
 
     async def list_models(self) -> list[dict[str, Any]]:
         """Return available Ollama models from the local server."""
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        client, _ = create_async_client(
+            "ai-service",
+            target_url=f"{self._base_url}/api/tags",
+            timeout=10.0,
+        )
+        async with client:
             resp = await client.get(f"{self._base_url}/api/tags")
             resp.raise_for_status()
             return resp.json().get("models", [])
 
     async def pull_model(self, model_name: str) -> dict[str, Any]:
         """Trigger a model download from the Ollama registry."""
-        async with httpx.AsyncClient(timeout=300.0) as client:
+        client, _ = create_async_client(
+            "ai-service",
+            target_url=f"{self._base_url}/api/pull",
+            timeout=300.0,
+        )
+        async with client:
             resp = await client.post(
                 f"{self._base_url}/api/pull",
                 json={"name": model_name},
@@ -200,7 +222,12 @@ class OllamaProvider(LLMProvider):
         if system:
             payload["system"] = system
 
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        client, _ = create_async_client(
+            "ai-service",
+            target_url=f"{self._base_url}/api/generate",
+            timeout=120.0,
+        )
+        async with client:
             resp = await client.post(
                 f"{self._base_url}/api/generate",
                 json=payload,
