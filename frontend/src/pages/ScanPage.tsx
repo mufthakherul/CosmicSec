@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Radar, Clock, CheckCircle, AlertCircle, Loader2, Play } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useScanStore, type Scan, type ScanStatus } from "../store/scanStore";
-import { shouldUseTorForTarget, useNetworkPreferencesStore } from "../store/networkPreferencesStore";
+import {
+  shouldUseTorForTarget,
+  useNetworkPreferencesStore,
+} from "../store/networkPreferencesStore";
 import { useNotificationStore } from "../store/notificationStore";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
@@ -65,9 +68,7 @@ export function ScanPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [timeoutSeconds, setTimeoutSeconds] = useState(300);
   const [scanDepth, setScanDepth] = useState<number>(2);
-  const [scanProfile, setScanProfile] = useState<"balanced" | "aggressive" | "stealth">(
-    "balanced",
-  );
+  const [scanProfile, setScanProfile] = useState<"balanced" | "aggressive" | "stealth">("balanced");
   const [maxRequestsPerMinute, setMaxRequestsPerMinute] = useState(180);
   const [enableAiPrioritization, setEnableAiPrioritization] = useState(true);
   const [pullStartY, setPullStartY] = useState<number | null>(null);
@@ -106,7 +107,12 @@ export function ScanPage() {
         body: JSON.stringify({
           target: trimmedTarget,
           scan_types: toScanTypes(scanType, selectedTools),
-          depth: scanType === "quick" ? Math.min(scanDepth, 1) : scanType === "full" ? Math.max(scanDepth, 3) : scanDepth,
+          depth:
+            scanType === "quick"
+              ? Math.min(scanDepth, 1)
+              : scanType === "full"
+                ? Math.max(scanDepth, 3)
+                : scanDepth,
           timeout: timeoutSeconds,
           options: {
             tools: Array.from(selectedTools),
@@ -167,8 +173,7 @@ export function ScanPage() {
       const mapped: Scan[] = payload.map((item) => ({
         id: item.id ?? `scan-${Date.now()}`,
         target: item.target ?? "unknown",
-        tool:
-          item.scan_types && item.scan_types.length > 0 ? item.scan_types.join(", ") : "remote",
+        tool: item.scan_types && item.scan_types.length > 0 ? item.scan_types.join(", ") : "remote",
         status: (item.status ?? "pending") as ScanStatus,
         progress:
           typeof item.progress === "number"

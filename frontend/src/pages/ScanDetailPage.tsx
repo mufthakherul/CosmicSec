@@ -113,13 +113,13 @@ export function ScanDetailPage() {
               remoteScan.scan_types && remoteScan.scan_types.length > 0
                 ? remoteScan.scan_types.join(", ")
                 : (scan?.tool ?? "remote"),
-            status: remoteScan.status ?? (scan?.status ?? "pending"),
+            status: remoteScan.status ?? scan?.status ?? "pending",
             progress:
               typeof remoteScan.progress === "number"
                 ? remoteScan.progress
                 : remoteScan.status === "completed"
                   ? 100
-                  : scan?.progress ?? 0,
+                  : (scan?.progress ?? 0),
             createdAt: remoteScan.created_at ?? scan?.createdAt ?? new Date().toISOString(),
           });
         }
