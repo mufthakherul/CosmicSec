@@ -75,6 +75,7 @@ export function AdminDashboardPage() {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [audit, setAudit] = useState<AuditRecord[]>([]);
   const [pluginAudit, setPluginAudit] = useState<PluginAuditRecord[]>([]);
+  const [pluginAuditScope, setPluginAuditScope] = useState<"admin" | "role" | "unknown">("unknown");
   const [pluginAuditQuery, setPluginAuditQuery] = useState("");
   const [pluginAuditAction, setPluginAuditAction] = useState("all");
   const [pluginAuditRole, setPluginAuditRole] = useState("all");
@@ -195,8 +196,12 @@ export function AdminDashboardPage() {
       setPluginRefreshMessage(null);
     }
     if (pluginAuditRes.ok) {
-      const payload = (await pluginAuditRes.json()) as { items?: PluginAuditRecord[] };
+      const payload = (await pluginAuditRes.json()) as {
+        items?: PluginAuditRecord[];
+        scope?: "admin" | "role";
+      };
       setPluginAudit(payload.items ?? []);
+      setPluginAudit(payload.scope ?? "unknown");
     }
   };
 
@@ -432,6 +437,9 @@ export function AdminDashboardPage() {
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">
               {pluginAuditFiltered.length} visible / {pluginAudit.length} total
+            </span>
+            <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs text-indigo-300">
+              {pluginAuditScope === "admin" ? "Full audit scope" : pluginAuditScope === "role" ? "Role-scoped audit" : "Scope pending"}
             </span>
             <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
               Trust score {pluginAuditSummary.trustScore}%
