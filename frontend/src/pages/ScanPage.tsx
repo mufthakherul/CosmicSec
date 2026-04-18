@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Radar, Clock, CheckCircle, AlertCircle, Loader2, Play } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
+import { Pagination } from "../components/Pagination";
 import { useScanStore, type Scan, type ScanStatus } from "../store/scanStore";
 import {
   shouldUseTorForTarget,
@@ -77,6 +78,8 @@ export function ScanPage() {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [swipedScanId, setSwipedScanId] = useState<string | null>(null);
   const [dismissedScanIds, setDismissedScanIds] = useState<Set<string>>(new Set());
+  const [scanPage, setScanPage] = useState(1);
+  const SCANS_PER_PAGE = 8;
 
   const toggleTool = (tool: Tool) =>
     setSelectedTools((prev) => {
@@ -88,6 +91,20 @@ export function ScanPage() {
       }
       return next;
     });
+
+  const visibleScans = useMemo(
+    () => scans.filter((scan) => !dismissedScanIds.has(scan.id)),
+    [dismissedScanIds, scans],
+  );
+  const scanPageCount = Math.max(1, Math.ceil(visibleScans.length / SCANS_PER_PAGE));
+  const pagedScans = useMemo(
+    () => visibleScans.slice((scanPage - 1) * SCANS_PER_PAGE, scanPage * SCANS_PER_PAGE),
+    [scanPage, visibleScans],
+  );
+
+  useEffect(() => {
+    setScanPage((page) => Math.min(page, Math.max(1, Math.ceil(visibleScans.length / SCANS_PER_PAGE))));
+  }, [visibleScans.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -409,79 +426,81 @@ export function ScanPage() {
                       {isRefreshing ? "Refreshing scans…" : "Pull down to refresh scans"}
                     </div>
                   )}
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>{visibleScans.length} visible scans</span>
+                    <span>Page {scanPage} of {scanPageCount}</span>
+                  </div>
                   <ul className="space-y-2">
-                    {scans
-                      .filter((scan) => !dismissedScanIds.has(scan.id))
-                      .slice(0, 20)
-                      .map((scan) => {
-                        const badge = STATUS_BADGE[scan.status];
-                        const BadgeIcon = badge.icon;
-                        return (
-                          <li key={scan.id}>
-                            <a
-                              href={`/scans/${scan.id}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                void navigate(`/scans/${scan.id}`);
-                              }}
-                              className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3 transition-colors hover:border-slate-700"
-                              onTouchStart={(event) => setTouchStartX(event.touches[0].clientX)}
-                              onTouchEnd={(event) => {
-                                if (touchStartX === null) return;
-                                const deltaX = touchStartX - event.changedTouches[0].clientX;
-                                if (deltaX > 60) setSwipedScanId(scan.id);
-                                if (deltaX < -40) setSwipedScanId(null);
-                                setTouchStartX(null);
-                              }}
+                    {pagedScans.map((scan) => {
+                      const badge = STATUS_BADGE[scan.status];
+                      const BadgeIcon = badge.icon;
+                      return (
+                        <li key={scan.id}>
+                          <a
+                            href={`/scans/${scan.id}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              void navigate(`/scans/${scan.id}`);
+                            }}
+                            className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3 transition-colors hover:border-slate-700"
+                            onTouchStart={(event) => setTouchStartX(event.touches[0].clientX)}
+                            onTouchEnd={(event) => {
+                              if (touchStartX === null) return;
+                              const deltaX = touchStartX - event.changedTouches[0].clientX;
+                              if (deltaX > 60) setSwipedScanId(scan.id);
+                              if (deltaX < -40) setSwipedScanId(null);
+                              setTouchStartX(null);
+                            }}
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-slate-200">
+                                {scan.target}
+                              </p>
+                              <p className="mt-0.5 truncate text-xs text-slate-500">
+                                {scan.tool} · {new Date(scan.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                            <span
+                              className={`ml-3 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
                             >
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-medium text-slate-200">
-                                  {scan.target}
-                                </p>
-                                <p className="mt-0.5 truncate text-xs text-slate-500">
-                                  {scan.tool} · {new Date(scan.createdAt).toLocaleString()}
-                                </p>
-                              </div>
-                              <span
-                                className={`ml-3 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
+                              <BadgeIcon
+                                className={`h-3 w-3 ${scan.status === "running" ? "animate-spin" : ""}`}
+                              />
+                              {badge.label}
+                            </span>
+                          </a>
+                          {swipedScanId === scan.id && (
+                            <div className="mt-1 grid grid-cols-3 gap-2">
+                              <button
+                                onClick={() => void navigate(`/scans/${scan.id}`)}
+                                className="min-h-8 rounded bg-cyan-500/20 px-2 py-1 text-[11px] font-medium text-cyan-300"
                               >
-                                <BadgeIcon
-                                  className={`h-3 w-3 ${scan.status === "running" ? "animate-spin" : ""}`}
-                                />
-                                {badge.label}
-                              </span>
-                            </a>
-                            {swipedScanId === scan.id && (
-                              <div className="mt-1 grid grid-cols-3 gap-2">
-                                <button
-                                  onClick={() => void navigate(`/scans/${scan.id}`)}
-                                  className="min-h-8 rounded bg-cyan-500/20 px-2 py-1 text-[11px] font-medium text-cyan-300"
-                                >
-                                  Open
-                                </button>
-                                <button
-                                  onClick={() => void refreshScans()}
-                                  className="min-h-8 rounded bg-amber-500/20 px-2 py-1 text-[11px] font-medium text-amber-300"
-                                >
-                                  Refresh
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setDismissedScanIds((previous) =>
-                                      new Set(previous).add(scan.id),
-                                    );
-                                    setSwipedScanId(null);
-                                  }}
-                                  className="min-h-8 rounded bg-rose-500/20 px-2 py-1 text-[11px] font-medium text-rose-300"
-                                >
-                                  Dismiss
-                                </button>
-                              </div>
-                            )}
-                          </li>
-                        );
-                      })}
+                                Open
+                              </button>
+                              <button
+                                onClick={() => void refreshScans()}
+                                className="min-h-8 rounded bg-amber-500/20 px-2 py-1 text-[11px] font-medium text-amber-300"
+                              >
+                                Refresh
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDismissedScanIds((previous) => new Set(previous).add(scan.id));
+                                  setSwipedScanId(null);
+                                }}
+                                className="min-h-8 rounded bg-rose-500/20 px-2 py-1 text-[11px] font-medium text-rose-300"
+                              >
+                                Dismiss
+                              </button>
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
+                  <div className="pt-2">
+                    <Pagination page={scanPage} totalPages={scanPageCount} onPageChange={setScanPage} />
+                  </div>
                 </div>
               )}
             </div>
