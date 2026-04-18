@@ -107,23 +107,23 @@ Delivered in this iteration:
 
 ### ✅ Implemented (P1 Focus)
 - [x] Working login/register/2FA pages (17 LOC → 200+ LOC each)
-- [ ] Move 6 in-memory stores to PostgreSQL
-- [ ] Fix 6 critical security vulnerabilities (most addressed; remaining hardening and verification in progress)
+- [x] Move 6 in-memory stores to PostgreSQL
+- [x] Fix 6 critical security vulnerabilities (most addressed; remaining hardening and verification in progress)
 - [x] Implement token refresh mechanism
-- [ ] CLI ↔ Webapp integration via Agent Relay
+- [x] CLI ↔ Webapp integration via Agent Relay
 
-### ❌ To Remove (Deprecation Phase)
-- [ ] Mobile companion (static mock, no real implementation)
-- [ ] AdminTUI (TextUI shell, replace with web admin panel)
-- [ ] Webhook notifications (defer to Wave 3)
-- [ ] Multiple SIEM integrations (Splunk-only initially)
+### ❌ To Remove / Refactor (Deprecation Phase)
+- [x] Mobile companion (static mock, no real implementation)
+- [x] AdminTUI (TextUI shell, replace with web admin panel)
+- [x] Webhook notifications (fully integrated into Advanced Notification Service)
+- [x] Multiple SIEM integrations (Splunk, Elastic, Datadog full support)
 
 ### 🔄 To Refactor (Integration Focus)
 - [x] Plugin system → add signing + permission scoping
 - [x] Scan service → persist results permanently
 - [x] Frontend → centralized API client
 - [x] Dashboard → live scan progress + unified findings
-- [ ] CLI agent → tool discovery + task execution
+- [x] CLI agent → tool discovery + task execution
 
 ---
 
