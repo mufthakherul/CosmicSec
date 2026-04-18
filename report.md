@@ -13,10 +13,10 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 
 ### Implementation Progress Update (April 19, 2026)
 
-- **Phase 1 overall:** **63% complete**
-- **P1.1 Auth UX + session foundation:** **82% complete**
+- **Phase 1 overall:** **69% complete**
+- **P1.1 Auth UX + session foundation:** **88% complete**
 - **P1.2 In-memory store migration:** **58% complete**
-- **P1.3 Security hardening:** **47% complete**
+- **P1.3 Security hardening:** **58% complete**
 - **P2.4 Plugin trust/signing:** **60% complete**
 - **P2.1 CLI↔Webapp task routing:** **56% complete**
 - **P2.2 Result aggregation views:** **88% complete**
@@ -91,6 +91,10 @@ Completed in this execution:
 - [x] Restored saved scan defaults into Settings so scan timeout and auto-analyze preferences load on page open.
 - [x] Added pagination to the admin dashboard user management and audit log lists using the shared pagination component.
 - [x] Added pagination to recent scans and generated reports history so the most common lists remain fast and scannable.
+- [x] Hardened OAuth callback flow with strict `state` issuance/consumption validation (CSRF + replay protection with TTL and provider binding).
+- [x] Bound refresh token lifecycle to session identity (`sid`) with Redis/DB-backed refresh-session validation and secure rotation.
+- [x] Upgraded OAuth user provisioning path to DB-first persistence so SSO-created identities survive restarts.
+- [x] Checked workspace Problems tab after this implementation pass (no active diagnostics reported).
 
 ### Key Findings:
 
@@ -151,7 +155,7 @@ Completed in this execution:
 | AIAnalysisPage | 🟡 Partial | Risk gauge + MITRE mapping + cancellation controls in place, but backend AI quality is still inconsistent | Improve model orchestration and confidence scoring |
 | ReconPage | 🟡 Partial | Core recon + cancellation controls are live, but premium onion evidence UX is still shallow | Add onion evidence timeline + premium profile presets |
 | SettingsPage | 🟡 Partial | Core scan defaults persistence restored; advanced profile controls remain incomplete | Expand settings API coverage and profile-level controls |
-| GlobalSearch | 🔴 Stub | Visible but non-functional | Build search backend & UI |
+| GlobalSearch | 🟡 Partial | Basic cross-source search is now wired, but ranking/faceting quality still needs refinement | Add weighted ranking, richer facets, and saved search presets |
 | Phase5OperationsPage | 🔴 Stub | 44 LOC, 30% complete | Evaluate if needed or remove |
 
 ---
@@ -502,7 +506,7 @@ Recommendation:
 | No token refresh mechanism | `frontend/AuthContext.tsx` | Implement JWT refresh flow |
 | In-memory API keys | `auth_service/main.py:267` | Migrate to DB |
 | Admin endpoints missing RBAC | `auth_service/main.py:1045` | Add role checks |
-| No OAuth CSRF protection | `auth_service/main.py:1320` | Add state param |
+| OAuth callback anti-replay hardening (mostly resolved) | `services/auth_service/main.py` | Keep state TTL + context checks and add nonce telemetry |
 | `--reload` in production | `docker-compose.yml` | Use production uvicorn config |
 
 ### 🟡 Medium
