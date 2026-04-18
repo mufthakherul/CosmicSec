@@ -1,3 +1,5 @@
+import json
+
 from fastapi.testclient import TestClient
 
 from services.ai_service.main import app
@@ -35,6 +37,18 @@ def test_ai_nl_query_endpoint() -> None:
     assert "source" in data
     assert data["source"] in ("chromadb", "tfidf")
     assert isinstance(data["guidance"], list)
+
+
+def test_ai_nl_query_stream_endpoint() -> None:
+    response = client.post("/query/stream", json={"query": "How do I fix SQL injection?"})
+    assert response.status_code == 200
+
+    lines = [line for line in response.text.splitlines() if line.strip()]
+    assert len(lines) >= 2
+
+    events = [json.loads(line) for line in lines]
+    assert events[0]["type"] == "status"
+    assert events[-1]["type"] == "final"
 
 
 def test_ai_mitre_endpoint() -> None:
