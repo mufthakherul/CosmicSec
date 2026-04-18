@@ -56,13 +56,15 @@ describe("useScanStream", () => {
     localStorage.setItem("cosmicsec_token", "test-token");
     MockWebSocket.instances = [];
     vi.stubGlobal("WebSocket", MockWebSocket as unknown as typeof WebSocket);
-    
+
     // Mock the ensureApiGatewayBaseUrl to resolve immediately
-    vi.spyOn(runtimeEndpoints, "ensureApiGatewayBaseUrl").mockResolvedValue("http://localhost:8000");
-    vi.spyOn(runtimeEndpoints, "getApiGatewayWebSocketUrl").mockImplementation(
-      (path) => `ws://localhost:8000${path}`
+    vi.spyOn(runtimeEndpoints, "ensureApiGatewayBaseUrl").mockResolvedValue(
+      "http://localhost:8000",
     );
-    
+    vi.spyOn(runtimeEndpoints, "getApiGatewayWebSocketUrl").mockImplementation(
+      (path) => `ws://localhost:8000${path}`,
+    );
+
     useScanStore.setState({ scans: [makeScan()], activeScan: null, _hydrated: true });
   });
 
@@ -85,7 +87,7 @@ describe("useScanStream", () => {
     render(createElement(HookHarness, { scanId: "scan-1" }));
     await Promise.resolve();
     await vi.runAllTimersAsync();
-    
+
     const ws = MockWebSocket.instances[0];
     if (!ws) throw new Error("WebSocket instance not found");
 
@@ -119,10 +121,10 @@ describe("useScanStream", () => {
     render(createElement(HookHarness, { scanId: "scan-1" }));
     await Promise.resolve();
     await vi.runAllTimersAsync();
-    
+
     const first = MockWebSocket.instances[0];
     if (!first) throw new Error("WebSocket instance not found");
-    
+
     first.emitClose();
     await vi.runAllTimersAsync();
     expect(MockWebSocket.instances.length).toBeGreaterThanOrEqual(2);

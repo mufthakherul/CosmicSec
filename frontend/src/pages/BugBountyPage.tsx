@@ -107,7 +107,9 @@ export function BugBountyPage() {
   const [formSeverity, setFormSeverity] = useState("high");
   const [formDescription, setFormDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const isPreview = typeof window !== "undefined" && window.localStorage.getItem("cosmicsec_token")?.startsWith("demo-preview");
+  const isPreview =
+    typeof window !== "undefined" &&
+    window.localStorage.getItem("cosmicsec_token")?.startsWith("demo-preview");
 
   const token = localStorage.getItem("cosmicsec_token");
   const headers: Record<string, string> = {
