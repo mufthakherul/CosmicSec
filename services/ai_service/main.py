@@ -7,6 +7,7 @@ Phase S.1: Redis caching for analysis results (1 hour TTL) and MITRE mappings (2
 """
 
 import contextlib
+import json
 import hashlib
 import json as _json_module
 import logging
@@ -17,6 +18,7 @@ from datetime import UTC, datetime
 
 import httpx
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from cosmicsec_platform.service_discovery import get_service_url
@@ -621,6 +623,122 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
         "llm_response": llm_text,
         "timestamp": datetime.now(tz=UTC).isoformat(),
     }
+
+
+def _chunk_text(text: str, size: int = 180) -> list[str]:
+    if not text:
+        return []
+    return [text[i : i + size] for i in range(0, len(text), size)]
+
+
+@app.post("/query/stream")
+async def natural_language_query_stream(payload: NLQueryRequest) -> StreamingResponse:
+    """Stream natural language query results as NDJSON events for progressive chat UX."""
+
+    async def _emit() -> object:
+        base_event = {
+            "query": payload.query,
+            "source": (payload.source or "web").strip().lower() or "web",
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+        }
+
+        yield (json.dumps({"type": "status", "message": "Analyzing request...", **base_event}) + "\n").encode("utf-8")
+
+        result = await natural_language_query(payload)
+
+        execution = result.get("execution") if isinstance(result, dict) else None
+        if isinstance(execution, dict):
+            yield (
+                json.dumps(
+                    {
+                        "type": "execution",
+                        "execution": execution,
+                        "message": "Execution policy resolved.",
+                        **base_event,
+                    }
+                )
+                + "\n"
+            ).encode("utf-8")
+
+        command_result = result.get("command_result") if isinstance(result, dict) else None
+        if isinstance(command_result, dict) and command_result:
+            yield (
+                json.dumps(
+                    {
+                        "type": "command_result",
+                        "command_result": command_result,
+                        "message": "Command execution result available.",
+                        **base_event,
+                    }
+                )
+                + "\n"
+            ).encode("utf-8")
+
+        guidance = result.get("guidance") if isinstance(result, dict) else None
+        if isinstance(guidance, list):
+            for item in guidance:
+                if not isinstance(item, str) or not item.strip():
+                    continue
+                yield (
+                    json.dumps(
+                        {
+                            "type": "guidance",
+                            "guidance": item,
+                            **base_event,
+                        }
+                    )
+                    + "\n"
+                ).encode("utf-8")
+
+        actions = result.get("actions") if isinstance(result, dict) else None
+        if isinstance(actions, list):
+            for item in actions:
+                if not isinstance(item, str) or not item.strip():
+                    continue
+                yield (
+                    json.dumps(
+                        {
+                            "type": "action",
+                            "action": item,
+                            **base_event,
+                        }
+                    )
+                    + "\n"
+                ).encode("utf-8")
+
+        llm_response = result.get("llm_response") if isinstance(result, dict) else None
+        if isinstance(llm_response, str) and llm_response.strip():
+            for chunk in _chunk_text(llm_response.strip()):
+                yield (
+                    json.dumps(
+                        {
+                            "type": "llm_chunk",
+                            "delta": chunk,
+                            **base_event,
+                        }
+                    )
+                    + "\n"
+                ).encode("utf-8")
+
+        yield (
+            json.dumps(
+                {
+                    "type": "final",
+                    "payload": result,
+                    **base_event,
+                }
+            )
+            + "\n"
+        ).encode("utf-8")
+
+    return StreamingResponse(
+        _emit(),
+        media_type="application/x-ndjson",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.post("/analyze/mitre", response_model=MitreResponse)

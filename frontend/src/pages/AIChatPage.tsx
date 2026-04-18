@@ -45,6 +45,18 @@ interface AIQueryResponse {
   };
 }
 
+interface AIStreamEvent {
+  type?: string;
+  message?: string;
+  detail?: string;
+  guidance?: string;
+  action?: string;
+  delta?: string;
+  execution?: AIQueryResponse["execution"];
+  command_result?: AIQueryResponse["command_result"];
+  payload?: AIQueryResponse;
+}
+
 function nextId() {
   return `msg-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 }
@@ -67,6 +79,16 @@ export function AIChatPage() {
 
   const appendMessage = (role: ChatRole, content: string) => {
     setMessages((prev) => [...prev, { id: nextId(), role, content }]);
+  };
+
+  const appendMessageWithId = (role: ChatRole, content: string): string => {
+    const id = nextId();
+    setMessages((prev) => [...prev, { id, role, content }]);
+    return id;
+  };
+
+  const updateMessage = (id: string, content: string) => {
+    setMessages((prev) => prev.map((msg) => (msg.id === id ? { ...msg, content } : msg)));
   };
 
   const formatAssistantReply = (payload: AIQueryResponse): string => {
@@ -138,6 +160,106 @@ export function AIChatPage() {
     return blocks.join("\n\n");
   };
 
+  const applyStreamEvent = (
+    current: AIQueryResponse,
+    event: AIStreamEvent,
+  ): AIQueryResponse => {
+    if (event.type === "final" && event.payload) {
+      return event.payload;
+    }
+
+    const guidance = current.guidance ? [...current.guidance] : [];
+    const actions = current.actions ? [...current.actions] : [];
+    const llmResponse = current.llm_response ?? "";
+
+    if (event.type === "guidance" && event.guidance) {
+      guidance.push(event.guidance);
+    }
+
+    if (event.type === "action" && event.action) {
+      actions.push(event.action);
+    }
+
+    return {
+      ...current,
+      execution: event.execution ?? current.execution,
+      command_result: event.command_result ?? current.command_result,
+      guidance,
+      actions,
+      llm_response:
+        event.type === "llm_chunk" && event.delta
+          ? `${llmResponse}${event.delta}`
+          : current.llm_response,
+    };
+  };
+
+  const streamQuery = async (text: string, ctx: string, messageId: string) => {
+    const res = await fetch(`${API}/api/ai/query/stream`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CosmicSec-Client": "web",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        query: text,
+        context: ctx.trim() || undefined,
+        source: "web",
+        preferred_model: "phi3:mini",
+        enable_model_response: true,
+      }),
+    });
+
+    if (!res.ok || !res.body) {
+      const detail = await res.text().catch(() => "");
+      throw new Error(detail || `AI stream failed with status ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let assembled: AIQueryResponse = { query: text };
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        let event: AIStreamEvent;
+        try {
+          event = JSON.parse(trimmed) as AIStreamEvent;
+        } catch {
+          continue;
+        }
+
+        if (event.type === "error") {
+          throw new Error(event.detail || event.message || "AI streaming failed");
+        }
+
+        assembled = applyStreamEvent(assembled, event);
+        updateMessage(messageId, formatAssistantReply(assembled));
+      }
+    }
+
+    if (buffer.trim()) {
+      try {
+        const event = JSON.parse(buffer.trim()) as AIStreamEvent;
+        assembled = applyStreamEvent(assembled, event);
+      } catch {
+        // Ignore malformed trailing data from interrupted streams.
+      }
+    }
+
+    updateMessage(messageId, formatAssistantReply(assembled));
+  };
+
   const sendQuery = async (input: string, ctx = context) => {
     const text = input.trim();
     if (!text || loading) return;
@@ -145,35 +267,17 @@ export function AIChatPage() {
     appendMessage("user", text);
     setQuery("");
     setLoading(true);
+    const assistantMessageId = appendMessageWithId(
+      "assistant",
+      "Analyzing request and preparing live response...",
+    );
 
     try {
-      const res = await fetch(`${API}/api/ai/query`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CosmicSec-Client": "web",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          query: text,
-          context: ctx.trim() || undefined,
-          source: "web",
-          preferred_model: "phi3:mini",
-          enable_model_response: true,
-        }),
-      });
-
-      if (!res.ok) {
-        const detail = await res.text().catch(() => "");
-        throw new Error(detail || `AI query failed with status ${res.status}`);
-      }
-
-      const data = (await res.json()) as AIQueryResponse;
-      appendMessage("assistant", formatAssistantReply(data));
+      await streamQuery(text, ctx, assistantMessageId);
       addNotification({ type: "success", message: "AI response received." });
     } catch {
-      appendMessage(
-        "assistant",
+      updateMessage(
+        assistantMessageId,
         "AI service request failed. Verify ai-service/api-gateway health and local model runtime if you expect model output.",
       );
       addNotification({ type: "error", message: "AI chat request failed." });
