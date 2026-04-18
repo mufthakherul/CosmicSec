@@ -1,5 +1,59 @@
 # Changelog
 
+## [0.3.0](https://github.com/mufthakherul/CosmicSec/compare/v0.2.0...v0.3.0) (2026-04-18)
+
+
+### Features
+
+* add cross-linked plugin and timeline context navigation ([25eb243](https://github.com/mufthakherul/CosmicSec/commit/25eb2433b04dddab090e1c6e1e00c609dbd8995b))
+* add cross-platform config detection, service discovery, self-hosting setup, and documentation ([f488280](https://github.com/mufthakherul/CosmicSec/commit/f48828015928739d3011bc125e014faa77fee874))
+* add dashboard aggregation and plugin trust console ([878f262](https://github.com/mufthakherul/CosmicSec/commit/878f262fcd220503244e6a96e989ca279146c3a8))
+* add endpoint resolver and diagnostics UI components ([9588aa0](https://github.com/mufthakherul/CosmicSec/commit/9588aa0bbec1d95bb0bfb08ccb0a8dbd62d06901))
+* Add environment variable overrides for API gateway and service discovery ([19a1dee](https://github.com/mufthakherul/CosmicSec/commit/19a1deebf75acafe65be4bde6204428eb99e33bd))
+* add npm installer package and GitHub publish workflow for cosmicsec agent ([71ade28](https://github.com/mufthakherul/CosmicSec/commit/71ade28340a20f53d7540a044ea842638f17b71b))
+* add plugin audit filters and export ([53b6ff6](https://github.com/mufthakherul/CosmicSec/commit/53b6ff6caa925f1c594652b539a91826b1bb2bc6))
+* add plugin detail drill-down ([669b34c](https://github.com/mufthakherul/CosmicSec/commit/669b34cfcaef95e671e24510ffebf9bc0f74c1b9))
+* add plugin trust audit trail ([bfa11f2](https://github.com/mufthakherul/CosmicSec/commit/bfa11f259a992954dbf15c23a174d87753b2c0ed))
+* Add production-grade common service modules ([071098b](https://github.com/mufthakherul/CosmicSec/commit/071098baff67231f7c4644e0e5b1f29fd20c70da))
+* add role-aware plugin audit visibility ([02aaad1](https://github.com/mufthakherul/CosmicSec/commit/02aaad1c3ef62705f42b84d1d5a3b117bdd14bdb))
+* add scan and timeline aggregations ([51e4d2a](https://github.com/mufthakherul/CosmicSec/commit/51e4d2a8cf7d42f083772ec459ebf7384689d210))
+* **agent-routing:** add end-to-end task dispatch and lifecycle telemetry ([2a1bf33](https://github.com/mufthakherul/CosmicSec/commit/2a1bf3342a1bf1d1865f080ca0498c8233224c64))
+* **auth:** add db-first persistence helpers and auth proxy flow endpoints ([2cc6c30](https://github.com/mufthakherul/CosmicSec/commit/2cc6c304be60b7ea4112d6e2437c4f851c728baa))
+* **dashboard:** add findings trend aggregation and risk snapshot ([6721333](https://github.com/mufthakherul/CosmicSec/commit/67213330ab4a1b3245a7ac67789b9af919a0d961))
+* **egress:** add shared tor-aware outbound service ([9d95a5b](https://github.com/mufthakherul/CosmicSec/commit/9d95a5ba18adbc6f310d234dfb9ef7f945cf1d65))
+* enforce role-scoped plugin audit visibility ([77bcf11](https://github.com/mufthakherul/CosmicSec/commit/77bcf116de51e00bd6ad85806142a7896f7682d9))
+* **frontend:** add global tor controls and polish ui ([1d6aabd](https://github.com/mufthakherul/CosmicSec/commit/1d6aabd6960f6b86d24cff623bce2aab420d9491))
+* **frontend:** strengthen auth session lifecycle and centralized API usage ([b836ba1](https://github.com/mufthakherul/CosmicSec/commit/b836ba1d590cad9e584fd0b5b51241a42355970e))
+* **notification:** expand multi-channel delivery and roadmap/runbook docs ([5af7ac7](https://github.com/mufthakherul/CosmicSec/commit/5af7ac7ea50c4c5b376c328224cf5b3cf937d574))
+* **plugin-trust:** persist plugin audit logs and expose scoped admin visibility ([56c18f4](https://github.com/mufthakherul/CosmicSec/commit/56c18f47d045b919b37a1d14d2fb55d5201b5ab5))
+* **plugins:** add signature verification and permission-gated execution ([5bb8063](https://github.com/mufthakherul/CosmicSec/commit/5bb8063f998bbc9329654ebbc20999cb9897a4eb))
+* **plugins:** roll out signature sidecars for official plugin catalog ([e125e56](https://github.com/mufthakherul/CosmicSec/commit/e125e5614005b5bd0bd0ef1093385c0f59e20f67))
+* publish CosmicSec showcase ([d57fe1a](https://github.com/mufthakherul/CosmicSec/commit/d57fe1a9d3380f5338b4127ac38b901eecb1834c))
+* **scans:** add cancellation workflow across service and UI ([571ca13](https://github.com/mufthakherul/CosmicSec/commit/571ca138595fef2002b87536d6ba2292b5014951))
+* **scan:** strengthen db-first execution flow and add findings trend analytics ([9fcc6e3](https://github.com/mufthakherul/CosmicSec/commit/9fcc6e3936fc6e857b83f5787cf71ff96e63ee8d))
+* **security:** harden collab ws/cors and tighten 2fa fallback behavior ([edf4d08](https://github.com/mufthakherul/CosmicSec/commit/edf4d089a4f4a365014817fa302615f49ae9887c))
+* **timeline:** merge plugin trust events into unified event feed ([015d641](https://github.com/mufthakherul/CosmicSec/commit/015d6419299051f2087e2c48417f9c5e2b21eeed))
+* **tor:** harden onion validation and scan fallbacks ([1e71584](https://github.com/mufthakherul/CosmicSec/commit/1e7158434d5dd5f08cdf95ed75b6d405f9eef678))
+* **web:** add AI chat and fix recon/scan reliability ([d28f90c](https://github.com/mufthakherul/CosmicSec/commit/d28f90c17ef1b72fcf124d6f8f110781c8930085))
+
+
+### Bug Fixes
+
+* align notification tests and enable docs/wiki auto workflow triggers ([a0f10a8](https://github.com/mufthakherul/CosmicSec/commit/a0f10a89e674453475f64ec41b94db78a5851bdb))
+* align npm installer verification and publish access settings ([c2bcfc4](https://github.com/mufthakherul/CosmicSec/commit/c2bcfc47035afa40801d732a7cade6c170f8d4df))
+* bump trivy-action to 0.35.0 in workflows ([4c0c03d](https://github.com/mufthakherul/CosmicSec/commit/4c0c03df2daedff10e2b1b29202203f640ef61e5))
+* **ci:** remove shellcheck-breaking backticks in workflow summaries ([0772122](https://github.com/mufthakherul/CosmicSec/commit/0772122ea56642b0f7e677647ee9aba801649425))
+* **compose:** default tor proxy url for recon/scan egress ([27b8e64](https://github.com/mufthakherul/CosmicSec/commit/27b8e640b6d3d067ce662891428178016d4912ca))
+* **compose:** make one-command startup and ingest/broker builds reliable ([8a36889](https://github.com/mufthakherul/CosmicSec/commit/8a3688989e83b985d80a39cdb92d858c17c12109))
+* Fix frontend TypeScript and ESLint issues ([826eab6](https://github.com/mufthakherul/CosmicSec/commit/826eab62be10fcab29bdf882f6b6974c197cdee9))
+* Fix Python code quality issues and import sorting ([0a7d3ed](https://github.com/mufthakherul/CosmicSec/commit/0a7d3eda4a53582b387835906b6e4a8f989b48cc))
+* frontend problems-tab fixes and page updates ([533619f](https://github.com/mufthakherul/CosmicSec/commit/533619f2f255c6bdf7b4ee5d78312160c0f470e9))
+* **frontend:** resolve remaining UI lint and accessibility issues ([661ce86](https://github.com/mufthakherul/CosmicSec/commit/661ce862e39542dc57aed53714e7a8ad7349474d))
+* handle trufflehog initial-push edge case and align sri parsing ([1a5ab34](https://github.com/mufthakherul/CosmicSec/commit/1a5ab34c5234689f26207e751672d12658c103cf))
+* resolve Python lint issues in plugin registry, config detection, and agent CLI ([d334d6a](https://github.com/mufthakherul/CosmicSec/commit/d334d6add67813a1aabc1fa4911fc17da2b1cffb))
+* stabilize CI workflows and refresh frontend lockfile ([bcf5493](https://github.com/mufthakherul/CosmicSec/commit/bcf54938d7398f33611e40f14eb07cb5df3e5fbf))
+* track npm installer library and unignore package lib path ([2a02ae0](https://github.com/mufthakherul/CosmicSec/commit/2a02ae09f528a475bf76b512c12e367636391ea0))
+
 ## [0.2.0](https://github.com/mufthakherul/CosmicSec/compare/v0.1.0...v0.2.0) (2026-04-16)
 
 
