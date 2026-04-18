@@ -123,6 +123,10 @@ Delivered in this iteration:
 - [x] Hardened ScanPage async tests to remove `act(...)` warning noise and keep UI bootstrap interactions deterministic in Vitest.
 - [x] Aligned Poetry dependencies with auth runtime imports by adding `pyotp` and `casbin` to the managed dependency contract.
 - [x] Completed uninterrupted backend full-suite validation (`240 passed, 10 skipped`) to close prior long-run confidence gap.
+- [x] Added AI service NDJSON streaming endpoint (`POST /query/stream`) for progressive live-response delivery.
+- [x] Added API gateway streaming proxy (`POST /api/ai/query/stream`) with stream-safe error propagation and no-cache buffering controls.
+- [x] Upgraded web AI chat experience to consume live stream events and progressively render model/execution output in-session.
+- [x] Added dedicated backend regression test coverage for the AI stream contract.
 
 ---
 

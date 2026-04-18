@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-CosmicSec has **excellent foundational architecture** but suffers from **incomplete workflow integration** between CLI and webapp, **disconnected modules**, and **unnecessary feature bloat**. The platform is currently at ~85% implementation maturity.
+CosmicSec has **excellent foundational architecture** but still has **partial workflow fragmentation** between CLI and webapp in advanced orchestration paths, plus some **feature bloat**. The platform is currently at ~89% implementation maturity.
 
 ### Next-Gen Implementation Progress Update (April 20, 2026)
 
@@ -129,6 +129,10 @@ Completed in this execution:
 - [x] Eliminated ScanPage test `act(...)` warning noise by hardening async bootstrap/test isolation in `frontend/src/__tests__/pages/ScanPage.test.tsx`; targeted suite now clean and green.
 - [x] Added missing auth dependencies (`pyotp`, `casbin`) to Poetry dependency manifest to align editor/runtime dependency contracts.
 - [x] Completed uninterrupted backend full-suite verification pass: `240 passed, 10 skipped` (with non-blocking FastAPI deprecation warnings only).
+- [x] Added AI-service streaming endpoint `POST /query/stream` with progressive NDJSON event emission (`status`, `execution`, `command_result`, `guidance`, `action`, `llm_chunk`, `final`).
+- [x] Added API-gateway streaming proxy `POST /api/ai/query/stream` with resilient pass-through and structured stream error handling.
+- [x] Upgraded `AIChatPage` to consume live stream events and progressively render assistant responses in real time (instead of batch-only final replies).
+- [x] Added backend regression coverage for AI streaming path (`test_ai_nl_query_stream_endpoint`).
 
 ### Key Findings:
 
@@ -141,10 +145,10 @@ Completed in this execution:
 - Multi-language stack (Python, Rust, Go, TypeScript)
 
 ⚠️ **Critical Issues:**
-- CLI ↔ Webapp workflow not properly integrated
+- Unified CLI ↔ Webapp registry/execution contract is still incomplete for deeper per-tool orchestration
 - Many services use in-memory storage (data lost on restart)
 - Auth lifecycle still needs backend hardening despite improved frontend UX
-- AI service still contains stubbed/non-production logic in several analysis paths
+- AI service still has partial/non-production logic in several advanced analysis paths
 - Frontend API centralization is now started but not yet adopted project-wide
 - ~40% of endpoints are incomplete or stubbed
 
@@ -166,7 +170,7 @@ Completed in this execution:
 | **Auth Service** | 🟡 Partial | 70% | In-memory 2FA/API keys, hardcoded admin pwd | Migrate to DB, add token refresh |
 | **API Gateway** | 🟢 Functional | 85% | CORS overly permissive, rate-limiting gaps | Tighten CORS, per-endpoint limits |
 | **Scan Service** | 🟡 Partial | 82% | DB-first persistence and cancellation are in place, but deeper agent/local correlation UX is still evolving | Expand local+cloud result correlation and real-time enrichment |
-| **AI Service** | 🔴 Stubbed | 30% | 10+ NotImplemented methods, no real LLM calls | Implement LangGraph, test with phi3 mimi model |
+| **AI Service** | 🟡 Partial | 72% | Command routing + live streaming now active, but deeper multi-tool orchestration and production model failover remain | Implement server-side hybrid orchestration and production provider switchover |
 | **Recon Service** | 🟡 Partial | 68% | Cache strategy exists but premium onion policy/rate controls are still incomplete | Expand policy controls + metered recon governance |
 | **Report Service** | 🟡 Partial | 65% | XSS risk in HTML generation (f-string concat) | Use templating engine (Jinja2) |
 | **Collab Service** | 🟡 Partial | 55% | No auth on WebSocket upgrade, in-memory rooms | Add auth middleware, persist rooms |
