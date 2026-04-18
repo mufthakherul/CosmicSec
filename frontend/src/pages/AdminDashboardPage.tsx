@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { Button } from "../components/ui/button";
+import { useAuth } from "../context/AuthContext";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
 type DashboardSnapshot = {
@@ -31,7 +32,16 @@ type AuditRecord = {
 
 const API = getApiGatewayBaseUrl();
 
+const DEMO_SNAPSHOT: DashboardSnapshot = {
+  timestamp: Date.now(),
+  system_health: "healthy",
+  active_scans: 3,
+  user_activity: "steady",
+  resource_utilization: { cpu: 34, memory: 48, network: 12 },
+};
+
 export function AdminDashboardPage() {
+  const { token, user } = useAuth();
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null);
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [audit, setAudit] = useState<AuditRecord[]>([]);
@@ -54,6 +64,11 @@ export function AdminDashboardPage() {
   const chartHeight = useMemo(() => 140, []);
 
   useEffect(() => {
+    if (!token || token.startsWith("demo-preview") || user?.role === "demo_viewer") {
+      setSnapshot(DEMO_SNAPSHOT);
+      return;
+    }
+
     const wsBase = API.replace(/^http/, "ws") || `ws://${window.location.host}`;
     const ws = new WebSocket(`${wsBase}/ws/dashboard`);
     ws.onmessage = (event) => {
@@ -66,9 +81,16 @@ export function AdminDashboardPage() {
     };
 
     return () => ws.close();
-  }, []);
+  }, [token, user?.role]);
 
   const loadAdminData = async () => {
+    if (!token || token.startsWith("demo-preview") || user?.role === "demo_viewer") {
+      setUsers([]);
+      setAudit([]);
+      setConfig({});
+      return;
+    }
+
     const [usersRes, auditRes, configRes] = await Promise.all([
       fetch(`${API}/api/admin/users`),
       fetch(`${API}/api/admin/audit-logs`),
@@ -91,7 +113,7 @@ export function AdminDashboardPage() {
 
   useEffect(() => {
     void loadAdminData();
-  }, []);
+  }, [token, user?.role]);
 
   const createUser = async () => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";

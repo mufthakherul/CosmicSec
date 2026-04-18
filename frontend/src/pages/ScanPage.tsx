@@ -1,14 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Radar, Clock, CheckCircle, AlertCircle, Loader2, Play } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useScanStore, type Scan, type ScanStatus } from "../store/scanStore";
+import { shouldUseTorForTarget, useNetworkPreferencesStore } from "../store/networkPreferencesStore";
 import { useNotificationStore } from "../store/notificationStore";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
 const API = getApiGatewayBaseUrl();
 
-const TOOLS = ["nmap", "nikto", "nuclei", "gobuster", "sqlmap"] as const;
+const TOOLS = [
+  "nmap",
+  "nikto",
+  "nuclei",
+  "gobuster",
+  "sqlmap",
+  "ffuf",
+  "masscan",
+  "zap",
+  "trivy",
+] as const;
 type Tool = (typeof TOOLS)[number];
 
 const STATUS_BADGE: Record<
@@ -43,12 +54,22 @@ function toScanTypes(scanType: "quick" | "full" | "custom", tools: Set<Tool>): s
 export function ScanPage() {
   const navigate = useNavigate();
   const { scans, addScan, setScans } = useScanStore();
+  const torMode = useNetworkPreferencesStore((s) => s.torMode);
+  const setTorMode = useNetworkPreferencesStore((s) => s.setTorMode);
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   const [target, setTarget] = useState("");
   const [scanType, setScanType] = useState<"quick" | "full" | "custom">("quick");
   const [selectedTools, setSelectedTools] = useState<Set<Tool>>(new Set(["nmap", "nuclei"]));
   const [submitting, setSubmitting] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [timeoutSeconds, setTimeoutSeconds] = useState(300);
+  const [scanDepth, setScanDepth] = useState<number>(2);
+  const [scanProfile, setScanProfile] = useState<"balanced" | "aggressive" | "stealth">(
+    "balanced",
+  );
+  const [maxRequestsPerMinute, setMaxRequestsPerMinute] = useState(180);
+  const [enableAiPrioritization, setEnableAiPrioritization] = useState(true);
   const [pullStartY, setPullStartY] = useState<number | null>(null);
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -74,6 +95,8 @@ export function ScanPage() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("cosmicsec_token");
+      const trimmedTarget = target.trim();
+      const shouldUseTor = shouldUseTorForTarget(trimmedTarget, torMode);
       const res = await fetch(`${API}/api/scans`, {
         method: "POST",
         headers: {
@@ -81,11 +104,18 @@ export function ScanPage() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          target: target.trim(),
+          target: trimmedTarget,
           scan_types: toScanTypes(scanType, selectedTools),
-          depth: scanType === "quick" ? 1 : scanType === "full" ? 3 : 2,
-          timeout: 300,
-          options: { tools: Array.from(selectedTools) },
+          depth: scanType === "quick" ? Math.min(scanDepth, 1) : scanType === "full" ? Math.max(scanDepth, 3) : scanDepth,
+          timeout: timeoutSeconds,
+          options: {
+            tools: Array.from(selectedTools),
+            profile: scanProfile,
+            max_requests_per_minute: maxRequestsPerMinute,
+            ai_prioritization: enableAiPrioritization,
+            use_tor: shouldUseTor,
+            tor_mode: torMode,
+          },
         }),
       });
 
@@ -94,7 +124,7 @@ export function ScanPage() {
 
       const newScan: Scan = {
         id,
-        target: target.trim(),
+        target: trimmedTarget,
         tool: Array.from(selectedTools).join(", "),
         status: "pending",
         progress: 0,
@@ -102,7 +132,7 @@ export function ScanPage() {
         createdAt: new Date().toISOString(),
       };
       addScan(newScan);
-      addNotification({ type: "success", message: `Scan queued for ${target.trim()}` });
+      addNotification({ type: "success", message: `Scan queued for ${trimmedTarget}` });
       void navigate(`/scans/${id}`);
     } catch {
       addNotification({
@@ -128,16 +158,26 @@ export function ScanPage() {
       const payload = (await res.json()) as Array<{
         id?: string;
         target?: string;
+        scan_types?: string[];
         status?: ScanStatus;
+        progress?: number;
         created_at?: string;
       }>;
       if (!Array.isArray(payload)) return;
       const mapped: Scan[] = payload.map((item) => ({
         id: item.id ?? `scan-${Date.now()}`,
         target: item.target ?? "unknown",
-        tool: "remote",
+        tool:
+          item.scan_types && item.scan_types.length > 0 ? item.scan_types.join(", ") : "remote",
         status: (item.status ?? "pending") as ScanStatus,
-        progress: item.status === "completed" ? 100 : item.status === "running" ? 60 : 0,
+        progress:
+          typeof item.progress === "number"
+            ? item.progress
+            : item.status === "completed"
+              ? 100
+              : item.status === "running"
+                ? 60
+                : 0,
         findings: [],
         createdAt: item.created_at ?? new Date().toISOString(),
       }));
@@ -166,6 +206,11 @@ export function ScanPage() {
     setPullStartY(null);
     setPullDistance(0);
   };
+
+  useEffect(() => {
+    void refreshScans();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <AppLayout>
@@ -234,6 +279,91 @@ export function ScanPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced((v) => !v)}
+                    className="flex w-full items-center justify-between text-left text-xs font-semibold uppercase tracking-wide text-slate-300"
+                  >
+                    Advanced Options
+                    <span className="text-slate-500">{showAdvanced ? "Hide" : "Show"}</span>
+                  </button>
+
+                  {showAdvanced ? (
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <label className="text-xs text-slate-400">
+                        Timeout (seconds)
+                        <input
+                          type="number"
+                          min={30}
+                          max={1800}
+                          value={timeoutSeconds}
+                          onChange={(e) => setTimeoutSeconds(Number(e.target.value) || 300)}
+                          className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200"
+                        />
+                      </label>
+                      <label className="text-xs text-slate-400">
+                        Scan depth
+                        <input
+                          type="number"
+                          min={1}
+                          max={6}
+                          value={scanDepth}
+                          onChange={(e) => setScanDepth(Number(e.target.value) || 2)}
+                          className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200"
+                        />
+                      </label>
+                      <label className="text-xs text-slate-400">
+                        Scan profile
+                        <select
+                          value={scanProfile}
+                          onChange={(e) => setScanProfile(e.target.value as typeof scanProfile)}
+                          className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200"
+                        >
+                          <option value="balanced">Balanced</option>
+                          <option value="aggressive">Aggressive</option>
+                          <option value="stealth">Stealth</option>
+                        </select>
+                      </label>
+                      <label className="text-xs text-slate-400">
+                        Max requests / min
+                        <input
+                          type="number"
+                          min={10}
+                          max={2000}
+                          value={maxRequestsPerMinute}
+                          onChange={(e) => setMaxRequestsPerMinute(Number(e.target.value) || 180)}
+                          className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200"
+                        />
+                      </label>
+                      <label className="col-span-full flex items-center gap-2 text-xs text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={enableAiPrioritization}
+                          onChange={(e) => setEnableAiPrioritization(e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-700 bg-slate-950"
+                        />
+                        Enable AI prioritization of findings
+                      </label>
+
+                      <label className="col-span-full text-xs text-slate-400">
+                        Global Tor mode
+                        <select
+                          value={torMode}
+                          onChange={(e) =>
+                            setTorMode(e.target.value as "enabled" | "disabled" | "auto")
+                          }
+                          className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200"
+                        >
+                          <option value="disabled">Disabled (never route through Tor)</option>
+                          <option value="auto">Auto-detect (.onion routes via Tor)</option>
+                          <option value="enabled">Enabled (force Tor for scan egress)</option>
+                        </select>
+                      </label>
+                    </div>
+                  ) : null}
                 </div>
 
                 <button

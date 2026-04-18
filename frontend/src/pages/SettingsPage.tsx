@@ -5,6 +5,7 @@ import { AppLayout } from "../components/AppLayout";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { useNetworkPreferencesStore } from "../store/networkPreferencesStore";
 import { useNotificationStore } from "../store/notificationStore";
 
 type ApiError = {
@@ -88,6 +89,8 @@ export function SettingsPage() {
   const { user, logout } = useAuth();
   const { theme, setTheme, highContrast, setHighContrast, reducedMotion, setReducedMotion } =
     useTheme();
+  const torMode = useNetworkPreferencesStore((s) => s.torMode);
+  const setTorMode = useNetworkPreferencesStore((s) => s.setTorMode);
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   // Notification preferences
@@ -313,6 +316,33 @@ export function SettingsPage() {
               <Shield className="h-4 w-4" />
               Open System Status
             </Link>
+          </div>
+        </Section>
+
+        <Section
+          title="Network Egress"
+          description="Set global Tor/onion behavior used by scan, recon, and other outbound tools"
+        >
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-300" htmlFor="torMode">
+              Global Tor mode
+            </label>
+            <select
+              id="torMode"
+              value={torMode}
+              onChange={(e) =>
+                setTorMode(e.target.value as "enabled" | "disabled" | "auto")
+              }
+              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30"
+            >
+              <option value="disabled">Disabled: never use Tor</option>
+              <option value="auto">Auto: use Tor for onion targets</option>
+              <option value="enabled">Enabled: always route via Tor</option>
+            </select>
+            <p className="mt-2 text-xs text-slate-500">
+              Auto mode gives safe defaults: onion traffic is routed through Tor while normal targets
+              continue directly unless other proxy controls are configured.
+            </p>
           </div>
         </Section>
 

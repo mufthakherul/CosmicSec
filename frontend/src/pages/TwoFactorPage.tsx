@@ -110,13 +110,21 @@ export function TwoFactorPage() {
 
     setIsLoading(true);
     try {
-      const { data } = await axios.post(`${API}/api/auth/verify-2fa`, {
-        email,
-        temp_token: tempToken,
-        code,
-        is_backup: useBackup,
-      });
-      login(data.token, data.user);
+      const { data } = await axios.post(
+        `${API}/api/auth/verify-2fa`,
+        {
+          email,
+          temp_token: tempToken,
+          code,
+          is_backup: useBackup,
+        },
+        { timeout: 10000 },
+      );
+      const token = data.token ?? data.access_token;
+      if (!token || !data.user) {
+        throw new Error("Invalid two-factor response");
+      }
+      login(token, data.user);
       navigate("/dashboard", { replace: true });
     } catch (err) {
       if (err instanceof AxiosError) {

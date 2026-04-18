@@ -46,60 +46,19 @@ interface RecentActivity {
 }
 
 // ---------------------------------------------------------------------------
-// Mock data (fallback when API unavailable)
+// Empty defaults used until authenticated API data loads
 // ---------------------------------------------------------------------------
 
-const MOCK_STATS: OverviewStats = {
-  total_scans: 247,
-  critical_findings: 12,
-  active_agents: 3,
-  open_bugs: 8,
-  security_score: 74,
-  scans_today: 5,
-  findings_last_7d: 38,
-  compliance_pct: 81,
+const EMPTY_STATS: OverviewStats = {
+  total_scans: 0,
+  critical_findings: 0,
+  active_agents: 0,
+  open_bugs: 0,
+  security_score: 0,
+  scans_today: 0,
+  findings_last_7d: 0,
+  compliance_pct: 0,
 };
-
-const MOCK_ACTIVITY: RecentActivity[] = [
-  {
-    id: "act-1",
-    type: "finding",
-    title: "SQL Injection — api.example.com",
-    description: "Blind SQL injection in /api/users endpoint parameter",
-    severity: "critical",
-    timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "act-2",
-    type: "scan",
-    title: "Network scan completed",
-    description: "192.168.1.0/24 — 8 open ports found",
-    severity: "medium",
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "act-3",
-    type: "agent",
-    title: "Local agent connected",
-    description: "agent-dev-01 registered with nmap, nuclei, nikto",
-    timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "act-4",
-    type: "report",
-    title: "Compliance report generated",
-    description: "SOC 2 readiness report — 81% compliant",
-    timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "act-5",
-    type: "finding",
-    title: "XSS — login form",
-    description: "Reflected XSS in username field",
-    severity: "high",
-    timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-  },
-];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -391,10 +350,11 @@ function PlatformModules() {
 
 export function DashboardPage() {
   const { user, token } = useAuth();
-  const [stats, setStats] = useState<OverviewStats>(MOCK_STATS);
-  const [activity, setActivity] = useState<RecentActivity[]>(MOCK_ACTIVITY);
+  const [stats, setStats] = useState<OverviewStats>(EMPTY_STATS);
+  const [activity, setActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [animateBars, setAnimateBars] = useState(false);
+  const [loadWarning, setLoadWarning] = useState<string | null>(null);
 
   useEffect(() => {
     const headers: Record<string, string> = {};
@@ -402,22 +362,60 @@ export function DashboardPage() {
 
     (async () => {
       try {
+        setLoadWarning(null);
         const [statsRes, activityRes] = await Promise.allSettled([
           fetch(`${API}/api/dashboard/overview`, { headers }),
           fetch(`${API}/api/findings?limit=5`, { headers }),
         ]);
 
         if (statsRes.status === "fulfilled" && statsRes.value.ok) {
-          const data = (await statsRes.value.json()) as OverviewStats;
-          setStats(data);
+          const data = (await statsRes.value.json()) as Partial<OverviewStats>;
+          setStats({
+            total_scans: data.total_scans ?? 0,
+            critical_findings: data.critical_findings ?? 0,
+            active_agents: data.active_agents ?? 0,
+            open_bugs: data.open_bugs ?? 0,
+            security_score: data.security_score ?? 0,
+            scans_today: data.scans_today ?? 0,
+            findings_last_7d: data.findings_last_7d ?? 0,
+            compliance_pct: data.compliance_pct ?? 0,
+          });
+        } else {
+          setStats(EMPTY_STATS);
+          setLoadWarning("Dashboard metrics are temporarily unavailable.");
         }
 
         if (activityRes.status === "fulfilled" && activityRes.value.ok) {
-          const data = (await activityRes.value.json()) as { items?: RecentActivity[] };
-          if (data.items?.length) setActivity(data.items);
+          const data = (await activityRes.value.json()) as {
+            items?: Array<{
+              id?: string;
+              title?: string;
+              description?: string;
+              recommendation?: string;
+              severity?: RecentActivity["severity"];
+              detected_at?: string;
+              scan_id?: string;
+            }>;
+          };
+
+          const mappedActivity: RecentActivity[] = (data.items ?? []).slice(0, 5).map((item) => ({
+            id: item.id ?? item.scan_id ?? `finding-${Math.random().toString(36).slice(2, 10)}`,
+            type: "finding",
+            title: item.title ?? "Security finding",
+            description: item.description ?? item.recommendation ?? "No details available.",
+            severity: item.severity ?? "info",
+            timestamp: item.detected_at ?? new Date().toISOString(),
+          }));
+
+          setActivity(mappedActivity);
+        } else {
+          setActivity([]);
+          setLoadWarning("Recent activity feed is temporarily unavailable.");
         }
       } catch {
-        // keep mock data
+        setStats(EMPTY_STATS);
+        setActivity([]);
+        setLoadWarning("Live dashboard data is unavailable right now.");
       } finally {
         setLoading(false);
       }
@@ -466,6 +464,12 @@ export function DashboardPage() {
             New Scan
           </Link>
         </div>
+
+        {loadWarning ? (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+            {loadWarning}
+          </div>
+        ) : null}
 
         {/* Top row — Security Score + Stats */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
@@ -621,6 +625,11 @@ export function DashboardPage() {
                 </div>
               );
             })}
+            {activity.length === 0 ? (
+              <div className="px-4 py-6 text-center text-sm text-slate-500">
+                No recent activity found for your account yet.
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

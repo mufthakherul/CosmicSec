@@ -12,7 +12,8 @@ type KnownService =
   | "notification-service"
   | "phase5-service"
   | "org-service"
-  | "compliance-service";
+  | "compliance-service"
+  | "egress-service";
 
 export const KNOWN_SERVICES: readonly KnownService[] = [
   "api-gateway",
@@ -29,6 +30,7 @@ export const KNOWN_SERVICES: readonly KnownService[] = [
   "phase5-service",
   "org-service",
   "compliance-service",
+  "egress-service",
 ];
 
 const SERVICE_PORTS: Record<KnownService, number> = {
@@ -46,6 +48,7 @@ const SERVICE_PORTS: Record<KnownService, number> = {
   "phase5-service": 8011,
   "org-service": 8012,
   "compliance-service": 8013,
+  "egress-service": 8016,
 };
 
 const DEV_FRONTEND_PORTS = new Set(["3000", "4173", "5173", "4200"]);
@@ -129,6 +132,7 @@ function inferCandidates(targetPort: number): string[] {
   }
 
   if (isLocalHost(hostname)) {
+    candidates.push(`http://127.0.0.1:${targetPort}`);
     candidates.push(buildUrl(protocol, hostname, targetPort));
     candidates.push(`http://localhost:${targetPort}`);
   }

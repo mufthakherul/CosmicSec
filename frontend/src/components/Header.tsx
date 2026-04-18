@@ -26,6 +26,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { useNotificationStore } from "../store/notificationStore";
+import { useNetworkPreferencesStore } from "../store/networkPreferencesStore";
 import { useSearch } from "../hooks/useSearch";
 
 // ---------------------------------------------------------------------------
@@ -568,7 +569,16 @@ function UserMenu() {
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
+  const torMode = useNetworkPreferencesStore((s) => s.torMode);
+  const cycleTorMode = useNetworkPreferencesStore((s) => s.cycleTorMode);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  const torModeBadge =
+    torMode === "enabled"
+      ? { label: "Tor On", className: "text-emerald-300 border-emerald-500/40 bg-emerald-500/10" }
+      : torMode === "disabled"
+        ? { label: "Tor Off", className: "text-slate-300 border-slate-600 bg-slate-800/70" }
+        : { label: "Tor Auto", className: "text-cyan-300 border-cyan-500/40 bg-cyan-500/10" };
 
   useEffect(() => {
     const onShortcut = (event: KeyboardEvent) => {
@@ -601,6 +611,18 @@ export function Header() {
 
         {/* Right — actions */}
         <div className="flex items-center gap-1">
+          <button
+            onClick={cycleTorMode}
+            className={[
+              "rounded-lg border px-2.5 py-1 text-xs font-semibold tracking-wide transition-colors",
+              torModeBadge.className,
+            ].join(" ")}
+            title="Global Tor mode for all tools: Disabled -> Auto -> Enabled"
+            aria-label="Cycle global Tor mode"
+          >
+            {torModeBadge.label}
+          </button>
+
           <button
             onClick={() => setShortcutsOpen(true)}
             className="ripple rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"

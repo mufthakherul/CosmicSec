@@ -6,10 +6,16 @@ import { ensureApiGatewayBaseUrl, getApiGatewayWebSocketUrl } from "../api/runti
 const BASE_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 30_000;
 
-interface WsMessage {
+interface WsEnvelopeMessage {
   type: "finding" | "progress" | "complete" | "error";
   payload: unknown;
 }
+
+type RawScanStatus = {
+  scan_id?: string;
+  status?: "pending" | "running" | "completed" | "failed";
+  progress?: number;
+};
 
 export function useScanStream(scanId: string | undefined) {
   const wsRef = useRef<WebSocket | null>(null);
@@ -21,10 +27,14 @@ export function useScanStream(scanId: string | undefined) {
     if (!scanId || !mountedRef.current) return;
 
     const openSocket = () => {
+      const authToken = localStorage.getItem("cosmicsec_token");
+      if (!authToken || authToken.startsWith("demo-preview")) {
+        return;
+      }
+
       const wsUrl = getApiGatewayWebSocketUrl(`/ws/scans/${scanId}`);
 
       // Append auth token as query parameter for WebSocket authentication
-      const authToken = localStorage.getItem("cosmicsec_token");
       const separator = wsUrl.includes("?") ? "&" : "?";
       const authenticatedUrl = authToken
         ? `${wsUrl}${separator}token=${encodeURIComponent(authToken)}`
@@ -38,8 +48,8 @@ export function useScanStream(scanId: string | undefined) {
 
       ws.onmessage = (event) => {
         try {
-          const msg = JSON.parse(event.data as string) as WsMessage;
-          handleMessage(scanId, msg);
+          const parsed = JSON.parse(event.data as string) as unknown;
+          handleMessage(scanId, parsed);
         } catch {
           // malformed message — ignore
         }
@@ -74,28 +84,61 @@ export function useScanStream(scanId: string | undefined) {
   }, [connect]);
 }
 
-function handleMessage(scanId: string, msg: WsMessage): void {
+function handleMessage(scanId: string, msg: unknown): void {
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  const p = msg.payload as any;
-  switch (msg.type) {
-    case "finding": {
-      const finding = p as Finding;
-      const current = useScanStore.getState().scans.find((s) => s.id === scanId);
-      if (current) {
-        useScanStore.getState().updateScan(scanId, {
-          findings: [...current.findings, finding],
-        });
+  // Support envelope-style payloads: { type, payload }
+  if (
+    typeof msg === "object" &&
+    msg !== null &&
+    "type" in msg &&
+    typeof (msg as { type?: unknown }).type === "string"
+  ) {
+    const envelope = msg as WsEnvelopeMessage;
+    const p = envelope.payload as any;
+    switch (envelope.type) {
+      case "finding": {
+        const finding = p as Finding;
+        const current = useScanStore.getState().scans.find((s) => s.id === scanId);
+        if (current) {
+          useScanStore.getState().updateScan(scanId, {
+            findings: [...current.findings, finding],
+          });
+        }
+        return;
       }
-      break;
+      case "progress":
+        useScanStore.getState().updateScan(scanId, {
+          status: "running",
+          progress: Number(p.progress ?? 0),
+        });
+        return;
+      case "complete":
+        useScanStore.getState().updateScan(scanId, { status: "completed", progress: 100 });
+        return;
+      case "error":
+        useScanStore.getState().updateScan(scanId, { status: "failed" });
+        return;
     }
-    case "progress":
-      useScanStore.getState().updateScan(scanId, { progress: Number(p.progress ?? 0) });
-      break;
-    case "complete":
-      useScanStore.getState().updateScan(scanId, { status: "completed", progress: 100 });
-      break;
-    case "error":
-      useScanStore.getState().updateScan(scanId, { status: "failed" });
-      break;
+  }
+
+  // Support raw status payloads emitted by scan_service: { scan_id, status, progress }
+  if (typeof msg === "object" && msg !== null) {
+    const raw = msg as RawScanStatus;
+    if (raw.scan_id && raw.scan_id !== scanId) {
+      return;
+    }
+    if (raw.status) {
+      useScanStore.getState().updateScan(scanId, {
+        status: raw.status,
+        progress:
+          typeof raw.progress === "number"
+            ? raw.progress
+            : raw.status === "completed"
+              ? 100
+              : raw.status === "running"
+                ? 50
+                : 0,
+      });
+    }
   }
 }
