@@ -1078,6 +1078,8 @@ def connect(
     console.print(f"[bold cyan]Connecting to {resolved_server} as agent {agent_id}…[/bold cyan]")
 
     async def _run() -> None:
+        from .executor import run_tool_complete
+
         # First: register agent with server via REST
         http_base = resolved_server.replace("ws://", "http://").replace("wss://", "https://")
         import httpx
@@ -1113,8 +1115,85 @@ def connect(
         console.print("[green]Connected! Streaming mode active. Press Ctrl+C to exit.[/green]")
         console.print(f"Tool manifest sent: {len(manifest['tools'])} tool(s).")
         _audit("connect", profile=profile, target=resolved_server, success=True)
+
+        discovered = registry.discover()
+        tool_map = {t.name: t for t in discovered}
+        for t in discovered:
+            tool_map.setdefault(t.binary, t)
+
         async for task in client.receive_tasks():
-            console.print(f"[bold yellow]Received task:[/bold yellow] {task}")
+            if not isinstance(task, dict):
+                continue
+            task_type = task.get("type")
+            if task_type not in {"task", "task_assign"}:
+                continue
+
+            payload = task.get("payload", task)
+            if not isinstance(payload, dict):
+                continue
+
+            task_id = str(payload.get("task_id") or str(uuid.uuid4()))
+            tool_name = str(payload.get("tool", "")).strip()
+            target = str(payload.get("target", "")).strip()
+            args = payload.get("args", [])
+            if not isinstance(args, list):
+                args = []
+
+            tool_info = tool_map.get(tool_name)
+            if tool_info is None:
+                await client.send_task_ack(
+                    task_id,
+                    accepted=False,
+                    reason=f"Tool '{tool_name}' not discovered on this agent",
+                )
+                await client.send_task_result(
+                    task_id,
+                    {
+                        "success": False,
+                        "error": f"tool_not_found:{tool_name}",
+                        "target": target,
+                    },
+                )
+                continue
+
+            await client.send_task_ack(task_id, accepted=True)
+            await client.send_task_progress(task_id, 5, f"starting {tool_info.name}")
+
+            command_args = list(tool_info.default_args)
+            if target:
+                command_args.append(target)
+            command_args.extend(str(a) for a in args)
+
+            console.print(
+                f"[bold yellow]Executing task {task_id}:[/bold yellow] {tool_info.binary} {' '.join(shlex.quote(a) for a in command_args)}"
+            )
+            await client.send_task_progress(task_id, 45, "tool execution in progress")
+
+            try:
+                result = await run_tool_complete(tool_info.path, command_args, timeout=300)
+                await client.send_task_progress(task_id, 95, "execution finished")
+                await client.send_task_result(
+                    task_id,
+                    {
+                        "success": result.exit_code == 0,
+                        "tool": tool_info.binary,
+                        "target": target,
+                        "exit_code": result.exit_code,
+                        "duration_ms": result.duration_ms,
+                        "stdout": result.stdout[:20000],
+                        "stderr": result.stderr[:10000],
+                    },
+                )
+            except Exception as exc:
+                await client.send_task_result(
+                    task_id,
+                    {
+                        "success": False,
+                        "tool": tool_info.binary,
+                        "target": target,
+                        "error": str(exc),
+                    },
+                )
 
     try:
         asyncio.run(_run())
