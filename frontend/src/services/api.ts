@@ -15,9 +15,23 @@ import {
   type Report,
   type Scan,
   type SearchResults,
+  type SearchCategory,
+  type SearchMeta,
+  type SearchResponse,
 } from "../api/endpoints";
 
-export type { AuthResponse, AuthUser, Finding, ReconResult, Report, Scan, SearchResults };
+export type {
+  AuthResponse,
+  AuthUser,
+  Finding,
+  ReconResult,
+  Report,
+  Scan,
+  SearchCategory,
+  SearchMeta,
+  SearchResponse,
+  SearchResults,
+};
 
 export const api = {
   auth: {
