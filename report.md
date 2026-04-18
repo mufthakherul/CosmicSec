@@ -19,11 +19,16 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 - **P1.3 Security hardening:** **47% complete**
 - **P2.4 Plugin trust/signing:** **60% complete**
 - **P2.1 CLI↔Webapp task routing:** **56% complete**
-- **P2.2 Result aggregation views:** **78% complete**
-- **P3.1 Search + settings UX polish:** **62% complete**
+- **P2.2 Result aggregation views:** **84% complete**
+- **P3.1 Search + settings UX polish:** **66% complete**
 - **P3.3 Pagination & list ergonomics:** **40% complete**
 
 Completed in this execution:
+- [x] Added scan-service endpoint `POST /scans/agent-results` to ingest CLI agent task findings into the persistent scan/finding pipeline.
+- [x] Added gateway support to forward WebSocket `task_result` findings into scan-service aggregation automatically.
+- [x] Added gateway proxy endpoint `POST /api/scans/agent-results` for explicit agent-result ingestion workflows.
+- [x] Upgraded Scan page to surface source-aware scan cards (web/local/offline), backend findings counts, and richer scan metadata.
+- [x] Fixed an active frontend Problems-tab lint issue in the shared pagination component (`min-w-[2rem]` → `min-w-8`).
 - [x] Added persistent DB-backed agent task ledger model (`AgentTaskModel`) with lifecycle/progress metadata and query indexes.
 - [x] Added Alembic migration (`0007_phase_t_agent_task_persistence.py`) to create the `agent_tasks` table and indexes.
 - [x] Upgraded API Gateway task lifecycle flow to persist create/update events in DB with graceful in-memory fallback.
@@ -119,7 +124,7 @@ Completed in this execution:
 |--------|--------|--------------|-----------------|-----------------|
 | **Auth Service** | 🟡 Partial | 70% | In-memory 2FA/API keys, hardcoded admin pwd | Migrate to DB, add token refresh |
 | **API Gateway** | 🟢 Functional | 85% | CORS overly permissive, rate-limiting gaps | Tighten CORS, per-endpoint limits |
-| **Scan Service** | 🟡 Partial | 75% | In-memory results, no cancellation, Celery unused | Add DB persistence, implement cancellation |
+| **Scan Service** | 🟡 Partial | 82% | DB-first persistence and cancellation are in place, but deeper agent/local correlation UX is still evolving | Expand local+cloud result correlation and real-time enrichment |
 | **AI Service** | 🔴 Stubbed | 30% | 10+ NotImplemented methods, no real LLM calls | Implement LangGraph, test with phi3 mimi model |
 | **Recon Service** | 🟡 Partial | 68% | Cache strategy exists but premium onion policy/rate controls are still incomplete | Expand policy controls + metered recon governance |
 | **Report Service** | 🟡 Partial | 65% | XSS risk in HTML generation (f-string concat) | Use templating engine (Jinja2) |
@@ -139,7 +144,7 @@ Completed in this execution:
 | LoginPage | 🟢 Implemented | Production-style form, remember-me, SSO start, token persistence | Complete backend/session contract hardening |
 | RegisterPage | 🟢 Implemented | Validation + password strength + policy checks | Connect telemetry + optional invite flow |
 | DashboardPage | 🟡 Partial | No live updates, no pagination | Add WebSocket scanner integration |
-| ScanPage | 🟡 Partial | Live updates work via mocked data | Connect to real scan service |
+| ScanPage | 🟡 Partial | Backend scan data + source/finding summaries now wired, but advanced live orchestration still needs refinement | Add deeper real-time orchestration and multi-source drill-down |
 | AIAnalysisPage | 🟡 Partial | Risk gauge + MITRE mapping + cancellation controls in place, but backend AI quality is still inconsistent | Improve model orchestration and confidence scoring |
 | ReconPage | 🟡 Partial | Core recon + cancellation controls are live, but premium onion evidence UX is still shallow | Add onion evidence timeline + premium profile presets |
 | SettingsPage | 🟡 Partial | Core scan defaults persistence restored; advanced profile controls remain incomplete | Expand settings API coverage and profile-level controls |
@@ -585,7 +590,7 @@ Recommendation:
 
 ### Phase 2 (Weeks 3-5): **Workflow Integration**
 - [ ] Implement CLI ↔ Webapp integration via Agent Relay
-- [ ] Persist scan results to database
+- [x] Persist scan results to database
 - [ ] Build advanced Tor/Onion premium workflow in webapp
 - [x] Implement plugin signing/permissions
 - [x] Implement scan cancellation
