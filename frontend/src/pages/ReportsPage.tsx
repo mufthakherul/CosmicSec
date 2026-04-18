@@ -92,7 +92,9 @@ export function ReportsPage() {
   }, [reports.length]);
 
   useEffect(() => {
-    setReportPage((page) => Math.min(page, Math.max(1, Math.ceil(reports.length / REPORTS_PER_PAGE))));
+    setReportPage((page) =>
+      Math.min(page, Math.max(1, Math.ceil(reports.length / REPORTS_PER_PAGE))),
+    );
   }, [reports.length]);
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -273,55 +275,59 @@ export function ReportsPage() {
                     </span>
                   </div>
                   <ul className="space-y-2">
-                  {pagedReports.map((report) => {
-                    const badge = STATUS_BADGE[report.status];
-                    return (
-                      <li
-                        key={report.id}
-                        className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-slate-200">
-                            Scan: <span className="font-mono">{report.scan_id}</span>
-                          </p>
-                          <div className="mt-0.5 flex items-center gap-2">
-                            <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-xs uppercase text-slate-400">
-                              {report.format}
-                            </span>
-                            <span className="flex items-center gap-1 text-xs text-slate-500">
-                              <Calendar className="h-3 w-3" />
-                              {new Date(report.created_at).toLocaleString()}
-                            </span>
+                    {pagedReports.map((report) => {
+                      const badge = STATUS_BADGE[report.status];
+                      return (
+                        <li
+                          key={report.id}
+                          className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-slate-200">
+                              Scan: <span className="font-mono">{report.scan_id}</span>
+                            </p>
+                            <div className="mt-0.5 flex items-center gap-2">
+                              <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-xs uppercase text-slate-400">
+                                {report.format}
+                              </span>
+                              <span className="flex items-center gap-1 text-xs text-slate-500">
+                                <Calendar className="h-3 w-3" />
+                                {new Date(report.created_at).toLocaleString()}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="ml-3 flex shrink-0 items-center gap-2">
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
-                          >
-                            {badge.label}
-                          </span>
-                          {report.status === "ready" && (
-                            <button
-                              onClick={() => void handleDownload(report)}
-                              className="rounded p-1.5 text-slate-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-400"
-                              aria-label="Download report"
+                          <div className="ml-3 flex shrink-0 items-center gap-2">
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
                             >
-                              <Download className="h-4 w-4" />
-                            </button>
-                          )}
-                          {report.status === "failed" && (
-                            <AlertTriangle className="h-4 w-4 text-rose-400" />
-                          )}
-                          {report.status === "ready" && (
-                            <CheckCircle className="h-4 w-4 text-emerald-400" />
-                          )}
-                        </div>
-                      </li>
-                    );
-                  })}
+                              {badge.label}
+                            </span>
+                            {report.status === "ready" && (
+                              <button
+                                onClick={() => void handleDownload(report)}
+                                className="rounded p-1.5 text-slate-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-400"
+                                aria-label="Download report"
+                              >
+                                <Download className="h-4 w-4" />
+                              </button>
+                            )}
+                            {report.status === "failed" && (
+                              <AlertTriangle className="h-4 w-4 text-rose-400" />
+                            )}
+                            {report.status === "ready" && (
+                              <CheckCircle className="h-4 w-4 text-emerald-400" />
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                   <div className="mt-4 flex justify-center">
-                    <Pagination page={reportPage} totalPages={reportPageCount} onPageChange={setReportPage} />
+                    <Pagination
+                      page={reportPage}
+                      totalPages={reportPageCount}
+                      onPageChange={setReportPage}
+                    />
                   </div>
                 </>
               )}

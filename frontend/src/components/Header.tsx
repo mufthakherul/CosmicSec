@@ -218,8 +218,13 @@ function GlobalSearch() {
     const eventItems: SearchRow[] = apiResults.events.map((event) => ({
       id: `event-${event.id}`,
       label: event.title,
-      description: event.description || `${event.status ?? "event"} • ${event.plugin ?? "timeline"}`,
-      path: event.scan_id ? `/scans/${event.scan_id}` : event.plugin ? `/plugins/${encodeURIComponent(event.plugin)}` : "/timeline",
+      description:
+        event.description || `${event.status ?? "event"} • ${event.plugin ?? "timeline"}`,
+      path: event.scan_id
+        ? `/scans/${event.scan_id}`
+        : event.plugin
+          ? `/plugins/${encodeURIComponent(event.plugin)}`
+          : "/timeline",
       icon: Clock,
     }));
 
