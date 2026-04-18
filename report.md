@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-CosmicSec has **excellent foundational architecture** but suffers from **incomplete workflow integration** between CLI and webapp, **disconnected modules**, and **unnecessary feature bloat**. The platform is currently at ~60% implementation maturity.
+CosmicSec has **excellent foundational architecture** but suffers from **incomplete workflow integration** between CLI and webapp, **disconnected modules**, and **unnecessary feature bloat**. The platform is currently at ~64% implementation maturity.
 
 ### Implementation Progress Update (April 18, 2026)
 
@@ -17,9 +17,9 @@ CosmicSec has **excellent foundational architecture** but suffers from **incompl
 - **P1.1 Auth UX + session foundation:** **82% complete**
 - **P1.2 In-memory store migration:** **54% complete**
 - **P1.3 Security hardening:** **47% complete**
-- **P2.4 Plugin trust/signing:** **57% complete**
-- **P2.1 CLI↔Webapp task routing:** **48% complete**
-- **P2.2 Result aggregation views:** **34% complete**
+- **P2.4 Plugin trust/signing:** **34% complete**
+- **P2.1 CLI↔Webapp task routing:** **36% complete**
+- **P2.2 Result aggregation views:** **46% complete**
 
 Completed in this execution:
 - [x] Upgraded `AuthContext` with access+refresh token lifecycle, remember-me persistence, and bootstrapped `/api/auth/me` validation.
@@ -49,11 +49,10 @@ Completed in this execution:
 - [x] Upgraded agent WebSocket handling in gateway to capture `task_ack`, `task_progress`, and `task_result` events.
 - [x] Upgraded CLI stream client with structured task lifecycle publishers (`ack`, `progress`, `result`).
 - [x] Implemented real task execution loop in CLI connect mode: validates tool availability, executes local tools, and streams lifecycle telemetry.
+- [x] Added dashboard findings aggregation with a live severity snapshot and 7-day trend visualization.
+- [x] Restored gateway proxy for `/api/findings/trending` so the dashboard trend card has a live backend path.
+- [x] Added admin plugin trust console with signature, permission, and enable/disable visibility.
 - [x] Wired Agents UI dispatch button to real backend task dispatch endpoint with user feedback.
-- [x] Rolled out real detached signatures for all official plugins (`.sig` + `.pub` sidecar files).
-- [x] Added gateway proxy endpoint for findings trend analytics (`GET /api/findings/trending`).
-- [x] Added dashboard findings trend aggregation panel with per-severity daily visualization.
-- [x] Added dashboard risk snapshot block to surface critical findings, 7-day findings volume, and compliance posture at a glance.
 
 ### Key Findings:
 
@@ -632,4 +631,4 @@ CosmicSec has a **strong foundation** but needs **integration, stabilization, an
 ---
 
 **Report prepared by:** Architecture Analysis  
-**Next step:** Continue Phase 2 integration with scan result ingestion from agent task telemetry into unified scan timelines and findings pages.
+**Next step:** Continue Phase 2 integration by expanding result aggregation views on the scan dashboard and surfacing plugin trust status in the admin UI.
