@@ -9,6 +9,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
+import { Pagination } from "../components/Pagination";
 import { useNotificationStore } from "../store/notificationStore";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
@@ -41,6 +42,8 @@ export function ReportsPage() {
   const [generating, setGenerating] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
   const [animateCharts, setAnimateCharts] = useState(false);
+  const [reportPage, setReportPage] = useState(1);
+  const REPORTS_PER_PAGE = 6;
 
   const reportHealth = useMemo(() => {
     const total = reports.length || 1;
@@ -76,10 +79,20 @@ export function ReportsPage() {
     ];
   }, [reports]);
 
+  const reportPageCount = Math.max(1, Math.ceil(reports.length / REPORTS_PER_PAGE));
+  const pagedReports = useMemo(
+    () => reports.slice((reportPage - 1) * REPORTS_PER_PAGE, reportPage * REPORTS_PER_PAGE),
+    [reportPage, reports],
+  );
+
   useEffect(() => {
     setAnimateCharts(false);
     const timer = window.setTimeout(() => setAnimateCharts(true), 50);
     return () => window.clearTimeout(timer);
+  }, [reports.length]);
+
+  useEffect(() => {
+    setReportPage((page) => Math.min(page, Math.max(1, Math.ceil(reports.length / REPORTS_PER_PAGE))));
   }, [reports.length]);
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -252,8 +265,15 @@ export function ReportsPage() {
                   No reports generated yet. Enter a scan ID above to create one.
                 </div>
               ) : (
-                <ul className="space-y-2">
-                  {reports.map((report) => {
+                <>
+                  <div className="mb-3 flex items-center justify-between text-xs text-slate-500">
+                    <span>{reports.length} total reports</span>
+                    <span>
+                      Page {reportPage} of {reportPageCount}
+                    </span>
+                  </div>
+                  <ul className="space-y-2">
+                  {pagedReports.map((report) => {
                     const badge = STATUS_BADGE[report.status];
                     return (
                       <li
@@ -299,7 +319,11 @@ export function ReportsPage() {
                       </li>
                     );
                   })}
-                </ul>
+                  </ul>
+                  <div className="mt-4 flex justify-center">
+                    <Pagination page={reportPage} totalPages={reportPageCount} onPageChange={setReportPage} />
+                  </div>
+                </>
               )}
             </div>
           </section>
