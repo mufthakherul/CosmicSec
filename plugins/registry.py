@@ -127,7 +127,9 @@ def _is_truthy(value: str | None) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _scope_audit_entries(entries: list[dict[str, Any]], viewer: str, is_admin: bool) -> list[dict[str, Any]]:
+def _scope_audit_entries(
+    entries: list[dict[str, Any]], viewer: str, is_admin: bool
+) -> list[dict[str, Any]]:
     if is_admin:
         return entries
     if not viewer:
@@ -191,7 +193,9 @@ def _persist_audit_event(event: dict[str, Any]) -> None:
     except Exception:
         if db is not None:
             db.rollback()
-        logger.debug("Plugin audit DB persistence unavailable; using in-memory fallback", exc_info=True)
+        logger.debug(
+            "Plugin audit DB persistence unavailable; using in-memory fallback", exc_info=True
+        )
     finally:
         if db is not None:
             db.close()
@@ -214,7 +218,9 @@ def _list_plugin_audit_from_db(limit: int) -> list[dict[str, Any]]:
             action = str(row.action or "plugin.event")
             items.append(
                 {
-                    "timestamp": row.created_at.isoformat() if row.created_at else datetime.utcnow().isoformat(),
+                    "timestamp": row.created_at.isoformat()
+                    if row.created_at
+                    else datetime.utcnow().isoformat(),
                     "action": action.split(".", 1)[1] if "." in action else action,
                     "plugin": extra.get("resource_id") or row.resource_id or "registry",
                     "detail": extra.get("detail") or "",

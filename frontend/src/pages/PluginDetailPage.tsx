@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Loader2, Shield, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Loader2,
+  Shield,
+  ShieldAlert,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useAuth } from "../context/AuthContext";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
@@ -53,7 +61,13 @@ function getScanIdFromAudit(entry: PluginAudit): string | null {
   return match ? match[1] : null;
 }
 
-function Badge({ children, tone }: { children: string; tone: "good" | "bad" | "neutral" | "warn" }) {
+function Badge({
+  children,
+  tone,
+}: {
+  children: string;
+  tone: "good" | "bad" | "neutral" | "warn";
+}) {
   const className =
     tone === "good"
       ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/20"
@@ -62,7 +76,11 @@ function Badge({ children, tone }: { children: string; tone: "good" | "bad" | "n
         : tone === "warn"
           ? "bg-amber-500/15 text-amber-300 border-amber-500/20"
           : "bg-slate-500/15 text-slate-300 border-slate-500/20";
-  return <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${className}`}>{children}</span>;
+  return (
+    <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${className}`}>
+      {children}
+    </span>
+  );
 }
 
 export function PluginDetailPage() {
@@ -143,13 +161,18 @@ export function PluginDetailPage() {
   const togglePlugin = async () => {
     if (!plugin || !token) return;
     const endpoint = plugin.enabled === false ? "enable" : "disable";
-    const response = await fetch(`${API}/api/plugins/${encodeURIComponent(plugin.name)}/${endpoint}`, {
-      method: "POST",
-      headers,
-    });
+    const response = await fetch(
+      `${API}/api/plugins/${encodeURIComponent(plugin.name)}/${endpoint}`,
+      {
+        method: "POST",
+        headers,
+      },
+    );
     if (response.ok) {
       setActionMessage(`Plugin ${endpoint}d.`);
-      const refreshed = await fetch(`${API}/api/plugins/${encodeURIComponent(plugin.name)}`, { headers });
+      const refreshed = await fetch(`${API}/api/plugins/${encodeURIComponent(plugin.name)}`, {
+        headers,
+      });
       if (refreshed.ok) setPlugin((await refreshed.json()) as PluginMeta);
     } else {
       setActionMessage(`Plugin ${endpoint} failed.`);
@@ -184,7 +207,9 @@ export function PluginDetailPage() {
 
   const auditSummary = useMemo(() => {
     const adminEvents = audit.filter((entry) => (entry.actor_role ?? "system") === "admin").length;
-    const operatorEvents = audit.filter((entry) => (entry.actor_role ?? "system") === "operator").length;
+    const operatorEvents = audit.filter(
+      (entry) => (entry.actor_role ?? "system") === "operator",
+    ).length;
     const total = audit.length || 1;
     return {
       adminEvents,
@@ -234,15 +259,26 @@ export function PluginDetailPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-2xl font-bold text-slate-100">{plugin.name}</h1>
                     <Badge tone={signed ? "good" : "bad"}>{signed ? "Signed" : "Unsigned"}</Badge>
-                    <Badge tone={enabled ? "good" : "neutral"}>{enabled ? "Enabled" : "Disabled"}</Badge>
-                    {trust?.enforce_signatures ? <Badge tone="warn">Signature enforcement on</Badge> : null}
+                    <Badge tone={enabled ? "good" : "neutral"}>
+                      {enabled ? "Enabled" : "Disabled"}
+                    </Badge>
+                    {trust?.enforce_signatures ? (
+                      <Badge tone="warn">Signature enforcement on</Badge>
+                    ) : null}
                   </div>
                   <p className="mt-2 max-w-3xl text-sm text-slate-300">{plugin.description}</p>
                 </div>
                 <div className="rounded-xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-sm text-slate-400">
-                  <div>Version <span className="text-slate-100">{plugin.version}</span></div>
-                  <div>Author <span className="text-slate-100">{plugin.author}</span></div>
-                  <div>Source <span className="text-slate-100">{trust?.signature?.source ?? "n/a"}</span></div>
+                  <div>
+                    Version <span className="text-slate-100">{plugin.version}</span>
+                  </div>
+                  <div>
+                    Author <span className="text-slate-100">{plugin.author}</span>
+                  </div>
+                  <div>
+                    Source{" "}
+                    <span className="text-slate-100">{trust?.signature?.source ?? "n/a"}</span>
+                  </div>
                 </div>
               </div>
 
@@ -250,16 +286,23 @@ export function PluginDetailPage() {
 
               <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Required permissions</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                    Required permissions
+                  </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {requiredPermissions.length > 0 ? (
                       requiredPermissions.map((permission) => (
-                        <span key={permission} className="rounded-full border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs text-slate-300">
+                        <span
+                          key={permission}
+                          className="rounded-full border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs text-slate-300"
+                        >
                           {permission}
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm text-slate-500">No explicit permissions declared.</span>
+                      <span className="text-sm text-slate-500">
+                        No explicit permissions declared.
+                      </span>
                     )}
                   </div>
                 </div>
@@ -267,8 +310,16 @@ export function PluginDetailPage() {
                 <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
                   <p className="text-xs uppercase tracking-wide text-slate-500">Signature trust</p>
                   <div className="mt-3 flex items-center gap-2 text-sm text-slate-300">
-                    {signed ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <XCircle className="h-4 w-4 text-rose-400" />}
-                    <span>{trust?.signature?.reason ?? plugin.signature_reason ?? "No signature details available."}</span>
+                    {signed ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-rose-400" />
+                    )}
+                    <span>
+                      {trust?.signature?.reason ??
+                        plugin.signature_reason ??
+                        "No signature details available."}
+                    </span>
                   </div>
                   <p className="mt-3 text-xs text-slate-500">
                     {trust?.enforce_signatures
@@ -282,7 +333,10 @@ export function PluginDetailPage() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     {(plugin.tags ?? []).length > 0 ? (
                       plugin.tags.map((tag) => (
-                        <span key={tag} className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-xs text-cyan-300">
+                        <span
+                          key={tag}
+                          className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-xs text-cyan-300"
+                        >
                           {tag}
                         </span>
                       ))
@@ -300,7 +354,9 @@ export function PluginDetailPage() {
                 </div>
                 <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
                   <p className="text-xs uppercase tracking-wide text-slate-500">Permissions</p>
-                  <p className="mt-1 text-lg font-semibold text-slate-100">{requiredPermissions.length}</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-100">
+                    {requiredPermissions.length}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
                   <p className="text-xs uppercase tracking-wide text-slate-500">Mode</p>
@@ -310,7 +366,9 @@ export function PluginDetailPage() {
                 </div>
                 <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
                   <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>
-                  <p className="mt-1 text-lg font-semibold text-slate-100">{enabled ? "Live" : "Paused"}</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-100">
+                    {enabled ? "Live" : "Paused"}
+                  </p>
                 </div>
               </div>
             </>
@@ -325,7 +383,10 @@ export function PluginDetailPage() {
               <h2 className="text-lg font-semibold text-slate-100">Audit Trail</h2>
               <p className="text-sm text-slate-400">Recent registry actions for this plugin.</p>
             </div>
-            <Link to="/admin" className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-300 hover:border-slate-600 hover:text-slate-100">
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-300 hover:border-slate-600 hover:text-slate-100"
+            >
               <ExternalLink className="h-4 w-4" />
               Open Admin
             </Link>
@@ -338,11 +399,15 @@ export function PluginDetailPage() {
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
               <p className="text-[11px] uppercase tracking-wide text-slate-500">Admin share</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">{auditSummary.adminShare}%</p>
+              <p className="mt-1 text-lg font-semibold text-slate-100">
+                {auditSummary.adminShare}%
+              </p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
               <p className="text-[11px] uppercase tracking-wide text-slate-500">Operator share</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">{auditSummary.operatorShare}%</p>
+              <p className="mt-1 text-lg font-semibold text-slate-100">
+                {auditSummary.operatorShare}%
+              </p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
               <p className="text-[11px] uppercase tracking-wide text-slate-500">Trust mode</p>

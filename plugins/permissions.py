@@ -6,7 +6,7 @@ The caller supplies granted permissions at runtime.
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 
 def normalize_permissions(values: Iterable[str] | None) -> set[str]:

@@ -6,7 +6,6 @@ Phase 2: ChromaDB vector store, MITRE ATT&CK, NL interface, autonomous agents.
 Phase S.1: Redis caching for analysis results (1 hour TTL) and MITRE mappings (24 hour TTL).
 """
 
-import asyncio
 import contextlib
 import hashlib
 import json as _json_module
