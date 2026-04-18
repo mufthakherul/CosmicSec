@@ -34,11 +34,13 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 19, 2026)
 
-- **Overall roadmap completion:** **90%**
+- **Overall roadmap completion:** **92%**
 - **Phase 2.4 (Plugin trust/signing):** **60%**
 - **Phase 2.1 (CLI↔Webapp task routing):** **56%**
 - **Phase 2.2 (Result aggregation views):** **88%**
 - **Phase 3.3 (Pagination):** **44%**
+- **Phase 1.1 (Auth UX + session foundation):** **88%**
+- **Phase 1.3 (Security hardening):** **58%**
 
 Delivered in this iteration:
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
@@ -78,6 +80,10 @@ Delivered in this iteration:
 - [x] Restored saved scan defaults into Settings so scan timeout and auto-analyze preferences load on page open.
 - [x] Added pagination to admin dashboard user management and audit log lists with reusable page controls.
 - [x] Added pagination to recent scans and generated reports views so long lists stay usable on smaller screens.
+- [x] Added strict OAuth callback `state` lifecycle validation in auth service with provider binding and TTL-based replay protection.
+- [x] Added refresh-session binding (`sid`) and Redis/DB-backed refresh token validation + rotation safeguards.
+- [x] Upgraded OAuth user bootstrap flow to DB-first persistence for restart-safe SSO identities.
+- [x] Completed Problems-tab verification after this implementation pass (no active diagnostics).
 
 ---
 
@@ -86,7 +92,7 @@ Delivered in this iteration:
 ### ✅ Implemented (P1 Focus)
 - [x] Working login/register/2FA pages (17 LOC → 200+ LOC each)
 - [ ] Move 6 in-memory stores to PostgreSQL
-- [ ] Fix 6 critical security vulnerabilities
+- [ ] Fix 6 critical security vulnerabilities (most addressed; remaining hardening and verification in progress)
 - [x] Implement token refresh mechanism
 - [ ] CLI ↔ Webapp integration via Agent Relay
 
