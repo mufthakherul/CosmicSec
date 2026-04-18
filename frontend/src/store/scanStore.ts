@@ -24,6 +24,9 @@ export interface Scan {
   progress: number;
   findings: Finding[];
   createdAt: string;
+  findingsCount?: number;
+  severityBreakdown?: Record<string, number>;
+  source?: string;
 }
 
 interface ScanState {
