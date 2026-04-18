@@ -34,13 +34,16 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 
 ### Live Progress (April 19, 2026)
 
-- **Overall roadmap completion:** **88%**
+- **Overall roadmap completion:** **90%**
 - **Phase 2.4 (Plugin trust/signing):** **60%**
 - **Phase 2.1 (CLI↔Webapp task routing):** **56%**
-- **Phase 2.2 (Result aggregation views):** **84%**
+- **Phase 2.2 (Result aggregation views):** **88%**
 - **Phase 3.3 (Pagination):** **44%**
 
 Delivered in this iteration:
+- [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
+- [x] Added dashboard auto-refresh cadence (20s) with last-update indicator for near-real-time operator visibility.
+- [x] Added source-aware labels in dashboard recent activity to improve cross-source triage context.
 - [x] Added `POST /scans/agent-results` in scan-service to persist agent task findings into unified scan/finding storage.
 - [x] Wired API Gateway WebSocket task-result flow to forward agent findings directly into scan-service aggregation.
 - [x] Added `POST /api/scans/agent-results` proxy endpoint for explicit agent-result ingestion workflows.
@@ -98,7 +101,7 @@ Delivered in this iteration:
 - [x] Plugin system → add signing + permission scoping
 - [x] Scan service → persist results permanently
 - [x] Frontend → centralized API client
-- [ ] Dashboard → live scan progress + unified findings
+- [x] Dashboard → live scan progress + unified findings
 - [ ] CLI agent → tool discovery + task execution
 
 ---
