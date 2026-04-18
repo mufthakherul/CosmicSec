@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Globe, Download, ChevronDown, ChevronRight, Loader2, Search } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
+import { shouldUseTorForTarget, useNetworkPreferencesStore } from "../store/networkPreferencesStore";
 import { useNotificationStore } from "../store/notificationStore";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
@@ -28,6 +29,46 @@ interface ReconResult {
     error?: string;
   };
   findings?: { source: string; summary: string }[];
+}
+
+function normalizeReconResult(payload: unknown, fallbackTarget: string): ReconResult {
+  const raw = (payload ?? {}) as Partial<ReconResult>;
+  return {
+    target: raw.target ?? fallbackTarget,
+    timestamp: raw.timestamp ?? new Date().toISOString(),
+    dns: {
+      ips: Array.isArray(raw.dns?.ips) ? raw.dns.ips : [],
+      errors: Array.isArray(raw.dns?.errors) ? raw.dns.errors : [],
+    },
+    shodan: {
+      enabled: Boolean(raw.shodan?.enabled),
+      subdomains: Array.isArray(raw.shodan?.subdomains) ? raw.shodan.subdomains : [],
+      data_preview: Array.isArray(raw.shodan?.data_preview) ? raw.shodan.data_preview : [],
+      error: raw.shodan?.error,
+    },
+    virustotal: {
+      enabled: Boolean(raw.virustotal?.enabled),
+      analysis_stats:
+        raw.virustotal?.analysis_stats && typeof raw.virustotal.analysis_stats === "object"
+          ? raw.virustotal.analysis_stats
+          : {},
+      error: raw.virustotal?.error,
+    },
+    crtsh: {
+      enabled: Boolean(raw.crtsh?.enabled),
+      subdomains: Array.isArray(raw.crtsh?.subdomains) ? raw.crtsh.subdomains : [],
+      error: raw.crtsh?.error,
+    },
+    rdap: {
+      enabled: Boolean(raw.rdap?.enabled),
+      handle: raw.rdap?.handle,
+      status: Array.isArray(raw.rdap?.status) ? raw.rdap.status : [],
+      nameservers: Array.isArray(raw.rdap?.nameservers) ? raw.rdap.nameservers : [],
+      events: Array.isArray(raw.rdap?.events) ? raw.rdap.events : [],
+      error: raw.rdap?.error,
+    },
+    findings: Array.isArray(raw.findings) ? raw.findings : [],
+  };
 }
 
 function CollapsiblePanel({
@@ -78,6 +119,15 @@ export function ReconPage() {
   const [target, setTarget] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ReconResult | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [useProxyPool, setUseProxyPool] = useState(false);
+  const [proxyUrl, setProxyUrl] = useState("");
+  const [rotateIdentity, setRotateIdentity] = useState(false);
+  const [clientProfile, setClientProfile] = useState<
+    "desktop_chrome" | "desktop_firefox" | "android_mobile" | "ios_safari"
+  >("desktop_chrome");
+  const torMode = useNetworkPreferencesStore((s) => s.torMode);
+  const setTorMode = useNetworkPreferencesStore((s) => s.setTorMode);
   const addNotification = useNotificationStore((s) => s.addNotification);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,20 +136,44 @@ export function ReconPage() {
     setLoading(true);
     setResult(null);
     try {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 25000);
       const token = localStorage.getItem("cosmicsec_token");
+      const trimmedTarget = target.trim();
+      const shouldUseTor = shouldUseTorForTarget(trimmedTarget, torMode);
       const res = await fetch(`${API}/api/recon`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ target: target.trim() }),
+        body: JSON.stringify({
+          target: trimmedTarget,
+          use_proxy_pool: useProxyPool,
+          proxy_url: proxyUrl.trim() || undefined,
+          rotate_identity: rotateIdentity,
+          client_profile: clientProfile,
+          use_tor: shouldUseTor,
+          tor_mode: torMode,
+        }),
+        signal: controller.signal,
       });
-      const data = (await res.json()) as ReconResult;
-      setResult(data);
-      addNotification({ type: "success", message: `Recon complete for ${target.trim()}` });
-    } catch {
-      addNotification({ type: "error", message: "Recon request failed. Check API connection." });
+
+      window.clearTimeout(timeout);
+      if (!res.ok) {
+        const detail = await res.text().catch(() => "");
+        throw new Error(detail || `Recon request failed with status ${res.status}`);
+      }
+
+      const data = (await res.json()) as unknown;
+      setResult(normalizeReconResult(data, trimmedTarget));
+      addNotification({ type: "success", message: `Recon complete for ${trimmedTarget}` });
+    } catch (error) {
+      const message =
+        error instanceof DOMException && error.name === "AbortError"
+          ? "Recon timed out. Please refine the target and try again."
+          : "Recon request failed. Check API connection.";
+      addNotification({ type: "error", message });
     } finally {
       setLoading(false);
     }
@@ -156,6 +230,91 @@ export function ReconPage() {
             {loading ? "Running…" : "Run Recon"}
           </button>
         </form>
+
+        <div className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="flex w-full items-center justify-between text-left text-xs font-semibold uppercase tracking-wide text-slate-300"
+          >
+            Advanced Network Strategy
+            <span className="text-slate-500">{showAdvanced ? "Hide" : "Show"}</span>
+          </button>
+
+          {showAdvanced ? (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className="flex items-center gap-2 text-xs text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={useProxyPool}
+                  onChange={(e) => setUseProxyPool(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-950"
+                />
+                Use backend proxy pool
+              </label>
+
+              <label className="flex items-center gap-2 text-xs text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={rotateIdentity}
+                  onChange={(e) => setRotateIdentity(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-950"
+                />
+                Rotate identity (proxy/user-agent)
+              </label>
+
+              <label className="text-xs text-slate-400">
+                Global Tor mode
+                <select
+                  value={torMode}
+                  onChange={(e) => setTorMode(e.target.value as "enabled" | "disabled" | "auto")}
+                  className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200"
+                >
+                  <option value="disabled">Disabled (never route through Tor)</option>
+                  <option value="auto">Auto-detect (.onion routes via Tor)</option>
+                  <option value="enabled">Enabled (force Tor for recon egress)</option>
+                </select>
+              </label>
+
+              <label className="text-xs text-slate-400">
+                Client profile
+                <select
+                  value={clientProfile}
+                  onChange={(e) =>
+                    setClientProfile(
+                      e.target.value as
+                        | "desktop_chrome"
+                        | "desktop_firefox"
+                        | "android_mobile"
+                        | "ios_safari",
+                    )
+                  }
+                  className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200"
+                >
+                  <option value="desktop_chrome">Desktop Chrome</option>
+                  <option value="desktop_firefox">Desktop Firefox</option>
+                  <option value="android_mobile">Android Mobile</option>
+                  <option value="ios_safari">iOS Safari</option>
+                </select>
+              </label>
+
+              <label className="col-span-full text-xs text-slate-400">
+                Custom proxy URL (optional)
+                <input
+                  type="text"
+                  value={proxyUrl}
+                  onChange={(e) => setProxyUrl(e.target.value)}
+                  placeholder="http://user:pass@proxy-host:port or socks5://host:9050"
+                  className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200"
+                />
+              </label>
+
+              <p className="col-span-full text-[11px] text-slate-500">
+                Use only on assets you are authorized to assess. In Auto mode, onion targets route through Tor automatically.
+              </p>
+            </div>
+          ) : null}
+        </div>
 
         {/* Loading skeleton */}
         {loading && (

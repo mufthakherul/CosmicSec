@@ -75,11 +75,101 @@ function FindingCard({ finding }: { finding: Finding }) {
 export function ScanDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { scans, setActiveScan } = useScanStore();
+  const { scans, setActiveScan, updateScan } = useScanStore();
 
   useScanStream(id);
 
   const scan = scans.find((s) => s.id === id);
+
+  useEffect(() => {
+    if (!id) return;
+
+    let timer: number | undefined;
+    let stopped = false;
+    const token = localStorage.getItem("cosmicsec_token");
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const poll = async () => {
+      try {
+        const [scanRes, findingsRes] = await Promise.all([
+          fetch(`${API}/api/scans/${id}`, { headers }),
+          fetch(`${API}/api/scans/${id}/findings`, { headers }),
+        ]);
+
+        if (scanRes.ok) {
+          const remoteScan = (await scanRes.json()) as {
+            status?: "pending" | "running" | "completed" | "failed";
+            progress?: number;
+            scan_types?: string[];
+            target?: string;
+            created_at?: string;
+          };
+          updateScan(id, {
+            target: remoteScan.target ?? scan?.target ?? "unknown",
+            tool:
+              remoteScan.scan_types && remoteScan.scan_types.length > 0
+                ? remoteScan.scan_types.join(", ")
+                : (scan?.tool ?? "remote"),
+            status: remoteScan.status ?? (scan?.status ?? "pending"),
+            progress:
+              typeof remoteScan.progress === "number"
+                ? remoteScan.progress
+                : remoteScan.status === "completed"
+                  ? 100
+                  : scan?.progress ?? 0,
+            createdAt: remoteScan.created_at ?? scan?.createdAt ?? new Date().toISOString(),
+          });
+        }
+
+        if (findingsRes.ok) {
+          const findings = (await findingsRes.json()) as Array<{
+            id?: string;
+            title?: string;
+            severity?: FindingSeverity;
+            description?: string;
+            recommendation?: string;
+            tool?: string;
+            category?: string;
+            target?: string;
+            scan_id?: string;
+            detected_at?: string;
+          }>;
+
+          if (Array.isArray(findings)) {
+            updateScan(id, {
+              findings: findings.map((f, index) => ({
+                id: f.id ?? `${id}-finding-${index}`,
+                title: f.title ?? "Unnamed finding",
+                severity: (f.severity ?? "info") as FindingSeverity,
+                description: f.description ?? f.recommendation ?? "No description available.",
+                evidence: f.recommendation ?? "No evidence available.",
+                tool: f.tool ?? f.category ?? "scanner",
+                target: f.target ?? f.scan_id ?? id,
+                timestamp: f.detected_at ?? new Date().toISOString(),
+              })),
+            });
+          }
+        }
+      } catch {
+        // Keep current state if polling fails.
+      } finally {
+        if (!stopped && (scan?.status === "pending" || scan?.status === "running")) {
+          timer = window.setTimeout(() => {
+            void poll();
+          }, 2500);
+        }
+      }
+    };
+
+    void poll();
+    return () => {
+      stopped = true;
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [id, scan?.status, scan?.tool, scan?.target, scan?.createdAt, scan?.progress, updateScan]);
 
   useEffect(() => {
     if (scan) setActiveScan(scan);

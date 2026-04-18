@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   CheckCircle,
   Clock,
@@ -32,42 +32,19 @@ interface Agent {
   version?: string;
 }
 
-// ---------------------------------------------------------------------------
-// Mock data
-// ---------------------------------------------------------------------------
-
-const MOCK_AGENTS: Agent[] = [
-  {
-    agent_id: "agent-dev-01",
-    hostname: "dev-workstation",
-    platform: "linux",
-    tools: ["nmap", "nikto", "nuclei", "gobuster"],
-    status: "online",
-    last_seen: new Date(Date.now() - 30 * 1000).toISOString(),
-    tasks_completed: 14,
-    version: "1.2.0",
-  },
-  {
-    agent_id: "agent-ci-02",
-    hostname: "ci-runner-42",
-    platform: "linux",
-    tools: ["nmap", "nuclei", "masscan"],
-    status: "idle",
-    last_seen: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    tasks_completed: 87,
-    version: "1.2.0",
-  },
-  {
-    agent_id: "agent-win-03",
-    hostname: "pentest-laptop",
-    platform: "windows",
-    tools: ["nmap", "nikto", "sqlmap", "gobuster", "ffuf"],
-    status: "offline",
-    last_seen: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    tasks_completed: 32,
-    version: "1.1.5",
-  },
-];
+interface AgentApiRecord {
+  agent_id?: string;
+  status?: string;
+  last_seen_at?: number;
+  registered_at?: number;
+  manifest?: {
+    hostname?: string;
+    platform?: string;
+    tools?: Array<string | { name?: string }>;
+    tasks_completed?: number;
+    version?: string;
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -215,37 +192,79 @@ function InstallBanner() {
 // ---------------------------------------------------------------------------
 
 export function AgentsPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const normalizeStatus = (status?: string): Agent["status"] => {
+    if (status === "connected") return "online";
+    if (status === "registered") return "idle";
+    return "offline";
+  };
+
+  const toToolNames = (manifest: AgentApiRecord["manifest"]): string[] => {
+    const tools = manifest?.tools;
+    if (!Array.isArray(tools)) return [];
+    return tools
+      .map((tool) => (typeof tool === "string" ? tool : tool?.name ?? ""))
+      .filter((name) => Boolean(name));
+  };
 
   const loadAgents = useCallback(
     async (showLoader = false) => {
       if (showLoader) setRefreshing(true);
+      setLoadError(null);
+
+      if (!token || user?.role === "demo_viewer") {
+        setAgents([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
       const headers: Record<string, string> = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
       try {
         const res = await fetch(`${API}/api/agents`, { headers });
         if (res.ok) {
-          const data = (await res.json()) as { agents?: Agent[] };
-          if (data.agents?.length) {
-            setAgents(data.agents);
-            setLoading(false);
-            setRefreshing(false);
-            return;
-          }
+          const data = (await res.json()) as { agents?: AgentApiRecord[] };
+          const normalized = (data.agents ?? []).map((agent, index): Agent => {
+            const lastSeenMs =
+              typeof agent.last_seen_at === "number"
+                ? agent.last_seen_at * 1000
+                : typeof agent.registered_at === "number"
+                  ? agent.registered_at * 1000
+                  : Date.now();
+            const tools = toToolNames(agent.manifest);
+            return {
+              agent_id: agent.agent_id ?? `agent-${index}`,
+              hostname: agent.manifest?.hostname ?? "Unknown host",
+              platform: agent.manifest?.platform ?? "unknown",
+              tools,
+              status: normalizeStatus(agent.status),
+              last_seen: new Date(lastSeenMs).toISOString(),
+              tasks_completed: agent.manifest?.tasks_completed ?? 0,
+              version: agent.manifest?.version,
+            };
+          });
+          setAgents(normalized);
+          setLoading(false);
+          setRefreshing(false);
+          return;
         }
+        setLoadError("Failed to load agents from server.");
       } catch {
-        // fall through to mock
+        setLoadError("Failed to load agents from server.");
       }
 
-      setAgents(MOCK_AGENTS);
+      setAgents([]);
       setLoading(false);
       setRefreshing(false);
     },
-    [token]
+    [token, user?.role]
   );
 
   useEffect(() => {
@@ -278,6 +297,12 @@ export function AgentsPage() {
           </button>
         </div>
 
+        {loadError ? (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+            {loadError}
+          </div>
+        ) : null}
+
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-4">
           {[
@@ -303,7 +328,13 @@ export function AgentsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
           </div>
         ) : agents.length === 0 ? (
-          <InstallBanner />
+          <div className="space-y-3">
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-400">
+              No connected agents found for your account. Connect an agent to run live tools and
+              see execution outputs.
+            </div>
+            <InstallBanner />
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {agents.map((a) => (

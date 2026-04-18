@@ -521,14 +521,21 @@ export function Phase5OperationsPage() {
               <div className="grid grid-cols-6 items-end gap-2">
                 {monthlyEarnings.map((entry) => (
                   <div key={entry.month} className="flex flex-col items-center gap-1">
-                    <div className="h-24 w-full rounded bg-slate-800">
-                      <div
-                        className="w-full rounded bg-cyan-500 transition-all"
-                        style={{
-                          height: `${Math.max(8, Math.round((entry.amount / maxMonthlyEarning) * 100))}%`,
-                        }}
+                    <svg
+                      viewBox="0 0 24 96"
+                      className="h-24 w-full overflow-visible"
+                      aria-label={`${entry.month} earnings ${entry.amount}`}
+                    >
+                      <rect x="0" y="0" width="24" height="96" rx="6" fill="#1e293b" />
+                      <rect
+                        x="0"
+                        y={96 - Math.max(8, Math.round((entry.amount / maxMonthlyEarning) * 88))}
+                        width="24"
+                        height={Math.max(8, Math.round((entry.amount / maxMonthlyEarning) * 88))}
+                        rx="6"
+                        fill="#06b6d4"
                       />
-                    </div>
+                    </svg>
                     <span className="text-[11px] text-slate-500">{entry.month}</span>
                   </div>
                 ))}

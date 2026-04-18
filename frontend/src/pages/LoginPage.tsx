@@ -51,24 +51,61 @@ export function LoginPage() {
 
     setIsLoading(true);
     try {
-      const { data } = await axios.post(`${API}/api/auth/login`, {
-        email,
-        password,
-        remember_me: rememberMe,
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 20000);
+      const response = await fetch(`${API}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          remember_me: rememberMe,
+        }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const detail =
+          typeof data?.detail === "string" && data.detail.trim()
+            ? data.detail
+            : "Invalid email or password";
+        throw new Error(detail);
+      }
 
       if (data.requires_2fa) {
         navigate("/auth/2fa", { state: { email, tempToken: data.temp_token } });
         return;
       }
 
-      login(data.token, data.user);
+      const token = data.token ?? data.access_token;
+      const previewEmail =
+        typeof data?.preview_user?.email === "string" ? data.preview_user.email : undefined;
+      const user =
+        data.user ??
+        (previewEmail
+          ? {
+              id: `preview:${previewEmail}`,
+              email: previewEmail,
+              full_name: previewEmail.split("@")[0],
+              role:
+                typeof data?.preview_user?.role === "string" && data.preview_user.role
+                  ? data.preview_user.role
+                  : "viewer",
+            }
+          : null);
+
+      if (!token || !user) {
+        throw new Error("Invalid authentication response");
+      }
+      login(token, user);
       navigate(from, { replace: true });
     } catch (err) {
-      if (err instanceof AxiosError) {
-        setError(err.response?.data?.detail ?? "Invalid email or password");
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setError("Login request timed out. Please try again.");
       } else {
-        setError("An unexpected error occurred. Please try again.");
+        setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
       }
     } finally {
       setIsLoading(false);

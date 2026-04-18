@@ -40,6 +40,42 @@ interface BugBountySubmission {
   submitted_at: string;
 }
 
+const PREVIEW_PROGRAMS: BugBountyProgram[] = [
+  {
+    id: "program-1",
+    name: "CosmicSec Core Platform",
+    platform: "web",
+    url: "https://cosmicsec.example",
+    max_reward: 5000,
+    currency: "USD",
+    scope: ["app.cosmicsec.example", "api.cosmicsec.example"],
+    active: true,
+  },
+  {
+    id: "program-2",
+    name: "CosmicSec Mobile Companion",
+    platform: "mobile",
+    url: "https://mobile.cosmicsec.example",
+    max_reward: 2500,
+    currency: "USD",
+    scope: ["iOS", "Android"],
+    active: true,
+  },
+];
+
+const PREVIEW_SUBMISSIONS: BugBountySubmission[] = [
+  {
+    id: "sub-1",
+    program_id: "program-1",
+    program_name: "CosmicSec Core Platform",
+    title: "Security header hardening gap",
+    severity: "medium",
+    status: "triaged",
+    reward: 450,
+    submitted_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
 const SEVERITY_COLORS: Record<string, string> = {
   critical: "text-red-400 bg-red-500/10 border-red-500/20",
   high: "text-orange-400 bg-orange-500/10 border-orange-500/20",
@@ -71,6 +107,7 @@ export function BugBountyPage() {
   const [formSeverity, setFormSeverity] = useState("high");
   const [formDescription, setFormDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const isPreview = typeof window !== "undefined" && window.localStorage.getItem("cosmicsec_token")?.startsWith("demo-preview");
 
   const token = localStorage.getItem("cosmicsec_token");
   const headers: Record<string, string> = {
@@ -81,6 +118,12 @@ export function BugBountyPage() {
   useEffect(() => {
     void (async () => {
       setLoadingPrograms(true);
+      if (isPreview) {
+        setPrograms(PREVIEW_PROGRAMS);
+        setSubmissions(PREVIEW_SUBMISSIONS);
+        setLoadingPrograms(false);
+        return;
+      }
       try {
         const res = await fetch(`${API}/api/bugbounty/programs`, { headers });
         const data = (await res.json()) as { programs?: BugBountyProgram[] } | BugBountyProgram[];
@@ -92,7 +135,7 @@ export function BugBountyPage() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isPreview]);
 
   const filteredPrograms = programs.filter(
     (p) =>
@@ -105,6 +148,25 @@ export function BugBountyPage() {
     if (!formTitle.trim() || !formProgramId) return;
     setSubmitting(true);
     try {
+      if (isPreview) {
+        const newSub: BugBountySubmission = {
+          id: `sub-${Date.now()}`,
+          program_id: formProgramId,
+          program_name: programs.find((p) => p.id === formProgramId)?.name,
+          title: formTitle.trim(),
+          severity: formSeverity,
+          status: "draft",
+          submitted_at: new Date().toISOString(),
+        };
+        setSubmissions((prev) => [newSub, ...prev]);
+        setFormTitle("");
+        setFormDescription("");
+        setShowForm(false);
+        setActiveTab("submissions");
+        addNotification({ type: "success", message: "Submission saved as draft." });
+        return;
+      }
+
       const res = await fetch(`${API}/api/bugbounty/submissions`, {
         method: "POST",
         headers,
