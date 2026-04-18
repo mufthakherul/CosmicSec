@@ -9,17 +9,17 @@
 
 ## Executive Summary
 
-CosmicSec has **excellent foundational architecture** but suffers from **incomplete workflow integration** between CLI and webapp, **disconnected modules**, and **unnecessary feature bloat**. The platform is currently at ~78% implementation maturity.
+CosmicSec has **excellent foundational architecture** but suffers from **incomplete workflow integration** between CLI and webapp, **disconnected modules**, and **unnecessary feature bloat**. The platform is currently at ~81% implementation maturity.
 
 ### Implementation Progress Update (April 18, 2026)
 
 - **Phase 1 overall:** **63% complete**
 - **P1.1 Auth UX + session foundation:** **82% complete**
-- **P1.2 In-memory store migration:** **54% complete**
+- **P1.2 In-memory store migration:** **58% complete**
 - **P1.3 Security hardening:** **47% complete**
-- **P2.4 Plugin trust/signing:** **57% complete**
+- **P2.4 Plugin trust/signing:** **60% complete**
 - **P2.1 CLI↔Webapp task routing:** **36% complete**
-- **P2.2 Result aggregation views:** **69% complete**
+- **P2.2 Result aggregation views:** **74% complete**
 
 Completed in this execution:
 - [x] Upgraded `AuthContext` with access+refresh token lifecycle, remember-me persistence, and bootstrapped `/api/auth/me` validation.
@@ -57,12 +57,16 @@ Completed in this execution:
 - [x] Added role-aware plugin audit visibility with actor, role, and trust-state filtering.
 - [x] Added structured plugin audit context payloads (`scan_id`, `target`, `success`) for deterministic drill-down links.
 - [x] Enforced role-scoped plugin audit visibility in backend proxy flow (admin sees full, operators see scoped events).
+- [x] Persisted plugin trust audit events into shared database audit logs with automatic in-memory fallback.
 - [x] Added scan detail risk snapshot with severity mix and remediation posture.
 - [x] Added timeline aggregation summary cards for event volume, severity mix, and source mix.
 - [x] Added plugin detail route with trust metadata, audit history, and enable/disable controls.
 - [x] Added timeline context navigation that pivots events directly into plugin detail or scan detail views.
 - [x] Upgraded admin plugin trust audit table with actor/role columns and direct plugin/scan context links.
+- [x] Added admin visibility indicator for plugin audit scope (full vs role-scoped feed).
 - [x] Wired Agents UI dispatch button to real backend task dispatch endpoint with user feedback.
+- [x] Extended timeline feed to ingest plugin trust audit events (`/api/plugins/audit`) for unified cross-source triage.
+- [x] Marked `mobile/README.md` as pre-release/experimental to align with Phase 4 deferment strategy.
 
 ### Key Findings:
 
@@ -567,7 +571,7 @@ Recommendation:
 - [ ] Implement CLI ↔ Webapp integration via Agent Relay
 - [ ] Persist scan results to database
 - [ ] Build advanced Tor/Onion premium workflow in webapp
-- [ ] Implement plugin signing/permissions
+- [x] Implement plugin signing/permissions
 - [x] Build centralized API client for frontend
 
 ### Phase 3 (Weeks 6-8): **UI/UX Polish**
@@ -580,7 +584,7 @@ Recommendation:
 ### Phase 4 (Weeks 9-10): **Deprecation & Cleanup**
 - [ ] Remove Phase5, Mobile stubs, AdminTUI
 - [ ] Simplify notification backends
-- [ ] Add deprecation warnings to old APIs
+- [x] Add deprecation warnings to old APIs (mobile marked pre-release)
 - [ ] Update documentation
 
 ### Phase 5 (Week 11+): **Optional (Deferred)**
