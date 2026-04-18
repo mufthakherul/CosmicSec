@@ -158,7 +158,7 @@ export function AIChatPage() {
           query: text,
           context: ctx.trim() || undefined,
           source: "web",
-          preferred_model: "pie:mini",
+          preferred_model: "phi3:mini",
           enable_model_response: true,
         }),
       });

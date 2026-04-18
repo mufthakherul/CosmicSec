@@ -65,7 +65,7 @@ describe("DashboardPage", () => {
 
   it("renders a recent activity section", async () => {
     renderPage();
-    expect(await screen.findByText(/recent activity/i)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /recent activity/i })).toBeInTheDocument();
   });
 
   it("renders quick action links to core pages", async () => {

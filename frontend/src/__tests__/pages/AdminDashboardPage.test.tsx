@@ -1,5 +1,21 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { AdminDashboardPage } from "../../pages/AdminDashboardPage";
+
+vi.mock("../../context/AuthContext", () => ({
+  useAuth: () => ({
+    token: "test-token",
+    user: {
+      id: "admin-1",
+      email: "admin@cosmicsec.dev",
+      full_name: "Admin User",
+      role: "admin",
+    },
+    isAuthenticated: true,
+    login: vi.fn(),
+    logout: vi.fn(),
+  }),
+}));
 
 const alertMock = vi.fn();
 
@@ -39,6 +55,14 @@ const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => 
 });
 
 describe("AdminDashboardPage", () => {
+  function renderPage() {
+    render(
+      <MemoryRouter>
+        <AdminDashboardPage />
+      </MemoryRouter>,
+    );
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
@@ -47,13 +71,13 @@ describe("AdminDashboardPage", () => {
   });
 
   it("renders dashboard heading and loaded user data", async () => {
-    render(<AdminDashboardPage />);
+    renderPage();
     expect(screen.getByRole("heading", { name: /advanced admin dashboard/i })).toBeInTheDocument();
     expect(await screen.findByText(/admin@cosmicsec\.dev/i)).toBeInTheDocument();
   });
 
   it("creates a user and shows temporary password alert", async () => {
-    render(<AdminDashboardPage />);
+    renderPage();
 
     fireEvent.change(screen.getByPlaceholderText(/new user email/i), {
       target: { value: "new@cosmicsec.dev" },
@@ -70,7 +94,7 @@ describe("AdminDashboardPage", () => {
   });
 
   it("toggles module state labels", async () => {
-    render(<AdminDashboardPage />);
+    renderPage();
     await screen.findByText(/admin@cosmicsec\.dev/i);
     const aiToggle = screen.getByRole("button", { name: /ai: enabled/i });
     fireEvent.click(aiToggle);
