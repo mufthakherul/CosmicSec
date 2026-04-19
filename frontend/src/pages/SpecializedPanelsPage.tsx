@@ -47,6 +47,15 @@ type PlaybookCard = {
   badge: string;
 };
 
+type ToolPack = {
+  id: string;
+  title: string;
+  role: "pentest" | "soc" | "bounty" | "osint";
+  tools: string[];
+  objective: string;
+  launchPath: string;
+};
+
 type PanelViewMode = "cards" | "compact";
 type PanelDensity = "comfortable" | "dense";
 
@@ -153,6 +162,41 @@ const PLAYBOOKS: PlaybookCard[] = [
     description: "Jumps into AI chat for rapid triage and escalation playbook guidance.",
     path: "/ai/chat",
     badge: "AI",
+  },
+];
+
+const TOOL_PACKS: ToolPack[] = [
+  {
+    id: "pentest-burst",
+    title: "Pentest Burst Pack",
+    role: "pentest",
+    tools: ["nmap", "nuclei", "nikto", "sqlmap"],
+    objective: "Fast vulnerability surfacing with exploitability context.",
+    launchPath: "/scans?preset=pentest-fast",
+  },
+  {
+    id: "soc-triage",
+    title: "SOC Triage Pack",
+    role: "soc",
+    tools: ["timeline", "alerts", "risk posture"],
+    objective: "Prioritize incidents and focus on critical path containment.",
+    launchPath: "/scans?preset=soc-triage",
+  },
+  {
+    id: "bounty-hunter",
+    title: "Bounty Hunter Pack",
+    role: "bounty",
+    tools: ["program triage", "submission queue", "payout intelligence"],
+    objective: "Drive report throughput with faster reward-oriented workflow transitions.",
+    launchPath: "/bugbounty",
+  },
+  {
+    id: "osint-surface",
+    title: "OSINT Surface Pack",
+    role: "osint",
+    tools: ["dns", "crtsh", "rdap", "virustotal"],
+    objective: "Build fast external attack-surface snapshots for analyst handoff.",
+    launchPath: "/recon?preset=osint-surface",
   },
 ];
 
@@ -431,6 +475,48 @@ export function SpecializedPanelsPage() {
           </div>
         </section>
 
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-50">Role Tool Packs</h2>
+              <p className="text-sm text-slate-400">
+                Curated tool categories for pentesters, SOC analysts, bounty operators, and OSINT workflows.
+              </p>
+            </div>
+            <span className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+              Categorized by role
+            </span>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {TOOL_PACKS.map((pack) => (
+              <article key={pack.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-slate-100">{pack.title}</h3>
+                  <span className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-cyan-300">
+                    {pack.role}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-slate-400">{pack.objective}</p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {pack.tools.map((tool) => (
+                    <span key={tool} className="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 text-[11px] text-slate-300">
+                      {tool}
+                    </span>
+                  ))}
+                </div>
+                <Link
+                  to={pack.launchPath}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 transition-colors hover:border-cyan-500/30 hover:text-cyan-300"
+                >
+                  Open pack
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-base font-semibold text-slate-50">Live Hub Telemetry</h2>
@@ -574,7 +660,7 @@ export function SpecializedPanelsPage() {
             <h2 className="text-lg font-semibold text-slate-50">Roadmap alignment</h2>
             <div className="mt-4 space-y-3 text-sm text-slate-300">
               <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-                Specialized panels foundation: 66%
+                Specialized panels foundation: 72%
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                 Pentest, SOC, bug bounty, and recon surfaces are now grouped into a single
