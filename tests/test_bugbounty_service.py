@@ -71,3 +71,10 @@ def test_bugbounty_program_and_submission_flow() -> None:
     templates = client.get("/reports/templates")
     assert templates.status_code == 200
     assert templates.json()["total"] >= 1
+
+    overview = client.get("/dashboard/overview")
+    assert overview.status_code == 200
+    overview_data = overview.json()
+    assert overview_data["programs"] >= 1
+    assert overview_data["submissions"] >= 1
+    assert "recent_activities" in overview_data
