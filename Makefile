@@ -1,5 +1,6 @@
 COMPOSE_DEV = -f docker-compose.yml -f docker-compose.dev.yml
 COMPOSE = docker compose
+LITE_SERVICES = postgres redis mongodb rabbitmq auth-service scan-service ai-service recon-service api-gateway
 
 .PHONY: install dev dev-frontend dev-backend test build clean help up \
 	seed test-all lint-all format-all setup-self-hosted cross-platform-info diagnose
@@ -10,6 +11,7 @@ help:
 	@echo "Development:"
 	@echo "  make install       - Install Python dependencies"
 	@echo "  make dev           - Start dev environment (with hot-reload)"
+	@echo "  make dev-lite      - Start low-memory dev environment (8GB-friendly)"
 	@echo "  make dev-frontend  - Start frontend dev server"
 	@echo "  make dev-backend   - Start backend services in Docker"
 	@echo "  make dev-build     - Rebuild & start dev containers"
@@ -74,12 +76,21 @@ dev:
 	@echo "  - Services auto-detect localhost vs docker network"
 	@echo "  See: make cross-platform-info"
 
+dev-lite:
+	$(COMPOSE) up -d $(LITE_SERVICES)
+	@echo "Low-memory dev services started without hot-reload (LLM/observability extras skipped)."
+	@echo "Run the frontend on the host with: cd frontend && npm run dev"
+
 dev-build:
 	$(COMPOSE) $(COMPOSE_DEV) up --build -d
 
 dev-build-no-cache:
 	$(COMPOSE) $(COMPOSE_DEV) build --no-cache
 	$(COMPOSE) $(COMPOSE_DEV) up -d
+
+dev-lite-build-no-cache:
+	$(COMPOSE) build --no-cache $(LITE_SERVICES)
+	$(COMPOSE) up -d $(LITE_SERVICES)
 
 dev-restart-safe:
 	$(COMPOSE) $(COMPOSE_DEV) down
