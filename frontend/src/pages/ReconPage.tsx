@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Globe, Download, ChevronDown, ChevronRight, Loader2, Search } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import {
@@ -123,6 +124,7 @@ function SkeletonPanel() {
 }
 
 export function ReconPage() {
+  const [searchParams] = useSearchParams();
   const [target, setTarget] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ReconResult | null>(null);
@@ -153,6 +155,20 @@ export function ReconPage() {
       clearActiveRequest();
     };
   }, []);
+
+  useEffect(() => {
+    const preset = searchParams.get("preset");
+    if (!preset) return;
+
+    if (preset === "onion-stealth") {
+      setShowAdvanced(true);
+      setUseProxyPool(true);
+      setRotateIdentity(true);
+      setClientProfile("desktop_firefox");
+      setTorMode("always");
+      setTarget((current) => current || "exampleonion.org");
+    }
+  }, [searchParams, setTorMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

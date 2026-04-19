@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Radar, Clock, CheckCircle, AlertCircle, Loader2, Play } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { Pagination } from "../components/Pagination";
@@ -63,6 +63,7 @@ function toScanTypes(scanType: "quick" | "full" | "custom", tools: Set<Tool>): s
 
 export function ScanPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { scans, addScan, setScans } = useScanStore();
   const torMode = useNetworkPreferencesStore((s) => s.torMode);
   const setTorMode = useNetworkPreferencesStore((s) => s.setTorMode);
@@ -86,6 +87,22 @@ export function ScanPage() {
   const [dismissedScanIds, setDismissedScanIds] = useState<Set<string>>(new Set());
   const [scanPage, setScanPage] = useState(1);
   const SCANS_PER_PAGE = 8;
+
+  useEffect(() => {
+    const preset = searchParams.get("preset");
+    if (!preset) return;
+
+    if (preset === "web-deep") {
+      setScanType("full");
+      setSelectedTools(new Set(["nmap", "nuclei", "nikto", "gobuster", "sqlmap"]));
+      setScanDepth(4);
+      setScanProfile("aggressive");
+      setMaxRequestsPerMinute(260);
+      setEnableAiPrioritization(true);
+      setShowAdvanced(true);
+      setTarget((current) => current || "example.com");
+    }
+  }, [searchParams]);
 
   const toggleTool = (tool: Tool) =>
     setSelectedTools((prev) => {
