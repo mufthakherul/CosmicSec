@@ -47,6 +47,8 @@ describe("SpecializedPanelsPage", () => {
     expect(screen.getByText(/role tool packs/i)).toBeInTheDocument();
     expect(screen.getByText(/pentest burst pack/i)).toBeInTheDocument();
     expect(screen.getByText(/soc triage pack/i)).toBeInTheDocument();
+    expect(screen.getByText(/red team stealth pack/i)).toBeInTheDocument();
+    expect(screen.getByText(/adaptive recommendations/i)).toBeInTheDocument();
     expect(screen.getByText((_, element) => element?.textContent === "Role: admin")).toBeInTheDocument();
 
     const pinButton = screen.getAllByRole("button", { name: /^pin$/i })[0];

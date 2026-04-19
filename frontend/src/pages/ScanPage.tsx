@@ -125,6 +125,30 @@ export function ScanPage() {
       setEnableAiPrioritization(true);
       setShowAdvanced(true);
       setTarget((current) => current || "incident-scope.local");
+      return;
+    }
+
+    if (preset === "redteam-chain") {
+      setScanType("custom");
+      setSelectedTools(new Set(["nmap", "nuclei", "nikto", "gobuster"]));
+      setScanDepth(3);
+      setScanProfile("stealth");
+      setMaxRequestsPerMinute(160);
+      setEnableAiPrioritization(true);
+      setShowAdvanced(true);
+      setTarget((current) => current || "engagement-scope.local");
+      return;
+    }
+
+    if (preset === "malware-surface") {
+      setScanType("quick");
+      setSelectedTools(new Set(["nmap", "nuclei", "nikto"]));
+      setScanDepth(2);
+      setScanProfile("balanced");
+      setMaxRequestsPerMinute(150);
+      setEnableAiPrioritization(true);
+      setShowAdvanced(true);
+      setTarget((current) => current || "suspicious-endpoint.local");
     }
   }, [searchParams]);
 

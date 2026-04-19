@@ -137,4 +137,34 @@ describe("ScanPage", () => {
     await renderPage();
     expect(screen.getByText(/^example\.com$/i)).toBeInTheDocument();
   });
+
+  it("applies red team preset defaults from query parameters", async () => {
+    render(
+      <ThemeProvider>
+        <QueryClientProvider client={qc}>
+          <MemoryRouter initialEntries={["/scans?preset=redteam-chain"]}>
+            <ScanPage />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </ThemeProvider>,
+    );
+
+    const targetInput = await screen.findByPlaceholderText(/example\.com|target/i);
+    expect(targetInput).toHaveValue("engagement-scope.local");
+  });
+
+  it("applies malware preset defaults from query parameters", async () => {
+    render(
+      <ThemeProvider>
+        <QueryClientProvider client={qc}>
+          <MemoryRouter initialEntries={["/scans?preset=malware-surface"]}>
+            <ScanPage />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </ThemeProvider>,
+    );
+
+    const targetInput = await screen.findByPlaceholderText(/example\.com|target/i);
+    expect(targetInput).toHaveValue("suspicious-endpoint.local");
+  });
 });

@@ -177,6 +177,16 @@ export function ReconPage() {
       setClientProfile("desktop_chrome");
       setTorMode("smart");
       setTarget((current) => current || "example.com");
+      return;
+    }
+
+    if (preset === "ctf-recon") {
+      setShowAdvanced(true);
+      setUseProxyPool(false);
+      setRotateIdentity(false);
+      setClientProfile("desktop_chrome");
+      setTorMode("never");
+      setTarget((current) => current || "ctf-target.local");
     }
   }, [searchParams, setTorMode]);
 
