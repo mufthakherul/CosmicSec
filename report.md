@@ -133,6 +133,8 @@ Completed in this execution:
 - [x] Added API-gateway streaming proxy `POST /api/ai/query/stream` with resilient pass-through and structured stream error handling.
 - [x] Upgraded `AIChatPage` to consume live stream events and progressively render assistant responses in real time (instead of batch-only final replies).
 - [x] Added backend regression coverage for AI streaming path (`test_ai_nl_query_stream_endpoint`).
+- [x] Added bug bounty dashboard overview endpoint with consolidated program/submission/paid metrics and recent activity summaries.
+- [x] Upgraded Bug Bounty page to surface summary cards and a recent activity feed for a more professional operator view.
 
 ### Key Findings:
 
@@ -176,7 +178,7 @@ Completed in this execution:
 | **Collab Service** | 🟡 Partial | 55% | No auth on WebSocket upgrade, in-memory rooms | Add auth middleware, persist rooms |
 | **Plugin Registry** | 🟡 Partial | 72% | Signing + permissions exist, but sandboxing and strict provenance policy are still incomplete | Enforce signed-only policy + add sandbox/runtime isolation |
 | **Integration Service** | 🟡 Partial | 68% | Core persistence + analytics are active, but customer-validated connector strategy is still evolving | Prioritize Splunk-first hardened connector profile and staged provider rollout |
-| **BugBounty Service** | 🟡 Partial | 76% | Collaboration threads and activity trails are now persisted, but advanced external platform sync workflows remain limited | Add bi-directional platform sync and reviewer SLA analytics |
+| **BugBounty Service** | 🟡 Partial | 80% | Collaboration threads, activity trails, and dashboard overview metrics are now persisted, but advanced external platform sync workflows remain limited | Add bi-directional platform sync and reviewer SLA analytics |
 | **Phase 5 SOC Module** | 🔴 Stubbed | 30% | Barely implemented, unclear requirements | Clarify SOC workflows or deprecate |
 | **Admin Service** | 🟡 Partial | 65% | TUI mock, MFA audit incomplete | Implement full admin panel in frontend |
 | **Agent Relay** | 🟢 Functional | 80% | In-memory agent sessions, no persistence | Add agent session DB |
