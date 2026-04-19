@@ -102,9 +102,9 @@ Current reality:
 Your vision: "lots of tools designed for custom work, categorized for different types of professionals"
 
 What's still needed for full completion:
-- Deeper execution timing analytics and adaptive playbook recommendations
+- WebSocket-native per-tool execution timing telemetry parity with CLI
 
-Current state: Specialized Panels Hub now provides role-aware cards, quick-launch playbooks, preset-aware execution entry points, live telemetry widgets, categorized role tool packs, expanded Red Team/CTF/Malware launch profiles, and adaptive recommendation cards with launch-history context
+Current state: Specialized Panels Hub now provides role-aware cards, quick-launch playbooks, preset-aware execution entry points, live telemetry widgets, categorized role tool packs, expanded Red Team/CTF/Malware launch profiles, adaptive recommendation cards with launch-history context, and execution timing analytics (intervals/velocity/mix)
 
 ### GAP 4: Phi3 Mini Integration Default (Largely Addressed)
 - AI service and gateway defaults are now aligned to `phi3:mini`
@@ -158,7 +158,7 @@ Current state: Specialized Panels Hub now provides role-aware cards, quick-launc
 - Tool Execution from WebApp: Scan service runs actual tools via subprocess but not via natural language
 - Bug bounty workflow: dashboard overview metrics, recent activity, and inline status transitions are now exposed, but external platform sync and SLA analytics remain a next step
 - Plugin audit workflow: admin and timeline drill-down links are now explicit, with scan/plugin navigation intact across audit surfaces
-- Specialized panels workflow: a centralized Panels Hub now exists with pinning, role-aware ordering, quick-launch playbooks, preset-aware scan/recon entry, live telemetry, layout personalization, categorized role tool packs, and adaptive recommendations; remaining work is deeper execution timing analytics
+- Specialized panels workflow: a centralized Panels Hub now exists with pinning, role-aware ordering, quick-launch playbooks, preset-aware scan/recon entry, live telemetry, layout personalization, categorized role tool packs, adaptive recommendations, and execution timing analytics; remaining work is websocket-native per-tool timing telemetry
 
 ---
 
@@ -234,11 +234,11 @@ Gap: The WebApp still needs fuller HybridEngine-style server orchestration and u
 |------|---------|--------|-----|
 | CLI Agent | 90% | 100% | Unified registry + deeper per-tool orchestration polish |
 | WebApp Chat (AI Execution) | 80% | 100% | Richer orchestration depth and websocket telemetry still pending |
-| Specialized Tool Panels | 79% | 100% | Hub + pinning + quick-launch playbooks + telemetry/personalization + expanded role packs + adaptive recommendations are live; execution-timing analytics remain |
+| Specialized Tool Panels | 84% | 100% | Hub + pinning + quick-launch playbooks + telemetry/personalization + expanded role packs + adaptive recommendations + execution timing analytics are live; websocket-native per-tool timing telemetry remains |
 | Backend Tests | 85% | 80%+ | Keep deprecation/warning cleanup and CI runtime consistency |
 | Frontend Tests | 85% | 80%+ | Core suite green; continue depth/edge-case expansion |
 | LLM Integration | 78% | 100% | Multi-provider production switchover + deeper executor reasoning loop |
 | Streaming Output | 70% | 100% | WebSocket execution stream + per-tool runtime telemetry layers |
 | Phi3 to Cisco switchover | 0% | 100% | Config-driven LLM selection |
 
-Overall project maturity estimate: **95%**.
+Overall project maturity estimate: **96%**.
