@@ -11,6 +11,8 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  ShieldCheck,
+  Activity,
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useNotificationStore } from "../store/notificationStore";
@@ -38,6 +40,24 @@ interface BugBountySubmission {
   status: "draft" | "submitted" | "triaged" | "accepted" | "rejected";
   reward?: number;
   submitted_at: string;
+}
+
+interface BugBountyOverview {
+  programs: number;
+  submissions: number;
+  threads: number;
+  pending_review: number;
+  paid_submissions: number;
+  total_paid: number;
+  average_payout: number;
+  status_breakdown: Record<string, number>;
+  recent_activities: Array<{
+    event?: string;
+    actor?: string | null;
+    detail?: string | null;
+    created_at?: string | null;
+  }>;
+  updated_at?: string;
 }
 
 const PREVIEW_PROGRAMS: BugBountyProgram[] = [
@@ -96,6 +116,7 @@ export function BugBountyPage() {
   const addNotification = useNotificationStore((s) => s.addNotification);
   const [programs, setPrograms] = useState<BugBountyProgram[]>([]);
   const [submissions, setSubmissions] = useState<BugBountySubmission[]>([]);
+  const [overview, setOverview] = useState<BugBountyOverview | null>(null);
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [activeTab, setActiveTab] = useState<"programs" | "submissions">("programs");
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,6 +151,19 @@ export function BugBountyPage() {
         const res = await fetch(`${API}/api/bugbounty/programs`, { headers });
         const data = (await res.json()) as { programs?: BugBountyProgram[] } | BugBountyProgram[];
         setPrograms(Array.isArray(data) ? data : (data.programs ?? []));
+        const [overviewRes, submissionsRes] = await Promise.allSettled([
+          fetch(`${API}/api/bugbounty/dashboard/overview`, { headers }),
+          fetch(`${API}/api/bugbounty/submissions`, { headers }),
+        ]);
+        if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
+          setOverview((await overviewRes.value.json()) as BugBountyOverview);
+        }
+        if (submissionsRes.status === "fulfilled" && submissionsRes.value.ok) {
+          const payload = (await submissionsRes.value.json()) as {
+            items?: BugBountySubmission[];
+          };
+          setSubmissions(payload.items ?? []);
+        }
       } catch {
         // silently use empty list — API may not be up
       } finally {
@@ -228,6 +262,77 @@ export function BugBountyPage() {
             Browse programs, track submissions, and manage vulnerability disclosures.
           </p>
         </header>
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              label: "Programs",
+              value: overview?.programs ?? programs.length,
+              icon: ShieldCheck,
+              accent: "text-emerald-300",
+            },
+            {
+              label: "Submissions",
+              value: overview?.submissions ?? submissions.length,
+              icon: Bug,
+              accent: "text-amber-300",
+            },
+            {
+              label: "Pending Review",
+              value: overview?.pending_review ?? 0,
+              icon: Clock,
+              accent: "text-cyan-300",
+            },
+            {
+              label: "Total Paid",
+              value: `$${overview?.total_paid ?? 0}`,
+              icon: DollarSign,
+              accent: "text-lime-300",
+            },
+          ].map((card) => (
+            <div
+              key={card.label}
+              className="rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  {card.label}
+                </span>
+                <card.icon className={`h-4 w-4 ${card.accent}`} />
+              </div>
+              <div className="mt-3 text-2xl font-bold text-slate-100">{card.value}</div>
+            </div>
+          ))}
+        </section>
+
+        {overview?.recent_activities?.length ? (
+          <section className="rounded-xl border border-slate-800 bg-white/5 p-5 backdrop-blur-sm">
+            <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <Activity className="h-4 w-4 text-cyan-300" />
+              Recent Activity
+            </div>
+            <div className="space-y-3">
+              {overview.recent_activities.slice(0, 4).map((activity, index) => (
+                <article
+                  key={`${activity.event ?? "activity"}-${index}`}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-slate-100">
+                      {activity.detail ?? activity.event ?? "Activity"}
+                    </p>
+                    <span className="text-xs text-slate-500">
+                      {activity.created_at ? new Date(activity.created_at).toLocaleString() : ""}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {activity.actor ? `Actor: ${activity.actor}` : "System event"}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* New submission form */}
         {showForm && (
