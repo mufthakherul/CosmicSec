@@ -167,6 +167,16 @@ export function ReconPage() {
       setClientProfile("desktop_firefox");
       setTorMode("always");
       setTarget((current) => current || "exampleonion.org");
+      return;
+    }
+
+    if (preset === "osint-surface") {
+      setShowAdvanced(true);
+      setUseProxyPool(false);
+      setRotateIdentity(false);
+      setClientProfile("desktop_chrome");
+      setTorMode("smart");
+      setTarget((current) => current || "example.com");
     }
   }, [searchParams, setTorMode]);
 

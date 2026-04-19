@@ -101,6 +101,30 @@ export function ScanPage() {
       setEnableAiPrioritization(true);
       setShowAdvanced(true);
       setTarget((current) => current || "example.com");
+      return;
+    }
+
+    if (preset === "pentest-fast") {
+      setScanType("custom");
+      setSelectedTools(new Set(["nmap", "nuclei", "nikto", "sqlmap"]));
+      setScanDepth(2);
+      setScanProfile("balanced");
+      setMaxRequestsPerMinute(220);
+      setEnableAiPrioritization(true);
+      setShowAdvanced(true);
+      setTarget((current) => current || "target.local");
+      return;
+    }
+
+    if (preset === "soc-triage") {
+      setScanType("quick");
+      setSelectedTools(new Set(["nmap", "nuclei"]));
+      setScanDepth(1);
+      setScanProfile("stealth");
+      setMaxRequestsPerMinute(120);
+      setEnableAiPrioritization(true);
+      setShowAdvanced(true);
+      setTarget((current) => current || "incident-scope.local");
     }
   }, [searchParams]);
 
