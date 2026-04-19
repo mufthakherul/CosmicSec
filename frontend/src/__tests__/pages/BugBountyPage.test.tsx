@@ -8,8 +8,9 @@ vi.mock("../../components/AppLayout", () => ({
 }));
 
 vi.mock("../../store/notificationStore", () => ({
-  useNotificationStore: (selector: (state: { addNotification: typeof addNotification }) => unknown) =>
-    selector({ addNotification }),
+  useNotificationStore: (
+    selector: (state: { addNotification: typeof addNotification }) => unknown,
+  ) => selector({ addNotification }),
 }));
 
 function jsonResponse(body: unknown, init?: ResponseInit): Response {
