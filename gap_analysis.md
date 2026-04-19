@@ -162,6 +162,7 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 - AI Model Integration: `phi3:mini` default aligned across gateway, ai-service, and chat UI
 - Streaming chat responses now supported via NDJSON progressive events; websocket-native parity still pending
 - Tool Execution from WebApp: Scan service runs actual tools via subprocess but not via natural language
+- Bug bounty workflow: dashboard overview metrics and recent activity are now exposed, but external platform sync and SLA analytics remain a next step
 
 ---
 
