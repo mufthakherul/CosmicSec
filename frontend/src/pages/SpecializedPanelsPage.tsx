@@ -2,19 +2,27 @@ import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState, type ElementType } from "react";
 import {
   Activity,
+  AlertTriangle,
   ArrowRight,
   Bug,
   Brain,
+  Gauge,
   Check,
   Globe,
+  LayoutGrid,
+  List,
   Pin,
   PinOff,
   Radar,
+  RefreshCw,
+  Search,
   Shield,
   TerminalSquare,
+  Users,
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useAuth } from "../context/AuthContext";
+import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
 
 type PanelCategory = "pentest" | "soc" | "bounty" | "recon" | "ai" | "timeline";
 type HubFilter = "all" | PanelCategory | "pinned";
@@ -39,7 +47,21 @@ type PlaybookCard = {
   badge: string;
 };
 
+type PanelViewMode = "cards" | "compact";
+type PanelDensity = "comfortable" | "dense";
+
+type HubTelemetry = {
+  activeScans: number;
+  connectedAgents: number;
+  criticalFindings: number;
+  openBugs: number;
+  updatedAt: string;
+};
+
 const PIN_STORAGE_KEY = "cosmicsec-specialized-panels-pins";
+const VIEW_MODE_STORAGE_KEY = "cosmicsec-specialized-panels-view";
+const DENSITY_STORAGE_KEY = "cosmicsec-specialized-panels-density";
+const API = getApiGatewayBaseUrl();
 
 const PANELS: PanelCard[] = [
   {
@@ -137,7 +159,18 @@ const PLAYBOOKS: PlaybookCard[] = [
 export function SpecializedPanelsPage() {
   const { user } = useAuth();
   const [filter, setFilter] = useState<HubFilter>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [pinnedPanelIds, setPinnedPanelIds] = useState<PanelCategory[]>([]);
+  const [viewMode, setViewMode] = useState<PanelViewMode>("cards");
+  const [density, setDensity] = useState<PanelDensity>("comfortable");
+  const [telemetry, setTelemetry] = useState<HubTelemetry>({
+    activeScans: 0,
+    connectedAgents: 0,
+    criticalFindings: 0,
+    openBugs: 0,
+    updatedAt: "",
+  });
+  const [telemetryLoading, setTelemetryLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -156,10 +189,88 @@ export function SpecializedPanelsPage() {
     }
   }, []);
 
+  useEffect(() => {
+    try {
+      const rawView = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+      if (rawView === "cards" || rawView === "compact") {
+        setViewMode(rawView);
+      }
+
+      const rawDensity = localStorage.getItem(DENSITY_STORAGE_KEY);
+      if (rawDensity === "comfortable" || rawDensity === "dense") {
+        setDensity(rawDensity);
+      }
+    } catch {
+      // Ignore malformed preferences.
+    }
+  }, []);
+
   const savePins = (nextPinned: PanelCategory[]) => {
     setPinnedPanelIds(nextPinned);
     localStorage.setItem(PIN_STORAGE_KEY, JSON.stringify(nextPinned));
   };
+
+  const setAndPersistViewMode = (nextViewMode: PanelViewMode) => {
+    setViewMode(nextViewMode);
+    localStorage.setItem(VIEW_MODE_STORAGE_KEY, nextViewMode);
+  };
+
+  const setAndPersistDensity = (nextDensity: PanelDensity) => {
+    setDensity(nextDensity);
+    localStorage.setItem(DENSITY_STORAGE_KEY, nextDensity);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchTelemetry = async () => {
+      setTelemetryLoading(true);
+      try {
+        const token = localStorage.getItem("cosmicsec_token");
+        const response = await fetch(`${API}/api/dashboard/overview`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        if (!response.ok) throw new Error("telemetry unavailable");
+        const payload = (await response.json()) as {
+          total_scans?: number;
+          active_agents?: number;
+          critical_findings?: number;
+          open_bugs?: number;
+        };
+
+        if (cancelled) return;
+        setTelemetry({
+          activeScans: payload.total_scans ?? 0,
+          connectedAgents: payload.active_agents ?? 0,
+          criticalFindings: payload.critical_findings ?? 0,
+          openBugs: payload.open_bugs ?? 0,
+          updatedAt: new Date().toISOString(),
+        });
+      } catch {
+        if (cancelled) return;
+        setTelemetry((current) => ({
+          ...current,
+          updatedAt: current.updatedAt || new Date().toISOString(),
+        }));
+      } finally {
+        if (!cancelled) setTelemetryLoading(false);
+      }
+    };
+
+    void fetchTelemetry();
+    const interval = window.setInterval(() => {
+      void fetchTelemetry();
+    }, 30_000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
 
   const userRole = user?.role ?? "user";
 
@@ -177,11 +288,19 @@ export function SpecializedPanelsPage() {
     });
 
     return ordered.filter((panel) => {
+      const matchesSearch =
+        searchQuery.trim().length === 0 ||
+        [panel.title, panel.description, ...panel.bullets]
+          .join(" ")
+          .toLowerCase()
+          .includes(searchQuery.trim().toLowerCase());
+
+      if (!matchesSearch) return false;
       if (filter === "all") return true;
       if (filter === "pinned") return pinnedPanelIds.includes(panel.id);
       return panel.id === filter;
     });
-  }, [filter, pinnedPanelIds, userRole]);
+  }, [filter, pinnedPanelIds, searchQuery, userRole]);
 
   const recommendedCount = useMemo(
     () => PANELS.filter((panel) => panel.recommendedFor.includes(userRole)).length,
@@ -253,6 +372,15 @@ export function SpecializedPanelsPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <label className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1.5 text-xs text-slate-300">
+                <Search className="h-3.5 w-3.5 text-slate-500" />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search panels"
+                  className="w-28 bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-500"
+                />
+              </label>
               {[
                 { id: "all", label: "All" },
                 { id: "pinned", label: "Pinned" },
@@ -272,19 +400,97 @@ export function SpecializedPanelsPage() {
                   {item.label}
                 </button>
               ))}
+              <div className="flex rounded-full border border-slate-700 bg-slate-950/80 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setAndPersistViewMode("cards")}
+                  aria-label="Switch to card view"
+                  title="Card view"
+                  className={`rounded-full px-2 py-1 text-xs font-semibold ${viewMode === "cards" ? "bg-cyan-500/15 text-cyan-300" : "text-slate-400"}`}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAndPersistViewMode("compact")}
+                  aria-label="Switch to compact view"
+                  title="Compact view"
+                  className={`rounded-full px-2 py-1 text-xs font-semibold ${viewMode === "compact" ? "bg-cyan-500/15 text-cyan-300" : "text-slate-400"}`}
+                >
+                  <List className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAndPersistDensity(density === "comfortable" ? "dense" : "comfortable")}
+                className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1.5 text-xs font-semibold text-slate-300"
+              >
+                Density: {density === "comfortable" ? "Comfort" : "Dense"}
+              </button>
             </div>
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-slate-50">Live Hub Telemetry</h2>
+            <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+              <RefreshCw className={`h-3.5 w-3.5 ${telemetryLoading ? "animate-spin" : ""}`} />
+              {telemetry.updatedAt
+                ? `Updated ${new Date(telemetry.updatedAt).toLocaleTimeString()}`
+                : "Waiting for first sync"}
+            </span>
+          </div>
+          <div className="mt-3 grid gap-3 md:grid-cols-4">
+            {[
+              {
+                id: "scans",
+                label: "Active scans",
+                value: telemetry.activeScans,
+                icon: Gauge,
+              },
+              {
+                id: "agents",
+                label: "Connected agents",
+                value: telemetry.connectedAgents,
+                icon: Users,
+              },
+              {
+                id: "critical",
+                label: "Critical findings",
+                value: telemetry.criticalFindings,
+                icon: AlertTriangle,
+              },
+              {
+                id: "bugs",
+                label: "Open bug cases",
+                value: telemetry.openBugs,
+                icon: Bug,
+              },
+            ].map((item) => (
+              <div key={item.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                <div className="flex items-center justify-between text-xs text-slate-400">
+                  <span>{item.label}</span>
+                  <item.icon className="h-4 w-4" />
+                </div>
+                <div className="mt-2 text-xl font-semibold text-slate-100">{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className={`grid gap-4 ${viewMode === "cards" ? "md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
           {visiblePanels.map((panel) => {
             const Icon = panel.icon;
             const pinned = pinnedPanelIds.includes(panel.id);
+            const bodyPadding = density === "dense" ? "p-4" : "p-5";
+            const compactMode = viewMode === "compact";
+            const visibleBullets = compactMode ? panel.bullets.slice(0, 2) : panel.bullets;
 
             return (
               <article
                 key={panel.id}
-                className={`rounded-2xl border bg-linear-to-br ${panel.accent} p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.45)] backdrop-blur-sm ${pinned ? "ring-1 ring-cyan-400/40" : ""}`}
+                className={`rounded-2xl border bg-linear-to-br ${panel.accent} ${bodyPadding} shadow-[0_0_0_1px_rgba(15,23,42,0.45)] backdrop-blur-sm ${pinned ? "ring-1 ring-cyan-400/40" : ""}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -302,13 +508,17 @@ export function SpecializedPanelsPage() {
                 </div>
 
                 <ul className="mt-4 space-y-2 text-sm text-slate-200">
-                  {panel.bullets.map((bullet) => (
+                  {visibleBullets.map((bullet) => (
                     <li key={bullet} className="flex items-center gap-2">
                       <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
                       {bullet}
                     </li>
                   ))}
                 </ul>
+
+                {compactMode && panel.bullets.length > visibleBullets.length ? (
+                  <p className="mt-2 text-xs text-slate-400">+{panel.bullets.length - visibleBullets.length} more capabilities</p>
+                ) : null}
 
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap gap-2">
@@ -364,7 +574,7 @@ export function SpecializedPanelsPage() {
             <h2 className="text-lg font-semibold text-slate-50">Roadmap alignment</h2>
             <div className="mt-4 space-y-3 text-sm text-slate-300">
               <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-                Specialized panels foundation: 35%
+                Specialized panels foundation: 66%
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                 Pentest, SOC, bug bounty, and recon surfaces are now grouped into a single
