@@ -130,14 +130,31 @@ function inferPluginName(event: TimelineEvent): string | null {
   }
 
   const combined = `${event.title} ${event.description} ${target}`;
+  const explicitActionMatch = combined.match(
+    /plugin\s+(?:run|loaded|enabled|disabled)\s*:\s*([a-zA-Z0-9_.-]+)/i,
+  );
+  if (explicitActionMatch) {
+    return explicitActionMatch[1];
+  }
+
   const match = combined.match(/plugin(?:name)?[\s:=]+([a-zA-Z0-9_.-]+)/i);
   return match ? match[1] : null;
 }
 
-function getEventContextLabel(event: TimelineEvent): string {
+function getPluginTarget(event: TimelineEvent): string | null {
+  return inferPluginName(event);
+}
+
+function getTimelineActionLabel(event: TimelineEvent): string {
+  const pluginName = getPluginTarget(event);
+  if (event.scan_id && pluginName) return "Open scan + plugin";
   if (event.scan_id) return "Open scan";
-  if (inferPluginName(event)) return "Open plugin";
+  if (pluginName) return "Open plugin";
   return "Open scans";
+}
+
+function getEventContextLabel(event: TimelineEvent): string {
+  return getTimelineActionLabel(event);
 }
 
 const SEVERITY_DOT: Record<Severity, string> = {
@@ -199,7 +216,7 @@ export const TimelinePage: React.FC = () => {
       navigate(`/scans/${event.scan_id}`);
       return;
     }
-    const pluginName = inferPluginName(event);
+    const pluginName = getPluginTarget(event);
     if (pluginName) {
       navigate(`/plugins/${encodeURIComponent(pluginName)}`);
       return;
@@ -710,6 +727,24 @@ export const TimelinePage: React.FC = () => {
                           <span className="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-xs text-slate-300">
                             {ev.target}
                           </span>
+                        ) : null}
+                        {ev.scan_id ? (
+                          <button
+                            onClick={() => navigate(`/scans/${ev.scan_id}`)}
+                            className="inline-flex items-center gap-1 rounded bg-cyan-500/20 px-2 py-0.5 text-xs font-medium text-cyan-300 transition-colors hover:bg-cyan-500/30"
+                          >
+                            Scan
+                          </button>
+                        ) : null}
+                        {getPluginTarget(ev) ? (
+                          <button
+                            onClick={() =>
+                              navigate(`/plugins/${encodeURIComponent(getPluginTarget(ev) ?? "")}`)
+                            }
+                            className="inline-flex items-center gap-1 rounded bg-indigo-500/20 px-2 py-0.5 text-xs font-medium text-indigo-300 transition-colors hover:bg-indigo-500/30"
+                          >
+                            Plugin
+                          </button>
                         ) : null}
                         <button
                           onClick={() => openEventContext(ev)}

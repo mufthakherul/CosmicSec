@@ -569,6 +569,12 @@ export function AdminDashboardPage() {
                     <td className="p-2 text-slate-400">{entry.detail}</td>
                     <td className="p-2">
                       <div className="flex flex-wrap gap-1.5">
+                        <button
+                          onClick={() => navigate(`/plugins/${encodeURIComponent(entry.plugin)}`)}
+                          className="rounded bg-indigo-500/20 px-2 py-0.5 text-[11px] font-medium text-indigo-300 hover:bg-indigo-500/30"
+                        >
+                          Plugin
+                        </button>
                         {entry.context?.scan_id ? (
                           <button
                             onClick={() => navigate(`/scans/${entry.context?.scan_id}`)}
