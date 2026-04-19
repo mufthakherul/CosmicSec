@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { ReconPage } from "../../pages/ReconPage";
 
 const addNotification = vi.fn();
@@ -29,18 +30,25 @@ const SAMPLE_RESULT = {
 };
 
 describe("ReconPage", () => {
+  const renderPage = () =>
+    render(
+      <MemoryRouter>
+        <ReconPage />
+      </MemoryRouter>,
+    );
+
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.setItem("cosmicsec_token", "tok");
   });
 
   it("renders empty state when no results", () => {
-    render(<ReconPage />);
+    renderPage();
     expect(screen.getByText(/enter a target above to begin reconnaissance/i)).toBeInTheDocument();
   });
 
   it("renders search input and submit button", () => {
-    render(<ReconPage />);
+    renderPage();
     expect(screen.getByPlaceholderText(/target domain or ip/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /run recon/i })).toBeInTheDocument();
   });
@@ -54,7 +62,7 @@ describe("ReconPage", () => {
         }),
     ) as unknown as typeof fetch;
 
-    render(<ReconPage />);
+    renderPage();
     fireEvent.change(screen.getByPlaceholderText(/target domain or ip/i), {
       target: { value: "example.com" },
     });
@@ -76,7 +84,7 @@ describe("ReconPage", () => {
         new Response(JSON.stringify(SAMPLE_RESULT), { status: 200 }),
       ) as unknown as typeof fetch;
 
-    render(<ReconPage />);
+    renderPage();
     fireEvent.change(screen.getByPlaceholderText(/target domain or ip/i), {
       target: { value: "example.com" },
     });
@@ -96,7 +104,7 @@ describe("ReconPage", () => {
         new Response(JSON.stringify(SAMPLE_RESULT), { status: 200 }),
       ) as unknown as typeof fetch;
 
-    render(<ReconPage />);
+    renderPage();
     fireEvent.change(screen.getByPlaceholderText(/target domain or ip/i), {
       target: { value: "example.com" },
     });
@@ -112,7 +120,7 @@ describe("ReconPage", () => {
       .fn()
       .mockRejectedValueOnce(new Error("net fail")) as unknown as typeof fetch;
 
-    render(<ReconPage />);
+    renderPage();
     fireEvent.change(screen.getByPlaceholderText(/target domain or ip/i), {
       target: { value: "bad-host.local" },
     });
@@ -128,7 +136,7 @@ describe("ReconPage", () => {
 
   it("does not submit when target is empty (required guard)", () => {
     globalThis.fetch = vi.fn() as unknown as typeof fetch;
-    render(<ReconPage />);
+    renderPage();
     // do NOT type into the input — leave it blank
     fireEvent.click(screen.getByRole("button", { name: /run recon/i }));
     expect(globalThis.fetch).not.toHaveBeenCalled();
@@ -141,7 +149,7 @@ describe("ReconPage", () => {
         new Response(JSON.stringify(SAMPLE_RESULT), { status: 200 }),
       ) as unknown as typeof fetch;
 
-    render(<ReconPage />);
+    renderPage();
     fireEvent.change(screen.getByPlaceholderText(/target domain or ip/i), {
       target: { value: "example.com" },
     });

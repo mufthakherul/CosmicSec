@@ -31,6 +31,14 @@ type PanelCard = {
   primaryAction: string;
 };
 
+type PlaybookCard = {
+  id: string;
+  title: string;
+  description: string;
+  path: string;
+  badge: string;
+};
+
 const PIN_STORAGE_KEY = "cosmicsec-specialized-panels-pins";
 
 const PANELS: PanelCard[] = [
@@ -99,6 +107,30 @@ const PANELS: PanelCard[] = [
     bullets: ["Cross-source events", "Plugin trust events", "Scan drill-downs"],
     recommendedFor: ["admin", "analyst", "user"],
     primaryAction: "Review timeline",
+  },
+];
+
+const PLAYBOOKS: PlaybookCard[] = [
+  {
+    id: "pentest-web-deep",
+    title: "Deep Web Pentest",
+    description: "Preloads full scan posture with web-focused tools and aggressive profile.",
+    path: "/scans?preset=web-deep",
+    badge: "Pentest",
+  },
+  {
+    id: "recon-onion-stealth",
+    title: "Onion Stealth Recon",
+    description: "Applies stealth recon profile with Tor-first routing and identity rotation.",
+    path: "/recon?preset=onion-stealth",
+    badge: "Recon",
+  },
+  {
+    id: "triage-ai-coach",
+    title: "AI Triage Coach",
+    description: "Jumps into AI chat for rapid triage and escalation playbook guidance.",
+    path: "/ai/chat",
+    badge: "AI",
   },
 ];
 
@@ -343,6 +375,44 @@ export function SpecializedPanelsPage() {
                 telemetry widgets.
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-50">Quick Launch Playbooks</h2>
+              <p className="text-sm text-slate-400">
+                One-click entry points into preset workflows for faster operator execution.
+              </p>
+            </div>
+            <span className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">
+              Preset launchers
+            </span>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {PLAYBOOKS.map((playbook) => (
+              <article
+                key={playbook.id}
+                className="rounded-xl border border-slate-800 bg-slate-950/70 p-4"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-slate-100">{playbook.title}</h3>
+                  <span className="rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5 text-[11px] text-slate-300">
+                    {playbook.badge}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-slate-400">{playbook.description}</p>
+                <Link
+                  to={playbook.path}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 transition-colors hover:bg-cyan-500/20"
+                >
+                  Launch playbook
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </article>
+            ))}
           </div>
         </section>
       </div>

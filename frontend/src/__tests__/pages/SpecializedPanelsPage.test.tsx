@@ -41,6 +41,9 @@ describe("SpecializedPanelsPage", () => {
     expect(screen.getByRole("link", { name: /launch scan/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open soc/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /review bounty/i })).toBeInTheDocument();
+    expect(screen.getByText(/quick launch playbooks/i)).toBeInTheDocument();
+    expect(screen.getByText(/deep web pentest/i)).toBeInTheDocument();
+    expect(screen.getByText(/onion stealth recon/i)).toBeInTheDocument();
     expect(screen.getByText((_, element) => element?.textContent === "Role: admin")).toBeInTheDocument();
 
     const pinButton = screen.getAllByRole("button", { name: /^pin$/i })[0];
