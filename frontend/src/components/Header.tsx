@@ -18,6 +18,7 @@ import {
   Activity,
   Zap,
   Shield,
+  TerminalSquare,
   SlidersHorizontal,
   Keyboard,
   type LucideIcon,
@@ -109,6 +110,14 @@ function GlobalSearch() {
         path: "/bugbounty",
         icon: Bug,
         keywords: "bounty submissions rewards",
+      },
+      {
+        id: "link-panels",
+        label: "Panels Hub",
+        description: "Pentest, SOC, recon, and bounty entry point",
+        path: "/panels",
+        icon: TerminalSquare,
+        keywords: "panels pentest soc bounty recon",
       },
       {
         id: "link-phase5",

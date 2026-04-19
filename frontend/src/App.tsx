@@ -66,6 +66,9 @@ const ReportsPage = React.lazy(() =>
 const BugBountyPage = React.lazy(() =>
   import("./pages/BugBountyPage").then((m) => ({ default: m.BugBountyPage })),
 );
+const SpecializedPanelsPage = React.lazy(() =>
+  import("./pages/SpecializedPanelsPage").then((m) => ({ default: m.SpecializedPanelsPage })),
+);
 const TimelinePage = React.lazy(() =>
   import("./pages/TimelinePage").then((m) => ({ default: m.TimelinePage })),
 );
@@ -230,6 +233,14 @@ export function App() {
                   element={
                     <ProtectedRoute>
                       <BugBountyPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/panels"
+                  element={
+                    <ProtectedRoute>
+                      <SpecializedPanelsPage />
                     </ProtectedRoute>
                   }
                 />

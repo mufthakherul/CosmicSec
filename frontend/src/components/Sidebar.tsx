@@ -19,6 +19,7 @@ import {
   User,
   X,
   Zap,
+  TerminalSquare,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -38,6 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Timeline", to: "/timeline", icon: Clock },
   { label: "Reports", to: "/reports", icon: FileText },
   { label: "Bug Bounty", to: "/bugbounty", icon: Bug },
+  { label: "Panels Hub", to: "/panels", icon: TerminalSquare },
   { label: "SOC / Phase5", to: "/phase5", icon: Activity },
   { label: "Agents", to: "/agents", icon: Zap },
   { label: "Admin", to: "/admin", icon: Shield, adminOnly: true },
