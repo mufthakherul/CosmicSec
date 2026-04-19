@@ -53,7 +53,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Phase 3.4 (Test reliability + quality gates):** **100%**
 
 Delivered in this iteration:
-- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning and role-aware ordering (foundation: 45%).
+- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, and quick-launch playbooks (foundation: 58%).
 - [x] Added explicit plugin audit drill-down controls in the admin dashboard so operators can jump directly to plugin and scan records from audit rows.
 - [x] Upgraded timeline event cards with explicit scan/plugin navigation buttons and improved plugin-name inference for plugin execution events.
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
@@ -136,6 +136,7 @@ Delivered in this iteration:
 - [x] Added admin/timeline plugin-audit drill-down continuity so audit events retain scan and plugin context across the operator workflow.
 - [x] Added a centralized Panels Hub route and navigation entry for premium role-focused workflow entry points.
 - [x] Added persistent pin/unpin customization so operators can prioritize the panels they use most.
+- [x] Added preset-aware workflow launchers so Panels Hub can preload deep web scan and onion stealth recon profiles from one click.
 
 ---
 

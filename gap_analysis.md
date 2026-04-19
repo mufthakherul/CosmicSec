@@ -101,16 +101,13 @@ Current reality:
 ### GAP 3: Missing "Specialized Tool Panels" for Different Professionals
 Your vision: "lots of tools designed for custom work, categorized for different types of professionals"
 
-What's needed but missing:
-- Penetration Testing Panel (with nmap, nikto, sqlmap, metasploit workflow)
-- SOC Analyst Panel (SIEM-like interface, IOC lookup, alert triage)
-- Bug Bounty Hunter Panel (partially exists but not tool-execution-linked)
+What's still needed for full completion:
 - Red Team Panel (attack chain planning, C2 framework integration stubs)
-- OSINT Panel (social media, email, domain intelligence)
 - CTF/Training Panel
 - Malware Analysis Panel
+- Deeper per-panel live telemetry widgets and execution timing
 
-Current state: Pages exist for scans/recon/bug bounty but they're data-viewing pages, not execution panels
+Current state: Specialized Panels Hub now provides role-aware cards, quick-launch playbooks, and preset-aware execution entry points for scan and recon workflows
 
 ### GAP 4: Phi3 Mini Integration Default (Largely Addressed)
 - AI service and gateway defaults are now aligned to `phi3:mini`
@@ -164,7 +161,7 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 - Tool Execution from WebApp: Scan service runs actual tools via subprocess but not via natural language
 - Bug bounty workflow: dashboard overview metrics, recent activity, and inline status transitions are now exposed, but external platform sync and SLA analytics remain a next step
 - Plugin audit workflow: admin and timeline drill-down links are now explicit, with scan/plugin navigation intact across audit surfaces
-- Specialized panels workflow: a centralized Panels Hub now exists, with pinning and role-aware ordering enabled, but role-specific launchers and deeper execution widgets still need to be expanded
+- Specialized panels workflow: a centralized Panels Hub now exists with pinning, role-aware ordering, quick-launch playbooks, and preset-aware scan/recon entry; deeper telemetry widgets still need expansion
 
 ---
 
@@ -218,7 +215,7 @@ Gap: The WebApp still needs fuller HybridEngine-style server orchestration and u
 3. [x] Expand AI service `/query` to support broader tool-command roster (sqlmap/gobuster/hydra/nuclei/metasploit/hashcat/nmap/nikto)
 4. [x] Add streaming chat responses — progressive stream from AI service → Frontend chat UI
 5. [x] Wire AIChatPage to backend `/api/ai/query` with command/result rendering
-6. Implement specialized tool panels — at minimum: Pentest, SOC, Bug Bounty, OSINT panels
+6. [x] Implement specialized tool panels — Pentest, SOC, Bug Bounty, and OSINT entry workflows are now live via Panels Hub
 
 ### P2 — Quality & DX
 7. [x] Fix SettingsPage tests and runtime settings API export issues
@@ -240,7 +237,7 @@ Gap: The WebApp still needs fuller HybridEngine-style server orchestration and u
 |------|---------|--------|-----|
 | CLI Agent | 90% | 100% | Unified registry + deeper per-tool orchestration polish |
 | WebApp Chat (AI Execution) | 80% | 100% | Richer orchestration depth and websocket telemetry still pending |
-| Specialized Tool Panels | 45% | 100% | Hub foundation + pinning are live; role-specific launchers still need expansion |
+| Specialized Tool Panels | 58% | 100% | Hub + pinning + quick-launch playbooks are live; deeper telemetry widgets and additional role packs still pending |
 | Backend Tests | 85% | 80%+ | Keep deprecation/warning cleanup and CI runtime consistency |
 | Frontend Tests | 85% | 80%+ | Core suite green; continue depth/edge-case expansion |
 | LLM Integration | 78% | 100% | Multi-provider production switchover + deeper executor reasoning loop |
