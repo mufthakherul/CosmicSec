@@ -4,8 +4,10 @@ import {
   Activity,
   AlertTriangle,
   ArrowRight,
+  BarChart3,
   Bug,
   Brain,
+  Clock3,
   Gauge,
   Check,
   Globe,
@@ -63,6 +65,12 @@ type LaunchEvent = {
   timestamp: string;
 };
 
+type LaunchIntervalStats = {
+  medianSeconds: number | null;
+  averageSeconds: number | null;
+  launchesLastHour: number;
+};
+
 type PanelViewMode = "cards" | "compact";
 type PanelDensity = "comfortable" | "dense";
 
@@ -79,6 +87,14 @@ const VIEW_MODE_STORAGE_KEY = "cosmicsec-specialized-panels-view";
 const DENSITY_STORAGE_KEY = "cosmicsec-specialized-panels-density";
 const LAUNCH_HISTORY_STORAGE_KEY = "cosmicsec-specialized-panels-launch-history";
 const API = getApiGatewayBaseUrl();
+
+const formatInterval = (seconds: number | null) => {
+  if (seconds === null || Number.isNaN(seconds)) return "n/a";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  const minutes = seconds / 60;
+  if (minutes < 60) return `${minutes.toFixed(1)}m`;
+  return `${(minutes / 60).toFixed(1)}h`;
+};
 
 const PANELS: PanelCard[] = [
   {
@@ -455,6 +471,59 @@ export function SpecializedPanelsPage() {
     }, {});
 
     const topLaunch = Object.entries(counts).sort((left, right) => right[1] - left[1])[0];
+    const launchByKind = launchHistory.reduce<Record<LaunchEvent["kind"], number>>(
+      (accumulator, event) => {
+        accumulator[event.kind] += 1;
+        return accumulator;
+      },
+      { panel: 0, playbook: 0, pack: 0 },
+    );
+
+    const intervalStats = (() => {
+      if (launchHistory.length < 2) {
+        return {
+          medianSeconds: null,
+          averageSeconds: null,
+          launchesLastHour: launchHistory.filter(
+            (entry) => Date.now() - new Date(entry.timestamp).getTime() <= 60 * 60 * 1000,
+          ).length,
+        } as LaunchIntervalStats;
+      }
+
+      const sortedByTime = [...launchHistory]
+        .map((entry) => new Date(entry.timestamp).getTime())
+        .sort((left, right) => right - left);
+
+      const intervals = sortedByTime
+        .slice(0, sortedByTime.length - 1)
+        .map((current, index) => Math.max(0, (current - sortedByTime[index + 1]) / 1000));
+
+      if (intervals.length === 0) {
+        return {
+          medianSeconds: null,
+          averageSeconds: null,
+          launchesLastHour: launchHistory.filter(
+            (entry) => Date.now() - new Date(entry.timestamp).getTime() <= 60 * 60 * 1000,
+          ).length,
+        } as LaunchIntervalStats;
+      }
+
+      const orderedIntervals = [...intervals].sort((left, right) => left - right);
+      const mid = Math.floor(orderedIntervals.length / 2);
+      const medianSeconds =
+        orderedIntervals.length % 2 === 0
+          ? (orderedIntervals[mid - 1] + orderedIntervals[mid]) / 2
+          : orderedIntervals[mid];
+      const averageSeconds = intervals.reduce((sum, value) => sum + value, 0) / intervals.length;
+
+      return {
+        medianSeconds,
+        averageSeconds,
+        launchesLastHour: launchHistory.filter(
+          (entry) => Date.now() - new Date(entry.timestamp).getTime() <= 60 * 60 * 1000,
+        ).length,
+      } as LaunchIntervalStats;
+    })();
 
     const adaptiveRecommendation = (() => {
       if (telemetry.criticalFindings > 0) {
@@ -492,6 +561,14 @@ export function SpecializedPanelsPage() {
       topLaunch,
       adaptiveRecommendation,
       recent: launchHistory.slice(0, 3),
+      launchByKind,
+      intervalStats,
+      confidenceLevel:
+        intervalStats.launchesLastHour >= 6
+          ? "high"
+          : intervalStats.launchesLastHour >= 3
+            ? "medium"
+            : "building",
     };
   }, [launchHistory, telemetry.criticalFindings, userRole]);
 
@@ -650,6 +727,73 @@ export function SpecializedPanelsPage() {
                 </Link>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-50">Execution Timing Analytics</h2>
+              <p className="text-sm text-slate-400">
+                Measures launch cadence so playbook recommendations can adapt to operator tempo.
+              </p>
+            </div>
+            <span className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1 text-xs text-slate-300 capitalize">
+              Recommendation confidence: {launchInsights.confidenceLevel}
+            </span>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
+            <article className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Median launch interval</span>
+                <Clock3 className="h-4 w-4" />
+              </div>
+              <p className="mt-2 text-lg font-semibold text-slate-100">
+                {formatInterval(launchInsights.intervalStats.medianSeconds)}
+              </p>
+            </article>
+            <article className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Average launch interval</span>
+                <Gauge className="h-4 w-4" />
+              </div>
+              <p className="mt-2 text-lg font-semibold text-slate-100">
+                {formatInterval(launchInsights.intervalStats.averageSeconds)}
+              </p>
+            </article>
+            <article className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Launches in last hour</span>
+                <BarChart3 className="h-4 w-4" />
+              </div>
+              <p className="mt-2 text-lg font-semibold text-slate-100">
+                {launchInsights.intervalStats.launchesLastHour}
+              </p>
+            </article>
+            <article className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Pack launch ratio</span>
+                <Activity className="h-4 w-4" />
+              </div>
+              <p className="mt-2 text-lg font-semibold text-slate-100">
+                {launchHistory.length === 0
+                  ? "n/a"
+                  : `${Math.round((launchInsights.launchByKind.pack / launchHistory.length) * 100)}%`}
+              </p>
+            </article>
+          </div>
+
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
+              Panels launches: <span className="font-semibold text-slate-100">{launchInsights.launchByKind.panel}</span>
+            </div>
+            <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
+              Playbook launches: <span className="font-semibold text-slate-100">{launchInsights.launchByKind.playbook}</span>
+            </div>
+            <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
+              Pack launches: <span className="font-semibold text-slate-100">{launchInsights.launchByKind.pack}</span>
+            </div>
           </div>
         </section>
 
@@ -848,7 +992,7 @@ export function SpecializedPanelsPage() {
             <h2 className="text-lg font-semibold text-slate-50">Roadmap alignment</h2>
             <div className="mt-4 space-y-3 text-sm text-slate-300">
               <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-                Specialized panels foundation: 79%
+                Specialized panels foundation: 84%
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                 Pentest, SOC, bug bounty, and recon surfaces are now grouped into a single
