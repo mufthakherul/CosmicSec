@@ -163,6 +163,7 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 - Streaming chat responses now supported via NDJSON progressive events; websocket-native parity still pending
 - Tool Execution from WebApp: Scan service runs actual tools via subprocess but not via natural language
 - Bug bounty workflow: dashboard overview metrics, recent activity, and inline status transitions are now exposed, but external platform sync and SLA analytics remain a next step
+- Plugin audit workflow: admin and timeline drill-down links are now explicit, with scan/plugin navigation intact across audit surfaces
 
 ---
 

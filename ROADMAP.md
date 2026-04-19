@@ -53,6 +53,8 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Phase 3.4 (Test reliability + quality gates):** **100%**
 
 Delivered in this iteration:
+- [x] Added explicit plugin audit drill-down controls in the admin dashboard so operators can jump directly to plugin and scan records from audit rows.
+- [x] Upgraded timeline event cards with explicit scan/plugin navigation buttons and improved plugin-name inference for plugin execution events.
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
 - [x] Added dashboard auto-refresh cadence (20s) with last-update indicator for near-real-time operator visibility.
 - [x] Added source-aware labels in dashboard recent activity to improve cross-source triage context.
@@ -130,6 +132,7 @@ Delivered in this iteration:
 - [x] Added bug bounty dashboard overview endpoint with consolidated payout, status, and recent-activity metrics.
 - [x] Upgraded Bug Bounty page with summary cards and a recent activity feed for a more premium operator workflow.
 - [x] Added inline bug bounty submission status transition controls so operators can move reports through the triage lifecycle directly in the UI.
+- [x] Added admin/timeline plugin-audit drill-down continuity so audit events retain scan and plugin context across the operator workflow.
 
 ---
 

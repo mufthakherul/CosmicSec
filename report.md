@@ -31,6 +31,8 @@ CosmicSec has **excellent foundational architecture** but still has **partial wo
 - **P3.4 Test reliability + quality gates:** **100% complete**
 
 Completed in this execution:
+- [x] Added explicit plugin audit drill-down controls in the admin dashboard so operators can jump directly to plugin and scan records from audit rows.
+- [x] Upgraded the timeline event cards with explicit scan/plugin navigation buttons and improved plugin-name inference for plugin execution events.
 - [x] Upgraded dashboard overview aggregation to use real severity breakdown, 7-day findings trend totals, scan recency, and connected agent metrics.
 - [x] Added live auto-refresh behavior to Dashboard page (20s refresh cadence) with last-update indicator and safer refresh lifecycle.
 - [x] Upgraded dashboard activity rendering with source-aware event labels for clearer cross-source triage context.
@@ -136,6 +138,7 @@ Completed in this execution:
 - [x] Added bug bounty dashboard overview endpoint with consolidated program/submission/paid metrics and recent activity summaries.
 - [x] Upgraded Bug Bounty page to surface summary cards and a recent activity feed for a more professional operator view.
 - [x] Added inline bug bounty submission status transition controls in the frontend, making triage workflow actionable from the page itself.
+- [x] Added admin/timeline drill-down continuity for plugin audit events so trust activity can be investigated without losing context.
 
 ### Key Findings:
 
@@ -715,5 +718,5 @@ CosmicSec has a **strong foundation** but needs **integration, stabilization, an
 ---
 
 **Report prepared by:** Architecture Analysis  
-**Next step:** Continue Phase 2 integration by adding role-based plugin audit visibility and deeper drill-down links from the timeline into scan and plugin records.
+**Next step:** Continue Phase 2 integration by expanding specialized execution panels and websocket-grade telemetry once the current drill-down surfaces are fully absorbed.
 
