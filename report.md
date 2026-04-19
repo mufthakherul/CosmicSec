@@ -31,7 +31,7 @@ CosmicSec has **excellent foundational architecture** but still has **partial wo
 - **P3.4 Test reliability + quality gates:** **100% complete**
 
 Completed in this execution:
-- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page.
+- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning and role-aware ordering.
 - [x] Added explicit plugin audit drill-down controls in the admin dashboard so operators can jump directly to plugin and scan records from audit rows.
 - [x] Upgraded the timeline event cards with explicit scan/plugin navigation buttons and improved plugin-name inference for plugin execution events.
 - [x] Upgraded dashboard overview aggregation to use real severity breakdown, 7-day findings trend totals, scan recency, and connected agent metrics.
@@ -141,6 +141,7 @@ Completed in this execution:
 - [x] Added inline bug bounty submission status transition controls in the frontend, making triage workflow actionable from the page itself.
 - [x] Added admin/timeline drill-down continuity for plugin audit events so trust activity can be investigated without losing context.
 - [x] Added a discoverable Panels Hub route and navigation entry so role-focused workflows now have a centralized front door.
+- [x] Added persistent panel pinning and role-aware prioritization so the hub adapts to operator preferences.
 
 ### Key Findings:
 
