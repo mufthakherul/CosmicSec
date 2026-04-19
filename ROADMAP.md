@@ -41,7 +41,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Guest Sandbox Operations (W2.3):** **100%**
 
 
-- **Overall roadmap completion:** **100%**
+- **Overall roadmap completion:** **92%**
 - **Phase 2.4 (Plugin trust/signing):** **100%**
 - **Phase 2.1 (CLI↔Webapp task routing):** **100%**
 - **Phase 2.2 (Result aggregation views):** **100%**
@@ -53,7 +53,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Phase 3.4 (Test reliability + quality gates):** **100%**
 
 Delivered in this iteration:
-- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, and quick-launch playbooks (foundation: 58%).
+- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, quick-launch playbooks, live telemetry, and advanced personalization controls (foundation: 66%).
 - [x] Added explicit plugin audit drill-down controls in the admin dashboard so operators can jump directly to plugin and scan records from audit rows.
 - [x] Upgraded timeline event cards with explicit scan/plugin navigation buttons and improved plugin-name inference for plugin execution events.
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
@@ -137,6 +137,7 @@ Delivered in this iteration:
 - [x] Added a centralized Panels Hub route and navigation entry for premium role-focused workflow entry points.
 - [x] Added persistent pin/unpin customization so operators can prioritize the panels they use most.
 - [x] Added preset-aware workflow launchers so Panels Hub can preload deep web scan and onion stealth recon profiles from one click.
+- [x] Added live telemetry strip + layout personalization controls (search, compact/cards mode, density) so the hub behaves like an operator cockpit.
 
 ---
 
