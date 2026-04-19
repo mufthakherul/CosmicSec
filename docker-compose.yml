@@ -114,8 +114,6 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: cosmicsec
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-cosmicsec_rabbitmq_password}
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -131,6 +129,7 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: cosmicsec-ollama
+    profiles: ["llm"]
     ports:
       - "11434:11434"
     volumes:
@@ -144,19 +143,20 @@ services:
       retries: 5
       start_period: 20s
 
-  # One-shot model bootstrap so pie:mini is available after docker compose up
+  # One-shot model bootstrap so tinyllama is available after docker compose up
   ollama-init:
     image: ollama/ollama:latest
     container_name: cosmicsec-ollama-init
+    profiles: ["llm"]
     depends_on:
       ollama:
         condition: service_healthy
     entrypoint: ["/bin/sh", "-c"]
     command:
-      - ollama pull ${OLLAMA_MODEL:-pie:mini}
+      - ollama pull ${OLLAMA_MODEL:-tinyllama}
     environment:
       - OLLAMA_HOST=http://ollama:11434
-      - OLLAMA_MODEL=${OLLAMA_MODEL:-pie:mini}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-tinyllama}
     networks:
       - cosmicsec-network
     restart: "no"
@@ -284,8 +284,9 @@ services:
     container_name: cosmicsec-ai-service
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
-      - OLLAMA_MODEL=${OLLAMA_MODEL:-pie:mini}
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-tinyllama}
+      - COSMICSEC_DEFAULT_LLM_PROVIDER=ollama
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - CHROMA_PERSIST_DIR=/tmp/cosmicsec_chroma
       - COSMICSEC_GLOBAL_PROXY_POOL=${COSMICSEC_GLOBAL_PROXY_POOL:-}
@@ -297,10 +298,6 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      ollama:
-        condition: service_healthy
-      ollama-init:
-        condition: service_completed_successfully
     networks:
       - cosmicsec-network
     volumes:
