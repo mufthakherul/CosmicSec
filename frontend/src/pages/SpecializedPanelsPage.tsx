@@ -389,6 +389,21 @@ export function SpecializedPanelsPage() {
     localStorage.setItem(DENSITY_STORAGE_KEY, nextDensity);
   };
 
+  const resetHubPersonalization = () => {
+    setPinnedPanelIds([]);
+    setViewMode("cards");
+    setDensity("comfortable");
+    setLaunchHistory([]);
+    setLaunchHistoryScope("all");
+    setFavoriteToolPackIds([]);
+
+    localStorage.removeItem(PIN_STORAGE_KEY);
+    localStorage.removeItem(VIEW_MODE_STORAGE_KEY);
+    localStorage.removeItem(DENSITY_STORAGE_KEY);
+    localStorage.removeItem(LAUNCH_HISTORY_STORAGE_KEY);
+    localStorage.removeItem(FAVORITE_PACKS_STORAGE_KEY);
+  };
+
   const toggleFavoriteToolPack = (packId: string) => {
     const nextFavorites = favoriteToolPackIds.includes(packId)
       ? favoriteToolPackIds.filter((entry) => entry !== packId)
@@ -763,6 +778,14 @@ export function SpecializedPanelsPage() {
                 className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1.5 text-xs font-semibold text-slate-300"
               >
                 Density: {density === "comfortable" ? "Comfort" : "Dense"}
+              </button>
+              <button
+                type="button"
+                onClick={resetHubPersonalization}
+                className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:border-cyan-500/30 hover:text-cyan-300"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Reset hub
               </button>
             </div>
           </div>
