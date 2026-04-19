@@ -20,6 +20,7 @@ import {
   Search,
   Shield,
   TerminalSquare,
+  Trash2,
   Users,
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
@@ -81,6 +82,8 @@ type HubTelemetry = {
   openBugs: number;
   updatedAt: string;
 };
+
+type LaunchHistoryScope = "all" | LaunchEvent["kind"];
 
 const PIN_STORAGE_KEY = "cosmicsec-specialized-panels-pins";
 const VIEW_MODE_STORAGE_KEY = "cosmicsec-specialized-panels-view";
@@ -285,6 +288,7 @@ export function SpecializedPanelsPage() {
   });
   const [telemetryLoading, setTelemetryLoading] = useState(false);
   const [launchHistory, setLaunchHistory] = useState<LaunchEvent[]>([]);
+  const [launchHistoryScope, setLaunchHistoryScope] = useState<LaunchHistoryScope>("all");
 
   useEffect(() => {
     try {
@@ -463,6 +467,16 @@ export function SpecializedPanelsPage() {
     setLaunchHistory(nextHistory);
     localStorage.setItem(LAUNCH_HISTORY_STORAGE_KEY, JSON.stringify(nextHistory));
   };
+
+  const clearLaunchHistory = () => {
+    setLaunchHistory([]);
+    localStorage.removeItem(LAUNCH_HISTORY_STORAGE_KEY);
+  };
+
+  const scopedLaunchHistory = useMemo(() => {
+    if (launchHistoryScope === "all") return launchHistory;
+    return launchHistory.filter((entry) => entry.kind === launchHistoryScope);
+  }, [launchHistory, launchHistoryScope]);
 
   const launchInsights = useMemo(() => {
     const counts = launchHistory.reduce<Record<string, number>>((accumulator, event) => {
@@ -832,13 +846,39 @@ export function SpecializedPanelsPage() {
 
             <article className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
               <h3 className="text-sm font-semibold text-slate-200">Recent launches</h3>
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                {[
+                  { id: "all", label: "Everything" },
+                  { id: "panel", label: "Panels" },
+                  { id: "playbook", label: "Playbooks" },
+                  { id: "pack", label: "Packs" },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setLaunchHistoryScope(item.id as LaunchHistoryScope)}
+                    className={`rounded-full border px-2.5 py-1 font-semibold transition-colors ${launchHistoryScope === item.id ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-300" : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500"}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={clearLaunchHistory}
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-900 px-2.5 py-1 font-semibold text-slate-300 transition-colors hover:border-rose-500/40 hover:text-rose-300"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Clear history
+                </button>
+              </div>
               <div className="mt-3 space-y-2">
-                {launchInsights.recent.length === 0 ? (
+                {scopedLaunchHistory.length === 0 ? (
                   <p className="text-xs text-slate-500">No launches yet in this browser profile.</p>
                 ) : (
-                  launchInsights.recent.map((entry) => (
+                  scopedLaunchHistory.slice(0, 5).map((entry) => (
                     <div key={entry.id} className="rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-slate-300">
                       <span className="font-medium text-slate-200">{entry.label}</span>
+                      <span className="ml-2 text-slate-500 capitalize">{entry.kind}</span>
                       <span className="ml-2 text-slate-500">{new Date(entry.timestamp).toLocaleTimeString()}</span>
                     </div>
                   ))
