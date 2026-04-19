@@ -49,6 +49,17 @@ def test_bugbounty_program_and_submission_flow() -> None:
     assert submit.status_code == 200
     assert submit.json()["status"] == "submitted"
 
+    triage = client.patch(
+        f"/submissions/{submission_id}/status",
+        json={
+            "status": "triaged",
+            "actor": "qa-operator",
+            "note": "Verified and moved to triage queue",
+        },
+    )
+    assert triage.status_code == 200
+    assert triage.json()["status"] == "triaged"
+
     earnings = client.get("/dashboard/earnings")
     assert earnings.status_code == 200
     assert earnings.json()["total_submissions"] >= 1

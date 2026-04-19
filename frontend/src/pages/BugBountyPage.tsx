@@ -37,9 +37,22 @@ interface BugBountySubmission {
   program_name?: string;
   title: string;
   severity: string;
-  status: "draft" | "submitted" | "triaged" | "accepted" | "rejected";
+  status: "draft" | "submitted" | "triaged" | "accepted" | "rejected" | "paid";
   reward?: number;
   submitted_at: string;
+}
+
+interface BugBountySubmissionResponse {
+  id?: string;
+  submission_id?: string;
+  program_id?: string;
+  program_name?: string;
+  title?: string;
+  severity?: string;
+  status?: BugBountySubmission["status"];
+  reward_amount?: number;
+  reward?: number;
+  submitted_at?: string;
 }
 
 interface BugBountyOverview {
@@ -110,7 +123,30 @@ const STATUS_ICON: Record<BugBountySubmission["status"], React.ElementType> = {
   triaged: AlertCircle,
   accepted: CheckCircle,
   rejected: AlertCircle,
+  paid: DollarSign,
 };
+
+const STATUS_FLOW: Record<BugBountySubmission["status"], BugBountySubmission["status"][]> = {
+  draft: ["submitted", "rejected"],
+  submitted: ["triaged", "accepted", "rejected"],
+  triaged: ["accepted", "rejected"],
+  accepted: ["paid"],
+  rejected: [],
+  paid: [],
+};
+
+function normalizeSubmission(item: BugBountySubmissionResponse): BugBountySubmission {
+  return {
+    id: item.id ?? item.submission_id ?? `sub-${Date.now()}`,
+    program_id: item.program_id ?? "unknown-program",
+    program_name: item.program_name,
+    title: item.title ?? "Untitled submission",
+    severity: item.severity ?? "medium",
+    status: item.status ?? "draft",
+    reward: item.reward ?? item.reward_amount,
+    submitted_at: item.submitted_at ?? new Date().toISOString(),
+  };
+}
 
 export function BugBountyPage() {
   const addNotification = useNotificationStore((s) => s.addNotification);
@@ -128,6 +164,11 @@ export function BugBountyPage() {
   const [formSeverity, setFormSeverity] = useState("high");
   const [formDescription, setFormDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [statusUpdates, setStatusUpdates] = useState<Record<string, BugBountySubmission["status"]>>(
+    {},
+  );
+  const [rewardInputs, setRewardInputs] = useState<Record<string, string>>({});
+  const [updatingSubmissionId, setUpdatingSubmissionId] = useState<string | null>(null);
   const isPreview =
     typeof window !== "undefined" &&
     window.localStorage.getItem("cosmicsec_token")?.startsWith("demo-preview");
@@ -160,9 +201,9 @@ export function BugBountyPage() {
         }
         if (submissionsRes.status === "fulfilled" && submissionsRes.value.ok) {
           const payload = (await submissionsRes.value.json()) as {
-            items?: BugBountySubmission[];
+            items?: BugBountySubmissionResponse[];
           };
-          setSubmissions(payload.items ?? []);
+          setSubmissions((payload.items ?? []).map(normalizeSubmission));
         }
       } catch {
         // silently use empty list — API may not be up
@@ -213,20 +254,16 @@ export function BugBountyPage() {
           description: formDescription.trim(),
         }),
       });
-      interface SubmissionResponse {
-        id?: string;
-        submission_id?: string;
-      }
-      const data = (await res.json()) as SubmissionResponse;
-      const newSub: BugBountySubmission = {
-        id: data.id ?? data.submission_id ?? `sub-${Date.now()}`,
+      const data = (await res.json()) as BugBountySubmissionResponse;
+      const newSub: BugBountySubmission = normalizeSubmission({
+        ...data,
         program_id: formProgramId,
         program_name: programs.find((p) => p.id === formProgramId)?.name,
         title: formTitle.trim(),
         severity: formSeverity,
         status: "draft",
         submitted_at: new Date().toISOString(),
-      };
+      });
       setSubmissions((prev) => [newSub, ...prev]);
       setFormTitle("");
       setFormDescription("");
@@ -237,6 +274,60 @@ export function BugBountyPage() {
       addNotification({ type: "error", message: "Failed to create submission." });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const updateSubmissionStatus = async (submission: BugBountySubmission) => {
+    const nextStatus = statusUpdates[submission.id] ?? STATUS_FLOW[submission.status][0];
+    if (!nextStatus || nextStatus === submission.status) return;
+
+    const parsedReward = Number(rewardInputs[submission.id] ?? submission.reward ?? 0);
+    if (nextStatus === "paid" && Number.isNaN(parsedReward)) {
+      addNotification({ type: "error", message: "Enter a valid payout amount before paying." });
+      return;
+    }
+
+    if (isPreview) {
+      setSubmissions((prev) =>
+        prev.map((item) =>
+          item.id === submission.id
+            ? {
+                ...item,
+                status: nextStatus,
+                reward: nextStatus === "paid" ? parsedReward : item.reward,
+              }
+            : item,
+        ),
+      );
+      addNotification({ type: "success", message: `Submission moved to ${nextStatus}.` });
+      return;
+    }
+
+    setUpdatingSubmissionId(submission.id);
+    try {
+      const res = await fetch(`${API}/api/bugbounty/submissions/${submission.id}/status`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({
+          status: nextStatus,
+          reward_amount: nextStatus === "paid" ? parsedReward : undefined,
+          actor: "web-operator",
+          note: `Updated from ${submission.status} to ${nextStatus} in web UI`,
+        }),
+      });
+
+      if (!res.ok) {
+        const detail = await res.text().catch(() => "");
+        throw new Error(detail || "Status update failed");
+      }
+
+      const updated = normalizeSubmission((await res.json()) as BugBountySubmissionResponse);
+      setSubmissions((prev) => prev.map((item) => (item.id === submission.id ? updated : item)));
+      addNotification({ type: "success", message: `Submission moved to ${nextStatus}.` });
+    } catch {
+      addNotification({ type: "error", message: "Failed to update submission status." });
+    } finally {
+      setUpdatingSubmissionId(null);
     }
   };
 
@@ -494,10 +585,12 @@ export function BugBountyPage() {
                 {submissions.map((sub) => {
                   const StatusIcon = STATUS_ICON[sub.status];
                   const sevClass = SEVERITY_COLORS[sub.severity] ?? SEVERITY_COLORS.info;
+                  const nextStatuses = STATUS_FLOW[sub.status];
+                  const selectedStatus = statusUpdates[sub.id] ?? nextStatuses[0] ?? sub.status;
                   return (
                     <li
                       key={sub.id}
-                      className="flex items-start justify-between gap-4 rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm"
+                      className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-white/5 p-4 backdrop-blur-sm lg:flex-row lg:items-start lg:justify-between"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
@@ -513,19 +606,82 @@ export function BugBountyPage() {
                           {new Date(sub.submitted_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        {sub.reward && (
-                          <span className="flex items-center gap-1 text-xs font-medium text-emerald-400">
-                            <DollarSign className="h-3 w-3" />
-                            {sub.reward}
+                      <div className="flex min-w-[16rem] shrink-0 flex-col gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 lg:max-w-[20rem]">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2 rounded-full bg-slate-800 px-2.5 py-1 text-xs capitalize text-slate-300">
+                            <StatusIcon
+                              className={`h-3 w-3 ${sub.status === "submitted" ? "animate-spin" : ""}`}
+                            />
+                            {sub.status}
                           </span>
-                        )}
-                        <span className="flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-1 text-xs capitalize text-slate-300">
-                          <StatusIcon
-                            className={`h-3 w-3 ${sub.status === "submitted" ? "animate-spin" : ""}`}
-                          />
-                          {sub.status}
-                        </span>
+                          {sub.reward !== undefined ? (
+                            <span className="flex items-center gap-1 text-xs font-medium text-emerald-400">
+                              <DollarSign className="h-3 w-3" />
+                              {sub.reward}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <label className="text-xs text-slate-400 sm:col-span-2">
+                            Move to status
+                            <select
+                              value={selectedStatus}
+                              onChange={(event) =>
+                                setStatusUpdates((prev) => ({
+                                  ...prev,
+                                  [sub.id]: event.target.value as BugBountySubmission["status"],
+                                }))
+                              }
+                              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 outline-none focus:border-amber-500/50"
+                            >
+                              {nextStatuses.length === 0 ? (
+                                <option value={sub.status}>No further transitions</option>
+                              ) : null}
+                              {nextStatuses.map((option) => (
+                                <option key={option} value={option}>
+                                  {option.charAt(0).toUpperCase() + option.slice(1)}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+
+                          {selectedStatus === "paid" ? (
+                            <label className="text-xs text-slate-400 sm:col-span-2">
+                              Payout amount
+                              <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={rewardInputs[sub.id] ?? String(sub.reward ?? "")}
+                                onChange={(event) =>
+                                  setRewardInputs((prev) => ({
+                                    ...prev,
+                                    [sub.id]: event.target.value,
+                                  }))
+                                }
+                                placeholder="Enter payout amount"
+                                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-500/50"
+                              />
+                            </label>
+                          ) : null}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            disabled={updatingSubmissionId === sub.id || selectedStatus === sub.status}
+                            onClick={() => void updateSubmissionStatus(sub)}
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-slate-950 transition-colors hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {updatingSubmissionId === sub.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <CheckCircle className="h-3.5 w-3.5" />
+                            )}
+                            Apply Change
+                          </button>
+                        </div>
                       </div>
                     </li>
                   );
