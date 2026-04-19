@@ -1,7 +1,25 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { SpecializedPanelsPage } from "../../pages/SpecializedPanelsPage";
 import type { ReactNode } from "react";
+
+vi.mock("../../context/AuthContext", () => ({
+  useAuth: () => ({
+    user: {
+      id: "admin-1",
+      email: "admin@cosmicsec.dev",
+      full_name: "Admin User",
+      role: "admin",
+    },
+    token: "test-token",
+    refreshToken: null,
+    isLoading: false,
+    isAuthenticated: true,
+    login: vi.fn(),
+    updateTokens: vi.fn(),
+    logout: vi.fn(),
+  }),
+}));
 
 vi.mock("../../components/AppLayout", () => ({
   AppLayout: ({ children }: { children: ReactNode }) => <>{children}</>,
@@ -20,9 +38,13 @@ describe("SpecializedPanelsPage", () => {
         name: /one command surface for pentest, soc, recon, and bounty workflows\./i,
       }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /open panel/i }).length).toBeGreaterThan(0);
-    expect(screen.getByText(/pentest command center/i)).toBeInTheDocument();
-    expect(screen.getByText(/soc operations/i)).toBeInTheDocument();
-    expect(screen.getByText(/bug bounty desk/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /launch scan/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /open soc/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /review bounty/i })).toBeInTheDocument();
+    expect(screen.getByText((_, element) => element?.textContent === "Role: admin")).toBeInTheDocument();
+
+    const pinButton = screen.getAllByRole("button", { name: /^pin$/i })[0];
+    fireEvent.click(pinButton);
+    expect(screen.getByRole("button", { name: /^unpin$/i })).toBeInTheDocument();
   });
 });
