@@ -157,4 +157,14 @@ describe("ReconPage", () => {
 
     expect(await screen.findByRole("button", { name: /export json/i })).toBeInTheDocument();
   });
+
+  it("applies ctf recon preset target defaults", () => {
+    render(
+      <MemoryRouter initialEntries={["/recon?preset=ctf-recon"]}>
+        <ReconPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByPlaceholderText(/target domain or ip/i)).toHaveValue("ctf-target.local");
+  });
 });

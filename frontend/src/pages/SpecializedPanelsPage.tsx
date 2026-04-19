@@ -50,10 +50,17 @@ type PlaybookCard = {
 type ToolPack = {
   id: string;
   title: string;
-  role: "pentest" | "soc" | "bounty" | "osint";
+  role: "pentest" | "soc" | "bounty" | "osint" | "redteam" | "ctf" | "malware";
   tools: string[];
   objective: string;
   launchPath: string;
+};
+
+type LaunchEvent = {
+  id: string;
+  label: string;
+  kind: "panel" | "playbook" | "pack";
+  timestamp: string;
 };
 
 type PanelViewMode = "cards" | "compact";
@@ -70,6 +77,7 @@ type HubTelemetry = {
 const PIN_STORAGE_KEY = "cosmicsec-specialized-panels-pins";
 const VIEW_MODE_STORAGE_KEY = "cosmicsec-specialized-panels-view";
 const DENSITY_STORAGE_KEY = "cosmicsec-specialized-panels-density";
+const LAUNCH_HISTORY_STORAGE_KEY = "cosmicsec-specialized-panels-launch-history";
 const API = getApiGatewayBaseUrl();
 
 const PANELS: PanelCard[] = [
@@ -163,6 +171,27 @@ const PLAYBOOKS: PlaybookCard[] = [
     path: "/ai/chat",
     badge: "AI",
   },
+  {
+    id: "red-team-chain",
+    title: "Red Team Chain",
+    description: "Stages recon-to-scan flow tuned for stealth-forward adversary simulation.",
+    path: "/scans?preset=redteam-chain",
+    badge: "Red Team",
+  },
+  {
+    id: "malware-surface",
+    title: "Malware Surface Sweep",
+    description: "Targets suspicious surface signals with focused scan behavior and triage pace.",
+    path: "/scans?preset=malware-surface",
+    badge: "Malware",
+  },
+  {
+    id: "ctf-sprint",
+    title: "CTF Sprint Recon",
+    description: "Fast reconnaissance defaults for challenge-style exploration and iteration.",
+    path: "/recon?preset=ctf-recon",
+    badge: "CTF",
+  },
 ];
 
 const TOOL_PACKS: ToolPack[] = [
@@ -198,6 +227,30 @@ const TOOL_PACKS: ToolPack[] = [
     objective: "Build fast external attack-surface snapshots for analyst handoff.",
     launchPath: "/recon?preset=osint-surface",
   },
+  {
+    id: "red-team-stealth",
+    title: "Red Team Stealth Pack",
+    role: "redteam",
+    tools: ["nmap", "nuclei", "timeline", "ai triage"],
+    objective: "Run stealth-oriented chain flows with controlled signal footprint.",
+    launchPath: "/scans?preset=redteam-chain",
+  },
+  {
+    id: "ctf-ops",
+    title: "CTF Ops Pack",
+    role: "ctf",
+    tools: ["recon", "web fuzz", "timeline"],
+    objective: "Accelerate challenge iteration with fast recon and compact execution loops.",
+    launchPath: "/recon?preset=ctf-recon",
+  },
+  {
+    id: "malware-response",
+    title: "Malware Response Pack",
+    role: "malware",
+    tools: ["risk snapshot", "scan triage", "reporting"],
+    objective: "Prioritize suspicious indicators for downstream malware analysis and reporting.",
+    launchPath: "/scans?preset=malware-surface",
+  },
 ];
 
 export function SpecializedPanelsPage() {
@@ -215,6 +268,7 @@ export function SpecializedPanelsPage() {
     updatedAt: "",
   });
   const [telemetryLoading, setTelemetryLoading] = useState(false);
+  const [launchHistory, setLaunchHistory] = useState<LaunchEvent[]>([]);
 
   useEffect(() => {
     try {
@@ -230,6 +284,27 @@ export function SpecializedPanelsPage() {
       }
     } catch {
       // Ignore malformed preferences.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LAUNCH_HISTORY_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as LaunchEvent[];
+      if (Array.isArray(parsed)) {
+        setLaunchHistory(
+          parsed.filter(
+            (entry) =>
+              typeof entry?.id === "string" &&
+              typeof entry?.label === "string" &&
+              typeof entry?.kind === "string" &&
+              typeof entry?.timestamp === "string",
+          ),
+        );
+      }
+    } catch {
+      // Ignore malformed launch history.
     }
   }, []);
 
@@ -359,6 +434,66 @@ export function SpecializedPanelsPage() {
 
     savePins([panelId, ...pinnedPanelIds].slice(0, 4));
   };
+
+  const recordLaunch = (label: string, kind: LaunchEvent["kind"]) => {
+    const nextEvent: LaunchEvent = {
+      id: `${kind}-${Date.now()}`,
+      label,
+      kind,
+      timestamp: new Date().toISOString(),
+    };
+
+    const nextHistory = [nextEvent, ...launchHistory].slice(0, 20);
+    setLaunchHistory(nextHistory);
+    localStorage.setItem(LAUNCH_HISTORY_STORAGE_KEY, JSON.stringify(nextHistory));
+  };
+
+  const launchInsights = useMemo(() => {
+    const counts = launchHistory.reduce<Record<string, number>>((accumulator, event) => {
+      accumulator[event.label] = (accumulator[event.label] ?? 0) + 1;
+      return accumulator;
+    }, {});
+
+    const topLaunch = Object.entries(counts).sort((left, right) => right[1] - left[1])[0];
+
+    const adaptiveRecommendation = (() => {
+      if (telemetry.criticalFindings > 0) {
+        return {
+          label: "AI Triage Coach",
+          path: "/ai/chat",
+          reason: "Critical findings are elevated. Prioritize triage and guided response.",
+        };
+      }
+
+      if (userRole === "analyst") {
+        return {
+          label: "SOC Triage Pack",
+          path: "/scans?preset=soc-triage",
+          reason: "Analyst role detected. Focus on incident flow and risk posture.",
+        };
+      }
+
+      if (userRole === "admin") {
+        return {
+          label: "Red Team Chain",
+          path: "/scans?preset=redteam-chain",
+          reason: "Admin role detected. Expand adversary-simulation readiness checks.",
+        };
+      }
+
+      return {
+        label: "OSINT Surface Pack",
+        path: "/recon?preset=osint-surface",
+        reason: "Default recommendation for broad external footprint visibility.",
+      };
+    })();
+
+    return {
+      topLaunch,
+      adaptiveRecommendation,
+      recent: launchHistory.slice(0, 3),
+    };
+  }, [launchHistory, telemetry.criticalFindings, userRole]);
 
   return (
     <AppLayout>
@@ -507,6 +642,7 @@ export function SpecializedPanelsPage() {
                 </div>
                 <Link
                   to={pack.launchPath}
+                  onClick={() => recordLaunch(pack.title, "pack")}
                   className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 transition-colors hover:border-cyan-500/30 hover:text-cyan-300"
                 >
                   Open pack
@@ -514,6 +650,57 @@ export function SpecializedPanelsPage() {
                 </Link>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-50">Adaptive Recommendations</h2>
+              <p className="text-sm text-slate-400">
+                The hub adapts launch guidance from role context, findings pressure, and recent operator behavior.
+              </p>
+            </div>
+            {launchInsights.topLaunch ? (
+              <span className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1 text-xs text-slate-300">
+                Most launched: {launchInsights.topLaunch[0]} ({launchInsights.topLaunch[1]}x)
+              </span>
+            ) : (
+              <span className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1 text-xs text-slate-400">
+                Launch history building
+              </span>
+            )}
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-[1.2fr,0.8fr]">
+            <article className="rounded-xl border border-cyan-500/25 bg-cyan-500/10 p-4">
+              <h3 className="text-sm font-semibold text-cyan-200">Recommended now</h3>
+              <p className="mt-1 text-xs text-cyan-100/90">{launchInsights.adaptiveRecommendation.reason}</p>
+              <Link
+                to={launchInsights.adaptiveRecommendation.path}
+                onClick={() => recordLaunch(launchInsights.adaptiveRecommendation.label, "playbook")}
+                className="mt-3 inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-500/15 px-3 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/25"
+              >
+                Launch {launchInsights.adaptiveRecommendation.label}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </article>
+
+            <article className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+              <h3 className="text-sm font-semibold text-slate-200">Recent launches</h3>
+              <div className="mt-3 space-y-2">
+                {launchInsights.recent.length === 0 ? (
+                  <p className="text-xs text-slate-500">No launches yet in this browser profile.</p>
+                ) : (
+                  launchInsights.recent.map((entry) => (
+                    <div key={entry.id} className="rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-slate-300">
+                      <span className="font-medium text-slate-200">{entry.label}</span>
+                      <span className="ml-2 text-slate-500">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </article>
           </div>
         </section>
 
@@ -610,6 +797,7 @@ export function SpecializedPanelsPage() {
                   <div className="flex flex-wrap gap-2">
                     <Link
                       to={panel.path}
+                      onClick={() => recordLaunch(panel.title, "panel")}
                       className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm font-medium text-slate-100 transition-colors hover:border-cyan-500/40 hover:text-cyan-300"
                     >
                       {panel.primaryAction}
@@ -660,7 +848,7 @@ export function SpecializedPanelsPage() {
             <h2 className="text-lg font-semibold text-slate-50">Roadmap alignment</h2>
             <div className="mt-4 space-y-3 text-sm text-slate-300">
               <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-                Specialized panels foundation: 72%
+                Specialized panels foundation: 79%
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                 Pentest, SOC, bug bounty, and recon surfaces are now grouped into a single
@@ -702,6 +890,7 @@ export function SpecializedPanelsPage() {
                 <p className="mt-2 text-xs text-slate-400">{playbook.description}</p>
                 <Link
                   to={playbook.path}
+                  onClick={() => recordLaunch(playbook.title, "playbook")}
                   className="mt-3 inline-flex items-center gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 transition-colors hover:bg-cyan-500/20"
                 >
                   Launch playbook
