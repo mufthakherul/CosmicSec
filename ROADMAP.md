@@ -127,6 +127,8 @@ Delivered in this iteration:
 - [x] Added API gateway streaming proxy (`POST /api/ai/query/stream`) with stream-safe error propagation and no-cache buffering controls.
 - [x] Upgraded web AI chat experience to consume live stream events and progressively render model/execution output in-session.
 - [x] Added dedicated backend regression test coverage for the AI stream contract.
+- [x] Added bug bounty dashboard overview endpoint with consolidated payout, status, and recent-activity metrics.
+- [x] Upgraded Bug Bounty page with summary cards and a recent activity feed for a more premium operator workflow.
 
 ---
 
