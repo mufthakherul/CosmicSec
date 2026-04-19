@@ -41,7 +41,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Guest Sandbox Operations (W2.3):** **100%**
 
 
-- **Overall roadmap completion:** **94%**
+- **Overall roadmap completion:** **95%**
 - **Phase 2.4 (Plugin trust/signing):** **100%**
 - **Phase 2.1 (CLI↔Webapp task routing):** **100%**
 - **Phase 2.2 (Result aggregation views):** **100%**
@@ -53,7 +53,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Phase 3.4 (Test reliability + quality gates):** **100%**
 
 Delivered in this iteration:
-- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, quick-launch playbooks, live telemetry, advanced personalization controls, and role tool packs (foundation: 72%).
+- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, quick-launch playbooks, live telemetry, advanced personalization controls, and role tool packs (foundation: 79%).
 - [x] Added explicit plugin audit drill-down controls in the admin dashboard so operators can jump directly to plugin and scan records from audit rows.
 - [x] Upgraded timeline event cards with explicit scan/plugin navigation buttons and improved plugin-name inference for plugin execution events.
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
@@ -139,6 +139,7 @@ Delivered in this iteration:
 - [x] Added preset-aware workflow launchers so Panels Hub can preload deep web scan and onion stealth recon profiles from one click.
 - [x] Added live telemetry strip + layout personalization controls (search, compact/cards mode, density) so the hub behaves like an operator cockpit.
 - [x] Added categorized role tool packs and new launcher presets (pentest-fast, soc-triage, osint-surface) to move from panel navigation to role-driven execution starts.
+- [x] Added Red Team, CTF, and Malware role packs with new launcher presets (`redteam-chain`, `ctf-recon`, `malware-surface`) and adaptive recommendation cards driven by role, critical-finding pressure, and recent launch history.
 
 ---
 
