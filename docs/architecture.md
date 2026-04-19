@@ -43,22 +43,7 @@ The architecture supports multiple operation modes:
 
 ---
 
-## Progress Tracking
+## Scope Note
 
-### ✅ What is Already Done
-- Architecture shifted entirely from monolithic mock states to robust microservices.
-- DB-first persistence established (PostgreSQL for 6 major services).
-- CLI Agent ↔ WebApp WebSocket task-result flow via Agent Relay is stable.
-- Centralized frontend API client and API pagination logic.
-
-### 🚧 What Needs to be Implemented
-- **Multi-tenant isolation**: Deepen Casbin RBAC for strict tenant data separation.
-- **Advanced SIEM Sync**: Connect backend events directly to Elastic/Splunk ingestion nodes.
-
-### 🔄 What Needs to be Updated/Modified
-- **Event-Driven Architecture**: Transition more direct HTTP microservice calls to asynchronous Redis/Celery pub-sub models for resilience.
-- **Scaling Configurations**: Add production deployment profiles for autoscaling of Scan and AI services.
-
-### ❌ What Needs to be Removed (Deprecation Phase)
-- **Multiple legacy SIEM stubs**: Removing individual Splunk/Datadog plugins in favor of a unified Integration Service hook.
-- **Legacy DB fallbacks**: Continue reducing non-production fallback paths in favor of consistent Postgres-first flows.
+This file is architecture context only.
+Implementation status, completion percentages, and active gap tracking are maintained in `report.md`, `ROADMAP.md`, and `gap_analysis.md`.

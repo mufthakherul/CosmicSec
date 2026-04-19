@@ -35,28 +35,7 @@ CosmicSec operates on a Hybrid Execution Engine algorithm, capable of seamlessly
 
 ---
 
-## Progress Tracking
+## Scope Note
 
-### ✅ What is Already Done
-- Typer CLI with 15+ sub-apps and local execution engine.
-- Natural language intent parser and hybrid execution engine.
-- Tool registry with WSL-aware fallback for Windows.
-- API Gateway with WebSocket hub for task dispatch.
-- PostgreSQL persistence for findings and agent tasks.
-- AI Service NDJSON streaming endpoint (`/query/stream`).
-- Unified authentication, token refresh, and DB-first persistence.
-
-### 🚧 What Needs to be Implemented
-- **WebSocket-Native Telemetry**: Deeper per-tool execution timing telemetry parity with CLI for the WebApp.
-- **Unified Tool Registry Maturity**: Expand shared registry semantics and routing depth between CLI and WebApp.
-- **Production AI Switchover**: Config-driven LLM selection to switch from Phi3 Mini to Cisco AI.
-
-### 🔄 What Needs to be Updated/Modified
-- **WebApp Execution Loop**: Enhance the WebApp Chat to fully orchestrate arbitrary hacking tools (sqlmap, hydra, metasploit) through server-side HybridEngine logic, rather than just basic scans.
-- **Testing**: Expand frontend edge-case coverage and enforce stricter coverage thresholds. Clean up remaining FastAPI deprecation warnings in backend tests.
-
-### ❌ What Needs to be Removed (Deprecation Phase)
-- **Mobile Companion**: Marked as experimental, default to hardened web dashboard/PWA.
-- **AdminTUI**: Replaced entirely by the web admin panel.
-- **Phase5 SOC**: Replaced by Professional SOC module.
-- **Legacy Webhooks**: Replaced by the Advanced Notification Service (Email + Slack).
+This file explains execution algorithm behavior.
+Roadmap status, remaining gaps, and delivery checkpoints are maintained in `ROADMAP.md`, `report.md`, and `gap_analysis.md`.
