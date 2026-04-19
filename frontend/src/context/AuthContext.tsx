@@ -51,13 +51,16 @@ function clearStoredValue(key: string): void {
 }
 
 function setStoredValue(key: string, value: string, remember: boolean): void {
+  // Keep auth state available to both code paths that read localStorage and
+  // those that read sessionStorage. The remember-me flag still controls the
+  // refresh-token UX, but access to the current session remains consistent.
   if (remember) {
     localStorage.setItem(key, value);
-    sessionStorage.removeItem(key);
+    sessionStorage.setItem(key, value);
     return;
   }
   sessionStorage.setItem(key, value);
-  localStorage.removeItem(key);
+  localStorage.setItem(key, value);
 }
 
 function normalizeUser(user: Partial<AuthUser> | null | undefined): User | null {
