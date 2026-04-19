@@ -164,6 +164,7 @@ Current state: Pages exist for scans/recon/bug bounty but they're data-viewing p
 - Tool Execution from WebApp: Scan service runs actual tools via subprocess but not via natural language
 - Bug bounty workflow: dashboard overview metrics, recent activity, and inline status transitions are now exposed, but external platform sync and SLA analytics remain a next step
 - Plugin audit workflow: admin and timeline drill-down links are now explicit, with scan/plugin navigation intact across audit surfaces
+- Specialized panels workflow: a centralized Panels Hub now exists, but role-specific launchers and deeper execution widgets still need to be expanded
 
 ---
 
@@ -239,7 +240,7 @@ Gap: The WebApp still needs fuller HybridEngine-style server orchestration and u
 |------|---------|--------|-----|
 | CLI Agent | 90% | 100% | Unified registry + deeper per-tool orchestration polish |
 | WebApp Chat (AI Execution) | 80% | 100% | Richer orchestration depth and websocket telemetry still pending |
-| Specialized Tool Panels | 15% | 100% | Need all panels |
+| Specialized Tool Panels | 25% | 100% | Hub foundation is live; role-specific launchers still need expansion |
 | Backend Tests | 85% | 80%+ | Keep deprecation/warning cleanup and CI runtime consistency |
 | Frontend Tests | 85% | 80%+ | Core suite green; continue depth/edge-case expansion |
 | LLM Integration | 78% | 100% | Multi-provider production switchover + deeper executor reasoning loop |
