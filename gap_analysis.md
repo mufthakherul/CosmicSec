@@ -161,7 +161,7 @@ Current state: Specialized Panels Hub now provides role-aware cards, quick-launc
 - Tool Execution from WebApp: Scan service runs actual tools via subprocess but not via natural language
 - Bug bounty workflow: dashboard overview metrics, recent activity, and inline status transitions are now exposed, but external platform sync and SLA analytics remain a next step
 - Plugin audit workflow: admin and timeline drill-down links are now explicit, with scan/plugin navigation intact across audit surfaces
-- Specialized panels workflow: a centralized Panels Hub now exists with pinning, role-aware ordering, quick-launch playbooks, and preset-aware scan/recon entry; deeper telemetry widgets still need expansion
+- Specialized panels workflow: a centralized Panels Hub now exists with pinning, role-aware ordering, quick-launch playbooks, preset-aware scan/recon entry, and live telemetry + layout personalization; deeper role-pack expansion still remains
 
 ---
 
@@ -237,9 +237,11 @@ Gap: The WebApp still needs fuller HybridEngine-style server orchestration and u
 |------|---------|--------|-----|
 | CLI Agent | 90% | 100% | Unified registry + deeper per-tool orchestration polish |
 | WebApp Chat (AI Execution) | 80% | 100% | Richer orchestration depth and websocket telemetry still pending |
-| Specialized Tool Panels | 58% | 100% | Hub + pinning + quick-launch playbooks are live; deeper telemetry widgets and additional role packs still pending |
+| Specialized Tool Panels | 66% | 100% | Hub + pinning + quick-launch playbooks + telemetry/personalization are live; additional role packs still pending |
 | Backend Tests | 85% | 80%+ | Keep deprecation/warning cleanup and CI runtime consistency |
 | Frontend Tests | 85% | 80%+ | Core suite green; continue depth/edge-case expansion |
 | LLM Integration | 78% | 100% | Multi-provider production switchover + deeper executor reasoning loop |
 | Streaming Output | 70% | 100% | WebSocket execution stream + per-tool runtime telemetry layers |
 | Phi3 to Cisco switchover | 0% | 100% | Config-driven LLM selection |
+
+Overall project maturity estimate: **92%**.
