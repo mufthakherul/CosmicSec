@@ -51,6 +51,8 @@ describe("SpecializedPanelsPage", () => {
     expect(screen.getByText(/adaptive recommendations/i)).toBeInTheDocument();
     expect(screen.getByText(/execution timing analytics/i)).toBeInTheDocument();
     expect(screen.getByText(/recommendation confidence/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /everything/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /clear history/i })).toBeInTheDocument();
     expect(screen.getByText((_, element) => element?.textContent === "Role: admin")).toBeInTheDocument();
 
     const pinButton = screen.getAllByRole("button", { name: /^pin$/i })[0];
