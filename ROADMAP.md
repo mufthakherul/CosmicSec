@@ -41,7 +41,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Guest Sandbox Operations (W2.3):** **100%**
 
 
-- **Overall roadmap completion:** **99%**
+- **Overall roadmap completion:** **100%**
 - **Phase 2.4 (Plugin trust/signing):** **100%**
 - **Phase 2.1 (CLI↔Webapp task routing):** **100%**
 - **Phase 2.2 (Result aggregation views):** **100%**
@@ -53,7 +53,10 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Phase 3.4 (Test reliability + quality gates):** **100%**
 
 Delivered in this iteration:
-- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, quick-launch playbooks, live telemetry, advanced personalization controls, role tool packs, persistent favorites, and reset controls (foundation: 95%).
+- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, quick-launch playbooks, live telemetry, advanced personalization controls, role tool packs, persistent favorites, and reset controls (foundation: 100%).
+- [x] Added authenticated websocket-native dashboard telemetry stream with per-tool runtime metrics (`task_runtime`) and live tool inventory snapshots (`tool_inventory`).
+- [x] Added unified CLI+Web tool registry API (`GET /api/tools/registry`) and surfaced it in Panels Hub for real-time server/agent tool availability.
+- [x] Added production provider-switch contract for AI query flows (`preferred_provider`) with Cisco-compatible alias routing via OpenAI-compatible transport.
 - [x] Added explicit plugin audit drill-down controls in the admin dashboard so operators can jump directly to plugin and scan records from audit rows.
 - [x] Upgraded timeline event cards with explicit scan/plugin navigation buttons and improved plugin-name inference for plugin execution events.
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
@@ -513,7 +516,6 @@ Week 11+:  [P5: Docs, Release]
 ## Related Documents
 
 - **[report.md](report.md)** — Detailed analysis of gaps, unnecessary features, and security issues
-- **[docs/ROADMAP_UNIFIED.md](docs/ROADMAP_UNIFIED.md)** — Historical unified roadmap (phases A-V)
 - **[docs/archive/roadmaps/](docs/archive/roadmaps/)** — Archived phase documents (A-J, K-V, CA-1-10)
 
 ---

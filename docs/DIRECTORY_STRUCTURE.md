@@ -179,7 +179,6 @@ CosmicSec/
 │
 ├── 📚 docs/                             # Documentation
 │   ├── DIRECTORY_STRUCTURE.md           # ← this file
-│   ├── ROADMAP_UNIFIED.md               # ✅ CANONICAL roadmap — all future planning goes here
 │   ├── PROJECT_GOAL_AND_PROGRESS.md     # Project goal, progress snapshot, similar-project analysis
 │   ├── DEPLOYMENT_GUIDE.md              # Docker / K8s / Terraform deployment guide
 │   ├── TESTING_GUIDE.md                 # Testing strategy, coverage, CI/CD
@@ -234,9 +233,9 @@ CosmicSec/
 ├── alembic.ini                          # Alembic config
 ├── .env.example                         # Environment variables template
 ├── .pre-commit-config.yaml              # Pre-commit hooks (Ruff, trailing whitespace)
-├── ROADMAP.md                           # Redirect stub → docs/ROADMAP_UNIFIED.md
-├── ROADMAP_NEXT.md                      # Redirect stub → docs/ROADMAP_UNIFIED.md
-├── ROADMAP_CLI_AGENT.md                 # Redirect stub → docs/ROADMAP_UNIFIED.md
+├── ROADMAP.md                           # Active roadmap
+├── ROADMAP_NEXT.md                      # Redirect stub → ROADMAP.md
+├── ROADMAP_CLI_AGENT.md                 # Redirect stub → ROADMAP.md
 ├── README.md                            # Project README
 ├── SECURITY.md                          # Security policy + responsible disclosure
 ├── CONTRIBUTING.md                      # Contribution guidelines

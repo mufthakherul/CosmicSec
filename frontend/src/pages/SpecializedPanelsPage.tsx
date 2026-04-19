@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { useAuth } from "../context/AuthContext";
-import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
+import { getApiGatewayBaseUrl, getApiGatewayWebSocketUrl } from "../api/runtimeEndpoints";
 
 type PanelCategory = "pentest" | "soc" | "bounty" | "recon" | "ai" | "timeline";
 type HubFilter = "all" | PanelCategory | "pinned";
@@ -82,6 +82,38 @@ type HubTelemetry = {
   criticalFindings: number;
   openBugs: number;
   updatedAt: string;
+};
+
+type ToolRuntimeMetric = {
+  tool: string;
+  running: number;
+  completed_24h: number;
+  failed_24h: number;
+  average_progress: number;
+  average_duration_seconds: number | null;
+};
+
+type UnifiedTool = {
+  name: string;
+  category: string;
+  server_available: boolean;
+  agent_available: boolean;
+  agent_count: number;
+  connected_agent_count: number;
+};
+
+type DashboardWsPayload = {
+  active_scans?: number;
+  connected_agents?: number;
+  critical_findings?: number;
+  open_bugs?: number;
+  timestamp?: number;
+  task_runtime?: {
+    tools?: ToolRuntimeMetric[];
+  };
+  tool_inventory?: {
+    items?: string[];
+  };
 };
 
 type LaunchHistoryScope = "all" | LaunchEvent["kind"];
@@ -299,9 +331,14 @@ export function SpecializedPanelsPage() {
     updatedAt: "",
   });
   const [telemetryLoading, setTelemetryLoading] = useState(false);
+  const [telemetryStreamConnected, setTelemetryStreamConnected] = useState(false);
   const [launchHistory, setLaunchHistory] = useState<LaunchEvent[]>([]);
   const [launchHistoryScope, setLaunchHistoryScope] = useState<LaunchHistoryScope>("all");
   const [favoriteToolPackIds, setFavoriteToolPackIds] = useState<string[]>([]);
+  const [toolRuntime, setToolRuntime] = useState<ToolRuntimeMetric[]>([]);
+  const [toolInventory, setToolInventory] = useState<string[]>([]);
+  const [unifiedTools, setUnifiedTools] = useState<UnifiedTool[]>([]);
+  const [unifiedToolsLoading, setUnifiedToolsLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -318,6 +355,49 @@ export function SpecializedPanelsPage() {
     } catch {
       // Ignore malformed preferences.
     }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("cosmicsec_token");
+    if (!token || token.startsWith("demo-preview")) return;
+
+    const wsUrl = getApiGatewayWebSocketUrl(`/ws/dashboard?token=${encodeURIComponent(token)}`);
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      setTelemetryStreamConnected(true);
+    };
+
+    ws.onclose = () => {
+      setTelemetryStreamConnected(false);
+    };
+
+    ws.onerror = () => {
+      setTelemetryStreamConnected(false);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data) as DashboardWsPayload;
+        setTelemetry((current) => ({
+          ...current,
+          activeScans: payload.active_scans ?? current.activeScans,
+          connectedAgents: payload.connected_agents ?? current.connectedAgents,
+          criticalFindings: payload.critical_findings ?? current.criticalFindings,
+          openBugs: payload.open_bugs ?? current.openBugs,
+          updatedAt: payload.timestamp ? new Date(payload.timestamp * 1000).toISOString() : new Date().toISOString(),
+        }));
+
+        setToolRuntime(Array.isArray(payload.task_runtime?.tools) ? payload.task_runtime?.tools : []);
+        setToolInventory(Array.isArray(payload.tool_inventory?.items) ? payload.tool_inventory?.items : []);
+      } catch {
+        // Ignore malformed telemetry messages.
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
   }, []);
 
   useEffect(() => {
@@ -339,6 +419,35 @@ export function SpecializedPanelsPage() {
     } catch {
       // Ignore malformed launch history.
     }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchUnifiedTools = async () => {
+      setUnifiedToolsLoading(true);
+      try {
+        const token = localStorage.getItem("cosmicsec_token");
+        const response = await fetch(`${API}/api/tools/registry`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        if (!response.ok) throw new Error("registry unavailable");
+        const payload = (await response.json()) as { unified_tools?: UnifiedTool[] };
+        if (cancelled) return;
+        setUnifiedTools(Array.isArray(payload.unified_tools) ? payload.unified_tools : []);
+      } catch {
+        if (cancelled) return;
+        setUnifiedTools([]);
+      } finally {
+        if (!cancelled) setUnifiedToolsLoading(false);
+      }
+    };
+
+    void fetchUnifiedTools();
   }, []);
 
   useEffect(() => {
@@ -1062,6 +1171,71 @@ export function SpecializedPanelsPage() {
               </div>
             ))}
           </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+            <span
+              className={`rounded-full border px-2 py-1 ${telemetryStreamConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-amber-500/30 bg-amber-500/10 text-amber-300"}`}
+            >
+              {telemetryStreamConnected ? "Telemetry stream connected" : "Telemetry stream polling fallback"}
+            </span>
+            {toolInventory.length > 0 ? (
+              <span className="rounded-full border border-slate-700 bg-slate-950/80 px-2 py-1">
+                Agent tools seen: {toolInventory.length}
+              </span>
+            ) : null}
+          </div>
+
+          {toolRuntime.length > 0 ? (
+            <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Per-tool runtime telemetry
+              </div>
+              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                {toolRuntime.map((entry) => (
+                  <div key={entry.tool} className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-xs text-slate-300">
+                    <div className="font-semibold uppercase tracking-[0.12em] text-slate-100">{entry.tool}</div>
+                    <div className="mt-1">Running: {entry.running}</div>
+                    <div>Completed (24h): {entry.completed_24h}</div>
+                    <div>Avg progress: {entry.average_progress}%</div>
+                    <div>
+                      Avg duration: {entry.average_duration_seconds === null ? "n/a" : `${entry.average_duration_seconds}s`}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </section>
+
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-slate-50">Unified Tool Registry</h2>
+            <span className="text-xs text-slate-400">
+              {unifiedToolsLoading ? "Loading..." : `${unifiedTools.length} unified tools`}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-slate-400">
+            Merges cloud/server tools with connected CLI-agent manifests so role packs can target real availability.
+          </p>
+          <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {unifiedTools.slice(0, 12).map((tool) => (
+              <div key={tool.name} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold uppercase tracking-[0.12em] text-slate-100">{tool.name}</span>
+                  <span className="rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-slate-300">
+                    {tool.category}
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <span className={`rounded-full border px-2 py-0.5 ${tool.server_available ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-300" : "border-slate-700 bg-slate-900 text-slate-500"}`}>
+                    Server
+                  </span>
+                  <span className={`rounded-full border px-2 py-0.5 ${tool.agent_available ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 bg-slate-900 text-slate-500"}`}>
+                    Agent ({tool.connected_agent_count})
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className={`grid gap-4 ${viewMode === "cards" ? "md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
@@ -1160,15 +1334,15 @@ export function SpecializedPanelsPage() {
             <h2 className="text-lg font-semibold text-slate-50">Roadmap alignment</h2>
             <div className="mt-4 space-y-3 text-sm text-slate-300">
               <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-                Specialized panels foundation: 84%
+                Specialized panels foundation: 100%
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                 Pentest, SOC, bug bounty, and recon surfaces are now grouped into a single
                 operator entry point.
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                Next step: convert the hub into role-aware execution launchers and real-time
-                telemetry widgets.
+                Live telemetry now includes WebSocket stream updates, per-tool runtime insight,
+                and unified server+agent tool inventory.
               </div>
             </div>
           </div>

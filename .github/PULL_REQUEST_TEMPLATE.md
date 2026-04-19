@@ -5,7 +5,7 @@
 Closes #<!-- issue number -->
 
 Roadmap impact:
-- Roadmap wave / phase: <!-- e.g., Wave 2 · W2.1 — from docs/ROADMAP_UNIFIED.md -->
+- Roadmap wave / phase: <!-- e.g., Phase 2.1 — from ROADMAP.md -->
 
 ---
 
