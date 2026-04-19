@@ -150,6 +150,7 @@ Completed in this execution:
 - [x] Added launch-history controls in Panels Hub so operators can scope recent launches by kind and clear local history when needed.
 - [x] Added operator snapshot export in Panels Hub so the current role, recommendation, and launch cadence can be copied for handoff or reporting.
 - [x] Added persistent favorite tool packs in Panels Hub so operators can prioritize their preferred packs and keep the hub ordered around their workflow.
+- [x] Added reset controls in Panels Hub so operators can clear personalization, launch history, and favorites and quickly return the hub to its default state.
 
 ### Key Findings:
 

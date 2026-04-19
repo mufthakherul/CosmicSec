@@ -53,7 +53,7 @@ Transform CosmicSec from a **collection of disconnected modules** into a **unifi
 - **Phase 3.4 (Test reliability + quality gates):** **100%**
 
 Delivered in this iteration:
-- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, quick-launch playbooks, live telemetry, advanced personalization controls, role tool packs, and persistent favorites (foundation: 93%).
+- [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, quick-launch playbooks, live telemetry, advanced personalization controls, role tool packs, persistent favorites, and reset controls (foundation: 95%).
 - [x] Added explicit plugin audit drill-down controls in the admin dashboard so operators can jump directly to plugin and scan records from audit rows.
 - [x] Upgraded timeline event cards with explicit scan/plugin navigation buttons and improved plugin-name inference for plugin execution events.
 - [x] Upgraded dashboard overview API aggregation to compute critical findings from real severity breakdown, 7-day finding totals, scans-today, and live connected-agent counts.
@@ -144,6 +144,7 @@ Delivered in this iteration:
 - [x] Added scoped launch-history controls (everything/panels/playbooks/packs) plus local clear-history support to make the premium hub more operator-friendly and customizable.
 - [x] Added operator snapshot export in Panels Hub so the current role, recommendation, and launch cadence can be copied for handoff or reporting.
 - [x] Added persistent favorite tool packs in Panels Hub so operators can prioritize their preferred packs and keep the hub ordered around their workflow.
+- [x] Added reset controls in Panels Hub so operators can clear personalization, launch history, and favorites and return the hub to defaults.
 
 ---
 
