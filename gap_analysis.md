@@ -234,11 +234,11 @@ Gap: The WebApp still needs fuller HybridEngine-style server orchestration and u
 |------|---------|--------|-----|
 | CLI Agent | 90% | 100% | Unified registry + deeper per-tool orchestration polish |
 | WebApp Chat (AI Execution) | 80% | 100% | Richer orchestration depth and websocket telemetry still pending |
-| Specialized Tool Panels | 90% | 100% | Hub + pinning + quick-launch playbooks + telemetry/personalization + expanded role packs + adaptive recommendations + execution timing analytics + scoped history controls + snapshot export are live; websocket-native per-tool timing telemetry remains |
+| Specialized Tool Panels | 93% | 100% | Hub + pinning + quick-launch playbooks + telemetry/personalization + expanded role packs + adaptive recommendations + execution timing analytics + scoped history controls + snapshot export + persistent favorites are live; websocket-native per-tool timing telemetry remains |
 | Backend Tests | 85% | 80%+ | Keep deprecation/warning cleanup and CI runtime consistency |
 | Frontend Tests | 85% | 80%+ | Core suite green; continue depth/edge-case expansion |
 | LLM Integration | 78% | 100% | Multi-provider production switchover + deeper executor reasoning loop |
 | Streaming Output | 70% | 100% | WebSocket execution stream + per-tool runtime telemetry layers |
 | Phi3 to Cisco switchover | 0% | 100% | Config-driven LLM selection |
 
-Overall project maturity estimate: **98%**.
+Overall project maturity estimate: **99%**.
