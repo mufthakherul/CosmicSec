@@ -26,6 +26,15 @@ vi.mock("../../components/AppLayout", () => ({
 }));
 
 describe("SpecializedPanelsPage", () => {
+  beforeEach(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      value: {
+        writeText: vi.fn(),
+      },
+      configurable: true,
+    });
+  });
+
   it("renders premium operator panels and links", () => {
     render(
       <MemoryRouter>
@@ -53,6 +62,7 @@ describe("SpecializedPanelsPage", () => {
     expect(screen.getByText(/recommendation confidence/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /everything/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /clear history/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /copy snapshot/i })).toBeInTheDocument();
     expect(screen.getByText((_, element) => element?.textContent === "Role: admin")).toBeInTheDocument();
 
     const pinButton = screen.getAllByRole("button", { name: /^pin$/i })[0];

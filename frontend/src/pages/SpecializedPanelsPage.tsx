@@ -85,6 +85,16 @@ type HubTelemetry = {
 
 type LaunchHistoryScope = "all" | LaunchEvent["kind"];
 
+type LaunchDigest = {
+  role: string;
+  recommendation: string;
+  scope: LaunchHistoryScope;
+  recentCount: number;
+  topLaunch: string | null;
+  medianLaunchInterval: string;
+  averageLaunchInterval: string;
+};
+
 const PIN_STORAGE_KEY = "cosmicsec-specialized-panels-pins";
 const VIEW_MODE_STORAGE_KEY = "cosmicsec-specialized-panels-view";
 const DENSITY_STORAGE_KEY = "cosmicsec-specialized-panels-density";
@@ -471,6 +481,20 @@ export function SpecializedPanelsPage() {
   const clearLaunchHistory = () => {
     setLaunchHistory([]);
     localStorage.removeItem(LAUNCH_HISTORY_STORAGE_KEY);
+  };
+
+  const copyLaunchDigest = async () => {
+    const digest: LaunchDigest = {
+      role: userRole,
+      recommendation: launchInsights.adaptiveRecommendation.label,
+      scope: launchHistoryScope,
+      recentCount: scopedLaunchHistory.length,
+      topLaunch: launchInsights.topLaunch ? launchInsights.topLaunch[0] : null,
+      medianLaunchInterval: formatInterval(launchInsights.intervalStats.medianSeconds),
+      averageLaunchInterval: formatInterval(launchInsights.intervalStats.averageSeconds),
+    };
+
+    await navigator.clipboard.writeText(JSON.stringify(digest, null, 2));
   };
 
   const scopedLaunchHistory = useMemo(() => {
@@ -885,6 +909,23 @@ export function SpecializedPanelsPage() {
                 )}
               </div>
             </article>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
+            <div>
+              <div className="font-semibold text-slate-100">Operator snapshot</div>
+              <div className="mt-1 text-slate-400">
+                Copy a compact summary of the current hub state for notes, handoff, or reporting.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void copyLaunchDigest()}
+              className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-3 py-1.5 font-semibold text-cyan-300 transition-colors hover:bg-cyan-500/20"
+            >
+              Copy snapshot
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </div>
         </section>
 
