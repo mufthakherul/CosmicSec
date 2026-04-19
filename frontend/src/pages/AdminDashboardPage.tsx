@@ -170,7 +170,7 @@ export function AdminDashboardPage() {
     }
 
     const wsBase = API.replace(/^http/, "ws") || `ws://${window.location.host}`;
-    const ws = new WebSocket(`${wsBase}/ws/dashboard`);
+    const ws = new WebSocket(`${wsBase}/ws/dashboard?token=${encodeURIComponent(token)}`);
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data) as DashboardSnapshot;

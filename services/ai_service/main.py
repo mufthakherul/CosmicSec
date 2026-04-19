@@ -30,7 +30,7 @@ from .ai_agents import get_exploit_guidance, run_autonomous_agent
 from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
 from .defensive_ai import DefensiveAI
 from .kb_loader import load_all as kb_load_all
-from .llm_providers import OllamaProvider, get_llm_provider, list_available_models
+from .llm_providers import OllamaProvider, OpenAIProvider, get_llm_provider, list_available_models
 from .mitre_attack import map_multiple
 from .prompt_templates import SUMMARY_TEMPLATE
 from .quantum_security import decrypt_payload, encrypt_payload, hybrid_key_exchange, list_algorithms
@@ -84,6 +84,10 @@ class NLQueryRequest(BaseModel):
     source: str | None = Field(default="web", description="Request source channel: web or cli")
     preferred_model: str | None = Field(
         default="phi3:mini", description="Preferred local model for response generation"
+    )
+    preferred_provider: str | None = Field(
+        default=None,
+        description="Preferred provider: ollama, openai, cisco (OpenAI-compatible)",
     )
     enable_model_response: bool = Field(
         default=True, description="Try model generation when local model is available"
@@ -433,7 +437,26 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
 
         return {"kind": kind, "command": command, "target": target_value}
 
-    async def _classify_intent_with_llm(query_text: str, preferred_model: str) -> dict | None:
+    def _resolve_provider(preferred_provider: str | None, preferred_model: str):
+        requested = (preferred_provider or "").strip().lower()
+        if not requested:
+            requested = (_os_module.getenv("COSMICSEC_DEFAULT_LLM_PROVIDER") or "ollama").strip().lower()
+
+        if requested in {"cisco", "cisco_ai", "cisco-ai", "azure_openai", "azure-openai"}:
+            requested = "openai"
+
+        if requested == "openai":
+            openai_model = (_os_module.getenv("OPENAI_MODEL") or "gpt-4o-mini").strip() or "gpt-4o-mini"
+            model = preferred_model if preferred_model and not preferred_model.startswith("phi3") else openai_model
+            return OpenAIProvider(model=model), "openai", model
+
+        # Default local/dev path.
+        model = preferred_model or "phi3:mini"
+        return OllamaProvider(model=model), "ollama", model
+
+    async def _classify_intent_with_llm(
+        query_text: str, preferred_model: str, preferred_provider: str | None
+    ) -> dict | None:
         prompt = (
             "Classify the user request for cybersecurity assistant execution policy. "
             "Return ONLY valid JSON object with fields: kind, command, target. "
@@ -447,7 +470,7 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
         )
 
         try:
-            provider = OllamaProvider(model=preferred_model)
+            provider, _, _ = _resolve_provider(preferred_provider, preferred_model)
             raw = await provider.generate(
                 prompt,
                 system="You are an intent classifier. Return only JSON.",
@@ -461,34 +484,41 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
         except Exception:
             return None
 
-    async def _resolve_model_status(preferred_model: str) -> dict:
-        ollama = OllamaProvider(model=preferred_model)
-        available = await ollama.is_available()
+    async def _resolve_model_status(preferred_model: str, preferred_provider: str | None) -> dict:
+        provider, provider_name, resolved_model = _resolve_provider(preferred_provider, preferred_model)
+        available = await provider.is_available()
         if not available:
             return {
-                "provider": "ollama",
-                "preferred_model": preferred_model,
+                "provider": provider_name,
+                "preferred_model": resolved_model,
                 "active": False,
-                "reason": "Ollama endpoint unavailable",
+                "reason": f"{provider_name} endpoint unavailable",
             }
 
-        try:
-            models = await ollama.list_models()
-        except Exception as exc:
+        if isinstance(provider, OllamaProvider):
+            try:
+                models = await provider.list_models()
+            except Exception as exc:
+                return {
+                    "provider": provider_name,
+                    "preferred_model": resolved_model,
+                    "active": False,
+                    "reason": f"Could not list models: {exc}",
+                }
+
+            names = {str(model.get("name", "")) for model in models}
             return {
-                "provider": "ollama",
-                "preferred_model": preferred_model,
-                "active": False,
-                "reason": f"Could not list models: {exc}",
+                "provider": provider_name,
+                "preferred_model": resolved_model,
+                "active": resolved_model in names,
+                "available_models": sorted(names),
             }
 
-        names = {str(model.get("name", "")) for model in models}
-        has_preferred = preferred_model in names
         return {
-            "provider": "ollama",
-            "preferred_model": preferred_model,
-            "active": has_preferred,
-            "available_models": sorted(names),
+            "provider": provider_name,
+            "preferred_model": resolved_model,
+            "active": True,
+            "available_models": [resolved_model],
         }
 
     async def _execute_server_command(intent: dict, query_text: str) -> dict:
@@ -541,14 +571,19 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
 
     source = _normalize_source(payload.source)
     preferred_model = (payload.preferred_model or "phi3:mini").strip() or "phi3:mini"
+    preferred_provider = (payload.preferred_provider or "").strip().lower() or None
     combined = f"{payload.query} {payload.context or ''}".strip()
 
-    model_status = await _resolve_model_status(preferred_model)
+    model_status = await _resolve_model_status(preferred_model, preferred_provider)
 
     intent_source = "heuristic"
     intent = _classify_intent(payload.query)
     if payload.enable_model_response and model_status.get("active"):
-        llm_intent = await _classify_intent_with_llm(payload.query, preferred_model)
+        llm_intent = await _classify_intent_with_llm(
+            payload.query,
+            preferred_model,
+            preferred_provider,
+        )
         if llm_intent:
             intent = llm_intent
             intent_source = "llm"
@@ -597,9 +632,7 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
     llm_text: str | None = None
     if payload.enable_model_response and model_status.get("active"):
         try:
-            provider = get_llm_provider("ollama")
-            if isinstance(provider, OllamaProvider):
-                provider = OllamaProvider(model=preferred_model)
+            provider, _, _ = _resolve_provider(preferred_provider, preferred_model)
             llm_text = await provider.generate(
                 combined,
                 system="You are CosmicSec AI. Keep answers concise, actionable, and security-focused.",

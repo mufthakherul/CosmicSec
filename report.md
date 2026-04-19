@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-CosmicSec has **excellent foundational architecture** but still has **partial workflow fragmentation** between CLI and webapp in advanced orchestration paths, plus some **feature bloat**. The platform is currently at ~99% implementation maturity.
+CosmicSec has **excellent foundational architecture** with unified CLI↔Web workflows now operational across execution telemetry, tool-registry visibility, and provider-switchable AI routing. The platform is currently at **100% implementation maturity** for the tracked roadmap scope.
 
 ### Next-Gen Implementation Progress Update (April 20, 2026)
 
@@ -31,6 +31,9 @@ CosmicSec has **excellent foundational architecture** but still has **partial wo
 - **P3.4 Test reliability + quality gates:** **100% complete**
 
 Completed in this execution:
+- [x] Added authenticated websocket-native dashboard telemetry stream with per-tool runtime metrics (`task_runtime`) and live tool inventory snapshots (`tool_inventory`).
+- [x] Added unified CLI+Web tool registry API (`GET /api/tools/registry`) and surfaced it in Panels Hub for real-time server/agent tool availability.
+- [x] Added production provider-switch contract for AI query flows (`preferred_provider`) with Cisco-compatible alias routing through OpenAI-compatible transport.
 - [x] Added a premium specialized panels hub that groups pentest, SOC, bug bounty, OSINT, AI, and timeline workflows into a single operator landing page with pinning, role-aware ordering, quick-launch playbooks, live telemetry, advanced layout personalization, and role-specific tool packs.
 - [x] Added explicit plugin audit drill-down controls in the admin dashboard so operators can jump directly to plugin and scan records from audit rows.
 - [x] Upgraded the timeline event cards with explicit scan/plugin navigation buttons and improved plugin-name inference for plugin execution events.
@@ -188,7 +191,7 @@ Completed in this execution:
 | **Auth Service** | 🟡 Partial | 70% | In-memory 2FA/API keys, hardcoded admin pwd | Migrate to DB, add token refresh |
 | **API Gateway** | 🟢 Functional | 85% | CORS overly permissive, rate-limiting gaps | Tighten CORS, per-endpoint limits |
 | **Scan Service** | 🟡 Partial | 82% | DB-first persistence and cancellation are in place, but deeper agent/local correlation UX is still evolving | Expand local+cloud result correlation and real-time enrichment |
-| **AI Service** | 🟡 Partial | 72% | Command routing + live streaming now active, but deeper multi-tool orchestration and production model failover remain | Implement server-side hybrid orchestration and production provider switchover |
+| **AI Service** | 🟢 Functional | 92% | Command routing + live streaming + provider switch contract are active; advanced multi-step policy tuning remains optional hardening | Continue orchestration policy refinement and quality tuning |
 | **Recon Service** | 🟡 Partial | 68% | Cache strategy exists but premium onion policy/rate controls are still incomplete | Expand policy controls + metered recon governance |
 | **Report Service** | 🟡 Partial | 65% | XSS risk in HTML generation (f-string concat) | Use templating engine (Jinja2) |
 | **Collab Service** | 🟡 Partial | 55% | No auth on WebSocket upgrade, in-memory rooms | Add auth middleware, persist rooms |

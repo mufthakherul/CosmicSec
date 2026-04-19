@@ -253,7 +253,13 @@ def get_llm_provider(name: str | None = None) -> LLMProvider:
       3. Use OpenAI if ``OPENAI_API_KEY`` is set, otherwise Ollama
     """
     resolved = name or os.getenv("COSMICSEC_DEFAULT_LLM_PROVIDER") or _auto_detect_provider()
-    match resolved.lower():
+    normalized = resolved.lower()
+    # Cisco-hosted endpoints that expose OpenAI-compatible APIs can use
+    # provider alias "cisco" while reusing the OpenAI provider transport.
+    if normalized in {"cisco", "cisco_ai", "cisco-ai", "azure_openai", "azure-openai"}:
+        normalized = "openai"
+
+    match normalized:
         case "openai":
             return OpenAIProvider()
         case "ollama":

@@ -2,7 +2,7 @@
 
 > ⚠️ **This file has been replaced.** The active roadmap is now in:
 >
-> **[`docs/ROADMAP_UNIFIED.md`](docs/ROADMAP_UNIFIED.md)**
+> **[`ROADMAP.md`](ROADMAP.md)**
 >
 > Historical snapshots of the old CLI agent phases CA-1–CA-10 are preserved in:
 >

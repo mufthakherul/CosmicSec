@@ -32,7 +32,7 @@ AI-native hybrid cybersecurity platform unifying recon, scanning, AI analysis, r
 
 CosmicSec is a **hybrid, AI-powered cybersecurity intelligence platform** that unifies vulnerability scanning, recon, threat analysis, reporting, and team collaboration into a single, modern platform built on microservices.
 
-It serves multiple user modes via a single intelligent gateway — see the full **[Access-Mode Capability Matrix](docs/ROADMAP_UNIFIED.md#2-access-mode-capability-matrix)** for the complete picture:
+It serves multiple user modes via a single intelligent gateway — see the active mode and delivery plan in **[ROADMAP.md](ROADMAP.md)** for the current picture:
 
 | Mode | User | Runs On | Access |
 |------|------|---------|--------|
@@ -314,7 +314,7 @@ CosmicSec/
 
 We welcome contributions from the security community! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting pull requests.
 
-See the **[Unified Roadmap](docs/ROADMAP_UNIFIED.md)** for a breakdown of planned work waves (Wave 1–4) and contribution opportunities.
+See the **[Current Roadmap](ROADMAP.md)** for the active implementation plan and contribution opportunities.
 
 ---
 
