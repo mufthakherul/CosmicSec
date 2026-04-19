@@ -129,6 +129,7 @@ Delivered in this iteration:
 - [x] Added dedicated backend regression test coverage for the AI stream contract.
 - [x] Added bug bounty dashboard overview endpoint with consolidated payout, status, and recent-activity metrics.
 - [x] Upgraded Bug Bounty page with summary cards and a recent activity feed for a more premium operator workflow.
+- [x] Added inline bug bounty submission status transition controls so operators can move reports through the triage lifecycle directly in the UI.
 
 ---
 
