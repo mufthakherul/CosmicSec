@@ -21,6 +21,7 @@ import {
   Shield,
   TerminalSquare,
   Trash2,
+  Star,
   Users,
 } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
@@ -99,6 +100,7 @@ const PIN_STORAGE_KEY = "cosmicsec-specialized-panels-pins";
 const VIEW_MODE_STORAGE_KEY = "cosmicsec-specialized-panels-view";
 const DENSITY_STORAGE_KEY = "cosmicsec-specialized-panels-density";
 const LAUNCH_HISTORY_STORAGE_KEY = "cosmicsec-specialized-panels-launch-history";
+const FAVORITE_PACKS_STORAGE_KEY = "cosmicsec-specialized-panels-favorite-packs";
 const API = getApiGatewayBaseUrl();
 
 const formatInterval = (seconds: number | null) => {
@@ -299,6 +301,7 @@ export function SpecializedPanelsPage() {
   const [telemetryLoading, setTelemetryLoading] = useState(false);
   const [launchHistory, setLaunchHistory] = useState<LaunchEvent[]>([]);
   const [launchHistoryScope, setLaunchHistoryScope] = useState<LaunchHistoryScope>("all");
+  const [favoriteToolPackIds, setFavoriteToolPackIds] = useState<string[]>([]);
 
   useEffect(() => {
     try {
@@ -354,6 +357,23 @@ export function SpecializedPanelsPage() {
     }
   }, []);
 
+  useEffect(() => {
+    try {
+      const rawFavorites = localStorage.getItem(FAVORITE_PACKS_STORAGE_KEY);
+      if (!rawFavorites) return;
+      const parsed = JSON.parse(rawFavorites) as unknown;
+      if (Array.isArray(parsed)) {
+        setFavoriteToolPackIds(
+          parsed.filter((value): value is string =>
+            TOOL_PACKS.some((pack) => pack.id === value),
+          ),
+        );
+      }
+    } catch {
+      // Ignore malformed preferences.
+    }
+  }, []);
+
   const savePins = (nextPinned: PanelCategory[]) => {
     setPinnedPanelIds(nextPinned);
     localStorage.setItem(PIN_STORAGE_KEY, JSON.stringify(nextPinned));
@@ -367,6 +387,15 @@ export function SpecializedPanelsPage() {
   const setAndPersistDensity = (nextDensity: PanelDensity) => {
     setDensity(nextDensity);
     localStorage.setItem(DENSITY_STORAGE_KEY, nextDensity);
+  };
+
+  const toggleFavoriteToolPack = (packId: string) => {
+    const nextFavorites = favoriteToolPackIds.includes(packId)
+      ? favoriteToolPackIds.filter((entry) => entry !== packId)
+      : [packId, ...favoriteToolPackIds].slice(0, 6);
+
+    setFavoriteToolPackIds(nextFavorites);
+    localStorage.setItem(FAVORITE_PACKS_STORAGE_KEY, JSON.stringify(nextFavorites));
   };
 
   useEffect(() => {
@@ -455,6 +484,20 @@ export function SpecializedPanelsPage() {
     () => PANELS.filter((panel) => panel.recommendedFor.includes(userRole)).length,
     [userRole],
   );
+
+  const visibleToolPacks = useMemo(() => {
+    return [...TOOL_PACKS].sort((left, right) => {
+      const leftFavorite = favoriteToolPackIds.includes(left.id) ? 1 : 0;
+      const rightFavorite = favoriteToolPackIds.includes(right.id) ? 1 : 0;
+      if (leftFavorite !== rightFavorite) return rightFavorite - leftFavorite;
+
+      const leftRoleMatch = left.role === userRole ? 1 : 0;
+      const rightRoleMatch = right.role === userRole ? 1 : 0;
+      if (leftRoleMatch !== rightRoleMatch) return rightRoleMatch - leftRoleMatch;
+
+      return TOOL_PACKS.findIndex((pack) => pack.id === left.id) - TOOL_PACKS.findIndex((pack) => pack.id === right.id);
+    });
+  }, [favoriteToolPackIds, userRole]);
 
   const togglePin = (panelId: PanelCategory) => {
     if (pinnedPanelIds.includes(panelId)) {
@@ -733,21 +776,42 @@ export function SpecializedPanelsPage() {
                 Curated tool categories for pentesters, SOC analysts, bounty operators, and OSINT workflows.
               </p>
             </div>
-            <span className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
-              Categorized by role
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+                Categorized by role
+              </span>
+              <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">
+                Favorites: {favoriteToolPackIds.length}
+              </span>
+            </div>
           </div>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {TOOL_PACKS.map((pack) => (
+            {visibleToolPacks.map((pack) => (
               <article key={pack.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-slate-100">{pack.title}</h3>
-                  <span className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-cyan-300">
-                    {pack.role}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      aria-label={favoriteToolPackIds.includes(pack.id) ? `Unfavorite ${pack.title}` : `Favorite ${pack.title}`}
+                      title={favoriteToolPackIds.includes(pack.id) ? "Unfavorite pack" : "Favorite pack"}
+                      onClick={() => toggleFavoriteToolPack(pack.id)}
+                      className={`inline-flex h-7 w-7 items-center justify-center rounded-full border transition-colors ${favoriteToolPackIds.includes(pack.id) ? "border-amber-400/40 bg-amber-500/15 text-amber-300" : "border-slate-700 bg-slate-900 text-slate-500 hover:border-amber-400/30 hover:text-amber-200"}`}
+                    >
+                      <Star className={`h-3.5 w-3.5 ${favoriteToolPackIds.includes(pack.id) ? "fill-current" : ""}`} />
+                    </button>
+                    <span className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-cyan-300">
+                      {pack.role}
+                    </span>
+                  </div>
                 </div>
                 <p className="mt-2 text-xs text-slate-400">{pack.objective}</p>
+                {favoriteToolPackIds.includes(pack.id) ? (
+                  <div className="mt-2 inline-flex rounded-full border border-amber-400/25 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-200">
+                    Favorite
+                  </div>
+                ) : null}
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {pack.tools.map((tool) => (
                     <span key={tool} className="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 text-[11px] text-slate-300">
