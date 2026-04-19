@@ -61,22 +61,7 @@ graph TB
 
 ---
 
-## Progress Tracking
+## Scope Note
 
-### ✅ What is Already Done
-- Core infrastructure deployed via Docker Compose with Traefik Edge Proxy.
-- Segregation of microservices into distinct functional blocks (Scan, AI, Auth, etc.).
-- Robust storage backend migration from in-memory to PostgreSQL and Redis.
-- Bug Bounty and Professional SOC modules established.
-
-### 🚧 What Needs to be Implemented
-- **Cisco AI Integration**: Plug in Cisco AI as the production LLM engine within the AI Service block.
-- **Distributed Tracing**: Implement Jaeger/DataDog across the Microservices for detailed tracing.
-- **Metrics**: Add Prometheus metrics collection endpoints to all microservices.
-
-### 🔄 What Needs to be Updated/Modified
-- **Plugin Registry**: Enhance signing validation mechanics to enforce role-scoped visibility and execution blocks dynamically at the API Gateway level.
-
-### ❌ What Needs to be Removed (Deprecation Phase)
-- **Legacy in-memory fallbacks**: Continue tightening production paths around persistent storage and explicit degraded-mode handling.
-- **Legacy admin UX paths**: Keep converging on web-admin-first workflows and retire unused legacy surfaces over time.
+This file is a component visualization aid.
+Do not use it as a source of implementation status; use `ROADMAP.md`, `report.md`, and `gap_analysis.md`.

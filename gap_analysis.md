@@ -88,6 +88,7 @@ The previously tracked blocking gaps are now implemented for the current roadmap
 - AI chat command execution path is active end-to-end through `/api/ai/query` and `/api/ai/query/stream`, including progressive command result events.
 - WebSocket-native execution telemetry is active on `/ws/dashboard`, including per-tool runtime metrics (`task_runtime`) and live tool inventory (`tool_inventory`).
 - Unified CLI+Web tool registry is active on `GET /api/tools/registry` and surfaced in the Specialized Panels Hub.
+- Guest sandbox read-only operations are active on `/api/guest/health`, `/api/guest/dns`, `/api/guest/whois`, and `/api/guest/cve` with strict per-IP rate limiting.
 - Server-side command routing includes the expanded command roster (`nmap_scan`, `nikto_scan`, `nuclei_scan`, `sqlmap_scan`, `gobuster_scan`, `hydra_audit`, `metasploit_check`, `hashcat_audit`).
 - Production LLM provider switching is now explicit via `preferred_provider` and `COSMICSEC_DEFAULT_LLM_PROVIDER`, with Cisco-compatible alias routing via OpenAI-compatible transport.
 

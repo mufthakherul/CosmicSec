@@ -51,21 +51,7 @@ stateDiagram-v2
 
 ---
 
-## Progress Tracking
+## Scope Note
 
-### ✅ What is Already Done
-- Fully implemented API Gateway as the central HybridRouter.
-- Connected CLI Agent via WebSocket to Agent Relay.
-- Working task dispatch flow (Pending -> Running -> Completed).
-- Asynchronous task streaming via NDJSON.
-- Integration between Scan Service and local agent results.
-
-### 🚧 What Needs to be Implemented
-- **Unified Tool Registry Routing**: Ensure API Gateway can intelligently route tasks to either the WebApp Server or CLI agent depending on tool availability in the shared registry.
-- **Deeper WebSocket-Native Progress Indicators**: Expand live percentage and per-tool timing telemetry to match CLI depth.
-
-### 🔄 What Needs to be Updated/Modified
-- **AI Service Intent Routing**: Enhance the AI service to trigger all forms of tools directly into the Task Lifecycle, not just basic scans.
-
-### ❌ What Needs to be Removed (Deprecation Phase)
-- **Direct Webhooks**: Deprecated in favor of the notification service handling all webhooks internally.
+This file documents execution flow only.
+Implementation status and gaps are tracked in `report.md`, `ROADMAP.md`, and `gap_analysis.md`.

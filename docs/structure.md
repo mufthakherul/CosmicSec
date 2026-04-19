@@ -42,22 +42,7 @@ CosmicSec/
 
 ---
 
-## Progress Tracking
+## Scope Note
 
-### ✅ What is Already Done
-- Repository modularized into explicit domains (`frontend`, `services`, `cli`, `infrastructure`).
-- `services/common/` expanded with `startup.py`, `error_handling.py`, and `request_middleware.py`.
-- Shared `models.py` unified across all Python microservices.
-- Removed legacy test files and consolidated test suites into `tests/` and service-specific directories.
-
-### 🚧 What Needs to be Implemented
-- **SDK Parity**: Bring Python and Go SDKs up to the exact feature set of the TypeScript SDK.
-- **Rust Ingest Pipeline**: Finalize the `ingest/` folder logic for processing high-volume nmap XML logs at wire speed.
-
-### 🔄 What Needs to be Updated/Modified
-- **Tests Structure**: Migrate all scattered tests directly into `tests/` to prevent path resolution errors during pytest execution.
-- **Frontend Components**: Break down massive page files (e.g., `AIChatPage.tsx`) into smaller, domain-driven components.
-
-### ❌ What Needs to be Removed (Deprecation Phase)
-- **Legacy SOC naming references**: Keep older Phase5 naming retired in favor of `services/professional_soc_service/`.
-- **Mobile app stubs**: Keep mobile as experimental until feature parity and product readiness are confirmed.
+This file provides a quick structural overview.
+Canonical repository mapping and status tracking remain in `docs/DIRECTORY_STRUCTURE.md`, `ROADMAP.md`, `report.md`, and `gap_analysis.md`.
