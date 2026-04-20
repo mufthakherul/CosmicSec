@@ -670,7 +670,9 @@ export function BugBountyPage() {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            disabled={updatingSubmissionId === sub.id || selectedStatus === sub.status}
+                            disabled={
+                              updatingSubmissionId === sub.id || selectedStatus === sub.status
+                            }
                             onClick={() => void updateSubmissionStatus(sub)}
                             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-slate-950 transition-colors hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
                           >

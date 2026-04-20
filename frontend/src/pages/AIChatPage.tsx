@@ -160,10 +160,7 @@ export function AIChatPage() {
     return blocks.join("\n\n");
   };
 
-  const applyStreamEvent = (
-    current: AIQueryResponse,
-    event: AIStreamEvent,
-  ): AIQueryResponse => {
+  const applyStreamEvent = (current: AIQueryResponse, event: AIStreamEvent): AIQueryResponse => {
     if (event.type === "final" && event.payload) {
       return event.payload;
     }
