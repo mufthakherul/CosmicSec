@@ -64,7 +64,7 @@ jobs:
           npx --yes license-checker-rseidelsohn --production --json --start frontend > .artifacts/frontend-licenses.json
 
       - name: Upload license reports
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: dependency-license-reports
           path: .artifacts/*licenses.json
