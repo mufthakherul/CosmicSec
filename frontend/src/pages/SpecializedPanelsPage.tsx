@@ -429,7 +429,7 @@ export function SpecializedPanelsPage() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
+    const cancelled = false;
 
     const fetchUnifiedTools = async () => {
       setUnifiedToolsLoading(true);

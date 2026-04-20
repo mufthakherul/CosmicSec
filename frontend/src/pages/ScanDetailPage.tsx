@@ -244,26 +244,16 @@ export function ScanDetailPage() {
     }
   };
 
-  if (!scan) {
-    return (
-      <AppLayout>
-        <div className="flex flex-col items-center justify-center gap-4 py-24 text-slate-500">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
-          <p className="text-sm">Loading scan details…</p>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  const criticalCount = scan.findings.filter((f) => f.severity === "critical").length;
-  const highCount = scan.findings.filter((f) => f.severity === "high").length;
+  const findings = scan?.findings ?? [];
+  const criticalCount = findings.filter((f) => f.severity === "critical").length;
+  const highCount = findings.filter((f) => f.severity === "high").length;
   const severitySummary = useMemo(() => {
     const counts = {
-      critical: scan.findings.filter((f) => f.severity === "critical").length,
-      high: scan.findings.filter((f) => f.severity === "high").length,
-      medium: scan.findings.filter((f) => f.severity === "medium").length,
-      low: scan.findings.filter((f) => f.severity === "low").length,
-      info: scan.findings.filter((f) => f.severity === "info").length,
+      critical: findings.filter((f) => f.severity === "critical").length,
+      high: findings.filter((f) => f.severity === "high").length,
+      medium: findings.filter((f) => f.severity === "medium").length,
+      low: findings.filter((f) => f.severity === "low").length,
+      info: findings.filter((f) => f.severity === "info").length,
     };
     const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
     const weightedRisk = counts.critical * 5 + counts.high * 3 + counts.medium * 2 + counts.low;
@@ -285,8 +275,19 @@ export function ScanDetailPage() {
             : "No immediate remediation required";
 
     return { counts, total, weightedRisk, posture, focus };
-  }, [scan.findings]);
-  const isRunning = scan.status === "running";
+  }, [findings]);
+  const isRunning = scan?.status === "running";
+
+  if (!scan) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center gap-4 py-24 text-slate-500">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
+          <p className="text-sm">Loading scan details…</p>
+        </div>
+      </AppLayout>
+    );
+  }
   return (
     <AppLayout>
       <div className="space-y-6">
