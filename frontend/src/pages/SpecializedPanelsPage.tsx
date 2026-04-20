@@ -169,7 +169,8 @@ const PANELS: PanelCard[] = [
   {
     id: "bounty",
     title: "Bug Bounty Desk",
-    description: "Track programs, submissions, payouts, and triage actions with operator-grade context.",
+    description:
+      "Track programs, submissions, payouts, and triage actions with operator-grade context.",
     path: "/bugbounty",
     icon: Bug,
     accent: "from-rose-500/20 to-orange-500/10 border-rose-500/20",
@@ -385,11 +386,17 @@ export function SpecializedPanelsPage() {
           connectedAgents: payload.connected_agents ?? current.connectedAgents,
           criticalFindings: payload.critical_findings ?? current.criticalFindings,
           openBugs: payload.open_bugs ?? current.openBugs,
-          updatedAt: payload.timestamp ? new Date(payload.timestamp * 1000).toISOString() : new Date().toISOString(),
+          updatedAt: payload.timestamp
+            ? new Date(payload.timestamp * 1000).toISOString()
+            : new Date().toISOString(),
         }));
 
-        setToolRuntime(Array.isArray(payload.task_runtime?.tools) ? payload.task_runtime?.tools : []);
-        setToolInventory(Array.isArray(payload.tool_inventory?.items) ? payload.tool_inventory?.items : []);
+        setToolRuntime(
+          Array.isArray(payload.task_runtime?.tools) ? payload.task_runtime?.tools : [],
+        );
+        setToolInventory(
+          Array.isArray(payload.tool_inventory?.items) ? payload.tool_inventory?.items : [],
+        );
       } catch {
         // Ignore malformed telemetry messages.
       }
@@ -473,9 +480,7 @@ export function SpecializedPanelsPage() {
       const parsed = JSON.parse(rawFavorites) as unknown;
       if (Array.isArray(parsed)) {
         setFavoriteToolPackIds(
-          parsed.filter((value): value is string =>
-            TOOL_PACKS.some((pack) => pack.id === value),
-          ),
+          parsed.filter((value): value is string => TOOL_PACKS.some((pack) => pack.id === value)),
         );
       }
     } catch {
@@ -586,7 +591,10 @@ export function SpecializedPanelsPage() {
       const rightRecommended = right.recommendedFor.includes(userRole) ? 1 : 0;
       if (leftRecommended !== rightRecommended) return rightRecommended - leftRecommended;
 
-      return PANELS.findIndex((panel) => panel.id === left.id) - PANELS.findIndex((panel) => panel.id === right.id);
+      return (
+        PANELS.findIndex((panel) => panel.id === left.id) -
+        PANELS.findIndex((panel) => panel.id === right.id)
+      );
     });
 
     return ordered.filter((panel) => {
@@ -619,7 +627,10 @@ export function SpecializedPanelsPage() {
       const rightRoleMatch = right.role === userRole ? 1 : 0;
       if (leftRoleMatch !== rightRoleMatch) return rightRoleMatch - leftRoleMatch;
 
-      return TOOL_PACKS.findIndex((pack) => pack.id === left.id) - TOOL_PACKS.findIndex((pack) => pack.id === right.id);
+      return (
+        TOOL_PACKS.findIndex((pack) => pack.id === left.id) -
+        TOOL_PACKS.findIndex((pack) => pack.id === right.id)
+      );
     });
   }, [favoriteToolPackIds, userRole]);
 
@@ -815,9 +826,14 @@ export function SpecializedPanelsPage() {
                 { label: "Premium paths", value: "4" },
                 { label: "Drill-downs", value: "8" },
               ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3"
+                >
                   <div className="text-2xl font-semibold text-slate-100">{item.value}</div>
-                  <div className="mt-1 uppercase tracking-[0.18em] text-slate-500">{item.label}</div>
+                  <div className="mt-1 uppercase tracking-[0.18em] text-slate-500">
+                    {item.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -883,7 +899,9 @@ export function SpecializedPanelsPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setAndPersistDensity(density === "comfortable" ? "dense" : "comfortable")}
+                onClick={() =>
+                  setAndPersistDensity(density === "comfortable" ? "dense" : "comfortable")
+                }
                 className="rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1.5 text-xs font-semibold text-slate-300"
               >
                 Density: {density === "comfortable" ? "Comfort" : "Dense"}
@@ -905,7 +923,8 @@ export function SpecializedPanelsPage() {
             <div>
               <h2 className="text-lg font-semibold text-slate-50">Role Tool Packs</h2>
               <p className="text-sm text-slate-400">
-                Curated tool categories for pentesters, SOC analysts, bounty operators, and OSINT workflows.
+                Curated tool categories for pentesters, SOC analysts, bounty operators, and OSINT
+                workflows.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -920,18 +939,29 @@ export function SpecializedPanelsPage() {
 
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {visibleToolPacks.map((pack) => (
-              <article key={pack.id} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+              <article
+                key={pack.id}
+                className="rounded-xl border border-slate-800 bg-slate-950/70 p-4"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-slate-100">{pack.title}</h3>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      aria-label={favoriteToolPackIds.includes(pack.id) ? `Unfavorite ${pack.title}` : `Favorite ${pack.title}`}
-                      title={favoriteToolPackIds.includes(pack.id) ? "Unfavorite pack" : "Favorite pack"}
+                      aria-label={
+                        favoriteToolPackIds.includes(pack.id)
+                          ? `Unfavorite ${pack.title}`
+                          : `Favorite ${pack.title}`
+                      }
+                      title={
+                        favoriteToolPackIds.includes(pack.id) ? "Unfavorite pack" : "Favorite pack"
+                      }
                       onClick={() => toggleFavoriteToolPack(pack.id)}
                       className={`inline-flex h-7 w-7 items-center justify-center rounded-full border transition-colors ${favoriteToolPackIds.includes(pack.id) ? "border-amber-400/40 bg-amber-500/15 text-amber-300" : "border-slate-700 bg-slate-900 text-slate-500 hover:border-amber-400/30 hover:text-amber-200"}`}
                     >
-                      <Star className={`h-3.5 w-3.5 ${favoriteToolPackIds.includes(pack.id) ? "fill-current" : ""}`} />
+                      <Star
+                        className={`h-3.5 w-3.5 ${favoriteToolPackIds.includes(pack.id) ? "fill-current" : ""}`}
+                      />
                     </button>
                     <span className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-cyan-300">
                       {pack.role}
@@ -946,7 +976,10 @@ export function SpecializedPanelsPage() {
                 ) : null}
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {pack.tools.map((tool) => (
-                    <span key={tool} className="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 text-[11px] text-slate-300">
+                    <span
+                      key={tool}
+                      className="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 text-[11px] text-slate-300"
+                    >
                       {tool}
                     </span>
                   ))}
@@ -1020,13 +1053,22 @@ export function SpecializedPanelsPage() {
 
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
-              Panels launches: <span className="font-semibold text-slate-100">{launchInsights.launchByKind.panel}</span>
+              Panels launches:{" "}
+              <span className="font-semibold text-slate-100">
+                {launchInsights.launchByKind.panel}
+              </span>
             </div>
             <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
-              Playbook launches: <span className="font-semibold text-slate-100">{launchInsights.launchByKind.playbook}</span>
+              Playbook launches:{" "}
+              <span className="font-semibold text-slate-100">
+                {launchInsights.launchByKind.playbook}
+              </span>
             </div>
             <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
-              Pack launches: <span className="font-semibold text-slate-100">{launchInsights.launchByKind.pack}</span>
+              Pack launches:{" "}
+              <span className="font-semibold text-slate-100">
+                {launchInsights.launchByKind.pack}
+              </span>
             </div>
           </div>
         </section>
@@ -1036,7 +1078,8 @@ export function SpecializedPanelsPage() {
             <div>
               <h2 className="text-lg font-semibold text-slate-50">Adaptive Recommendations</h2>
               <p className="text-sm text-slate-400">
-                The hub adapts launch guidance from role context, findings pressure, and recent operator behavior.
+                The hub adapts launch guidance from role context, findings pressure, and recent
+                operator behavior.
               </p>
             </div>
             {launchInsights.topLaunch ? (
@@ -1053,10 +1096,14 @@ export function SpecializedPanelsPage() {
           <div className="mt-4 grid gap-4 md:grid-cols-[1.2fr,0.8fr]">
             <article className="rounded-xl border border-cyan-500/25 bg-cyan-500/10 p-4">
               <h3 className="text-sm font-semibold text-cyan-200">Recommended now</h3>
-              <p className="mt-1 text-xs text-cyan-100/90">{launchInsights.adaptiveRecommendation.reason}</p>
+              <p className="mt-1 text-xs text-cyan-100/90">
+                {launchInsights.adaptiveRecommendation.reason}
+              </p>
               <Link
                 to={launchInsights.adaptiveRecommendation.path}
-                onClick={() => recordLaunch(launchInsights.adaptiveRecommendation.label, "playbook")}
+                onClick={() =>
+                  recordLaunch(launchInsights.adaptiveRecommendation.label, "playbook")
+                }
                 className="mt-3 inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-500/15 px-3 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/25"
               >
                 Launch {launchInsights.adaptiveRecommendation.label}
@@ -1096,10 +1143,15 @@ export function SpecializedPanelsPage() {
                   <p className="text-xs text-slate-500">No launches yet in this browser profile.</p>
                 ) : (
                   scopedLaunchHistory.slice(0, 5).map((entry) => (
-                    <div key={entry.id} className="rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-slate-300">
+                    <div
+                      key={entry.id}
+                      className="rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-slate-300"
+                    >
                       <span className="font-medium text-slate-200">{entry.label}</span>
                       <span className="ml-2 text-slate-500 capitalize">{entry.kind}</span>
-                      <span className="ml-2 text-slate-500">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                      <span className="ml-2 text-slate-500">
+                        {new Date(entry.timestamp).toLocaleTimeString()}
+                      </span>
                     </div>
                   ))
                 )}
@@ -1175,7 +1227,9 @@ export function SpecializedPanelsPage() {
             <span
               className={`rounded-full border px-2 py-1 ${telemetryStreamConnected ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-amber-500/30 bg-amber-500/10 text-amber-300"}`}
             >
-              {telemetryStreamConnected ? "Telemetry stream connected" : "Telemetry stream polling fallback"}
+              {telemetryStreamConnected
+                ? "Telemetry stream connected"
+                : "Telemetry stream polling fallback"}
             </span>
             {toolInventory.length > 0 ? (
               <span className="rounded-full border border-slate-700 bg-slate-950/80 px-2 py-1">
@@ -1191,13 +1245,21 @@ export function SpecializedPanelsPage() {
               </div>
               <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
                 {toolRuntime.map((entry) => (
-                  <div key={entry.tool} className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-xs text-slate-300">
-                    <div className="font-semibold uppercase tracking-[0.12em] text-slate-100">{entry.tool}</div>
+                  <div
+                    key={entry.tool}
+                    className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-xs text-slate-300"
+                  >
+                    <div className="font-semibold uppercase tracking-[0.12em] text-slate-100">
+                      {entry.tool}
+                    </div>
                     <div className="mt-1">Running: {entry.running}</div>
                     <div>Completed (24h): {entry.completed_24h}</div>
                     <div>Avg progress: {entry.average_progress}%</div>
                     <div>
-                      Avg duration: {entry.average_duration_seconds === null ? "n/a" : `${entry.average_duration_seconds}s`}
+                      Avg duration:{" "}
+                      {entry.average_duration_seconds === null
+                        ? "n/a"
+                        : `${entry.average_duration_seconds}s`}
                     </div>
                   </div>
                 ))}
@@ -1214,22 +1276,32 @@ export function SpecializedPanelsPage() {
             </span>
           </div>
           <p className="mt-1 text-xs text-slate-400">
-            Merges cloud/server tools with connected CLI-agent manifests so role packs can target real availability.
+            Merges cloud/server tools with connected CLI-agent manifests so role packs can target
+            real availability.
           </p>
           <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             {unifiedTools.slice(0, 12).map((tool) => (
-              <div key={tool.name} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
+              <div
+                key={tool.name}
+                className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300"
+              >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold uppercase tracking-[0.12em] text-slate-100">{tool.name}</span>
+                  <span className="font-semibold uppercase tracking-[0.12em] text-slate-100">
+                    {tool.name}
+                  </span>
                   <span className="rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-slate-300">
                     {tool.category}
                   </span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1">
-                  <span className={`rounded-full border px-2 py-0.5 ${tool.server_available ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-300" : "border-slate-700 bg-slate-900 text-slate-500"}`}>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 ${tool.server_available ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-300" : "border-slate-700 bg-slate-900 text-slate-500"}`}
+                  >
                     Server
                   </span>
-                  <span className={`rounded-full border px-2 py-0.5 ${tool.agent_available ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 bg-slate-900 text-slate-500"}`}>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 ${tool.agent_available ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-slate-700 bg-slate-900 text-slate-500"}`}
+                  >
                     Agent ({tool.connected_agent_count})
                   </span>
                 </div>
@@ -1238,7 +1310,9 @@ export function SpecializedPanelsPage() {
           </div>
         </section>
 
-        <section className={`grid gap-4 ${viewMode === "cards" ? "md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
+        <section
+          className={`grid gap-4 ${viewMode === "cards" ? "md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}
+        >
           {visiblePanels.map((panel) => {
             const Icon = panel.icon;
             const pinned = pinnedPanelIds.includes(panel.id);
@@ -1276,7 +1350,9 @@ export function SpecializedPanelsPage() {
                 </ul>
 
                 {compactMode && panel.bullets.length > visibleBullets.length ? (
-                  <p className="mt-2 text-xs text-slate-400">+{panel.bullets.length - visibleBullets.length} more capabilities</p>
+                  <p className="mt-2 text-xs text-slate-400">
+                    +{panel.bullets.length - visibleBullets.length} more capabilities
+                  </p>
                 ) : null}
 
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
@@ -1323,7 +1399,10 @@ export function SpecializedPanelsPage() {
                 "Bug bounty analysts stay inside submissions, payouts, and timelines.",
                 "Recon users keep OSINT, Tor, and evidence collection close together.",
               ].map((line) => (
-                <div key={line} className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-sm text-slate-300">
+                <div
+                  key={line}
+                  className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-sm text-slate-300"
+                >
                   {line}
                 </div>
               ))}
@@ -1337,12 +1416,12 @@ export function SpecializedPanelsPage() {
                 Specialized panels foundation: 100%
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                Pentest, SOC, bug bounty, and recon surfaces are now grouped into a single
-                operator entry point.
+                Pentest, SOC, bug bounty, and recon surfaces are now grouped into a single operator
+                entry point.
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                Live telemetry now includes WebSocket stream updates, per-tool runtime insight,
-                and unified server+agent tool inventory.
+                Live telemetry now includes WebSocket stream updates, per-tool runtime insight, and
+                unified server+agent tool inventory.
               </div>
             </div>
           </div>
