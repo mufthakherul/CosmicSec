@@ -27,11 +27,11 @@ type RouteCheck = {
 const GATEWAY_ROUTE_CHECKS = [
   "/health",
   "/api/docs",
-  "/api/scans",
-  "/api/recon",
-  "/api/reports",
-  "/api/ai/analyze",
-  "/api/bugbounty/programs",
+  "/api/status",
+  "/api/dashboard/summary",
+  "/api/dashboard/overview",
+  "/api/runtime/readiness",
+  "/api/tools/registry",
 ] as const;
 
 async function checkRoute(baseUrl: string, route: string): Promise<RouteCheck> {
