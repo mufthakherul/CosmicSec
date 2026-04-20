@@ -7,8 +7,8 @@ Phase S.1: Redis caching for analysis results (1 hour TTL) and MITRE mappings (2
 """
 
 import contextlib
-import json
 import hashlib
+import json
 import json as _json_module
 import logging
 import os as _os_module
@@ -30,7 +30,7 @@ from .ai_agents import get_exploit_guidance, run_autonomous_agent
 from .anomaly_detector import batch_detect, detect_anomaly, fit_global_baseline
 from .defensive_ai import DefensiveAI
 from .kb_loader import load_all as kb_load_all
-from .llm_providers import OllamaProvider, OpenAIProvider, get_llm_provider, list_available_models
+from .llm_providers import OllamaProvider, OpenAIProvider, list_available_models
 from .mitre_attack import map_multiple
 from .prompt_templates import SUMMARY_TEMPLATE
 from .quantum_security import decrypt_payload, encrypt_payload, hybrid_key_exchange, list_algorithms
@@ -440,14 +440,22 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
     def _resolve_provider(preferred_provider: str | None, preferred_model: str):
         requested = (preferred_provider or "").strip().lower()
         if not requested:
-            requested = (_os_module.getenv("COSMICSEC_DEFAULT_LLM_PROVIDER") or "ollama").strip().lower()
+            requested = (
+                (_os_module.getenv("COSMICSEC_DEFAULT_LLM_PROVIDER") or "ollama").strip().lower()
+            )
 
         if requested in {"cisco", "cisco_ai", "cisco-ai", "azure_openai", "azure-openai"}:
             requested = "openai"
 
         if requested == "openai":
-            openai_model = (_os_module.getenv("OPENAI_MODEL") or "gpt-4o-mini").strip() or "gpt-4o-mini"
-            model = preferred_model if preferred_model and not preferred_model.startswith("phi3") else openai_model
+            openai_model = (
+                _os_module.getenv("OPENAI_MODEL") or "gpt-4o-mini"
+            ).strip() or "gpt-4o-mini"
+            model = (
+                preferred_model
+                if preferred_model and not preferred_model.startswith("phi3")
+                else openai_model
+            )
             return OpenAIProvider(model=model), "openai", model
 
         # Default local/dev path.
@@ -485,7 +493,9 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
             return None
 
     async def _resolve_model_status(preferred_model: str, preferred_provider: str | None) -> dict:
-        provider, provider_name, resolved_model = _resolve_provider(preferred_provider, preferred_model)
+        provider, provider_name, resolved_model = _resolve_provider(
+            preferred_provider, preferred_model
+        )
         available = await provider.is_available()
         if not available:
             return {
@@ -535,7 +545,9 @@ async def natural_language_query(payload: NLQueryRequest) -> dict:
                     if command in command_tool_hints:
                         hinted_scan_types = command_tool_hints[command].get("scan_types")
                         if isinstance(hinted_scan_types, list) and hinted_scan_types:
-                            inferred_scan_types = [str(scan_type) for scan_type in hinted_scan_types]
+                            inferred_scan_types = [
+                                str(scan_type) for scan_type in hinted_scan_types
+                            ]
                     scan_payload = {
                         "target": target,
                         "scan_types": inferred_scan_types,
@@ -675,7 +687,9 @@ async def natural_language_query_stream(payload: NLQueryRequest) -> StreamingRes
             "timestamp": datetime.now(tz=UTC).isoformat(),
         }
 
-        yield (json.dumps({"type": "status", "message": "Analyzing request...", **base_event}) + "\n").encode("utf-8")
+        yield (
+            json.dumps({"type": "status", "message": "Analyzing request...", **base_event}) + "\n"
+        ).encode("utf-8")
 
         result = await natural_language_query(payload)
 
