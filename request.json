@@ -1,0 +1,1 @@
+{"query": "Give 3 quick security hardening tips for a small web app", "source": "web", "preferred_provider": "ollama", "preferred_model": "qwen2.5:0.5b", "enable_model_response": true}
