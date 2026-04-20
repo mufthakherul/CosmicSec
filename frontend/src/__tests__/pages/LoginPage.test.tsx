@@ -66,8 +66,8 @@ describe("LoginPage", () => {
 
   it("submits credentials and redirects on success", async () => {
     vi.mocked(api.auth.login).mockResolvedValueOnce({
-        token: "jwt-token",
-        user: { id: "u1", email: "user@cosmicsec.dev", full_name: "User One", role: "user" },
+      token: "jwt-token",
+      user: { id: "u1", email: "user@cosmicsec.dev", full_name: "User One", role: "user" },
     });
 
     renderPage();
@@ -90,9 +90,7 @@ describe("LoginPage", () => {
   });
 
   it("shows API error details on failed login", async () => {
-    vi.mocked(api.auth.login).mockRejectedValueOnce(
-      new AxiosError("Invalid credentials"),
-    );
+    vi.mocked(api.auth.login).mockRejectedValueOnce(new AxiosError("Invalid credentials"));
 
     renderPage();
     fireEvent.change(screen.getByLabelText(/email address/i), {
