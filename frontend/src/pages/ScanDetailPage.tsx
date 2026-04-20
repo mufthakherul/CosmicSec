@@ -215,6 +215,9 @@ export function ScanDetailPage() {
   };
 
   const handleCancel = async () => {
+    if (!id || !scan) {
+      return;
+    }
     try {
       const token = localStorage.getItem("cosmicsec_token");
       const res = await fetch(`${API}/api/scans/${id}/cancel`, {

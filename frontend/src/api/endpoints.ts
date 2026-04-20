@@ -8,10 +8,16 @@ import client from "./client";
 
 /* ---------- Types ---------- */
 export interface AuthResponse {
-  access_token: string;
+  access_token?: string;
   refresh_token?: string;
-  token_type: string;
+  token_type?: string;
   expires_in?: number;
+  token?: string;
+  temp_token?: string;
+  requires_2fa?: boolean;
+  message?: string;
+  session_id?: string;
+  preview_user?: { email?: string; role?: string };
   user?: { id: string; email: string; full_name: string; role: string };
 }
 

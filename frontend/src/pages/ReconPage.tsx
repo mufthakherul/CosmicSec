@@ -5,6 +5,7 @@ import { AppLayout } from "../components/AppLayout";
 import {
   shouldUseTorForTarget,
   useNetworkPreferencesStore,
+  type TorMode,
 } from "../store/networkPreferencesStore";
 import { useNotificationStore } from "../store/notificationStore";
 import { getApiGatewayBaseUrl } from "../api/runtimeEndpoints";
@@ -140,6 +141,11 @@ export function ReconPage() {
   const addNotification = useNotificationStore((s) => s.addNotification);
   const activeRequestRef = useRef<AbortController | null>(null);
   const requestTimeoutRef = useRef<number | null>(null);
+  const presetTorMode: Record<string, TorMode> = {
+    always: "enabled",
+    smart: "auto",
+    never: "disabled",
+  };
 
   const clearActiveRequest = () => {
     if (requestTimeoutRef.current !== null) {
@@ -165,7 +171,7 @@ export function ReconPage() {
       setUseProxyPool(true);
       setRotateIdentity(true);
       setClientProfile("desktop_firefox");
-      setTorMode("always");
+      setTorMode(presetTorMode.always);
       setTarget((current) => current || "exampleonion.org");
       return;
     }
@@ -175,7 +181,7 @@ export function ReconPage() {
       setUseProxyPool(false);
       setRotateIdentity(false);
       setClientProfile("desktop_chrome");
-      setTorMode("smart");
+      setTorMode(presetTorMode.smart);
       setTarget((current) => current || "example.com");
       return;
     }
@@ -185,7 +191,7 @@ export function ReconPage() {
       setUseProxyPool(false);
       setRotateIdentity(false);
       setClientProfile("desktop_chrome");
-      setTorMode("never");
+      setTorMode(presetTorMode.never);
       setTarget((current) => current || "ctf-target.local");
     }
   }, [searchParams, setTorMode]);

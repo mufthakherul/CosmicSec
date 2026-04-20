@@ -61,6 +61,11 @@ interface FindingsSnapshot {
   latestLabel: string;
 }
 
+type FindingsSeverityKey = keyof Pick<
+  FindingsSnapshot,
+  "critical" | "high" | "medium" | "low" | "info"
+>;
+
 // ---------------------------------------------------------------------------
 // Empty defaults used until authenticated API data loads
 // ---------------------------------------------------------------------------
@@ -148,9 +153,9 @@ const ACTIVITY_COLOR: Record<string, string> = {
   report: "text-blue-400 bg-blue-500/10",
 };
 
-const SEVERITY_ORDER: Array<keyof FindingsSnapshot> = ["critical", "high", "medium", "low", "info"];
+const SEVERITY_ORDER: FindingsSeverityKey[] = ["critical", "high", "medium", "low", "info"];
 
-function pickSeverityColor(severity: keyof FindingsSnapshot): string {
+function pickSeverityColor(severity: FindingsSeverityKey): string {
   switch (severity) {
     case "critical":
       return "bg-rose-500";
@@ -165,7 +170,7 @@ function pickSeverityColor(severity: keyof FindingsSnapshot): string {
   }
 }
 
-function buildTrendSlots(point: FindingsTrendPoint): Array<keyof FindingsSnapshot | null> {
+function buildTrendSlots(point: FindingsTrendPoint): Array<FindingsSeverityKey | null> {
   const total = Object.values(point.severity_breakdown).reduce((sum, value) => sum + value, 0);
   const slotCount = 12;
 

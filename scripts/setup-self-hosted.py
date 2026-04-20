@@ -563,26 +563,26 @@ upstream cosmicsec_backend {
 server {
     listen 80;
     server_name _;
-    
+
     client_max_body_size 100M;
-    
+
     location / {
         proxy_pass http://cosmicsec_backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        
+
         # WebSocket support
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        
+
         proxy_buffering off;
         proxy_read_timeout 3600s;
         proxy_send_timeout 3600s;
     }
-    
+
     location /health {
         access_log off;
         proxy_pass http://cosmicsec_backend;
@@ -611,13 +611,13 @@ def main():
 Examples:
   # Setup with local IP
   python scripts/setup-self-hosted.py
-  
+
   # Setup with specific IP
   python scripts/setup-self-hosted.py --ip 192.168.1.100
-  
+
   # Setup with custom port
   python scripts/setup-self-hosted.py --port 9000
-  
+
   # Setup with domain and SSL
   python scripts/setup-self-hosted.py --domain cosmicsec.example.com --enable-ssl
         """,
@@ -644,11 +644,11 @@ Examples:
     print()
     print(f"{Colors.BOLD}{Colors.CYAN}")
     print(r"""
-     _____ _____ _____ _____ _____ _____ _____ 
+    _____ _____ _____ _____ _____ _____ _____
     |     |     |  |  |     |  |  |     |  _  |
     |     |_____| ___ |_____|-   -|_____| ____|
     |_____| --- | ---   --- |       |__  | ____)
-    
+
     CosmicSec Self-Hosted Setup
     """)
     print(f"{Colors.ENDC}")

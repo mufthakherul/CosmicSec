@@ -309,7 +309,7 @@ def create_scans(db: Session) -> list[str]:
     ]
     types = ["quick", "full", "custom", "quick", "full", "custom", "quick", "full", "quick", "full"]
 
-    for i, (target, status, scan_type) in enumerate(zip(SAMPLE_TARGETS, statuses, types)):
+    for i, (target, status, scan_type) in enumerate(zip(SAMPLE_TARGETS, statuses, types, strict=True)):
         scan_id = f"scan-demo-{i + 1:03d}"
         existing = db.query(ScanModel).filter_by(id=scan_id).first()
         if existing:

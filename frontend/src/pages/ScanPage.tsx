@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Radar, Clock, CheckCircle, AlertCircle, Loader2, Play } from "lucide-react";
+import { Radar, Clock, CheckCircle, AlertCircle, Loader2, PauseCircle, Play } from "lucide-react";
 import { AppLayout } from "../components/AppLayout";
 import { Pagination } from "../components/Pagination";
 import { useScanStore, type Scan, type ScanStatus } from "../store/scanStore";
@@ -38,6 +38,11 @@ const STATUS_BADGE: Record<
     icon: CheckCircle,
   },
   failed: { label: "Failed", className: "bg-rose-500/20 text-rose-400", icon: AlertCircle },
+  cancelled: {
+    label: "Cancelled",
+    className: "bg-slate-500/20 text-slate-300",
+    icon: PauseCircle,
+  },
 };
 
 const SOURCE_BADGE: Record<string, string> = {
