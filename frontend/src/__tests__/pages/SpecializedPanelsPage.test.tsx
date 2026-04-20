@@ -66,19 +66,29 @@ describe("SpecializedPanelsPage", () => {
     expect(screen.getByRole("button", { name: /clear history/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /copy snapshot/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /reset hub/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /favorite pentest burst pack/i })).toBeInTheDocument();
-    expect(screen.getByText((_, element) => element?.textContent === "Role: admin")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /favorite pentest burst pack/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((_, element) => element?.textContent === "Role: admin"),
+    ).toBeInTheDocument();
 
     const pinButton = screen.getAllByRole("button", { name: /^pin$/i })[0];
     fireEvent.click(pinButton);
     expect(screen.getByRole("button", { name: /^unpin$/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /favorite pentest burst pack/i }));
-    expect(screen.getByRole("button", { name: /unfavorite pentest burst pack/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /unfavorite pentest burst pack/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/^favorite$/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /reset hub/i }));
-    expect(screen.getByRole("button", { name: /favorite pentest burst pack/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /unfavorite pentest burst pack/i })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /favorite pentest burst pack/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /unfavorite pentest burst pack/i }),
+    ).not.toBeInTheDocument();
   });
 });

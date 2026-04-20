@@ -111,9 +111,7 @@ describe("SettingsPage", () => {
     vi.mocked(client.post).mockResolvedValueOnce({ data: {} });
     renderPage();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /require two-factor authentication/i }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /require two-factor authentication/i }));
 
     await waitFor(() => {
       expect(client.post).toHaveBeenCalledWith("/api/auth/2fa/enable");
