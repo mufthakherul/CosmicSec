@@ -102,7 +102,7 @@ anyio>=4.13.0
 # Utils
 schedule
 tabulate
-python-dateutil>=2.8.0
+python-dateutil>=2.9.0.post0
 
 # SBOM Generation
 cyclonedx-bom>=7.3.0
