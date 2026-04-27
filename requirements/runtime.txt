@@ -87,7 +87,7 @@ jinja2>=3.1.6
 
 # Data validation and serialization
 marshmallow>=4.3.0
-simplejson>=3.20.2
+simplejson>=4.1.1
 
 # Advanced error handling
 sentry-sdk>=2.58.0
